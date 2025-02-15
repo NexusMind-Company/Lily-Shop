@@ -21,7 +21,7 @@ Lily Shop is an online platform that allows anyone to create their own virtual s
 
 - React (Vite) ⚡
 - React Router 🛣️
-- Zustand (State Management) 🗄️
+- Tailwind CSS 🗄️
 
 ### **Backend** (Planned)
 
@@ -83,7 +83,7 @@ Lily Shop is a startup project, and contributions are currently limited to appro
 
 ## 📩 Contact
 
-For inquiries, partnerships, or contribution requests: 📧 Email: [your-email@example.com](mailto:your-email@example.com)
+For inquiries, partnerships, or contribution requests: 📧 Email: [your-email@gmail.com](mailto:your-email@gmail.com)
 
 ---
 
