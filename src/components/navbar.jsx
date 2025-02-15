@@ -1,22 +1,41 @@
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
-const navbar = () => {
+const Navbar = () => {
+  const location = useLocation();
+
   return (
-    <nav className="flex items-center justify-between px-7 w-full relative bottom-0 mt-10">
+    <nav className="flex items-center justify-between px-7 w-full relative bottom-10 mt-20">
       <Link to="/" className="flex flex-col items-center">
-        <img src="home.svg" alt="home-icon" />
+        <img
+          src={location.pathname === "/" ? "home-active.svg" : "home.svg"}
+          alt="home-icon"
+        />
         <p>Home</p>
       </Link>
       <Link to="/createShop" className="flex flex-col items-center">
-        <img src="shop-active.svg" alt="shop-icon" />
+        <img
+          src={
+            location.pathname === "/createShop"
+              ? "shop-active.svg"
+              : "shop.svg"
+          }
+          alt="shop-icon"
+        />
         <p>My Shop</p>
       </Link>
-      <Link className="flex flex-col items-center">
-        <img src="settings.svg" alt="settings-icon" />
+      <Link to="/settings" className="flex flex-col items-center">
+        <img
+          src={
+            location.pathname === "/settings"
+              ? "settings-active.svg"
+              : "settings.svg"
+          }
+          alt="settings-icon"
+        />
         <p>Settings</p>
       </Link>
     </nav>
   );
 };
 
-export default navbar;
+export default Navbar;

@@ -1,11 +1,12 @@
+import { Link } from "react-router";
 import productData from "../information/productData";
 
-const productCard = () => {
+const ProductCard = () => {
   return (
     <section className="mt-[40px] flex flex-col px-7 gap-7 md:items-center md:justify-center">
       <div className="rounded-2xl border border-black h-[70px] min-w-10/12 max-w-[362px] flex items-center justify-center">
         <h1 className="text-xl/[30px] font-normal font-poppins">
-          Welcome to <span className="text-[#4EB75E]">Lily Shop</span>
+          Welcome to <span className="text-lily">Lily Shop</span>
         </h1>
       </div>
       <div className="flex flex-col items-start justify-start gap-3">
@@ -36,9 +37,11 @@ const productCard = () => {
                   <li className="text-[9px]/[10.89px] font-normal">
                     {product.address}
                   </li>
-                  <button className=" text-[8px]/[9.68px] underline">
-                    View Prices
-                  </button>
+                  <Link to={`/product/${product.id}`}>
+                    <button className=" text-[8px]/[9.68px] underline">
+                      View Prices
+                    </button>
+                  </Link>
                 </ul>
               </div>
             );
@@ -49,4 +52,4 @@ const productCard = () => {
   );
 };
 
-export default productCard;
+export default ProductCard;

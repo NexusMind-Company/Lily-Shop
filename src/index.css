@@ -16,15 +16,21 @@ body {
 
 @layer components {
   .label {
-    @apply absolute top-4 left-2 transform -translate-y-1/2 px-2 font-inter font-medium text-xs;
+    @apply absolute top-4 left-8 transform -translate-y-1/2 px-2 text-ash font-inter font-medium text-xs;
   }
 
   .input {
     @apply w-full border-black border pt-4 h-14 px-4 rounded-[7px];
+  }
+
+  .bLabel {
+    @apply text-black font-inter font-medium text-xs/[14.52px] mb-2;
   }
 }
 
 @theme {
   --font-inter: Inter, sans-serif;
   --font-poppins: Poppins, sans-serif;
+  --color-ash: #898585;
+  --color-lily: #4EB75E;
 }
