@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+body {
+  @apply bg-[#FFFAE7]
+}
+
+@layer components {
+  .label {
+    @apply absolute top-4 left-2 transform -translate-y-1/2 px-2 font-inter font-medium text-xs;
+  }
+
+  .input {
+    @apply w-full border-black border pt-4 h-14 px-4 rounded-[7px];
+  }
+}
+
+@theme {
+  --font-inter: Inter, sans-serif;
+  --font-poppins: Poppins, sans-serif;
+}
