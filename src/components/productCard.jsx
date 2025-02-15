@@ -14,12 +14,12 @@ const productCard = () => {
           <br />
           <span className="h-2 w-2 bg-red-900"></span>
         </h2>
-        <div className="flex items-center justify-start overflow-x-auto whitespace-nowrap gap-5">
+        <div className="flex items-center justify-start overflow-x-auto whitespace-nowrap gap-5 w-full">
           {productData.map((product) => {
             return (
               <div
                 key={product.id}
-                className="flex flex-col gap-5 flex-shrink-0 h-80 text-wrap"
+                className="flex flex-col gap-5 flex-shrink-0 w-[160px] h-80 text-wrap"
               >
                 <img
                   className="rounded-lg h-[188px] w-[141px]"
@@ -27,14 +27,18 @@ const productCard = () => {
                   alt={product.name}
                 />
                 <ul className="border-l-2 border-[#F6AD6D] pl-1.5 font-inter">
-                  <li className="text-[13px]/[19.5px] text-[#4EB75E] font-bold font-poppins uppercase">{product.name}</li>
+                  <li className="text-[13px]/[19.5px] text-[#4EB75E] font-bold font-poppins uppercase">
+                    {product.name}
+                  </li>
                   <li className="text-[9px]/[10.89px] font-extralight">
                     {product.shortDescription}
                   </li>
                   <li className="text-[9px]/[10.89px] font-normal">
                     {product.address}
                   </li>
-                  <button className=" text-[8px]/[9.68px] underline">View Prices</button>
+                  <button className=" text-[8px]/[9.68px] underline">
+                    View Prices
+                  </button>
                 </ul>
               </div>
             );
