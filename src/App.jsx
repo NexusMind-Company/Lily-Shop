@@ -1,6 +1,7 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
+import Footer from "./components/footer";
 import CreateShop from "./pages/createShop";
 import ProductDetails from "./pages/productDetails";
 import { BrowserRouter as Router, Route, Routes } from "react-router";
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
       </Routes>
       <Nav />
+      <Footer />
     </Router>
   );
 }

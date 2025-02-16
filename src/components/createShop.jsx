@@ -20,6 +20,7 @@ const CreateShop = () => {
 
   return (
     <section className="mt-10 flex flex-col gap-7 items-center justify-center">
+      {/* Header */}
       <div className="px-7 w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-poppins">
@@ -28,19 +29,22 @@ const CreateShop = () => {
         </div>
       </div>
 
+      {/* Form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full flex flex-col gap-5"
       >
         {/* Title */}
         <div className="flex flex-col relative px-7">
+          <label htmlFor="title" className="label">
+            Title
+          </label>
           <input
+            id="title"
             className="input"
             type="text"
-            {...register("title", { required: true })}
-            placeholder=" "
+            {...register("title", { required: true, maxLength: 50 })}
           />
-          <label className="label">Title</label>
           {errors.title && (
             <span className="text-red-500 text-sm">Title is required</span>
           )}
@@ -48,24 +52,28 @@ const CreateShop = () => {
 
         {/* Address */}
         <div className="flex flex-col relative px-7">
+          <label htmlFor="address" className="label">
+            Address
+          </label>
           <input
+            id="address"
             className="input"
             type="text"
-            {...register("address", { required: true })}
-            placeholder=" "
+            {...register("address", { required: true, maxLength: 100 })}
           />
-          <label className="label">Address</label>
         </div>
 
         {/* Phone */}
         <div className="flex flex-col relative px-7">
+          <label htmlFor="phone" className="label">
+            Phone
+          </label>
           <input
+            id="phone"
             className="input"
-            type="number"
+            type="tel"
             {...register("phone", { required: true })}
-            placeholder=" "
           />
-          <label className="label">Phone</label>
         </div>
 
         {/* Short Description */}
@@ -95,7 +103,6 @@ const CreateShop = () => {
             id="media-upload"
             {...register("media")}
           />
-          <label className="label top-12">Display Photo</label>
           <label
             htmlFor="media-upload"
             className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
@@ -111,28 +118,37 @@ const CreateShop = () => {
           <h2 className="text-base font-semibold px-7">Products</h2>
           {products.map((_, index) => (
             <div key={index} className="flex flex-col gap-2 px-7">
-              <input
-                className="input"
-                type="text"
-                {...register(`products[${index}].name`, { required: true })}
-              />
-              <input
-                className="input"
-                type="text"
-                {...register(`products[${index}].price`, { required: true })}
-              />
+              {/* Product Name */}
+              <div className="flex flex-col relative gap-1">
+                <label className="label left-1">Name</label>
+                <input
+                  className="input"
+                  type="text"
+                  {...register(`products[${index}].name`, { required: true })}
+                />
+              </div>
 
-              {/* Product Photos */}
+              {/* Product Price */}
+              <div className="flex flex-col relative gap-1">
+                <label className="label left-1">Price</label>
+                <input
+                  className="input"
+                  type="text"
+                  {...register(`products[${index}].price`, { required: true })}
+                />
+              </div>
+
+              {/* Product Photo */}
               <div className="flex flex-col relative gap-1">
                 <input
                   className="input hidden"
                   type="file"
-                  id={`product-file-${index}`}
-                  {...register(`products[${index}].file`, { required: true })}
+                  id={`product-photo-${index}`}
+                  {...register(`products[${index}].photo`, { required: true })}
                 />
-                <label className="label left-1">Products Photo</label>
+                <label className="label left-1">Product Photo</label>
                 <label
-                  htmlFor={`product-file-${index}`}
+                  htmlFor={`product-photo-${index}`}
                   className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
                 >
                   <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
@@ -141,17 +157,17 @@ const CreateShop = () => {
                 </label>
               </div>
 
-              {/* Product Videos */}
+              {/* Product Video */}
               <div className="flex flex-col relative gap-1">
                 <input
                   className="input hidden"
                   type="file"
-                  id={`product-file-${index}`}
-                  {...register(`products[${index}].file`, { required: true })}
+                  id={`product-video-${index}`}
+                  {...register(`products[${index}].video`, { required: true })}
                 />
-                <label className="label left-1">Products Videos</label>
+                <label className="label left-1">Product Video</label>
                 <label
-                  htmlFor={`product-file-${index}`}
+                  htmlFor={`product-video-${index}`}
                   className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
                 >
                   <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
@@ -162,10 +178,12 @@ const CreateShop = () => {
             </div>
           ))}
         </div>
+
+        {/* Add Product Button */}
         <button
           type="button"
           onClick={handleAddProduct}
-          className="bg-gray-800 mx-7 text-white px-4 py-2 rounded-md"
+          className="bg-gray-800 mx-7 my-4 text-white px-4 py-2 rounded-md"
         >
           Add Product
         </button>
@@ -199,12 +217,12 @@ const CreateShop = () => {
           />
         </div>
 
-        {/* Discard & Create field */}
+        {/* Discard & Create Buttons */}
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
-          <button type="submit" className="bg-ash text-white py-2 w-[105px]">
+          <button type="button" className="bg-ash text-white py-2 w-[105px] cursor-pointer">
             Discard
           </button>
-          <button type="submit" className="bg-white text-black py-2 w-[105px]">
+          <button type="submit" className="bg-white text-black py-2 w-[105px] cursor-pointer">
             Save & Deploy
           </button>
         </div>
