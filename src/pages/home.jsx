@@ -1,4 +1,4 @@
-import ProductCard from "../components/productCard"
+import ProductCard from "../components/home/productCard"
 
 const home = () => {
   return (

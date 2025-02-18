@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-const CreateShop = () => {
+const CreateForm = () => {
   const {
     register,
     handleSubmit,
@@ -219,10 +219,16 @@ const CreateShop = () => {
 
         {/* Discard & Create Buttons */}
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
-          <button type="button" className="bg-ash text-white py-2 w-[105px] cursor-pointer">
+          <button
+            type="button"
+            className="bg-ash text-white py-2 w-[105px] cursor-pointer"
+          >
             Discard
           </button>
-          <button type="submit" className="bg-white text-black py-2 w-[105px] cursor-pointer">
+          <button
+            type="submit"
+            className="bg-white text-black py-2 w-[105px] cursor-pointer"
+          >
             Save & Deploy
           </button>
         </div>
@@ -231,4 +237,4 @@ const CreateShop = () => {
   );
 };
 
-export default CreateShop;
+export default CreateForm;

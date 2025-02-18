@@ -8,9 +8,15 @@ const header = () => {
           Lily Shop
         </h1>
       </Link>
-      <button className="cursor-pointer">
-        <img src="/search.svg" alt="search-button" />
-      </button>
+
+      <div className="flex items-center space-x-4">
+        <button className="cursor-pointer">
+          <img src="/search.svg" alt="search-button" />
+        </button>
+        <button to="/login" className="cursor-pointer">
+          <img src="/icon.svg" alt="icon" />
+        </button>
+      </div>
 
       {/* Search Bar */}
       <form className="absolute w-full hidden">
@@ -25,6 +31,16 @@ const header = () => {
           </button>
         </div>
       </form>
+
+      {/*Dropdown Menu*/}
+      <ul className="absolute top-14 w-40 right-2 rounded-xl bg-white p-2.5">
+        <li className="border-b">
+          <Link to="/purchaseAds">Purchase Ads</Link>
+        </li>
+        <li>
+          <Link to="/login">Sign In</Link>
+        </li>
+      </ul>
     </header>
   );
 };
