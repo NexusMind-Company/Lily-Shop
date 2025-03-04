@@ -12,6 +12,7 @@ import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import Step2 from "./components/ads/step2";
 import Step3 from "./components/ads/step3";
+import Chat from './components/Chat/Chat'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/step2" element={<Step2 />} />
         <Route path="/step3" element={<Step3 />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
       <Nav />
       <Footer />
