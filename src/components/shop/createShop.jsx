@@ -23,7 +23,7 @@ const createShop = () => {
       </div>
 
       <div>
-        <Link className="font-inter font-semibold text-xs flex items-center gap-1">
+        <Link to="/createForm" className="font-inter font-semibold text-xs flex items-center gap-1">
           Create New
           <img src="/addition.svg" alt="addition-icon" />
         </Link>
