@@ -1,6 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 const header = () => {
+
+  const [toggleUser, setToggleUser] = useState(false);
+
+  const handleToggle = () => {
+    setToggleUser((prevState) => !prevState);
+  }
+
   return (
     <header className="flex place-items-center justify-between h-16 px-7 shadow shadow-[#00000040]">
       <Link to="/">
@@ -13,7 +21,7 @@ const header = () => {
         <button className="cursor-pointer">
           <img src="/search.svg" alt="search-button" />
         </button>
-        <button to="/login" className="cursor-pointer">
+        <button to="/login" className="cursor-pointer" onClick={handleToggle}>
           <img src="/icon.svg" alt="icon" />
         </button>
       </div>
@@ -33,14 +41,17 @@ const header = () => {
       </form>
 
       {/*Dropdown Menu*/}
-      <ul className="absolute top-14 w-40 right-2 rounded-xl bg-white p-2.5">
-        <li className="border-b">
-          <Link to="/purchaseAds">Purchase Ads</Link>
-        </li>
-        <li>
-          <Link to="/login">Sign In</Link>
-        </li>
-      </ul>
+      {
+        toggleUser ? (<ul className="absolute top-14 w-40 right-2 rounded-xl bg-white p-2.5 transition duration-[0.5s] ease-in-out">
+          <li className="border-b" onClick={handleToggle}>
+            <Link to="/purchaseAds">Purchase Ads</Link>
+          </li>
+          <li onClick={handleToggle}>
+            <Link to="/login">Sign In</Link>
+          </li>
+        </ul>) : ''
+      }
+
     </header>
   );
 };
