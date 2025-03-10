@@ -1,7 +1,7 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-import Footer from "./components/footer";
+
 import CreateShop from "./pages/createShop";
 import CreateForm from "./pages/createForm";
 import ProductDetails from "./pages/productDetails";
@@ -36,7 +36,6 @@ export default function App() {
         />
       </Routes>
       <Nav />
-      <Footer />
-    </Router>
+          </Router>
   );
 }
