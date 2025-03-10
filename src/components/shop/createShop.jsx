@@ -13,7 +13,7 @@ const CreateShop = () => {
     <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="rounded-2xl border border-black h-[70px] w-full flex items-center justify-center">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-normal font-poppins">
+        <h1 className="text-xl font-normal font-poppins">
           Create <span className="text-lily">Shop</span>
         </h1>
       </div>
@@ -41,7 +41,11 @@ const CreateShop = () => {
             className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
           >
             Create New
-            <img src="/addition.svg" alt="addition-icon" className="w-4 md:w-5" />
+            <img
+              src="/addition.svg"
+              alt="addition-icon"
+              className="w-4 md:w-5"
+            />
           </Link>
         </div>
       ) : (

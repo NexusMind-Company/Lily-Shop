@@ -4,7 +4,7 @@ const Settings = () => {
       {/* Header */}
       <div className="px-7 w-full ">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
-          <h1 className="text-xl md:text-2xl font-poppins">Settings</h1>
+          <h1 className="text-xl font-normal font-poppins">Settings</h1>
         </div>
       </div>
 

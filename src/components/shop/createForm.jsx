@@ -24,7 +24,7 @@ const CreateForm = () => {
       {/* Header */}
       <div className="px-7 w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
-          <h1 className="text-xl font-poppins">
+          <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Shop</span>
           </h1>
         </div>

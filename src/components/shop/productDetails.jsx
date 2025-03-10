@@ -13,7 +13,7 @@ const ProductDetails = () => {
     <section className="mt-10 pb-10 flex flex-col items-center justify-center px-7 max-w-5xl mx-auto">
       {/* Product Title */}
       <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
-        <h1 className="text-xl font-poppins">{product.name}</h1>
+        <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
       </div>
 
       {/* Product Image */}

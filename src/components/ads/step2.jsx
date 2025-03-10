@@ -12,7 +12,7 @@ const Step2 = () => {
   };
 
   return (
-    <section className="mt-10 pb-24 px-5 flex flex-col gap-7 max-w-3xl mx-auto">
+    <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-black h-[70px] flex items-center justify-center">
