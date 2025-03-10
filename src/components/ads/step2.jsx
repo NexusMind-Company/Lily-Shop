@@ -1,55 +1,42 @@
-import { useNavigate } from "react-router";
-
 const Step2 = () => {
-  const navigate = useNavigate();
+  // Your Paystack payment link
+  const paystackLink = "https://paystack.com/pay/4pqaf6-w2v";
+
+  const handlePayment = () => {
+    // Option 1: Navigate user to payment page in same window
+    window.location.href = paystackLink;
+
+    // OR Option 2: Open payment page in new tab
+    // window.open(paystackLink, "_blank");
+  };
 
   return (
-    <section className="min-h-screen p-5 flex flex-col gap-10">
+    <section className="mt-10 pb-24 p-5 flex flex-col gap-7 justify-evenly">
       <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-black h-[70px] md:w-full flex items-center justify-center">
-          <h1 className="text-xl/[30px] font-normal font-poppins">
+          <h1 className="text-xl/[30px] font-normal">
             Purchase <span className="text-lily">Ads</span>
           </h1>
         </div>
 
-        <p className="text-gray-500 text-sm mt-2">STEP 2 OF 3</p>
+        <p className="text-gray-500 text-sm mt-2">STEP 2 OF 2</p>
 
-        <h3 className="font-semibold text-lg">Payment Method</h3>
-        <p className="text-sm text-gray-600">Pay with Debit or Credit Card</p>
+        <p className="border-b border-black pb-4 font-medium text-black">
+          Payment
+        </p>
 
-        {/* Payment Form */}
-        <form className="mt-5 space-y-4">
-          <input
-            type="text"
-            placeholder="Card Number"
-            className="w-full border p-3 rounded-lg"
-          />
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="MM"
-              className="w-1/3 border p-3 rounded-lg"
-            />
-            <input
-              type="text"
-              placeholder="YY"
-              className="w-1/3 border p-3 rounded-lg"
-            />
-            <input
-              type="text"
-              placeholder="CVC"
-              className="w-1/3 border p-3 rounded-lg"
-            />
-          </div>
-        </form>
+        <div className="flex justify-between font-inter font-medium text-sm border p-4 border-black rounded-md">
+          <p>Amount (NGN)</p>
+          <p>5000</p>
+        </div>
       </div>
 
-      {/* Continue Button */}
+      {/* Paystack Payment Button */}
       <button
-        onClick={() => navigate("/step3")}
-        className="w-full bg-sun text-white py-3 rounded-lg font-medium font-inter text-base"
+        onClick={handlePayment}
+        className="w-full bg-sun text-black py-3 font-medium font-inter text-base"
       >
-        Continue
+        Pay with Paystack
       </button>
     </section>
   );

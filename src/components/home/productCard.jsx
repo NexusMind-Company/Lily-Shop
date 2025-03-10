@@ -14,38 +14,38 @@ const ProductCard = () => {
           <span className="border-b-2 border-sun">For Y</span>ou
           <br />
         </h2>
-        <div className="flex items-center justify-start overflow-x-auto whitespace-nowrap gap-5 w-full">
-          {productData.map((product) => {
-            return (
-              <div
-                key={product.id}
-                className="flex flex-col gap-5 flex-shrink-0 w-[160px] h-80 text-wrap"
-              >
-                <img
-                  className="rounded-lg h-[188px] w-[141px]"
-                  src={product.image}
-                  alt={product.name}
-                />
-                <ul className="border-l-2 border-sun pl-1.5 font-inter">
-                  <li className="text-[13px]/[19.5px] text-[#4EB75E] font-bold font-poppins uppercase">
-                    {product.name}
-                  </li>
-                  <li className="text-[9px]/[10.89px] font-extralight">
-                    {product.shortDescription}
-                  </li>
-                  <li className="text-[9px]/[10.89px] font-normal">
-                    {product.address}
-                  </li>
-                  <Link to={`/product/${product.id}`}>
-                    <button className=" text-[8px]/[9.68px] underline">
-                      View Prices
-                    </button>
-                  </Link>
-                </ul>
-              </div>
-            );
-          })}
-        </div>
+        <div className="flex justify-center w-full">
+  <div className="grid grid-cols-2 gap-5 place-items-center w-full max-w-xs sm:max-w-md">
+    {productData.map((product) => (
+      <Link
+        to={`/product/${product.id}`}
+        key={product.id}
+        className="flex flex-col gap-5 w-full text-wrap"
+      >
+        <img
+          className="rounded-lg h-[188px] w-full"
+          src={product.image}
+          alt={product.name}
+        />
+        <ul className="border-l-2 border-sun pl-1.5 font-inter">
+          <li className="text-[13px]/[19.5px] text-[#4EB75E] font-bold font-poppins uppercase">
+            {product.name}
+          </li>
+          <li className="text-[9px]/[10.89px] font-extralight">
+            {product.shortDescription}
+          </li>
+          <li className="text-[9px]/[10.89px] font-normal">
+            {product.address}
+          </li>
+          <button className=" text-[8px]/[9.68px] underline">
+            View Prices
+          </button>
+        </ul>
+      </Link>
+    ))}
+  </div>
+</div>
+
       </div>
     </section>
   );

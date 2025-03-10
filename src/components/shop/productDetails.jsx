@@ -22,17 +22,13 @@ const ProductDetails = () => {
         />
       </div>
 
-      <div className="flex justify-between w-full">
+      <div className="flex justify-between w-full mt-2">
         <div>
           <p className="font-bold font-poppins text-[13px]/[19.5px]">Status:</p>
           <p className="font-normal font-poppins text-[11px]/[16.5px]">
             Visits:
           </p>
         </div>
-        <button className="flex items-center justify-center bg-white gap-3 font-poppins font-medium px-1 rounded-2xl">
-          Chat with Lily
-          <img src="/lily.svg" alt="lily-icon" />
-        </button>
       </div>
 
       <div className="flex flex-col gap-3 items-start mt-5">
