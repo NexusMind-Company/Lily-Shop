@@ -16,7 +16,7 @@ const ProductDetails = () => {
       </div>
       <div className="mt-7 flex items-center justify-center">
         <img
-          className="rounded-2xl h-[311px] w-[100%]"
+          className="rounded-2xl h-[311px] w-full object-fit"
           src={product.image}
           alt={product.name}
         />
@@ -24,8 +24,8 @@ const ProductDetails = () => {
 
       <div className="flex justify-between w-full">
         <div>
-          <p className="font-bold font-poppins text-[13px]/[19.5px]">Status:</p>
-          <p className="font-normal font-poppins text-[11px]/[16.5px]">
+          <p className="font-bold font-poppins">Status:</p>
+          <p className="font-normal font-poppins">
             Visits:
           </p>
         </div>
@@ -36,23 +36,23 @@ const ProductDetails = () => {
       </div>
 
       <div className="flex flex-col gap-3 items-start mt-5">
-        <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
+        <h2 className="font-poppins font-bold text-black text-x/[18px] uppercase">
           <span className="border-b-2 border-[#F6AD6D]">Descripti</span>on
         </h2>
-        <p className="font-inter font-medium text-[10px]/[12.1px]">
+        <p className="font-inter font-medium">
           {product.shortDescription}
         </p>
-        <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
+        <h2 className="font-poppins font-bold text-black text-x/[18px] uppercase">
           <span className="border-b-2 border-[#F6AD6D]">Addre</span>ss
           <br />
         </h2>
-        <p className="font-inter font-medium text-[10px]/[12.1px]">
+        <p className="font-inter font-medium">
           {product.address}
         </p>
       </div>
 
       <div className="flex flex-col gap-3 items-start my-5">
-        <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
+        <h2 className="font-poppins font-bold text-black text-x/[18px] uppercase">
           <span className="border-b-2 border-[#F6AD6D]">Produ</span>cts
           <br />
         </h2>
