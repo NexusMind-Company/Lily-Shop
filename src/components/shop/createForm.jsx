@@ -20,7 +20,7 @@ const CreateForm = () => {
   };
 
   return (
-    <section className="mt-10 flex flex-col gap-7 items-center justify-center">
+    <section className="mt-10 flex flex-col gap-7 md:px-7 min-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="px-7 w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">

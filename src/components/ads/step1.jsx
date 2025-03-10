@@ -6,7 +6,7 @@ const Step1 = () => {
   const [selectedPlan, setSelectedPlan] = useState("1-month");
 
   return (
-    <section className="mt-10 pb-24 p-5 flex flex-col gap-7 justify-evenly max-w-3xl mx-auto">
+    <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-black h-[70px] md:w-full flex items-center justify-center">
           <h1 className="text-xl/[30px] font-normal font-poppins">
