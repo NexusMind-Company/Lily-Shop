@@ -84,18 +84,18 @@ const Header = () => {
       {/* Search Bar with Slide-Down Effect */}
       <form
         ref={searchRef}
-        className={`absolute top-16 left-1/2 transform -translate-x-1/2 w-3/4 max-w-md bg-white p-2 rounded-xl shadow-lg transition-transform duration-500 ease-in-out ${
+        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-11/12 md:w-8/12 rounded-full shadow-lg transition-transform duration-500 ease-in-out ${
           searchOpen ? "opacity-100 scale-y-100 origin-top" : "opacity-0 scale-y-0 hidden"
         }`}
       >
         <div className="relative w-full flex items-center">
           <input
-            className="bg-white py-2 px-4 w-full rounded-[14px] border border-gray-300"
+            className="bg-white py-2 px-4 w-full rounded-2xl border border-gray-300"
             type="text"
             placeholder="Search..."
           />
           <button className="cursor-pointer absolute right-3">
-            <img src="/search.svg" alt="search-button" />
+            <img src="/search-icon.svg" alt="search-icon" />
           </button>
         </div>
       </form>

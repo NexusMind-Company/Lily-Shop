@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router";
 
 const CreateForm = () => {
   const {
@@ -223,7 +224,7 @@ const CreateForm = () => {
             type="button"
             className="bg-ash text-white py-2 w-[105px] cursor-pointer"
           >
-            Discard
+            <Link to="/createShop">Discard</Link>
           </button>
           <button
             type="submit"
