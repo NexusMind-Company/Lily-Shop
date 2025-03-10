@@ -64,7 +64,7 @@ const SearchResults = ({ productData = [] }) => {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 z-50">
       <div className="flex flex-col md:flex-row justify-between items-start mb-8">
         <h1 className="text-2xl font-bold mb-4 md:mb-0">
           {searchQuery

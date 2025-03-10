@@ -51,9 +51,10 @@ const CreateShop = () => {
       ) : (
         <Link
           to="/login"
-          className="font-inter text-sm md:text-base text-gray-500"
+          className="font-inter font-semibold text-sm md:text-base text-gray-500 flex items-center gap-1"
         >
           Login to create a shop
+          <img src="/arrow-right.svg" alt="arrow-right" className="w-4" />
         </Link>
       )}
     </section>

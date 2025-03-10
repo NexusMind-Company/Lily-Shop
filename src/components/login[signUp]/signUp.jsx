@@ -21,7 +21,7 @@ const SignUp = () => {
         />
 
         {/* Password Input with Toggle Icon */}
-        <div className="relative">
+        <div className="relative -z-10">
           <input
             className="input rounded-none pt-0 h-[46px] w-full pr-10"
             type={showPassword ? "text" : "password"}
@@ -48,7 +48,7 @@ const SignUp = () => {
 
       {/* Login Link */}
       <Link to="/login" className="font-inter text-xs font-medium">
-        Already a member? Log In
+        Already a member? <span className="text-lily font-semibold">Log In</span>
       </Link>
     </section>
   );
