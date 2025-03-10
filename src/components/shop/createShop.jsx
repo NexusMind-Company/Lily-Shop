@@ -49,9 +49,12 @@ const CreateShop = () => {
           </Link>
         </div>
       ) : (
-        <p className="font-inter text-sm md:text-base text-gray-500">
+        <Link
+          to="/login"
+          className="font-inter text-sm md:text-base text-gray-500"
+        >
           Login to create a shop
-        </p>
+        </Link>
       )}
     </section>
   );

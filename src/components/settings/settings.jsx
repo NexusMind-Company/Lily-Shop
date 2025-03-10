@@ -9,7 +9,7 @@ const Settings = () => {
       </div>
 
       {/* Coming Soon Message */}
-      <div className="text-center max-w-2xl px-5">
+      <div className="text-center flex items-center justify-between m-auto max-w-2xl px-5">
         <h2 className="font-poppins font-medium text-2xl md:text-4xl leading-[1.3]">
           Stay Tuned for <br className="hidden md:block" /> Version Two
         </h2>

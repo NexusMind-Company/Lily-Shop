@@ -39,7 +39,7 @@ const Login = () => {
 
         {/* Forgot Password */}
         <Link
-          to="/forgot-password"
+          to="/forgotPassword"
           className="text-right font-inter text-xs underline font-semibold"
         >
           Forgot Password?
