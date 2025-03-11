@@ -1,27 +1,86 @@
 "use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 const CreateForm = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
-  const [products, setProducts] = useState([{ name: "", price: "" }]);
 
-  const onSubmit = (data) => {
-    console.log("Form Data:", data);
+  const [products, setProducts] = useState([{ name: "", price: "" }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", data.title);
+      formData.append("description", data.detailedDescription);
+      formData.append("category", data.inputCategory);
+      formData.append("address", data.address);
+
+      if (data.media && data.media[0]) {
+        formData.append("image", data.media[0]);
+      }
+
+      const validProducts = products.filter(
+        (product) => product.name.trim() !== ""
+      );
+      formData.append("products_list", JSON.stringify(validProducts));
+
+      const response = await fetch(
+        "https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/shops/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create shop");
+      }
+
+      // Success actions
+      setShowSuccess(true);
+      reset(); // Clear the form
+      setProducts([{ name: "", price: "" }]);
+      setImagePreview(null);
+
+      setTimeout(() => setShowSuccess(false), 3000); // Hide popup after 3s
+    } catch (error) {
+      console.error("Error creating shop:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddProduct = () => {
     setProducts([...products, { name: "", price: "" }]);
   };
 
+  const handleProductChange = (index, field, value) => {
+    setProducts((prev) =>
+      prev.map((product, i) =>
+        i === index ? { ...product, [field]: value } : product
+      )
+    );
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   return (
     <section className="mt-10 flex flex-col gap-7 md:px-7 min-h-screen max-w-3xl mx-auto">
-      {/* Header */}
       <div className="px-7 w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
@@ -30,15 +89,20 @@ const CreateForm = () => {
         </div>
       </div>
 
-      {/* Form */}
+      {/* Success Popup */}
+      {showSuccess && (
+        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+          ✅ Shop created successfully!
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full flex flex-col gap-5"
       >
-        {/* Title */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="title" className="label">
-            Title
+            Name
           </label>
           <input
             id="title"
@@ -47,11 +111,10 @@ const CreateForm = () => {
             {...register("title", { required: true, maxLength: 50 })}
           />
           {errors.title && (
-            <span className="text-red-500 text-sm">Title is required</span>
+            <span className="text-red-500 text-sm">Name is required</span>
           )}
         </div>
 
-        {/* Address */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="address" className="label">
             Address
@@ -62,22 +125,11 @@ const CreateForm = () => {
             type="text"
             {...register("address", { required: true, maxLength: 100 })}
           />
+          {errors.address && (
+            <span className="text-red-500 text-sm">Address is required</span>
+          )}
         </div>
 
-        {/* Phone */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="phone" className="label">
-            Phone
-          </label>
-          <input
-            id="phone"
-            className="input"
-            type="tel"
-            {...register("phone", { required: true })}
-          />
-        </div>
-
-        {/* Short Description */}
         <div className="flex flex-col px-7">
           <label className="bLabel">Short Description</label>
           <textarea
@@ -86,23 +138,27 @@ const CreateForm = () => {
           />
         </div>
 
-        {/* Detailed Description */}
         <div className="flex flex-col px-7">
-          <label className="bLabel">Detailed Description</label>
+          <label className="bLabel">Description</label>
           <textarea
             className="border border-black rounded-lg p-2 h-28"
-            {...register("detailedDescription")}
+            {...register("detailedDescription", { required: true })}
           />
+          {errors.detailedDescription && (
+            <span className="text-red-500 text-sm">
+              Description is required
+            </span>
+          )}
         </div>
 
-        {/* Media Upload */}
         <div className="flex flex-col relative gap-1 px-7">
-          <label className="bLabel">Media</label>
+          <label className="bLabel">Image</label>
           <input
-            className="input hidden"
+            className="hidden"
             type="file"
             id="media-upload"
             {...register("media")}
+            onChange={handleImageChange}
           />
           <label
             htmlFor="media-upload"
@@ -112,75 +168,42 @@ const CreateForm = () => {
               Upload
             </span>
           </label>
+          {imagePreview && (
+            <img src={imagePreview} alt="Preview" className="w-20 h-20 mt-2" />
+          )}
         </div>
 
-        {/* Dynamic Product Fields */}
         <div className="flex flex-col gap-2">
           <h2 className="text-base font-semibold px-7">Products</h2>
-          {products.map((_, index) => (
+          {products.map((product, index) => (
             <div key={index} className="flex flex-col gap-2 px-7">
-              {/* Product Name */}
               <div className="flex flex-col relative gap-1">
                 <label className="label left-1">Name</label>
                 <input
                   className="input"
                   type="text"
-                  {...register(`products[${index}].name`, { required: true })}
+                  value={product.name}
+                  onChange={(e) =>
+                    handleProductChange(index, "name", e.target.value)
+                  }
                 />
               </div>
 
-              {/* Product Price */}
               <div className="flex flex-col relative gap-1">
                 <label className="label left-1">Price</label>
                 <input
                   className="input"
                   type="text"
-                  {...register(`products[${index}].price`, { required: true })}
+                  value={product.price}
+                  onChange={(e) =>
+                    handleProductChange(index, "price", e.target.value)
+                  }
                 />
-              </div>
-
-              {/* Product Photo */}
-              <div className="flex flex-col relative gap-1">
-                <input
-                  className="input hidden"
-                  type="file"
-                  id={`product-photo-${index}`}
-                  {...register(`products[${index}].photo`, { required: true })}
-                />
-                <label className="label left-1">Photo</label>
-                <label
-                  htmlFor={`product-photo-${index}`}
-                  className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
-                >
-                  <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
-                    Upload
-                  </span>
-                </label>
-              </div>
-
-              {/* Product Video */}
-              <div className="flex flex-col relative gap-1">
-                <input
-                  className="input hidden"
-                  type="file"
-                  id={`product-video-${index}`}
-                  {...register(`products[${index}].video`, { required: true })}
-                />
-                <label className="label left-1">Video</label>
-                <label
-                  htmlFor={`product-video-${index}`}
-                  className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
-                >
-                  <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
-                    Upload
-                  </span>
-                </label>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Add Product Button */}
         <button
           type="button"
           onClick={handleAddProduct}
@@ -189,36 +212,18 @@ const CreateForm = () => {
           Add Product
         </button>
 
-        {/* Upload Documents */}
-        <div className="flex flex-col relative gap-1 px-7">
-          <input
-            className="input hidden"
-            type="file"
-            id="document-upload"
-            {...register("document")}
-          />
-          <label className="label pb-2">Documents</label>
-          <label
-            htmlFor="media-upload"
-            className="px-4 py-2 h-24 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
-          >
-            <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
-              Upload
-            </span>
-          </label>
-        </div>
-
-        {/* Input Category */}
         <div className="flex flex-col px-7">
           <label className="bLabel">Category</label>
           <input
             className="border border-black rounded-lg px-2 h-14"
             type="text"
-            {...register("inputCategory")}
+            {...register("inputCategory", { required: true })}
           />
+          {errors.inputCategory && (
+            <span className="text-red-500 text-sm">Category is required</span>
+          )}
         </div>
 
-        {/* Discard & Create Buttons */}
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
@@ -228,9 +233,10 @@ const CreateForm = () => {
           </button>
           <button
             type="submit"
+            disabled={isSubmitting}
             className="bg-white text-black py-2 w-[105px] cursor-pointer"
           >
-            Save & Deploy
+            {isSubmitting ? "Saving..." : "Save & Deploy"}
           </button>
         </div>
       </form>
