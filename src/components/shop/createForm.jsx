@@ -102,7 +102,7 @@ const CreateForm = () => {
       >
         <div className="flex flex-col relative px-7">
           <label htmlFor="title" className="label">
-            Name
+            Title
           </label>
           <input
             id="title"
