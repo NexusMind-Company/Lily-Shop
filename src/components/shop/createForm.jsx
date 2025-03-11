@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router";
 
 const CreateForm = () => {
   const {
@@ -19,11 +20,11 @@ const CreateForm = () => {
   };
 
   return (
-    <section className="mt-10 flex flex-col gap-7 items-center justify-center">
+    <section className="mt-10 flex flex-col gap-7 md:px-7 min-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="px-7 w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
-          <h1 className="text-xl font-poppins">
+          <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Shop</span>
           </h1>
         </div>
@@ -146,7 +147,7 @@ const CreateForm = () => {
                   id={`product-photo-${index}`}
                   {...register(`products[${index}].photo`, { required: true })}
                 />
-                <label className="label left-1">Product Photo</label>
+                <label className="label left-1">Photo</label>
                 <label
                   htmlFor={`product-photo-${index}`}
                   className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
@@ -165,7 +166,7 @@ const CreateForm = () => {
                   id={`product-video-${index}`}
                   {...register(`products[${index}].video`, { required: true })}
                 />
-                <label className="label left-1">Product Video</label>
+                <label className="label left-1">Video</label>
                 <label
                   htmlFor={`product-video-${index}`}
                   className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
@@ -196,10 +197,10 @@ const CreateForm = () => {
             id="document-upload"
             {...register("document")}
           />
-          <label className="label">Documents</label>
+          <label className="label pb-2">Documents</label>
           <label
             htmlFor="media-upload"
-            className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
+            className="px-4 py-2 h-24 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
           >
             <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
               Upload
@@ -211,7 +212,7 @@ const CreateForm = () => {
         <div className="flex flex-col px-7">
           <label className="bLabel">Category</label>
           <input
-            className="border border-black rounded-lg p-2 h-20"
+            className="border border-black rounded-lg px-2 h-14"
             type="text"
             {...register("inputCategory")}
           />
@@ -223,7 +224,7 @@ const CreateForm = () => {
             type="button"
             className="bg-ash text-white py-2 w-[105px] cursor-pointer"
           >
-            Discard
+            <Link to="/createShop">Discard</Link>
           </button>
           <button
             type="submit"

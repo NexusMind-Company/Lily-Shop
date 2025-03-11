@@ -1,7 +1,7 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-import Footer from "./components/footer";
+
 import CreateShop from "./pages/createShop";
 import CreateForm from "./pages/createForm";
 import ProductDetails from "./pages/productDetails";
@@ -11,12 +11,28 @@ import { BrowserRouter as Router, Route, Routes } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import Step2 from "./components/ads/step2";
-import Step3 from "./components/ads/step3";
+import ForgotPassword from "./pages/forgotPassword";
+import ProductData from "./information/productData";
+import SearchResults from "./pages/searchResults";
+import { useEffect } from 'react';
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "./store/authSlice";
 
 export default function App() {
+
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+
+    if (localStorage.token) {
+      dispatch(loginSuccess({ token: localStorage.token }))
+    }
+
+  }, [])
+
   return (
     <Router>
-      <Header />
+      <Header productData={ProductData} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/createShop" element={<CreateShop />} />
@@ -27,10 +43,13 @@ export default function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/step2" element={<Step2 />} />
-        <Route path="/step3" element={<Step3 />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
+        <Route
+          path="/searchResults"
+          element={<SearchResults productData={ProductData} />}
+        />
       </Routes>
       <Nav />
-      <Footer />
     </Router>
   );
 }

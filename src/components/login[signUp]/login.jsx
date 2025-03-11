@@ -1,39 +1,58 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess } from '../../store/authSlice';
 
 const Login = () => {
-  const URL = 'https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/swagger/'
+  const URL = 'https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/'
 
   const [showPassword, setShowPassword] = useState(false);
 
+  //handle Error
+  const [error, setError] = useState(null);
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
+  const dispatch = useDispatch();
+  const state = useSelector((state) => state.auth)
+
+  const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    handleSubmitAsync(username, password)
+    handleSubmitAsync()
 
   }
 
-  const handleSubmitAsync = async (user, pass) => {
+  const handleSubmitAsync = async () => {
+    setError(null);
 
-    if (!user || !pass) {
+    console.log(username, password)
+    if (!username || !password) {
       console.log('all input must be filled')
       return
     }
 
     try {
-      const request = await axios.post(URL + 'token', { user, password })
+      const request = await axios.post(URL + 'auth/token/', { username, password })
       const response = request.data
+      dispatch(loginSuccess({ token: response.access, username }))
+
+      //after login been successful then user get redirects to the homepage
+      navigate('/')
     } catch (err) {
-      console.log(err)
+      if (err.status == 401) {
+        setError(err.response.data.detail)
+      } else {
+        console.log(err)
+      }
     }
   }
+
   return (
-    <section className="mt-10 flex flex-col gap-7 px-7">
+    <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
         <span className="border-b-2 border-sun">Log</span> In
       </h2>
@@ -69,11 +88,13 @@ const Login = () => {
 
         {/* Forgot Password */}
         <Link
-          to="/forgot-password"
+          to="/forgotPassword"
           className="text-right font-inter text-xs underline font-semibold"
         >
           Forgot Password?
         </Link>
+        {/* display login error */}
+        {error && (<p className="text-red-500 font-bold">{error}</p>)}
 
         {/* Login Button */}
         <button
@@ -86,7 +107,7 @@ const Login = () => {
 
       {/* Sign Up Link */}
       <Link to="/signup" className="font-inter text-xs font-medium">
-        Not a member yet? Create an Account
+        Not a member yet? <span className="text-lily font-semibold">Create an Account</span>
       </Link>
     </section>
   );

@@ -1,35 +1,37 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom"; // Correct import
 
 const Navbar = () => {
   const location = useLocation();
 
+  // More reliable path checking
+  const isActive = (path) => {
+    if (path === "/") {
+      return (
+        location.pathname === "/" || location.pathname.startsWith("/product")
+      );
+    }
+    return location.pathname === path;
+  };
+
   return (
-    <nav className="flex items-center justify-between px-7 w-full relative bottom-10 mt-20">
+    <nav className="flex items-center justify-between px-7 w-full relative bottom-2 mt-20">
       <Link to="/" className="flex flex-col items-center">
         <img
-          src={location.pathname === "/" ? "home-active.svg" : "home.svg"}
+          src={isActive("/") ? "/home-active.svg" : "/home.svg"}
           alt="home-icon"
         />
         <p>Home</p>
       </Link>
       <Link to="/createShop" className="flex flex-col items-center">
         <img
-          src={
-            location.pathname === "/createShop"
-              ? "shop-active.svg"
-              : "shop.svg"
-          }
+          src={isActive("/createShop") ? "/shop-active.svg" : "/shop.svg"}
           alt="shop-icon"
         />
         <p>My Shop</p>
       </Link>
       <Link to="/settings" className="flex flex-col items-center">
         <img
-          src={
-            location.pathname === "/settings"
-              ? "settings-active.svg"
-              : "settings.svg"
-          }
+          src={isActive("/settings") ? "/settings-active.svg" : "/settings.svg"}
           alt="settings-icon"
         />
         <p>Settings</p>
