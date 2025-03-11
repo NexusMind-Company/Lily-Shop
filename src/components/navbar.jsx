@@ -24,7 +24,7 @@ const Navbar = () => {
       </Link>
       <Link to="/createShop" className="flex flex-col items-center">
         <img
-          src={isActive("/createShop") ? "/shop-active.svg" : "/shop.svg"}
+          src={isActive("/createShop") ? "/shop-active.png" : "/shop.png"}
           alt="shop-icon"
         />
         <p>My Shop</p>

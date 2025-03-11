@@ -1,8 +1,6 @@
 import { Link } from "react-router";
-import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 const CreateShop = () => {
-
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
@@ -31,6 +29,14 @@ const CreateShop = () => {
 
       {/* Show if user is authenticated */}
       {!isAuthenticated ? (
+        <Link
+          to="/login"
+          className="font-inter font-semibold text-sm md:text-base text-gray-500 flex items-center gap-1"
+        >
+          Login to create a shop
+          <img src="/arrow-right.svg" alt="arrow-right" className="w-4" />
+        </Link>
+      ) : (
         <div className="flex items-center justify-start">
           <Link
             to="/createForm"
@@ -44,14 +50,6 @@ const CreateShop = () => {
             />
           </Link>
         </div>
-      ) : (
-        <Link
-          to="/login"
-          className="font-inter font-semibold text-sm md:text-base text-gray-500 flex items-center gap-1"
-        >
-          Login to create a shop
-          <img src="/arrow-right.svg" alt="arrow-right" className="w-4" />
-        </Link>
       )}
     </section>
   );
