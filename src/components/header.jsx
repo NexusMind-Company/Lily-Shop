@@ -1,10 +1,10 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { useSelector, useDispatch } from 'react-redux'
-import { logout } from '../store/authSlice';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../store/authSlice";
+import { fetchShops } from "../store/shopSlice";
 
-const Header = ({ productData = [] }) => {
+const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,8 +12,9 @@ const Header = ({ productData = [] }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  //redux store
+  // Redux store
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const { shops, status } = useSelector((state) => state.shops);
   const dispatch = useDispatch();
 
   // References to the menu and search elements
@@ -21,6 +22,13 @@ const Header = ({ productData = [] }) => {
   const searchRef = useRef(null);
   const menuButtonRef = useRef(null);
   const searchButtonRef = useRef(null);
+
+  // Fetch shops data when the component mounts
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchShops());
+    }
+  }, [status, dispatch]);
 
   // Close menus when location changes (page navigation)
   useEffect(() => {
@@ -73,20 +81,20 @@ const Header = ({ productData = [] }) => {
       return;
     }
 
-    // Search through product data by name, description, and category
-    const filteredResults = productData
+    // Search through shops data by name, description, and category
+    const filteredResults = shops
       .filter(
-        (product) =>
-          product.name?.toLowerCase().includes(value.toLowerCase()) ||
-          product.description?.toLowerCase().includes(value.toLowerCase()) ||
-          product.category?.toLowerCase().includes(value.toLowerCase()) ||
-          (product.tags &&
-            Array.isArray(product.tags) &&
-            product.tags.some((tag) =>
+        (shop) =>
+          shop.name?.toLowerCase().includes(value.toLowerCase()) ||
+          shop.description?.toLowerCase().includes(value.toLowerCase()) ||
+          shop.category?.toLowerCase().includes(value.toLowerCase()) ||
+          (shop.tags &&
+            Array.isArray(shop.tags) &&
+            shop.tags.some((tag) =>
               tag.toLowerCase().includes(value.toLowerCase())
             ))
       )
-      .slice(0, 5); // Limit to 5 results for dropdown
+      .slice(0, 5); // 5 results for dropdown
 
     setSearchResults(filteredResults);
   };
@@ -99,16 +107,16 @@ const Header = ({ productData = [] }) => {
       navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`);
       setSearchOpen(false);
       setSearchResults([]);
-      setSearchTerm(""); // Clear search input after searching
+      setSearchTerm("");
     }
   };
 
   // Handle click on a search result item
-  const handleResultClick = (productId) => {
-    navigate(`/product/${productId}`);
+  const handleResultClick = (shopId) => {
+    navigate(`/product/${shopId}`);
     setSearchOpen(false);
     setSearchResults([]);
-    setSearchTerm(""); // Clear search input after selecting a result
+    setSearchTerm("");
   };
 
   // Handle view all results click
@@ -117,9 +125,8 @@ const Header = ({ productData = [] }) => {
     navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`);
     setSearchOpen(false);
     setSearchResults([]);
-    setSearchTerm(""); // Clear search input after viewing all results
+    setSearchTerm("");
   };
-
 
   return (
     <header className="flex place-items-center justify-between h-16 px-7 shadow shadow-[#00000040] relative">
@@ -129,13 +136,13 @@ const Header = ({ productData = [] }) => {
         </h1>
       </Link>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-2.5">
         {/* Search Button */}
         <button
           className="cursor-pointer"
           onClick={() => {
             setSearchOpen(!searchOpen);
-            if (!searchOpen) setSearchTerm(""); // Clear search when opening
+            if (!searchOpen) setSearchTerm("");
           }}
           ref={searchButtonRef}
         >
@@ -155,10 +162,11 @@ const Header = ({ productData = [] }) => {
       {/* Search Bar with Slide-Down Effect */}
       <div
         ref={searchRef}
-        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-11/12 md:w-8/12 transition-all duration-500 ease-in-out ${searchOpen
-          ? "opacity-100 scale-y-100 origin-top"
-          : "opacity-0 scale-y-0 pointer-events-none"
-          }`}
+        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-11/12 md:w-8/12 transition-all duration-500 ease-in-out ${
+          searchOpen
+            ? "opacity-100 scale-y-100 origin-top"
+            : "opacity-0 scale-y-0 pointer-events-none"
+        }`}
       >
         <form
           onSubmit={handleSearchSubmit}
@@ -181,28 +189,26 @@ const Header = ({ productData = [] }) => {
         {searchResults.length > 0 && (
           <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto z-10">
             <ul>
-              {searchResults.map((product) => (
+              {searchResults.map((shop) => (
                 <li
-                  key={product.id}
+                  key={shop.id}
                   className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-0"
-                  onClick={() => handleResultClick(product.id)}
+                  onClick={() => handleResultClick(shop.id)}
                 >
                   <div className="flex items-center">
-                    {product.image && (
+                    {shop.image && (
                       <img
-                        src={product.image}
-                        alt={product.name}
+                        src={shop.image}
+                        alt={shop.name}
                         className="w-10 h-10 object-cover mr-3"
                       />
                     )}
                     <div>
-                      <p className="font-medium">{product.name}</p>
+                      <p className="font-medium">{shop.name}</p>
                       <p className="text-sm text-gray-600 truncate">
-                        {product.price}{" "}
-                        {product.category && (
-                          <span className="text-lily">
-                            • {product.category}
-                          </span>
+                        {shop.price}{" "}
+                        {shop.category && (
+                          <span className="text-lily">• {shop.category}</span>
                         )}
                       </p>
                     </div>
@@ -224,23 +230,29 @@ const Header = ({ productData = [] }) => {
       {/* Dropdown Menu with Slide-Down Effect */}
       <ul
         ref={menuRef}
-        className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${menuOpen
-          ? "opacity-100 scale-y-100 origin-top"
-          : "opacity-0 scale-y-0 pointer-events-none"
-          }`}
+        className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${
+          menuOpen
+            ? "opacity-100 scale-y-100 origin-top"
+            : "opacity-0 scale-y-0 pointer-events-none"
+        }`}
       >
-        {isAuthenticated && (<li className="py-2">
-          <Link to="/createShop">My Shop</Link>
-        </li>)}
+        {isAuthenticated && (
+          <li className="py-2">
+            <Link to="/createShop">My Shop</Link>
+          </li>
+        )}
         <li className="py-2">
           <Link to="/purchaseAds">Purchase Ads</Link>
         </li>
-        {isAuthenticated ? (<li className="py-2">
-          <button onClick={() => dispatch(logout())}>Logout</button>
-        </li>) : (<li className="py-2">
-          <Link to="/login">Sign In</Link>
-        </li>)}
-
+        {isAuthenticated ? (
+          <li className="py-2">
+            <button onClick={() => dispatch(logout())}>Logout</button>
+          </li>
+        ) : (
+          <li className="py-2">
+            <Link to="/login">Sign In</Link>
+          </li>
+        )}
       </ul>
     </header>
   );

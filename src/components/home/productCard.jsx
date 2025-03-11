@@ -1,15 +1,37 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import productData from "../../information/productData";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchShops } from "../../store/shopSlice";
 
 const ProductCard = () => {
+  const dispatch = useDispatch();
+  const { shops, status, error } = useSelector((state) => state.shops);
   const [visibleProducts, setVisibleProducts] = useState(4);
-  
+
+  // Fetch shops data when the component mounts
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchShops());
+    }
+  }, [status, dispatch]);
+
+  // Function to load more products
   const showMoreProducts = () => {
     setVisibleProducts((prev) => prev + 4);
   };
-  
-  const hasMoreProducts = visibleProducts < productData.length;
+
+  // Check if there are more products to show
+  const hasMoreProducts = visibleProducts < shops.length;
+
+  // Display loading state
+  if (status === "loading") {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
+
+  // Display error state
+  if (error) {
+    return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
+  }
 
   return (
     <section className="mt-10 flex flex-col px-7 gap-7 items-center max-w-3xl mx-auto">
@@ -25,10 +47,10 @@ const ProductCard = () => {
         <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-2 border-sun">
           For You
         </h2>
-        
+
         {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
-          {productData.slice(0, visibleProducts).map((product) => (
+          {shops.slice(0, visibleProducts).map((product) => (
             <Link
               to={`/product/${product.id}`}
               key={product.id}
@@ -43,7 +65,7 @@ const ProductCard = () => {
                 <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase">
                   {product.name}
                 </li>
-                <li className="text-xs text-gray-600">{product.shortDescription}</li>
+                <li className="text-xs text-gray-600">{product.description}</li>
                 <li className="text-xs font-normal">{product.address}</li>
                 <button className="text-xs underline text-lily hover:text-black">
                   View Prices
@@ -52,11 +74,11 @@ const ProductCard = () => {
             </Link>
           ))}
         </div>
-        
+
         {/* Show More Button */}
         {hasMoreProducts && (
           <div className="w-full flex justify-center mt-6">
-            <button 
+            <button
               onClick={showMoreProducts}
               className="px-6 py-2 bg-lily text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200 font-poppins text-sm"
             >

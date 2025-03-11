@@ -1,42 +1,54 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router";
+import { useSearchParams, Link } from "react-router-dom"; // Use `react-router-dom` instead of `react-router`
+import { useSelector, useDispatch } from "react-redux";
+import { fetchShops } from "../store/shopSlice"; // Import the fetchShops action
 
-const SearchResults = ({ productData = [] }) => {
+const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
+  // Redux store
+  const { shops, status } = useSelector((state) => state.shops); // Access shops data from Redux
+  const dispatch = useDispatch();
+
   const searchQuery = searchParams.get("q") || "";
   const categoryQuery = searchParams.get("category") || "";
 
+  // Fetch shops data when the component mounts
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchShops());
+    }
+  }, [status, dispatch]);
+
+  // Update selected category when categoryQuery changes
   useEffect(() => {
     if (categoryQuery) {
       setSelectedCategory(categoryQuery);
     } else {
       setSelectedCategory("");
     }
-  }, [productData, categoryQuery]);
+  }, [categoryQuery]);
 
+  // Filter results based on search query and category
   useEffect(() => {
-    if (!productData || productData.length === 0) {
+    if (!shops || shops.length === 0) {
       setResults([]);
       return;
     }
 
-    let filteredResults = [...productData];
+    let filteredResults = [...shops];
 
     if (searchQuery) {
       filteredResults = filteredResults.filter(
-        (product) =>
-          product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          product.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (product.tags &&
-            Array.isArray(product.tags) &&
-            product.tags.some((tag) =>
+        (shop) =>
+          shop.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shop.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shop.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (shop.tags &&
+            Array.isArray(shop.tags) &&
+            shop.tags.some((tag) =>
               tag.toLowerCase().includes(searchQuery.toLowerCase())
             ))
       );
@@ -45,18 +57,16 @@ const SearchResults = ({ productData = [] }) => {
     const categoryFilter = categoryQuery || selectedCategory;
     if (categoryFilter) {
       filteredResults = filteredResults.filter(
-        (product) =>
-          product.category?.toLowerCase() === categoryFilter.toLowerCase()
+        (shop) => shop.category?.toLowerCase() === categoryFilter.toLowerCase()
       );
     }
 
     setResults(filteredResults);
-  }, [searchQuery, categoryQuery, selectedCategory, productData]);
-
+  }, [searchQuery, categoryQuery, selectedCategory, shops]);
 
   // For debugging
   console.log("SearchResults rendered with:", {
-    productDataLength: productData?.length,
+    shopsLength: shops?.length,
     searchQuery,
     categoryQuery,
     selectedCategory,
@@ -90,30 +100,30 @@ const SearchResults = ({ productData = [] }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {results.map((product) => (
-            <Link to={`/product/${product.id}`} key={product.id}>
+          {results.map((shop) => (
+            <Link to={`/product/${shop.id}`} key={shop.id}>
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                {product.image && (
+                {shop.image && (
                   <img
-                    src={product.image}
-                    alt={product.name}
+                    src={shop.image}
+                    alt={shop.name}
                     className="w-full h-48 object-cover"
                   />
                 )}
                 <div className="p-4">
-                  <h2 className="font-semibold text-lg mb-2">{product.name}</h2>
-                  {product.category && (
+                  <h2 className="font-semibold text-lg mb-2">{shop.name}</h2>
+                  {shop.category && (
                     <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mb-2">
-                      {product.category}
+                      {shop.category}
                     </span>
                   )}
                   <p className="text-gray-700 mb-2 line-clamp-2">
-                    {product.description}
+                    {shop.description}
                   </p>
-                  <p className="font-bold text-lily">{product.price}</p>
-                  {product.tags && product.tags.length > 0 && (
+                  <p className="font-bold text-lily">{shop.price}</p>
+                  {shop.tags && shop.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {product.tags.map((tag) => (
+                      {shop.tags.map((tag) => (
                         <span
                           key={tag}
                           className="text-xs bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded"
