@@ -40,7 +40,7 @@ const CreateShop = () => {
         <div className="flex items-center justify-start">
           <Link
             to="/createForm"
-            className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
+            className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2 py-2 bg-gray-900 rounded-lg hover:bg-gray-800 transition"
           >
             Create New
             <img
