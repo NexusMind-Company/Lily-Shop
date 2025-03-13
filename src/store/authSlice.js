@@ -12,8 +12,7 @@ const authSlice = createSlice({
         loginSuccess: (state, action) => {
             state.token = action.payload.token;
             state.isAuthenticated = true
-            localStorage.setItem('token', action.payload.token)
-            localStorage.setItem('username', action.payload.username)
+            localStorage.setItem('token', JSON.stringify(action.payload.token))
 
             // console.log(localStorage);
         },
@@ -22,8 +21,6 @@ const authSlice = createSlice({
             state.token = null;
             state.isAuthenticated = false
             localStorage.removeItem('token')
-            localStorage.removeItem('username')
-
             // console.log(localStorage)
         }
     }
