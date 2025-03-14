@@ -47,10 +47,9 @@ const CreateAdsForm = () => {
       setShowSuccess(true);
       reset(); // Clear form
 
-      // Hide success message after 3s and redirect to homepage
       setTimeout(() => {
         setShowSuccess(false);
-        navigate("/"); // Redirect user to homepage
+        navigate("/");
       }, 3000);
     } catch (error) {
       console.error("Error creating ad:", error);
@@ -78,11 +77,11 @@ const CreateAdsForm = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-5">
         <div className="flex flex-col relative px-7">
-          <label htmlFor="shop" className="label">Shop ID</label>
+          <label htmlFor="shop" className="label">Shop Name</label>
           <input
             id="shop"
             className="input"
-            type="number"
+            type="text"
             {...register("shop", { required: true })}
           />
           {errors.shop && <span className="text-red-500 text-sm">Shop ID is required</span>}
