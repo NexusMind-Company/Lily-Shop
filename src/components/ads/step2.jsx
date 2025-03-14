@@ -1,14 +1,31 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Step2 = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
 
-  // Your Paystack payment link
-  const paystackLink = "https://paystack.com/pay/4pqaf6-w2v";
+   const paystackLink = "https://paystack.com/pay/4pqaf6-w2v";
 
   const handlePayment = () => {
-    setIsProcessing(true); // Prevent multiple clicks
-    window.location.href = paystackLink;
+    setIsProcessing(true);
+
+    const paymentWindow = window.open(paystackLink, "_blank");
+
+    if (!paymentWindow) {
+      alert("Popup blocked! Please allow popups for this site.");
+      setIsProcessing(false);
+      return;
+    }
+
+    // Check if user closed the Paystack tab, then redirect
+    const checkPaymentStatus = setInterval(() => {
+      if (paymentWindow.closed) {
+        clearInterval(checkPaymentStatus);
+        setIsProcessing(false);
+        navigate("/createAdsForm");
+      }
+    }, 2000);
   };
 
   return (
@@ -27,7 +44,6 @@ const Step2 = () => {
           Payment
         </p>
 
-        {/* Amount Display */}
         <div
           className="flex justify-between font-inter font-medium text-sm border p-4 border-black rounded-md"
           aria-label="Payment amount for ads"
