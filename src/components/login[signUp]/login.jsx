@@ -33,7 +33,7 @@ const Login = () => {
 
   useEffect(() => {
     if (data !== null) {
-      dispatch(loginSuccess({ token: data }))
+      dispatch(loginSuccess({ user_data: data }))
       navigate('/')
     }
   }, [data])
@@ -107,7 +107,7 @@ const Login = () => {
           Forgot Password?
         </Link>
         {/* display login error */}
-        <p className="text-red-500 font-bold">{displayError(error, 'detail')}</p>
+        <p className="text-[#ff2b2b] font-bold">{displayError(error, 'detail')}</p>
 
         {/* Login Button */}
         <button

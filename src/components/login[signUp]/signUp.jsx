@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { loginSuccess } from '../../store/authSlice';
 import useAuth from "../hooks/useAuth";
@@ -30,7 +29,12 @@ const SignUp = () => {
   const isAuth = useSelector((state) => state.auth)
   const dispatch = useDispatch();
 
+  //useAuth custom hooks
   const { login, signup, loading, error, data } = useAuth();
+
+  //for navigation
+  const navigate = useNavigate();
+
 
   //handleSubmit
   const handleSubmit = (e) => {
@@ -49,7 +53,8 @@ const SignUp = () => {
 
   useEffect(() => {
     if (data !== null) {
-      dispatch(loginSuccess({ token: data }))
+      dispatch(loginSuccess({ user_data: data }))
+      navigate('/')
     }
   }, [data])
 
@@ -86,7 +91,7 @@ const SignUp = () => {
   // const login = async (user, pass) => {
 
   //   try {
-  //     const request = await axios.post(apiUrl + '/auth/token/', { username: user, password: pass })
+  //     const request = await axios.post(apiUrl + '/auth/user_data/', { username: user, password: pass })
   //     const response = request.data;
   //     cconsole.log(response)
   //   } catch (err) {
@@ -110,7 +115,7 @@ const SignUp = () => {
             placeholder="Username"
             onChange={(e) => setUsername(e.target.value)}
           />
-          <p className="text-red-500 font-bold">{displayError(error, 'username')}</p>
+          <p className="text-[#ff2b2b] font-bold">{displayError(error, 'username')}</p>
         </div>
 
 
@@ -124,7 +129,7 @@ const SignUp = () => {
             placeholder="Phone Number"
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
-          <p className="text-red-500 font-bold">{displayError(error, 'phone_number')}</p>
+          <p className="text-[#ff2b2b] font-bold">{displayError(error, 'phone_number')}</p>
         </div>
 
 
@@ -149,7 +154,7 @@ const SignUp = () => {
         </div>
 
         {/* error msg */}
-        <p className="text-red-500 font-bold">{displayError(error, 'others')}</p>
+        <p className="text-[#ff2b2b] font-bold">{displayError(error, 'others')}</p>
         {/* Register Button */}
 
         <button
