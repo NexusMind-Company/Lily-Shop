@@ -13,8 +13,7 @@ const CreateForm = () => {
     formState: { errors },
   } = useForm();
 
-  // State for products, including name, price, and image
-  const [products, setProducts] = useState([{ name: "", price: "", image: null }]);
+  const [products, setProducts] = useState([{ name: "", price: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -22,7 +21,6 @@ const CreateForm = () => {
   const dispatch = useDispatch();
   const { status, error, success } = useSelector((state) => state.createShop);
 
-  // Handle form submission
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
@@ -32,34 +30,23 @@ const CreateForm = () => {
       formData.append("category", data.inputCategory);
       formData.append("address", data.address);
 
-      // Append shop image if available
       if (data.media && data.media[0]) {
         formData.append("image", data.media[0]);
       }
 
-      // Filter out empty products and append to FormData
       const validProducts = products.filter(
         (product) => product.name.trim() !== ""
       );
+      formData.append("products_list", JSON.stringify(validProducts));
 
-      validProducts.forEach((product, index) => {
-        formData.append(`products[${index}][name]`, product.name);
-        formData.append(`products[${index}][price]`, product.price);
-        if (product.image) {
-          formData.append(`products[${index}][image]`, product.image);
-        }
-      });
-
-      // Dispatch the Redux action
       await dispatch(createShop(formData)).unwrap();
 
-      // Success actions
       setShowSuccess(true);
-      reset(); // Clear the form
-      setProducts([{ name: "", price: "", image: null }]); // Reset products
-      setImagePreview(null); // Clear image preview
+      reset();
+      setProducts([{ name: "", price: "" }]);
+      setImagePreview(null);
 
-      setTimeout(() => setShowSuccess(false), 3000); // Hide success popup after 3s
+      setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error("Error creating shop:", error);
     } finally {
@@ -67,12 +54,10 @@ const CreateForm = () => {
     }
   };
 
-  // Add a new product field
   const handleAddProduct = () => {
-    setProducts([...products, { name: "", price: "", image: null }]);
+    setProducts([...products, { name: "", price: "" }]);
   };
 
-  // Handle changes in product fields (name, price)
   const handleProductChange = (index, field, value) => {
     setProducts((prev) =>
       prev.map((product, i) =>
@@ -81,7 +66,6 @@ const CreateForm = () => {
     );
   };
 
-  // Handle image upload for the shop
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -89,19 +73,7 @@ const CreateForm = () => {
     }
   };
 
-  // Handle image upload for a specific product
-  const handleProductImageChange = (index, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProducts((prev) =>
-        prev.map((product, i) =>
-          i === index ? { ...product, image: file } : product
-        )
-      );
-    }
-  };
-
-  // Reset Redux state when the component unmounts
+  // Reset Redux state on unmount
   useEffect(() => {
     return () => {
       dispatch(resetCreateShopState());
@@ -133,7 +105,7 @@ const CreateForm = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full flex flex-col gap-5"
       >
-        {/* Shop Name */}
+        {/* Form fields */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="title" className="label">
             Name
@@ -149,7 +121,6 @@ const CreateForm = () => {
           )}
         </div>
 
-        {/* Shop Address */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="address" className="label">
             Address
@@ -165,7 +136,6 @@ const CreateForm = () => {
           )}
         </div>
 
-        {/* Shop Phone */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="phone" className="label">
             Phone
@@ -178,7 +148,6 @@ const CreateForm = () => {
           />
         </div>
 
-        {/* Shop Short Description */}
         <div className="flex flex-col px-7">
           <label className="bLabel">Short Description</label>
           <textarea
@@ -187,7 +156,6 @@ const CreateForm = () => {
           />
         </div>
 
-        {/* Shop Detailed Description */}
         <div className="flex flex-col px-7">
           <label className="bLabel">Description</label>
           <textarea
@@ -201,7 +169,6 @@ const CreateForm = () => {
           )}
         </div>
 
-        {/* Shop Image Upload */}
         <div className="flex flex-col relative gap-1 px-7">
           <label className="bLabel">Image</label>
           <input
@@ -224,12 +191,10 @@ const CreateForm = () => {
           )}
         </div>
 
-        {/* Product List */}
         <div className="flex flex-col gap-2">
           <h2 className="text-base font-semibold px-7">Products</h2>
           {products.map((product, index) => (
             <div key={index} className="flex flex-col gap-2 px-7">
-              {/* Product Name */}
               <div className="flex flex-col relative gap-1">
                 <label className="label left-1">Name</label>
                 <input
@@ -242,7 +207,6 @@ const CreateForm = () => {
                 />
               </div>
 
-              {/* Product Price */}
               <div className="flex flex-col relative gap-1">
                 <label className="label left-1">Price</label>
                 <input
@@ -254,37 +218,10 @@ const CreateForm = () => {
                   }
                 />
               </div>
-
-              {/* Product Image Upload */}
-              <div className="flex flex-col relative gap-1">
-                <label className="label left-1">Image</label>
-                <input
-                  className="hidden"
-                  type="file"
-                  id={`product-image-${index}`}
-                  onChange={(e) => handleProductImageChange(index, e)}
-                />
-                <label
-                  htmlFor={`product-image-${index}`}
-                  className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
-                >
-                  <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
-                    Upload Image
-                  </span>
-                </label>
-                {product.image && (
-                  <img
-                    src={URL.createObjectURL(product.image)}
-                    alt="Product Preview"
-                    className="w-20 h-20 mt-2"
-                  />
-                )}
-              </div>
             </div>
           ))}
         </div>
 
-        {/* Add Product Button */}
         <button
           type="button"
           onClick={handleAddProduct}
@@ -293,7 +230,6 @@ const CreateForm = () => {
           Add Product
         </button>
 
-        {/* Shop Category */}
         <div className="flex flex-col px-7">
           <label className="bLabel">Category</label>
           <input
@@ -306,7 +242,6 @@ const CreateForm = () => {
           )}
         </div>
 
-        {/* Form Buttons */}
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
