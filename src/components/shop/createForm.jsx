@@ -39,11 +39,18 @@ const CreateForm = () => {
       );
       formData.append("products_list", JSON.stringify(validProducts));
 
+      // Append product images
+      validProducts.forEach((product, index) => {
+        if (product.image) {
+          formData.append(`product_image_${index}`, product.image);
+        }
+      });
+
       await dispatch(createShop(formData)).unwrap();
 
       setShowSuccess(true);
       reset();
-      setProducts([{ name: "", price: "" }]);
+      setProducts([{ name: "", price: "", image: null }]);
       setImagePreview(null);
 
       setTimeout(() => setShowSuccess(false), 3000);
@@ -73,6 +80,17 @@ const CreateForm = () => {
     }
   };
 
+  const handleProductImageChange = (index, file) => {
+    if (file) {
+      setProducts((prev) =>
+        prev.map((product, i) =>
+          i === index
+            ? { ...product, image: file, preview: URL.createObjectURL(file) }
+            : product
+        )
+      );
+    }
+  };
   // Reset Redux state on unmount
   useEffect(() => {
     return () => {
@@ -217,6 +235,24 @@ const CreateForm = () => {
                     handleProductChange(index, "price", e.target.value)
                   }
                 />
+              </div>
+
+              {/* Product Image Upload */}
+              <div className="flex flex-col relative gap-1">
+                <label className="label left-1">Product Image</label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    handleProductImageChange(index, e.target.files[0])
+                  }
+                />
+                {product.preview && (
+                  <img
+                    src={product.preview}
+                    alt="Preview"
+                    className="w-20 h-20 mt-2"
+                  />
+                )}
               </div>
             </div>
           ))}
