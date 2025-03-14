@@ -187,8 +187,9 @@ const CreateForm = () => {
           )}
         </div>
 
-        <div className="flex flex-col relative gap-1 px-7">
-          <label className="bLabel">Image</label>
+        <div className="flex flex-col relative gap-2 px-7">
+          <label className="font-medium text-gray-700">Image</label>
+
           <input
             className="hidden"
             type="file"
@@ -196,16 +197,22 @@ const CreateForm = () => {
             {...register("media")}
             onChange={handleImageChange}
           />
+
           <label
             htmlFor="media-upload"
-            className="px-4 py-2 h-20 border border-dashed text-ash border-black rounded-md cursor-pointer flex items-center justify-center"
+            className="w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition"
           >
-            <span className="border border-ash p-1.5 rounded-lg w-48 text-center">
-              Upload
+            <span className="border border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
+              Upload Image
             </span>
           </label>
+
           {imagePreview && (
-            <img src={imagePreview} alt="Preview" className="w-20 h-20 mt-2" />
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-full h-32 mt-2 rounded-lg object-cover border border-gray-300"
+            />
           )}
         </div>
 
@@ -238,19 +245,23 @@ const CreateForm = () => {
               </div>
 
               {/* Product Image Upload */}
-              <div className="flex flex-col relative gap-1">
-                <label className="label left-1">Product Image</label>
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    handleProductImageChange(index, e.target.files[0])
-                  }
-                />
+              <div className="flex flex-col relative gap-2">
+                <div className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100">
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) =>
+                      handleProductImageChange(index, e.target.files[0])
+                    }
+                  />
+                  <span className="text-gray-500 text-sm">Upload Image</span>
+                </div>
+
                 {product.preview && (
                   <img
                     src={product.preview}
                     alt="Preview"
-                    className="w-20 h-20 mt-2"
+                    className="w-full h-32 mt-2 rounded-lg object-cover border border-gray-300"
                   />
                 )}
               </div>

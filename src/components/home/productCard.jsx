@@ -38,7 +38,7 @@ const ProductCard = () => {
       {/* Title */}
       <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
         <h1 className="text-xl font-normal font-poppins">
-          Welcome to <span className="text-lily">Lily Shop</span>
+          Welcome to <span className="text-lily">Lily Shops</span>
         </h1>
       </div>
 
