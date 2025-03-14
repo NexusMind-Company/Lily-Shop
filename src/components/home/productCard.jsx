@@ -34,7 +34,7 @@ const ProductCard = () => {
   }
 
   return (
-    <section className="mt-10 flex flex-col px-7 gap-7 items-center max-w-3xl mx-auto">
+    <section className="mt-10 min-h-screen flex flex-col px-7 gap-7 items-center max-w-3xl mx-auto">
       {/* Title */}
       <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
         <h1 className="text-xl font-normal font-poppins">
