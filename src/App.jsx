@@ -24,8 +24,8 @@ export default function App() {
 
   useEffect(() => {
 
-    if (localStorage.token) {
-      dispatch(loginSuccess({ token: localStorage.token }))
+    if (localStorage.user_data) {
+      dispatch(loginSuccess({ user_data: localStorage.user_data }))
     }
 
   }, [])
