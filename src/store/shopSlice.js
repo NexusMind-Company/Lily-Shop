@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 // Async thunk to fetch shops from the API
 export const fetchShops = createAsyncThunk("shops/fetchShops", async () => {
-  const response = await axios.get(
-    "https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/shops/"
-  );
+  const response = await axios.get(`${API_BASE_URL}/shops/`);
   return response.data;
 });
 

@@ -1,12 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 export const createShop = createAsyncThunk(
   "createShop/createShop",
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/shops/",
+        `${API_BASE_URL}/shops/`,
         formData,
         {
           headers: {

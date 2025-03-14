@@ -1,29 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Create async thunk for creating an ad
 export const createAd = createAsyncThunk(
   "ads/createAd",
-  async ({ formData, token }, thunkAPI) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const response = await fetch(
-        "https://running-arlie-nexusmind-b9a0fcb2.koyeb.app/ads/create",
+        `${API_BASE_URL}/ads/`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
+          body: formData,
         }
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create ad");
+        throw new Error("Failed to create ad");
       }
 
-      return await response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -32,24 +31,32 @@ const adsSlice = createSlice({
   name: "ads",
   initialState: {
     ads: [],
-    status: "idle",
+    loading: false,
     error: null,
+    success: false,
   },
-  reducers: {},
+  reducers: {
+    resetSuccess: (state) => {
+      state.success = false;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(createAd.pending, (state) => {
-        state.status = "loading";
+        state.loading = true;
+        state.error = null;
       })
       .addCase(createAd.fulfilled, (state, action) => {
-        state.status = "succeeded";
+        state.loading = false;
         state.ads.push(action.payload);
+        state.success = true;
       })
       .addCase(createAd.rejected, (state, action) => {
-        state.status = "failed";
+        state.loading = false;
         state.error = action.payload;
       });
   },
 });
 
+export const { resetSuccess } = adsSlice.actions;
 export default adsSlice.reducer;
