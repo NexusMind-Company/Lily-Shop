@@ -55,11 +55,11 @@ const SignUp = () => {
   };
 
   useEffect(() => {
-    if (data) {
+    if (data !== null) {
       dispatch(loginSuccess({ user_data: data }));
       navigate("/");
     }
-  }, [data, dispatch, navigate]);
+  }, [data]);
 
   // //handling signup auth;
   // const handleSubmitAsync = async (user, phone, pass) => {

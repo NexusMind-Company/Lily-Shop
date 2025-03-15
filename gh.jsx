@@ -13,9 +13,8 @@ const CreateForm = () => {
     formState: { errors },
   } = useForm();
 
-  const [products, setProducts] = useState([
-    { name: "", price: "", image: null },
-  ]);
+  const [products, setProducts] = useState([{ name: "", price: "" }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -23,48 +22,54 @@ const CreateForm = () => {
   const { status, error, success } = useSelector((state) => state.createShop);
 
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("name", data.title);
       formData.append("description", data.detailedDescription);
-      formData.append("category", data.category); // Correctly include category
+      formData.append("category", data.inputCategory);
       formData.append("address", data.address);
-
+  
       if (data.media && data.media[0]) {
         formData.append("image", data.media[0]);
       }
-
+  
       const validProducts = products.filter(
-        (product) => product.name.trim() !== "" && product.price.trim() !== ""
+        (product) => product.name.trim() !== ""
       );
       formData.append("products_list", JSON.stringify(validProducts));
-
+  
       // Append product images
       validProducts.forEach((product, index) => {
         if (product.image) {
           formData.append(`product_image_${index}`, product.image);
         }
       });
-
-      // Dispatch the createShop thunk
+  
+      // Debugging: Log form data before sending
+      console.log("Form Data Debugging:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+  
       await dispatch(createShop(formData)).unwrap();
-
-      // Show success message and reset form
+  
       setShowSuccess(true);
       reset();
       setProducts([{ name: "", price: "", image: null }]);
       setImagePreview(null);
-
-      // Hide success message after 3 seconds
+  
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error("Error creating shop:", error);
-      alert("Failed to create shop. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+  
 
   const handleAddProduct = () => {
-    setProducts([...products, { name: "", price: "", image: null }]);
+    setProducts([...products, { name: "", price: "" }]);
   };
 
   const handleProductChange = (index, field, value) => {
@@ -93,27 +98,12 @@ const CreateForm = () => {
       );
     }
   };
-
-  // Revoke object URLs to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-      products.forEach((product) => {
-        if (product.preview) {
-          URL.revokeObjectURL(product.preview);
-        }
-      });
-    };
-  }, [imagePreview, products]);
-
   // Reset Redux state on unmount
   useEffect(() => {
-    if (status !== "idle") {
+    return () => {
       dispatch(resetCreateShopState());
-    }
-  }, [dispatch, status]);
+    };
+  }, [dispatch]);
 
   return (
     <section className="mt-10 flex flex-col gap-7 md:px-7 min-h-screen max-w-3xl mx-auto">
@@ -172,18 +162,23 @@ const CreateForm = () => {
         </div>
 
         <div className="flex flex-col relative px-7">
-          <label htmlFor="category" className="label">
-            Category
+          <label htmlFor="phone" className="label">
+            Phone
           </label>
           <input
-            id="category"
+            id="phone"
             className="input"
             type="text"
-            {...register("category", { required: true })}
+            {...register("phone")}
           />
-          {errors.category && (
-            <span className="text-red-500 text-sm">Category is required</span>
-          )}
+        </div>
+
+        <div className="flex flex-col px-7">
+          <label className="bLabel">Short Description</label>
+          <textarea
+            className="border border-black rounded-lg p-2 h-20"
+            {...register("shortDescription")}
+          />
         </div>
 
         <div className="flex flex-col px-7">
@@ -204,7 +199,6 @@ const CreateForm = () => {
 
           <input
             className="hidden"
-            accept="image/png, image/jpeg"
             type="file"
             id="media-upload"
             {...register("media")}
@@ -216,7 +210,7 @@ const CreateForm = () => {
             className="w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition"
           >
             <span className="border border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
-              Upload Shop Logo/Banner
+              Upload Image
             </span>
           </label>
 
@@ -224,7 +218,7 @@ const CreateForm = () => {
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
+              className="w-full h-32 mt-2 rounded-lg object-cover border border-gray-300"
             />
           )}
         </div>
@@ -262,22 +256,19 @@ const CreateForm = () => {
                 <div className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100">
                   <input
                     type="file"
-                    accept="image/png, image/jpeg"
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     onChange={(e) =>
                       handleProductImageChange(index, e.target.files[0])
                     }
                   />
-                  <span className="text-gray-500 text-sm">
-                    Upload Product Image
-                  </span>
+                  <span className="text-gray-500 text-sm">Upload Image</span>
                 </div>
 
                 {product.preview && (
                   <img
                     src={product.preview}
                     alt="Preview"
-                    className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
+                    className="w-full h-32 mt-2 rounded-lg object-cover border border-gray-300"
                   />
                 )}
               </div>
@@ -293,6 +284,18 @@ const CreateForm = () => {
           Add Product
         </button>
 
+        <div className="flex flex-col px-7">
+          <label className="bLabel">Category</label>
+          <input
+            className="border border-black rounded-lg px-2 h-14"
+            type="text"
+            {...register("inputCategory", { required: true })}
+          />
+          {errors.inputCategory && (
+            <span className="text-red-500 text-sm">Category is required</span>
+          )}
+        </div>
+
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
@@ -302,10 +305,10 @@ const CreateForm = () => {
           </button>
           <button
             type="submit"
-            disabled={status === "loading"}
+            disabled={isSubmitting}
             className="bg-white text-black py-2 w-[105px] cursor-pointer"
           >
-            {status === "loading" ? "Saving..." : "Save & Deploy"}
+            {isSubmitting ? "Saving..." : "Save & Deploy"}
           </button>
         </div>
       </form>

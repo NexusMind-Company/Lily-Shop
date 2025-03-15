@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess } from "../../store/authSlice";
 import useAuth from "../hooks/useAuth";
@@ -30,11 +31,11 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (data) {
+    if (data !== null) {
       dispatch(loginSuccess({ user_data: data }));
       navigate("/");
     }
-  }, [data, dispatch, navigate]);
+  }, [data]);
 
   // //handling the api for login auth
   // const handleSubmitAsync = async () => {

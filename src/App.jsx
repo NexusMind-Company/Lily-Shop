@@ -13,7 +13,6 @@ import PurchaseAds from "./pages/purchaseAds";
 import Step2 from "./components/ads/step2";
 import CreateAdsForm from "./components/ads/createAdsForm"
 import ForgotPassword from "./pages/forgotPassword";
-import ProductData from "./information/productData";
 import SearchResults from "./pages/searchResults";
 import { useEffect } from 'react';
 import { useDispatch } from "react-redux";
@@ -33,7 +32,7 @@ export default function App() {
 
   return (
     <Router>
-      <Header productData={ProductData} />
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/createShop" element={<CreateShop />} />
@@ -48,7 +47,7 @@ export default function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route
           path="/searchResults"
-          element={<SearchResults productData={ProductData} />}
+          element={<SearchResults />}
         />
       </Routes>
       <Nav />
