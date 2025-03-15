@@ -4,9 +4,9 @@ import shopReducer from "./shopSlice";
 import createShopReducer from "./createShopSlice";
 
 export const store = configureStore({
-    reducer: {
-        auth: authSlice,
-        shops: shopReducer,
-        createShop: createShopReducer,
-    }
-})
+  reducer: {
+    auth: authSlice,
+    shops: shopReducer,
+    createShop: createShopReducer,
+  },
+});
