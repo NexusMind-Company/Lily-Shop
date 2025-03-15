@@ -8,27 +8,22 @@ const ProductCard = () => {
   const { shops, status, error } = useSelector((state) => state.shops);
   const [visibleProducts, setVisibleProducts] = useState(4);
 
-  // Fetch shops data when the component mounts
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchShops());
     }
   }, [status, dispatch]);
 
-  // Function to load more products
   const showMoreProducts = () => {
     setVisibleProducts((prev) => prev + 4);
   };
 
-  // Check if there are more products to show
   const hasMoreProducts = visibleProducts < shops.length;
 
-  // Display loading state
   if (status === "loading") {
     return <div className="text-center mt-10">Loading...</div>;
   }
 
-  // Display error state
   if (error) {
     return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
   }
