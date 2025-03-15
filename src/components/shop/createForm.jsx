@@ -46,7 +46,15 @@ const CreateForm = () => {
         }
       });
 
-      await dispatch(createShop(formData)).unwrap();
+      // Debugging: Log form data before sending
+      console.log("Form Data Debugging:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      // Dispatch and log response
+      const response = await dispatch(createShop(formData)).unwrap();
+      console.log("API Response:", response);
 
       setShowSuccess(true);
       reset();
