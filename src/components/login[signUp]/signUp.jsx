@@ -1,32 +1,32 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useSelector, useDispatch } from 'react-redux';
-import { loginSuccess } from '../../store/authSlice';
+import { useSelector, useDispatch } from "react-redux";
+import { loginSuccess } from "../../store/authSlice";
 import useAuth from "../hooks/useAuth";
 import displayError from "../utils/displayError";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const formatPhone = (num) => {
-  const split = num.toString().split('')
-  split.shift(); split.unshift('+234')
-  const newNum = split.join('');
+  const split = num.toString().split("");
+  split.shift();
+  split.unshift("+234");
+  const newNum = split.join("");
 
   return newNum;
-
-}
+};
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   // const [error, setError] = useState([]);
 
   //User fields input
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [username, setUsername] = useState("");
 
-  const isAuth = useSelector((state) => state.auth)
+  const isAuth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   //useAuth custom hooks
@@ -34,7 +34,6 @@ const SignUp = () => {
 
   //for navigation
   const navigate = useNavigate();
-
 
   //handleSubmit
   const handleSubmit = (e) => {
@@ -48,22 +47,24 @@ const SignUp = () => {
     // console.log(username, phoneNumber, password)
     // handleSubmitAsync(username, editNumber(phoneNumber), password);
 
-    signup(apiUrl + "/auth/users", { username, phone_number: formatPhone(phoneNumber), password })
-  }
+    signup(apiUrl + "/auth/users", {
+      username,
+      phone_number: formatPhone(phoneNumber),
+      password,
+    });
+  };
 
   useEffect(() => {
-    if (data !== null) {
-      dispatch(loginSuccess({ user_data: data }))
-      navigate('/')
+    if (data) {
+      dispatch(loginSuccess({ user_data: data }));
+      navigate("/");
     }
-  }, [data])
-
+  }, [data, dispatch, navigate]);
 
   // //handling signup auth;
   // const handleSubmitAsync = async (user, phone, pass) => {
   //   setError([]);
   //   setSucessLoginMsg(false)
-
 
   //   try {
   //     const request = await axios.post(apiUrl + 'auth/users/', { username: user, phone_number: phone, password: pass })
@@ -115,10 +116,10 @@ const SignUp = () => {
             placeholder="Username"
             onChange={(e) => setUsername(e.target.value)}
           />
-          <p className="text-[#ff2b2b] font-bold">{displayError(error, 'username')}</p>
+          <p className="text-[#ff2b2b] font-bold">
+            {displayError(error, "username")}
+          </p>
         </div>
-
-
 
         {/* Phone number Input */}
         <div className="flex flex-col">
@@ -129,10 +130,10 @@ const SignUp = () => {
             placeholder="Phone Number"
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
-          <p className="text-[#ff2b2b] font-bold">{displayError(error, 'phone_number')}</p>
+          <p className="text-[#ff2b2b] font-bold">
+            {displayError(error, "phone_number")}
+          </p>
         </div>
-
-
 
         {/* Password Input with Toggle Icon */}
         <div className="relative">
@@ -142,7 +143,6 @@ const SignUp = () => {
             name="password"
             placeholder="Password"
             onChange={(e) => setPassword(e.target.value)}
-
           />
           <button
             type="button"
@@ -154,20 +154,23 @@ const SignUp = () => {
         </div>
 
         {/* error msg */}
-        <p className="text-[#ff2b2b] font-bold">{displayError(error, 'others')}</p>
+        <p className="text-[#ff2b2b] font-bold">
+          {displayError(error, "others")}
+        </p>
         {/* Register Button */}
 
         <button
           type="submit"
           className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px]"
         >
-          {loading ? "Loading ..." : 'Register'}
+          {loading ? "Loading ..." : "Register"}
         </button>
       </form>
 
       {/* Login Link */}
       <Link to="/login" className="font-inter text-xs font-medium">
-        Already a member? <span className="text-lily font-semibold">Log In</span>
+        Already a member?{" "}
+        <span className="text-lily font-semibold">Log In</span>
       </Link>
     </section>
   );

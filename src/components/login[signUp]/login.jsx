@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { loginSuccess } from '../../store/authSlice';
+import { loginSuccess } from "../../store/authSlice";
 import useAuth from "../hooks/useAuth";
 import displayError from "../utils/displayError";
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -13,14 +12,13 @@ const Login = () => {
 
   //handle Error
   // const [error, setError] = useState(null);
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const { login, loading, error, data } = useAuth();
 
-
   const dispatch = useDispatch();
-  const state = useSelector((state) => state.auth)
+  const state = useSelector((state) => state.auth);
 
   const navigate = useNavigate();
 
@@ -28,15 +26,15 @@ const Login = () => {
     e.preventDefault();
 
     // handleSubmitAsync()
-    login(apiUrl + '/auth/token/', { username, password });
-  }
+    login(apiUrl + "/auth/token/", { username, password });
+  };
 
   useEffect(() => {
-    if (data !== null) {
-      dispatch(loginSuccess({ user_data: data }))
-      navigate('/')
+    if (data) {
+      dispatch(loginSuccess({ user_data: data }));
+      navigate("/");
     }
-  }, [data])
+  }, [data, dispatch, navigate]);
 
   // //handling the api for login auth
   // const handleSubmitAsync = async () => {
@@ -88,7 +86,6 @@ const Login = () => {
             name="password"
             placeholder="Password"
             onChange={(e) => setPassword(e.target.value)}
-
           />
           <button
             type="button"
@@ -107,20 +104,23 @@ const Login = () => {
           Forgot Password?
         </Link>
         {/* display login error */}
-        <p className="text-[#ff2b2b] font-bold">{displayError(error, 'detail')}</p>
+        <p className="text-[#ff2b2b] font-bold">
+          {displayError(error, "detail")}
+        </p>
 
         {/* Login Button */}
         <button
           type="submit"
           className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px]"
         >
-          {loading ? 'Loading...' : 'Log In'}
+          {loading ? "Loading..." : "Log In"}
         </button>
       </form>
 
       {/* Sign Up Link */}
       <Link to="/signup" className="font-inter text-xs font-medium">
-        Not a member yet? <span className="text-lily font-semibold">Create an Account</span>
+        Not a member yet?{" "}
+        <span className="text-lily font-semibold">Create an Account</span>
       </Link>
     </section>
   );
