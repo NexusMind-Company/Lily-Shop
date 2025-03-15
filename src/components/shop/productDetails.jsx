@@ -54,7 +54,7 @@ const ProductDetails = () => {
           </p>
         </div>
         <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border border-gray-300">
-          <p>Send Message</p>
+          <p>Coming Soon</p>
           <img className="w-5" src="/message-icon.svg" alt="message-icon" />
         </button>
       </div>
