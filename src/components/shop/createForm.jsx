@@ -1,67 +1,10 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { createShop, resetCreateShopState } from "../../store/createShopSlice";
 
 const CreateForm = () => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
-  const [products, setProducts] = useState([
-    { name: "", price: "", image: null },
-  ]);
+  const [products, setProducts] = useState([{ name: "", price: "", image: null }]);
   const [imagePreview, setImagePreview] = useState(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  const dispatch = useDispatch();
-  const { status, error, success } = useSelector((state) => state.createShop);
-
-  const onSubmit = async (data) => {
-    try {
-      const formData = new FormData();
-      formData.append("name", data.title);
-      formData.append("description", data.detailedDescription);
-      formData.append("category", data.category); // Correctly include category
-      formData.append("address", data.address);
-
-      if (data.media && data.media[0]) {
-        formData.append("image", data.media[0]);
-      }
-
-      const validProducts = products.filter(
-        (product) => product.name.trim() !== "" && product.price.trim() !== ""
-      );
-      formData.append("products_list", JSON.stringify(validProducts));
-
-      // Append product images
-      validProducts.forEach((product, index) => {
-        if (product.image) {
-          formData.append(`product_image_${index}`, product.image);
-        }
-      });
-
-      // Dispatch the createShop thunk
-      await dispatch(createShop(formData)).unwrap();
-
-      // Show success message and reset form
-      setShowSuccess(true);
-      reset();
-      setProducts([{ name: "", price: "", image: null }]);
-      setImagePreview(null);
-
-      // Hide success message after 3 seconds
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
-      console.error("Error creating shop:", error);
-      alert("Failed to create shop. Please try again.");
-    }
-  };
 
   const handleAddProduct = () => {
     setProducts([...products, { name: "", price: "", image: null }]);
@@ -94,26 +37,11 @@ const CreateForm = () => {
     }
   };
 
-  // Revoke object URLs to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-      products.forEach((product) => {
-        if (product.preview) {
-          URL.revokeObjectURL(product.preview);
-        }
-      });
-    };
-  }, [imagePreview, products]);
-
-  // Reset Redux state on unmount
-  useEffect(() => {
-    if (status !== "idle") {
-      dispatch(resetCreateShopState());
-    }
-  }, [dispatch, status]);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form submitted");
+    // Form submission logic can be added here
+  };
 
   return (
     <section className="mt-10 flex flex-col gap-7 md:px-7 min-h-screen max-w-3xl mx-auto">
@@ -126,77 +54,44 @@ const CreateForm = () => {
       </div>
 
       {/* Success Popup */}
-      {showSuccess && (
-        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Shop created successfully!
-        </div>
-      )}
+      <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg hidden">
+        ✅ Shop created successfully!
+      </div>
 
       {/* Loading and Error States */}
-      {status === "loading" && <p>Loading...</p>}
-      {status === "failed" && <p className="text-red-500">{error}</p>}
+      <p className="hidden">Loading...</p>
+      <p className="text-red-500 hidden">Error message</p>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-5"
-      >
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
         {/* Form fields */}
         <div className="flex flex-col relative px-7">
           <label htmlFor="title" className="label">
             Name
           </label>
-          <input
-            id="title"
-            className="input"
-            type="text"
-            {...register("title", { required: true, maxLength: 50 })}
-          />
-          {errors.title && (
-            <span className="text-red-500 text-sm">Name is required</span>
-          )}
+          <input id="title" className="input" type="text" />
+          <span className="text-red-500 text-sm hidden">Name is required</span>
         </div>
 
         <div className="flex flex-col relative px-7">
           <label htmlFor="address" className="label">
             Address
           </label>
-          <input
-            id="address"
-            className="input"
-            type="text"
-            {...register("address", { required: true, maxLength: 100 })}
-          />
-          {errors.address && (
-            <span className="text-red-500 text-sm">Address is required</span>
-          )}
+          <input id="address" className="input" type="text" />
+          <span className="text-red-500 text-sm hidden">Address is required</span>
         </div>
 
         <div className="flex flex-col relative px-7">
           <label htmlFor="category" className="label">
             Category
           </label>
-          <input
-            id="category"
-            className="input"
-            type="text"
-            {...register("category", { required: true })}
-          />
-          {errors.category && (
-            <span className="text-red-500 text-sm">Category is required</span>
-          )}
+          <input id="category" className="input" type="text" />
+          <span className="text-red-500 text-sm hidden">Category is required</span>
         </div>
 
         <div className="flex flex-col px-7">
           <label className="bLabel">Description</label>
-          <textarea
-            className="border border-black rounded-lg p-2 h-28"
-            {...register("detailedDescription", { required: true })}
-          />
-          {errors.detailedDescription && (
-            <span className="text-red-500 text-sm">
-              Description is required
-            </span>
-          )}
+          <textarea className="border border-black rounded-lg p-2 h-28" />
+          <span className="text-red-500 text-sm hidden">Description is required</span>
         </div>
 
         <div className="flex flex-col relative gap-2 px-7">
@@ -207,7 +102,6 @@ const CreateForm = () => {
             accept="image/png, image/jpeg"
             type="file"
             id="media-upload"
-            {...register("media")}
             onChange={handleImageChange}
           />
 
@@ -257,7 +151,6 @@ const CreateForm = () => {
                 />
               </div>
 
-              {/* Product Image Upload */}
               <div className="flex flex-col relative gap-2">
                 <div className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100">
                   <input
@@ -268,14 +161,12 @@ const CreateForm = () => {
                       handleProductImageChange(index, e.target.files[0])
                     }
                   />
-                  <span className="text-gray-500 text-sm">
-                    Upload Product Image
-                  </span>
+                  <span className="text-gray-500 text-sm">Upload Product Image</span>
                 </div>
 
-                {product.preview && (
+                {product.image && product.image.preview && (
                   <img
-                    src={product.preview}
+                    src={product.image.preview}
                     alt="Preview"
                     className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
                   />
@@ -302,10 +193,9 @@ const CreateForm = () => {
           </button>
           <button
             type="submit"
-            disabled={status === "loading"}
             className="bg-white text-black py-2 w-[105px] cursor-pointer"
           >
-            {status === "loading" ? "Saving..." : "Save & Deploy"}
+            Save & Deploy
           </button>
         </div>
       </form>

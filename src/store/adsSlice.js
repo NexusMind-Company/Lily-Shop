@@ -8,7 +8,7 @@ export const createAd = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/ads/`,
+        `${API_BASE_URL}/ads/create`,
         {
           method: "POST",
           body: formData,
