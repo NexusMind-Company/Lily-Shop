@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const CreateForm = () => {
-  const [products, setProducts] = useState([{ name: "", price: "", image: null }]);
+  const [products, setProducts] = useState([
+    { name: "", price: "", image: null },
+  ]);
   const [imagePreview, setImagePreview] = useState(null);
 
   const handleAddProduct = () => {
@@ -77,7 +79,9 @@ const CreateForm = () => {
             Address
           </label>
           <input id="address" className="input" type="text" />
-          <span className="text-red-500 text-sm hidden">Address is required</span>
+          <span className="text-red-500 text-sm hidden">
+            Address is required
+          </span>
         </div>
 
         <div className="flex flex-col relative px-7">
@@ -85,13 +89,17 @@ const CreateForm = () => {
             Category
           </label>
           <input id="category" className="input" type="text" />
-          <span className="text-red-500 text-sm hidden">Category is required</span>
+          <span className="text-red-500 text-sm hidden">
+            Category is required
+          </span>
         </div>
 
         <div className="flex flex-col px-7">
           <label className="bLabel">Description</label>
           <textarea className="border border-black rounded-lg p-2 h-28" />
-          <span className="text-red-500 text-sm hidden">Description is required</span>
+          <span className="text-red-500 text-sm hidden">
+            Description is required
+          </span>
         </div>
 
         <div className="flex flex-col relative gap-2 px-7">
@@ -161,7 +169,9 @@ const CreateForm = () => {
                       handleProductImageChange(index, e.target.files[0])
                     }
                   />
-                  <span className="text-gray-500 text-sm">Upload Product Image</span>
+                  <span className="text-gray-500 text-sm">
+                    Upload Product Image
+                  </span>
                 </div>
 
                 {product.image && product.image.preview && (

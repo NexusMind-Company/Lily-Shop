@@ -40,7 +40,7 @@ const ProductDetails = () => {
       <div className="mt-7 flex items-center justify-center w-full">
         <img
           className="rounded-2xl h-[311px] w-[100%]"
-          src={product.image}
+          src={product.image_url}
           alt={product.name}
         />
       </div>
@@ -96,7 +96,7 @@ const ProductDetails = () => {
             >
               <img
                 className="w-full h-40 md:h-48 rounded-lg object-cover"
-                src={productItem.image}
+                src={productItem.image_url}
                 alt={productItem.name}
               />
               <ul className="border-l-2 border-[#F6AD6D] pl-2 font-inter">
