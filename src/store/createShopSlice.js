@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+/*import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -8,16 +8,8 @@ export const createShop = createAsyncThunk(
   "createShop/createShop",
   async (formData, { rejectWithValue }) => {
     try {
-      const userData = JSON.parse(localStorage.getItem("user_data")) || {};
-      const token = userData?.token?.access || "";
-
-      if (!token) {
-        throw new Error("Unauthorized - No token found");
-      }
-
       const response = await axios.post(`${API_BASE_URL}/shops/`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -35,10 +27,10 @@ export const createShop = createAsyncThunk(
 const createShopSlice = createSlice({
   name: "createShop",
   initialState: {
-    status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
+    status: "idle",
     error: null,
     success: false,
-    shopData: null, // Stores created shop details
+    shopData: null,
   },
   reducers: {
     resetCreateShopState: (state) => {
@@ -71,4 +63,4 @@ const createShopSlice = createSlice({
 });
 
 export const { resetCreateShopState } = createShopSlice.actions;
-export default createShopSlice.reducer;
+export default createShopSlice.reducer;*/
