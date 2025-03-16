@@ -1,4 +1,4 @@
-/*import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -63,4 +63,4 @@ const createShopSlice = createSlice({
 });
 
 export const { resetCreateShopState } = createShopSlice.actions;
-export default createShopSlice.reducer;*/
+export default createShopSlice.reducer;
