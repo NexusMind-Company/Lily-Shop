@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../store/shopSlice";
+import Loader from "../loader"
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -18,7 +19,7 @@ const ProductDetails = () => {
   const product = shops.find((shop) => shop.id === parseInt(id));
 
   if (status === "loading") {
-    return <div className="text-center mt-10">Loading...</div>;
+    return <Loader />;
   }
 
   if (error) {

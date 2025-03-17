@@ -245,8 +245,13 @@ const Header = () => {
           <Link to="/purchaseAds">Purchase Ads</Link>
         </li>
         {isAuthenticated ? (
-          <li className="py-2 hover:text-lily">
-            <button onClick={() => dispatch(logout())}>Logout</button>
+          <li className="py-2 hover:text-lily ">
+            <button
+              className="cursor-pointer"
+              onClick={() => dispatch(logout())}
+            >
+              Logout
+            </button>
           </li>
         ) : (
           <li className="py-2 hover:text-lily">

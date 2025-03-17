@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../store/shopSlice";
+import Loader from "../loader"
 
 const ProductCard = () => {
   const dispatch = useDispatch();
@@ -21,7 +22,7 @@ const ProductCard = () => {
   const hasMoreProducts = visibleProducts < shops.length;
 
   if (status === "loading") {
-    return <div className="text-center mt-10">Loading...</div>;
+    return <Loader />;
   }
 
   if (error) {

@@ -101,7 +101,7 @@ const Login = () => {
         <div className="text-right font-inter text-xs underline font-semibold flex items-center justify-end">
           <Link to="/forgotPassword">Forgot Password?</Link>
         </div>
-        <p className="text-[#ff2b2b] font-bold lg:mt-10">
+        <p className="text-[#ff2b2b] font-bold lg:-mt-7">
           {displayError(error, "detail")}
         </p>
         {/* display login error */}
