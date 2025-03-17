@@ -98,31 +98,30 @@ const Login = () => {
         </div>
 
         {/* Forgot Password */}
-        <Link
-          to="/forgotPassword"
-          className="text-right font-inter text-xs underline font-semibold"
-        >
-          Forgot Password?
-        </Link>
-        {/* display login error */}
-        <p className="text-[#ff2b2b] font-bold">
+        <div className="text-right font-inter text-xs underline font-semibold flex items-center justify-end">
+          <Link to="/forgotPassword">Forgot Password?</Link>
+        </div>
+        <p className="text-[#ff2b2b] font-bold lg:mt-10">
           {displayError(error, "detail")}
         </p>
+        {/* display login error */}
 
         {/* Login Button */}
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px]"
+          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"
         >
           {loading ? "Loading..." : "Log In"}
         </button>
       </form>
 
       {/* Sign Up Link */}
-      <Link to="/signup" className="font-inter text-xs font-medium">
-        Not a member yet?{" "}
-        <span className="text-lily font-semibold">Create an Account</span>
-      </Link>
+      <div className="font-inter text-xs font-medium">
+        <Link to="/signup">
+          Not a member yet?{" "}
+          <span className="text-lily font-semibold">Create an Account</span>
+        </Link>
+      </div>
     </section>
   );
 };

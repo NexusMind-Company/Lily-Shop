@@ -57,7 +57,7 @@ const Step2 = () => {
       <button
         onClick={handlePayment}
         disabled={isProcessing}
-        className={`w-full py-3 font-medium font-inter text-base rounded-md transition ${
+        className={`w-full py-3 font-medium font-inter text-base rounded-md transition hover:bg-lily hover:text-white cursor-pointer ${
           isProcessing
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-sun text-black hover:bg-opacity-90"

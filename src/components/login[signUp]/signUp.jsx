@@ -161,17 +161,19 @@ const SignUp = () => {
 
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px]"
+          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"
         >
           {loading ? "Loading ..." : "Register"}
         </button>
       </form>
 
       {/* Login Link */}
-      <Link to="/login" className="font-inter text-xs font-medium">
-        Already a member?{" "}
-        <span className="text-lily font-semibold">Log In</span>
-      </Link>
+      <div className="font-inter text-xs font-medium">
+        <Link to="/login">
+          Already a member?{" "}
+          <span className="text-lily font-semibold">Log In</span>
+        </Link>
+      </div>
     </section>
   );
 };

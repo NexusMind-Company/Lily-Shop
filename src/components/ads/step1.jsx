@@ -53,7 +53,7 @@ const Step1 = () => {
       {/* Continue Button */}
       <button
         onClick={() => navigate("/step2")}
-        className="w-full bg-sun text-black py-3 font-medium font-inter text-base"
+        className="w-full bg-sun text-black py-3 font-medium font-inter text-base hover:bg-lily hover:text-white cursor-pointer"
       >
         Continue
       </button>
