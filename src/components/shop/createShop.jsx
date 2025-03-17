@@ -31,7 +31,7 @@ const CreateShop = () => {
       {!isAuthenticated ? (
         <Link
           to="/login"
-          className="font-inter font-semibold text-sm md:text-base text-gray-500 flex items-center gap-1"
+          className="font-inter font-semibold text-sm md:text-base text-gray-500 flex items-center gap-1 hover:text-sun"
         >
           Login to create a shop
           <img src="/arrow-right.svg" alt="arrow-right" className="w-4" />

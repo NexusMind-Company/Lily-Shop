@@ -7,16 +7,34 @@ export const createAd = createAsyncThunk(
   "ads/createAd",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/ads/create`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const userData = localStorage.getItem("user_data");
+      if (!userData) {
+        throw new Error("No user data found in localStorage. Please log in.");
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.token?.access;
+
+      if (!token) {
+        throw new Error("No access token found in user data.");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/ads/create`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to create ad");
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create ad");
+        } else {
+          throw new Error("Unexpected response from the server");
+        }
       }
 
       const data = await response.json();

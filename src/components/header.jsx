@@ -237,19 +237,19 @@ const Header = () => {
         }`}
       >
         {isAuthenticated && (
-          <li className="py-2">
+          <li className="py-2 hover:text-lily">
             <Link to="/createShop">My Shop</Link>
           </li>
         )}
-        <li className="py-2">
+        <li className="py-2 hover:text-lily">
           <Link to="/purchaseAds">Purchase Ads</Link>
         </li>
         {isAuthenticated ? (
-          <li className="py-2">
+          <li className="py-2 hover:text-lily">
             <button onClick={() => dispatch(logout())}>Logout</button>
           </li>
         ) : (
-          <li className="py-2">
+          <li className="py-2 hover:text-lily">
             <Link to="/login">Sign In</Link>
           </li>
         )}

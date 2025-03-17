@@ -72,10 +72,10 @@ const ProductCard = () => {
 
         {/* Show More Button */}
         {hasMoreProducts && (
-          <div className="w-full flex justify-center mt-6">
+          <div className="w-full flex justify-center mt-6 ">
             <button
               onClick={showMoreProducts}
-              className="px-6 py-2 bg-lily text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200 font-poppins text-sm"
+              className="px-6 py-2 cursor-pointer bg-lily text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200 font-poppins text-sm hover:bg-black"
             >
               Show More
             </button>
