@@ -68,14 +68,12 @@ const CreateForm = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate shop fields
     if (!name.trim()) newErrors.name = "Shop name is required.";
     if (!address.trim()) newErrors.address = "Shop address is required.";
     if (!category.trim()) newErrors.category = "Shop category is required.";
     if (!description.trim())
       newErrors.description = "Shop description is required.";
 
-    // Validate products
     products.forEach((product, index) => {
       if (!product.name.trim()) {
         newErrors[`product_name_${index}`] = "Product name is required.";
@@ -93,7 +91,7 @@ const CreateForm = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      return; // Stop submission if validation fails
+      return;
     }
 
     const formData = new FormData();
@@ -104,18 +102,24 @@ const CreateForm = () => {
 
     const imageFile = imageInputRef.current?.files[0];
     if (imageFile) {
-      formData.append("image_url", imageFile);
+      formData.append("image", imageFile);
     }
 
-    const formattedProducts = products.reduce((acc, product, index) => {
-      acc[`product_${index}`] = {
-        name: product.name,
-        price: product.price,
-        image_url: product.image || null,
-      };
-      return acc;
-    }, {});
-    formData.append("products_list", JSON.stringify(formattedProducts));
+    const formattedProducts = products.map((product) => ({
+      name: product.name,
+      price: parseFloat(product.price),
+    }));
+
+    formData.append(
+      "products_list",
+      JSON.stringify({ products: formattedProducts })
+    );
+
+    products.forEach((product, index) => {
+      if (product.image) {
+        formData.append("images", product.image);
+      }
+    });
 
     try {
       await dispatch(createShop(formData));

@@ -17,7 +17,7 @@ const authSlice = createSlice({
         JSON.stringify(action.payload.user_data)
       );
 
-     console.log("Stored data in localStorage:", localStorage.getItem("user_data"));
+      //console.log("Stored data in localStorage:", localStorage.getItem("user_data"));
     },
 
     logout: (state) => {
