@@ -1,21 +1,19 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom"; // Use `react-router-dom` instead of `react-router`
+import { useSearchParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchShops } from "../store/shopSlice"; // Import the fetchShops action
+import { fetchShops } from "../store/shopSlice";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  // Redux store
-  const { shops, status } = useSelector((state) => state.shops); // Access shops data from Redux
+  const { shops, status } = useSelector((state) => state.shops);
   const dispatch = useDispatch();
 
   const searchQuery = searchParams.get("q") || "";
   const categoryQuery = searchParams.get("category") || "";
 
-  // Fetch shops data when the component mounts
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchShops());
@@ -64,14 +62,13 @@ const SearchResults = () => {
     setResults(filteredResults);
   }, [searchQuery, categoryQuery, selectedCategory, shops]);
 
-  // For debugging
-  console.log("SearchResults rendered with:", {
+  /*console.log("SearchResults rendered with:", {
     shopsLength: shops?.length,
     searchQuery,
     categoryQuery,
     selectedCategory,
     resultsLength: results.length,
-  });
+  });*/
 
   return (
     <div className="container mx-auto px-4 py-8 z-50">
@@ -99,13 +96,13 @@ const SearchResults = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {results.map((shop) => (
             <Link to={`/product/${shop.id}`} key={shop.id}>
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                 {shop.image && (
                   <img
-                    src={shop.image}
+                    src={shop.image_url}
                     alt={shop.name}
                     className="w-full h-48 object-cover"
                   />
@@ -117,7 +114,7 @@ const SearchResults = () => {
                       {shop.category}
                     </span>
                   )}
-                  <p className="text-gray-700 mb-2 line-clamp-2">
+                  <p className="text-gray-700 mb-2 line-clamp-2 text-sm">
                     {shop.description}
                   </p>
                   <p className="font-bold text-lily">{shop.price}</p>
