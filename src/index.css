@@ -1,11 +1,9 @@
 @import "tailwindcss";
 
-:root {
-  --color-gray-200: #d1d5db; /* Light gray */
-}
-
 body {
   @apply bg-[#FFFAE7];
+  @apply overflow-hidden;
+  @apply border-black;
 }
 
 @layer components {

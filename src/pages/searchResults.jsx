@@ -71,8 +71,8 @@ const SearchResults = () => {
   });*/
 
   return (
-    <div className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden z-50">
-      <div className="flex flex-col md:flex-row justify-between items-start mb-8">
+    <div className="mt-10 min-h-screen flex flex-col px-4 md:px-7 items-center max-w-4xl mx-auto overflow-hidden z-50">
+      <div className="flex flex-col md:flex-row justify-between items-start mb-5">
         <h1 className="text-2xl font-bold mb-4 md:mb-0">
           {searchQuery
             ? `Search Results for "${searchQuery}"`
@@ -83,7 +83,7 @@ const SearchResults = () => {
       </div>
 
       {results.length === 0 ? (
-        <div className="text-center py-10">
+        <div className="text-center pb-10">
           <p className="text-lg mb-4">
             {searchQuery
               ? `No products found matching "${searchQuery}"`
@@ -96,7 +96,7 @@ const SearchResults = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {results.map((shop) => (
             <Link to={`/product/${shop.id}`} key={shop.id}>
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
@@ -104,13 +104,13 @@ const SearchResults = () => {
                   <img
                     src={shop.image_url}
                     alt={shop.name}
-                    className="w-full h-48 object-cover"
+                    className="h-48 w-full object-cover"
                   />
                 )}
                 <div className="p-4">
                   <h2 className="font-semibold text-lg mb-2">{shop.name}</h2>
                   {shop.category && (
-                    <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mb-2">
+                    <span className="inline-block px-1 py-1 text-xs bg-gray-100 text-gray-700 rounded mb-2">
                       {shop.category}
                     </span>
                   )}
