@@ -92,7 +92,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow">
+    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative">
       <Link to="/">
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
@@ -121,16 +121,11 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md sm:max-w-sm transition-all duration-500 ease-in-out${
-          searchOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
+        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md sm:max-w-sm transition-all duration-500 ease-in-out ${
+          searchOpen ? "opacity-100 scale-y-100 origin-top" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
       >
-        <form
-          onSubmit={handleSearchSubmit}
-          className="relative w-full flex items-center"
-        >
+        <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
           <input
             className="bg-white py-2 px-3 sm:py-1 sm:px-2 w-full rounded-lg border border-gray-300"
             type="text"
@@ -156,30 +151,18 @@ const Header = () => {
                 >
                   <div className="flex items-center">
                     {shop.image && (
-                      <img
-                        src={shop.image_url}
-                        alt={shop.name}
-                        className="w-8 h-8 object-cover mr-2"
-                      />
+                      <img src={shop.image_url} alt={shop.name} className="w-8 h-8 object-cover mr-2" />
                     )}
                     <div>
                       <p className="font-medium">{shop.name}</p>
                       <p className="text-xs text-gray-600 truncate">
-                        {shop.price}{" "}
-                        {shop.category && (
-                          <span className="text-lily">• {shop.category}</span>
-                        )}
+                        {shop.price} {shop.category && <span className="text-lily">• {shop.category}</span>}
                       </p>
                     </div>
                   </div>
                 </li>
               ))}
-              <li
-                className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer"
-                onClick={() =>
-                  navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`)
-                }
-              >
+              <li className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer" onClick={() => navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`)}>
                 View all results
               </li>
             </ul>
@@ -191,32 +174,17 @@ const Header = () => {
       <ul
         ref={menuRef}
         className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${
-          menuOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
+          menuOpen ? "opacity-100 scale-y-100 origin-top" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
       >
-        {isAuthenticated && (
-          <li className="py-2 hover:text-lily">
-            <Link to="/createShop">My Shop</Link>
-          </li>
-        )}
-        <li className="py-2 hover:text-lily">
-          <Link to="/purchaseAds">Purchase Ads</Link>
-        </li>
+        {isAuthenticated && <li className="py-2 hover:text-lily"><Link to="/createShop">My Shop</Link></li>}
+        <li className="py-2 hover:text-lily"><Link to="/purchaseAds">Purchase Ads</Link></li>
         {isAuthenticated ? (
           <li className="py-2 hover:text-lily">
-            <button
-              className="cursor-pointer"
-              onClick={() => dispatch(logout())}
-            >
-              Logout
-            </button>
+            <button className="cursor-pointer" onClick={() => dispatch(logout())}>Logout</button>
           </li>
         ) : (
-          <li className="py-2 hover:text-lily">
-            <Link to="/login">Sign In</Link>
-          </li>
+          <li className="py-2 hover:text-lily"><Link to="/login">Sign In</Link></li>
         )}
       </ul>
     </header>
