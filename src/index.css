@@ -2,7 +2,6 @@
 
 body {
   @apply bg-[#FFFAE7];
-  @apply overflow-x-hidden;
   @apply border-black;
 }
 
