@@ -96,7 +96,7 @@ const SearchResults = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
           {results.map((shop) => (
             <Link to={`/product/${shop.id}`} key={shop.id}>
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
