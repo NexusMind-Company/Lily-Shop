@@ -325,19 +325,19 @@ const CreateForm = () => {
       </div>
 
       {successMessage && (
-        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
           ✅ Shop created successfully! Redirecting to homepage...
         </div>
       )}
 
       {errorMessage && (
-        <div className="fixed top-5 right-5 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
           ❌ {errorMessage}
         </div>
       )}
 
       {loading && (
-        <div className="fixed top-5 right-5 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
           ⏳ Creating shop, please wait...
         </div>
       )}
