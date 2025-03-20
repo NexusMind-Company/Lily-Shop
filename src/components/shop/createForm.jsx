@@ -16,6 +16,7 @@ const CreateForm = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -34,13 +35,13 @@ const CreateForm = () => {
         i === index ? { ...product, [field]: value } : product
       )
     );
-    
+
     // Mark this field as touched
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [`product_${field}_${index}`]: true
+      [`product_${field}_${index}`]: true,
     }));
-    
+
     // Validate the field as it changes
     validateField(`product_${field}_${index}`, value);
   };
@@ -55,56 +56,57 @@ const CreateForm = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    
+
     // Mark as touched
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      shopImage: true
+      shopImage: true,
     }));
-    
+
     if (file) {
       if (!validateImageType(file)) {
         setErrors((prev) => ({
           ...prev,
-          shopImage: "Only JPEG and PNG image formats are allowed."
+          shopImage: "Only JPEG and PNG image formats are allowed.",
         }));
         // Reset the input value
-        e.target.value = '';
+        e.target.value = "";
         return;
       }
-      
+
       setErrors((prev) => {
-        const newErrors = {...prev};
+        const newErrors = { ...prev };
         delete newErrors.shopImage;
         return newErrors;
       });
       setImagePreview(URL.createObjectURL(file));
     } else {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        shopImage: "Shop image is required."
+        shopImage: "Shop image is required.",
       }));
     }
   };
 
   const handleProductImageChange = (index, file) => {
     // Mark as touched
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [`product_image_${index}`]: true
+      [`product_image_${index}`]: true,
     }));
-    
+
     if (file) {
       if (!validateImageType(file)) {
         setErrors((prev) => ({
           ...prev,
-          [`product_image_${index}`]: "Only JPEG and PNG image formats are allowed."
+          [`product_image_${index}`]:
+            "Only JPEG and PNG image formats are allowed.",
         }));
         return;
       }
-      
+
       setErrors((prev) => {
-        const newErrors = {...prev};
+        const newErrors = { ...prev };
         delete newErrors[`product_image_${index}`];
         return newErrors;
       });
@@ -116,86 +118,86 @@ const CreateForm = () => {
         )
       );
     } else {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [`product_image_${index}`]: "Product image is required."
+        [`product_image_${index}`]: "Product image is required.",
       }));
     }
   };
 
   const handleBlur = (field) => {
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [field]: true
+      [field]: true,
     }));
-    
+
     // Validate the field
     let value;
     switch (field) {
-      case 'name':
+      case "name":
         value = name;
         break;
-      case 'address':
+      case "address":
         value = address;
         break;
-      case 'category':
+      case "category":
         value = category;
         break;
-      case 'description':
+      case "description":
         value = description;
         break;
       default:
-        value = '';
+        value = "";
     }
-    
+
     validateField(field, value);
   };
-  
+
   const validateField = (field, value) => {
-    const newErrors = {...errors};
-    
+    const newErrors = { ...errors };
+
     // Basic validation logic
-    if (field === 'name' && !value.trim()) {
+    if (field === "name" && !value.trim()) {
       newErrors.name = "Shop name is required.";
-    } else if (field === 'name') {
+    } else if (field === "name") {
       delete newErrors.name;
     }
-    
-    if (field === 'address' && !value.trim()) {
+
+    if (field === "address" && !value.trim()) {
       newErrors.address = "Shop address is required.";
-    } else if (field === 'address') {
+    } else if (field === "address") {
       delete newErrors.address;
     }
-    
-    if (field === 'category' && !value.trim()) {
+
+    if (field === "category" && !value.trim()) {
       newErrors.category = "Shop category is required.";
-    } else if (field === 'category') {
+    } else if (field === "category") {
       delete newErrors.category;
     }
-    
-    if (field === 'description' && !value.trim()) {
+
+    if (field === "description" && !value.trim()) {
       newErrors.description = "Shop description is required.";
-    } else if (field === 'description') {
+    } else if (field === "description") {
       delete newErrors.description;
     }
-    
+
     // Product field validation
-    if (field.startsWith('product_name_') && !value.trim()) {
-      const index = field.split('_')[2];
+    if (field.startsWith("product_name_") && !value.trim()) {
+      const index = field.split("_")[2];
       newErrors[`product_name_${index}`] = "Product name is required.";
-    } else if (field.startsWith('product_name_')) {
-      const index = field.split('_')[2];
+    } else if (field.startsWith("product_name_")) {
+      const index = field.split("_")[2];
       delete newErrors[`product_name_${index}`];
     }
-    
-    if (field.startsWith('product_price_') && !value.trim()) {
-      const index = field.split('_')[2];
+
+    if (field.startsWith("product_price_") && !value.trim()) {
+      const index = field.split("_")[2];
       newErrors[`product_price_${index}`] = "Product price is required.";
-    } else if (field.startsWith('product_price_')) {
-      const index = field.split('_')[2];
+    } else if (field.startsWith("product_price_")) {
+      const index = field.split("_")[2];
       delete newErrors[`product_price_${index}`];
     }
-    
+
     setErrors(newErrors);
   };
 
@@ -221,20 +223,22 @@ const CreateForm = () => {
       address: true,
       category: true,
       description: true,
-      shopImage: true
+      shopImage: true,
     };
 
     if (!name.trim()) newErrors.name = "Shop name is required.";
     if (!address.trim()) newErrors.address = "Shop address is required.";
     if (!category.trim()) newErrors.category = "Shop category is required.";
-    if (!description.trim()) newErrors.description = "Shop description is required.";
-    if (!imageInputRef.current?.files[0]) newErrors.shopImage = "Shop image is required.";
+    if (!description.trim())
+      newErrors.description = "Shop description is required.";
+    if (!imageInputRef.current?.files[0])
+      newErrors.shopImage = "Shop image is required.";
 
     products.forEach((product, index) => {
       newTouched[`product_name_${index}`] = true;
       newTouched[`product_price_${index}`] = true;
       newTouched[`product_image_${index}`] = true;
-      
+
       if (!product.name.trim()) {
         newErrors[`product_name_${index}`] = "Product name is required.";
       }
@@ -253,7 +257,7 @@ const CreateForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Clear any existing messages
     setSuccessMessage(false);
     setErrorMessage(null);
@@ -261,6 +265,8 @@ const CreateForm = () => {
     if (!validateForm()) {
       return;
     }
+
+    setLoading(true);
 
     const formData = new FormData();
     formData.append("name", name);
@@ -300,7 +306,11 @@ const CreateForm = () => {
       }, 2000);
     } catch (error) {
       console.error("Error creating shop:", error);
-      setErrorMessage(error?.message || "Failed to create shop. Please try again.");
+      setErrorMessage(
+        error?.message || "Failed to create shop. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -326,6 +336,12 @@ const CreateForm = () => {
         </div>
       )}
 
+      {loading && (
+        <div className="fixed top-5 right-5 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+          ⏳ Creating shop, please wait...
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
         {/* Shop Name */}
         <div className="flex flex-col relative">
@@ -334,16 +350,18 @@ const CreateForm = () => {
           </label>
           <input
             id="title"
-            className={`input ${touched.name && errors.name ? 'border-red-500' : ''}`}
+            className={`input ${
+              touched.name && errors.name ? "border-red-500" : ""
+            }`}
             type="text"
             value={name}
             onChange={(e) => {
               setName(e.target.value);
               if (touched.name) {
-                validateField('name', e.target.value);
+                validateField("name", e.target.value);
               }
             }}
-            onBlur={() => handleBlur('name')}
+            onBlur={() => handleBlur("name")}
           />
           {touched.name && errors.name && (
             <span className="text-red-500 text-sm">{errors.name}</span>
@@ -357,16 +375,18 @@ const CreateForm = () => {
           </label>
           <input
             id="address"
-            className={`input ${touched.address && errors.address ? 'border-red-500' : ''}`}
+            className={`input ${
+              touched.address && errors.address ? "border-red-500" : ""
+            }`}
             type="text"
             value={address}
             onChange={(e) => {
               setAddress(e.target.value);
               if (touched.address) {
-                validateField('address', e.target.value);
+                validateField("address", e.target.value);
               }
             }}
-            onBlur={() => handleBlur('address')}
+            onBlur={() => handleBlur("address")}
           />
           {touched.address && errors.address && (
             <span className="text-red-500 text-sm">{errors.address}</span>
@@ -380,16 +400,18 @@ const CreateForm = () => {
           </label>
           <input
             id="category"
-            className={`input ${touched.category && errors.category ? 'border-red-500' : ''}`}
+            className={`input ${
+              touched.category && errors.category ? "border-red-500" : ""
+            }`}
             type="text"
             value={category}
             onChange={(e) => {
               setCategory(e.target.value);
               if (touched.category) {
-                validateField('category', e.target.value);
+                validateField("category", e.target.value);
               }
             }}
-            onBlur={() => handleBlur('category')}
+            onBlur={() => handleBlur("category")}
           />
           {touched.category && errors.category && (
             <span className="text-red-500 text-sm">{errors.category}</span>
@@ -398,19 +420,21 @@ const CreateForm = () => {
 
         {/* Shop Description */}
         <div className="flex flex-col">
-          <label className="bLabel">
-            Description
-          </label>
+          <label className="bLabel">Description</label>
           <textarea
-            className={`border ${touched.description && errors.description ? 'border-red-500' : 'border-black'} rounded-lg p-2 h-28`}
+            className={`border ${
+              touched.description && errors.description
+                ? "border-red-500"
+                : "border-black"
+            } rounded-lg p-2 h-28`}
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);
               if (touched.description) {
-                validateField('description', e.target.value);
+                validateField("description", e.target.value);
               }
             }}
-            onBlur={() => handleBlur('description')}
+            onBlur={() => handleBlur("description")}
           />
           {touched.description && errors.description && (
             <span className="text-red-500 text-sm">{errors.description}</span>
@@ -419,14 +443,12 @@ const CreateForm = () => {
 
         {/* Shop Image */}
         <div className="flex flex-col relative gap-2">
-          <label className="font-medium text-gray-700">
-            Image
-          </label>
+          <label className="font-medium text-gray-700">Image</label>
 
           <input
             ref={imageInputRef}
             className="hidden"
-            accept="image/png, image/jpeg"
+            accept="image/png, image/jpeg, image/heif"
             type="file"
             id="media-upload"
             onChange={handleImageChange}
@@ -434,7 +456,11 @@ const CreateForm = () => {
 
           <label
             htmlFor="media-upload"
-            className={`w-full h-32 border-2 border-dashed ${touched.shopImage && errors.shopImage ? 'border-red-500' : 'border-gray-400'} rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition`}
+            className={`w-full h-32 border-2 border-dashed ${
+              touched.shopImage && errors.shopImage
+                ? "border-red-500"
+                : "border-gray-400"
+            } rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition`}
           >
             <span className="border border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
               Upload Shop Logo/Banner
@@ -456,72 +482,83 @@ const CreateForm = () => {
 
         {/* Products */}
         <div className="flex flex-col gap-2">
-          <h2 className="text-base font-semibold">
-            Products
-          </h2>
+          <h2 className="text-base font-semibold">Products</h2>
           {products.map((product, index) => (
             <div key={index} className="flex flex-col gap-2">
               <div className="flex flex-col relative gap-1">
-                <label className="label left-1">
-                  Name
-                </label>
+                <label className="label left-1">Name</label>
                 <input
-                  className={`input ${touched[`product_name_${index}`] && errors[`product_name_${index}`] ? 'border-red-500' : ''}`}
+                  className={`input ${
+                    touched[`product_name_${index}`] &&
+                    errors[`product_name_${index}`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
                   type="text"
                   value={product.name}
                   onChange={(e) => {
                     handleProductChange(index, "name", e.target.value);
                   }}
                   onBlur={() => {
-                    setTouched(prev => ({
+                    setTouched((prev) => ({
                       ...prev,
-                      [`product_name_${index}`]: true
+                      [`product_name_${index}`]: true,
                     }));
                     validateField(`product_name_${index}`, product.name);
                   }}
                 />
-                {touched[`product_name_${index}`] && errors[`product_name_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_name_${index}`]}
-                  </span>
-                )}
+                {touched[`product_name_${index}`] &&
+                  errors[`product_name_${index}`] && (
+                    <span className="text-red-500 text-sm">
+                      {errors[`product_name_${index}`]}
+                    </span>
+                  )}
               </div>
 
               <div className="flex flex-col relative gap-1">
-                <label className="label left-1">
-                  Price
-                </label>
+                <label className="label left-1">Price</label>
                 <input
-                  className={`input ${touched[`product_price_${index}`] && errors[`product_price_${index}`] ? 'border-red-500' : ''}`}
+                  className={`input ${
+                    touched[`product_price_${index}`] &&
+                    errors[`product_price_${index}`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
                   type="text"
                   value={product.price}
                   onChange={(e) => {
                     handleProductChange(index, "price", e.target.value);
                   }}
                   onBlur={() => {
-                    setTouched(prev => ({
+                    setTouched((prev) => ({
                       ...prev,
-                      [`product_price_${index}`]: true
+                      [`product_price_${index}`]: true,
                     }));
                     validateField(`product_price_${index}`, product.price);
                   }}
                 />
-                {touched[`product_price_${index}`] && errors[`product_price_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_price_${index}`]}
-                  </span>
-                )}
+                {touched[`product_price_${index}`] &&
+                  errors[`product_price_${index}`] && (
+                    <span className="text-red-500 text-sm">
+                      {errors[`product_price_${index}`]}
+                    </span>
+                  )}
               </div>
 
               {/* Product Image */}
               <div className="flex flex-col relative gap-2">
-                <label className="label left-1">
-                  Image
-                </label>
-                <div className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${touched[`product_image_${index}`] && errors[`product_image_${index}`] ? 'border-red-500' : 'border-gray-400'} rounded-lg cursor-pointer hover:bg-gray-100`}>
+                <label className="label left-1">Image</label>
+                <div
+                  className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${
+                    touched[`product_image_${index}`] &&
+                    errors[`product_image_${index}`]
+                      ? "border-red-500"
+                      : "border-gray-400"
+                  } rounded-lg cursor-pointer hover:bg-gray-100`}
+                >
                   <input
                     type="file"
-                    accept="image/png, image/jpeg"
+                    accept="image/png, image/jpeg, image/heif"
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     onChange={(e) => {
                       handleProductImageChange(index, e.target.files[0]);
@@ -532,11 +569,12 @@ const CreateForm = () => {
                   </span>
                 </div>
 
-                {touched[`product_image_${index}`] && errors[`product_image_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_image_${index}`]}
-                  </span>
-                )}
+                {touched[`product_image_${index}`] &&
+                  errors[`product_image_${index}`] && (
+                    <span className="text-red-500 text-sm">
+                      {errors[`product_image_${index}`]}
+                    </span>
+                  )}
 
                 {product.preview && (
                   <img
