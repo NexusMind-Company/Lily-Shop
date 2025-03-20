@@ -66,7 +66,7 @@ const CreateAdsForm = () => {
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
-      <div className="px-7 w-full">
+      <div className="w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Advertisement</span>
@@ -83,11 +83,11 @@ const CreateAdsForm = () => {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-5"
+        className="w-full flex flex-col gap-5 -z-5"
       >
         {/* Shop ID */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="shop" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="shop" className="label left-1 md:left-2">
             Shop ID
           </label>
           <input
@@ -102,8 +102,8 @@ const CreateAdsForm = () => {
         </div>
 
         {/* Start Date */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="start_date" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="start_date" className="label left-1 md:left-2">
             Start Date
           </label>
           <DatePicker
@@ -119,8 +119,8 @@ const CreateAdsForm = () => {
         </div>
 
         {/* End Date */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="end_date" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="end_date" className="label left-1 md:left-2">
             End Date
           </label>
           <DatePicker
@@ -136,7 +136,7 @@ const CreateAdsForm = () => {
         </div>
 
         {/* Active Advertisement */}
-        <div className="flex flex-col px-7">
+        <div className="flex flex-col">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -147,7 +147,7 @@ const CreateAdsForm = () => {
           </label>
         </div>
 
-        <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
+        <div className="flex items-center justify-evenly gap-5 bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
             className="bg-ash text-white py-2 w-[105px] cursor-pointer"

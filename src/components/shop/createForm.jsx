@@ -311,7 +311,7 @@ const CreateForm = () => {
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
-      <div className="px-7 w-full">
+      <div className=" w-full">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Shop</span>
@@ -331,10 +331,10 @@ const CreateForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5 -z-5">
         {/* Shop Name */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="title" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="title" className="label left-1 md:left-2">
             Name
           </label>
           <input
@@ -358,8 +358,8 @@ const CreateForm = () => {
         </div>
 
         {/* Shop Address */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="address" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="address" className="label left-1 md:left-2">
             Address
           </label>
           <input
@@ -383,8 +383,8 @@ const CreateForm = () => {
         </div>
 
         {/* Shop Category */}
-        <div className="flex flex-col relative px-7">
-          <label htmlFor="category" className="label">
+        <div className="flex flex-col relative">
+          <label htmlFor="category" className="label left-1 md:left-2">
             Category
           </label>
           <input
@@ -408,10 +408,8 @@ const CreateForm = () => {
         </div>
 
         {/* Shop Description */}
-        <div className="flex flex-col px-7">
-          <label className="bLabel">
-            Description
-          </label>
+        <div className="flex flex-col">
+          <label className="bLabel">Description</label>
           <textarea
             className={`border ${
               touched.description && errors.description
@@ -433,10 +431,8 @@ const CreateForm = () => {
         </div>
 
         {/* Shop Image */}
-        <div className="flex flex-col relative gap-2 px-7">
-          <label className="font-medium text-gray-700">
-            Image
-          </label>
+        <div className="flex flex-col relative gap-2">
+          <label className="font-medium text-gray-700">Image</label>
 
           <input
             ref={imageInputRef}
@@ -475,15 +471,11 @@ const CreateForm = () => {
 
         {/* Products */}
         <div className="flex flex-col gap-2">
-          <h2 className="text-base font-semibold px-7">
-            Products
-          </h2>
+          <h2 className="text-base font-semibold">Products</h2>
           {products.map((product, index) => (
-            <div key={index} className="flex flex-col gap-2 px-7">
+            <div key={index} className="flex flex-col gap-2">
               <div className="flex flex-col relative gap-1">
-                <label className="label left-1">
-                  Name
-                </label>
+                <label className="label left-1">Name</label>
                 <input
                   className={`input ${
                     touched[`product_name_${index}`] &&
@@ -513,9 +505,7 @@ const CreateForm = () => {
               </div>
 
               <div className="flex flex-col relative gap-1">
-                <label className="label left-1">
-                  Price
-                </label>
+                <label className="label left-1">Price</label>
                 <input
                   className={`input ${
                     touched[`product_price_${index}`] &&
@@ -546,9 +536,7 @@ const CreateForm = () => {
 
               {/* Product Image */}
               <div className="flex flex-col relative gap-2">
-                <label className="label left-1">
-                  Image
-                </label>
+                <label className="label left-1">Image</label>
                 <div
                   className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${
                     touched[`product_image_${index}`] &&
@@ -592,12 +580,12 @@ const CreateForm = () => {
         <button
           type="button"
           onClick={handleAddProduct}
-          className="bg-gray-800 mx-7 my-4 text-white px-4 py-2 rounded-md hover:bg-lily hover:text-white cursor-pointer"
+          className="bg-gray-800 my-4 text-white px-4 py-2 rounded-md hover:bg-lily hover:text-white cursor-pointer"
         >
           Add Product
         </button>
 
-        <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
+        <div className="flex items-center justify-evenly gap-5 bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
             className="bg-ash text-white py-2 w-[105px] cursor-pointer"

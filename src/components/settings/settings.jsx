@@ -2,7 +2,7 @@ const Settings = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       {/* Header */}
-      <div className="px-7 w-full ">
+      <div className="w-full ">
         <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">Settings</h1>
         </div>
