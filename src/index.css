@@ -1,17 +1,7 @@
-@import 'tailwindcss';
-
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-}
+@import "tailwindcss";
 
 body {
-  @apply bg-[#FFFAE7]
+  @apply bg-[#FFFAE7];
 }
 
 @layer components {
@@ -32,6 +22,6 @@ body {
   --font-inter: Inter, sans-serif;
   --font-poppins: Poppins, sans-serif;
   --color-ash: #898585;
-  --color-lily: #4EB75E;
-  --color-sun: #F6AD6D
+  --color-lily: #4eb75e;
+  --color-sun: #f6ad6d;
 }
