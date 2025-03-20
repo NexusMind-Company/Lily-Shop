@@ -129,7 +129,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex place-items-center justify-between h-16 px-4 md:px-7 shadow shadow-[#00000040] relative overflow-y-hidden">
+    <header className="flex place-items-center justify-between h-16 px-4 md:px-7 shadow shadow-[#00000040] relative">
       <Link to="/">
         <h1 className="font-bold text-2xl/relaxed text-lily font-inter uppercase">
           Lily Shops
