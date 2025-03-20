@@ -4,7 +4,7 @@ const CreateShop = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
-    <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="rounded-2xl border border-black h-[70px] w-full flex items-center justify-center">
         <h1 className="text-xl font-normal font-poppins">
