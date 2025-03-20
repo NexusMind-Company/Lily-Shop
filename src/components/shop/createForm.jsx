@@ -37,13 +37,40 @@ const CreateForm = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    const validTypes = ["image/png", "image/jpeg"];
+
     if (file) {
+      if (!validTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "Invalid file type. Only PNG and JPEG are allowed.",
+        }));
+        return;
+      }
+
+      setErrors((prev) => ({ ...prev, image: null })); // Clear previous error
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const handleProductImageChange = (index, file) => {
+    const validTypes = ["image/png", "image/jpeg"];
+
     if (file) {
+      if (!validTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          [`product_image_${index}`]:
+            "Invalid file type. Only PNG and JPEG are allowed.",
+        }));
+        return;
+      }
+
+      setErrors((prev) => ({
+        ...prev,
+        [`product_image_${index}`]: null, // Clear previous error
+      }));
+
       setProducts((prev) =>
         prev.map((product, i) =>
           i === index
@@ -115,14 +142,14 @@ const CreateForm = () => {
       JSON.stringify({ products: formattedProducts })
     );
 
-    products.forEach((product, index) => {
+    products.forEach((product) => {
       if (product.image) {
         formData.append("images", product.image);
       }
     });
 
     try {
-      await dispatch(createShop(formData));
+      await dispatch(createShop(formData)).unwrap();
       setSuccessMessage(true);
       resetForm();
       setTimeout(() => {
@@ -131,6 +158,9 @@ const CreateForm = () => {
       }, 2000);
     } catch (error) {
       console.error("Error creating shop:", error);
+      setErrors({
+        form: error.message || "Failed to create shop. Please try again.",
+      });
     }
   };
 
@@ -148,6 +178,10 @@ const CreateForm = () => {
         <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
           ✅ Shop created successfully! Redirecting to homepage...
         </div>
+      )}
+
+      {errors.form && (
+        <div className="px-7 text-red-500 text-sm">{errors.form}</div>
       )}
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
@@ -244,6 +278,10 @@ const CreateForm = () => {
               className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
             />
           )}
+
+          {errors.image && (
+            <span className="text-red-500 text-sm">{errors.image}</span>
+          )}
         </div>
 
         {/* Products */}
@@ -308,6 +346,12 @@ const CreateForm = () => {
                     alt="Preview"
                     className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
                   />
+                )}
+
+                {errors[`product_image_${index}`] && (
+                  <span className="text-red-500 text-sm">
+                    {errors[`product_image_${index}`]}
+                  </span>
                 )}
               </div>
             </div>
