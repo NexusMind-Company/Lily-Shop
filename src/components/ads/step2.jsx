@@ -29,7 +29,7 @@ const Step2 = () => {
   };
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-black h-[70px] flex items-center justify-center">
