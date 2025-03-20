@@ -121,7 +121,7 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md sm:max-w-sm transition-all duration-500 ease-in-out  ${
+        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md sm:max-w-sm transition-all duration-500 ease-in-out overflow-hidden ${
           searchOpen
             ? "opacity-100 scale-y-100 origin-top"
             : "opacity-0 scale-y-0 pointer-events-none"
