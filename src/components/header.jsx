@@ -92,7 +92,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative">
+    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative z-50">
       <Link to="/">
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
