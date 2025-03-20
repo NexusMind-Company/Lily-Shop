@@ -11,35 +11,27 @@ const Header = () => {
   const [searchResults, setSearchResults] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Redux store
   const { isAuthenticated } = useSelector((state) => state.auth);
   const { shops, status } = useSelector((state) => state.shops);
   const dispatch = useDispatch();
-
-  // References to the menu and search elements
   const menuRef = useRef(null);
   const searchRef = useRef(null);
   const menuButtonRef = useRef(null);
   const searchButtonRef = useRef(null);
 
-  // Fetch shops data when the component mounts
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchShops());
     }
   }, [status, dispatch]);
 
-  // Close menus when location changes (page navigation)
   useEffect(() => {
     setMenuOpen(false);
     setSearchOpen(false);
   }, [location.pathname]);
 
-  // Handle clicks outside the menus
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close menu if click is outside menu and not on menu button
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target) &&
@@ -50,7 +42,6 @@ const Header = () => {
         setMenuOpen(false);
       }
 
-      // Close search if click is outside search and not on search button
       if (
         searchRef.current &&
         !searchRef.current.contains(event.target) &&
@@ -62,26 +53,18 @@ const Header = () => {
       }
     };
 
-    // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen, searchOpen]);
 
-  // Handle search input changes
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-
-    if (value.trim() === "") {
+    if (!value.trim()) {
       setSearchResults([]);
       return;
     }
 
-    // Search through shops data by name, description, and category
     const filteredResults = shops
       .filter(
         (shop) =>
@@ -94,16 +77,13 @@ const Header = () => {
               tag.toLowerCase().includes(value.toLowerCase())
             ))
       )
-      .slice(0, 5); // 5 results for dropdown
-
+      .slice(0, 5);
     setSearchResults(filteredResults);
   };
 
-  // Handle search form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchTerm.trim() !== "") {
-      // Update to use /searchResults route instead of /search
+    if (searchTerm.trim()) {
       navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`);
       setSearchOpen(false);
       setSearchResults([]);
@@ -111,33 +91,13 @@ const Header = () => {
     }
   };
 
-  // Handle click on a search result item
-  const handleResultClick = (shopId) => {
-    navigate(`/product/${shopId}`);
-    setSearchOpen(false);
-    setSearchResults([]);
-    setSearchTerm("");
-  };
-
-  // Handle view all results click
-  const handleViewAllResults = () => {
-    // Update to use /searchResults route instead of /search
-    navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`);
-    setSearchOpen(false);
-    setSearchResults([]);
-    setSearchTerm("");
-  };
-
   return (
-    <header className="flex place-items-center justify-between h-16 px-4 md:px-7 shadow shadow-[#00000040] relative">
+    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative">
       <Link to="/">
-        <h1 className="font-bold text-2xl/relaxed text-lily font-inter uppercase">
-          Lily Shops
-        </h1>
+        <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
 
       <div className="flex items-center gap-2.5">
-        {/* Search Button */}
         <button
           className="cursor-pointer"
           onClick={() => {
@@ -149,7 +109,6 @@ const Header = () => {
           <img src="/search.svg" alt="search-button" />
         </button>
 
-        {/* Menu Button */}
         <button
           className="cursor-pointer"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -159,67 +118,51 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Search Bar with Slide-Down Effect */}
+      {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-11/12 md:w-8/12 transition-all duration-500 ease-in-out ${
-          searchOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
+        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md sm:max-w-sm transition-all duration-500 ease-in-out ${
+          searchOpen ? "opacity-100 scale-y-100 origin-top" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
       >
-        <form
-          onSubmit={handleSearchSubmit}
-          className="relative w-full flex items-center"
-        >
+        <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
           <input
-            className="bg-white py-2 px-4 w-full rounded-2xl border border-gray-300"
+            className="bg-white py-2 px-3 sm:py-1 sm:px-2 w-full rounded-lg border border-gray-300"
             type="text"
             placeholder="Search by name, category, or tags..."
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus={searchOpen}
           />
-          <button type="submit" className="cursor-pointer absolute right-3">
+          <button type="submit" className="absolute right-3">
             <img src="/search-icon.svg" alt="search-icon" />
           </button>
         </form>
 
         {/* Search Results Dropdown */}
         {searchResults.length > 0 && (
-          <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto z-10">
+          <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-72 overflow-y-auto z-10">
             <ul>
               {searchResults.map((shop) => (
                 <li
                   key={shop.id}
-                  className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-0"
-                  onClick={() => handleResultClick(shop.id)}
+                  className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0"
+                  onClick={() => navigate(`/product/${shop.id}`)}
                 >
                   <div className="flex items-center">
                     {shop.image && (
-                      <img
-                        src={shop.image_url}
-                        alt={shop.name}
-                        className="w-10 h-10 object-cover mr-3"
-                      />
+                      <img src={shop.image_url} alt={shop.name} className="w-8 h-8 object-cover mr-2" />
                     )}
                     <div>
                       <p className="font-medium">{shop.name}</p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {shop.price}{" "}
-                        {shop.category && (
-                          <span className="text-lily">• {shop.category}</span>
-                        )}
+                      <p className="text-xs text-gray-600 truncate">
+                        {shop.price} {shop.category && <span className="text-lily">• {shop.category}</span>}
                       </p>
                     </div>
                   </div>
                 </li>
               ))}
-              {/* Use a button instead of a Link for better control */}
-              <li
-                className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer"
-                onClick={handleViewAllResults}
-              >
+              <li className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer" onClick={() => navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`)}>
                 View all results
               </li>
             </ul>
@@ -227,36 +170,21 @@ const Header = () => {
         )}
       </div>
 
-      {/* Dropdown Menu with Slide-Down Effect */}
+      {/* Dropdown Menu */}
       <ul
         ref={menuRef}
         className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${
-          menuOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
+          menuOpen ? "opacity-100 scale-y-100 origin-top" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
       >
-        {isAuthenticated && (
-          <li className="py-2 hover:text-lily">
-            <Link to="/createShop">My Shop</Link>
-          </li>
-        )}
-        <li className="py-2 hover:text-lily">
-          <Link to="/purchaseAds">Purchase Ads</Link>
-        </li>
+        {isAuthenticated && <li className="py-2 hover:text-lily"><Link to="/createShop">My Shop</Link></li>}
+        <li className="py-2 hover:text-lily"><Link to="/purchaseAds">Purchase Ads</Link></li>
         {isAuthenticated ? (
-          <li className="py-2 hover:text-lily ">
-            <button
-              className="cursor-pointer"
-              onClick={() => dispatch(logout())}
-            >
-              Logout
-            </button>
+          <li className="py-2 hover:text-lily">
+            <button className="cursor-pointer" onClick={() => dispatch(logout())}>Logout</button>
           </li>
         ) : (
-          <li className="py-2 hover:text-lily">
-            <Link to="/login">Sign In</Link>
-          </li>
+          <li className="py-2 hover:text-lily"><Link to="/login">Sign In</Link></li>
         )}
       </ul>
     </header>
