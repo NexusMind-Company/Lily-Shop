@@ -297,7 +297,6 @@ const CreateForm = () => {
 
     try {
       const result = await dispatch(createShop(formData)).unwrap();
-      // If we reach here, the request was successful
       setSuccessMessage(true);
       resetForm();
       setTimeout(() => {
@@ -306,9 +305,14 @@ const CreateForm = () => {
       }, 2000);
     } catch (error) {
       console.error("Error creating shop:", error);
-      setErrorMessage(
-        error?.message || "Failed to create shop. Please try again."
-      );
+
+      if (error?.status === 401 || error?.message?.includes("Unauthorized")) {
+        setErrorMessage("Authentication required. Please log in.");
+      } else {
+        setErrorMessage(
+          error?.message || "Failed to create shop. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }

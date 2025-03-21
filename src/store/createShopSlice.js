@@ -6,19 +6,21 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // Async thunk to create a shop
 export const createShop = createAsyncThunk(
   "createShop/createShop",
-  async (formData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue, getState }) => {
     try {
-      const userData = localStorage.getItem("user_data");
+      // Get user data from Redux state instead of localStorage
+      const userData = getState().auth.user_data;
+
       if (!userData) {
-        throw new Error("No user data found in localStorage. Please log in.");
+        throw new Error("No user data found. Please log in.");
       }
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData?.token?.access;
-
+      const token = userData?.token?.access;
       if (!token) {
-        throw new Error("No access token found in user data.");
+        throw new Error("No access token found.");
       }
+
+      //console.log("Creating shop with token:", token);
 
       const response = await axios.post(`${API_BASE_URL}/shops/`, formData, {
         headers: {
