@@ -11,24 +11,22 @@ import { BrowserRouter as Router, Route, Routes } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import Step2 from "./components/ads/step2";
-import CreateAdsForm from "./components/ads/createAdsForm"
+import CreateAdsForm from "./components/ads/createAdsForm";
 import ForgotPassword from "./pages/forgotPassword";
 import SearchResults from "./pages/searchResults";
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./store/authSlice";
+import Messages from "./pages/messagePage";
 
 export default function App() {
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   useEffect(() => {
-
     if (localStorage.user_data) {
-      dispatch(loginSuccess({ user_data: localStorage.user_data }))
+      dispatch(loginSuccess({ user_data: localStorage.user_data }));
     }
-
-  }, [])
+  }, []);
 
   return (
     <Router>
@@ -45,10 +43,8 @@ export default function App() {
         <Route path="/step2" element={<Step2 />} />
         <Route path="/createAdsForm" element={<CreateAdsForm />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route
-          path="/searchResults"
-          element={<SearchResults />}
-        />
+        <Route path="/searchResults" element={<SearchResults />} />
+        <Route path="/messages" element={<Messages />} />
       </Routes>
       <Nav />
     </Router>

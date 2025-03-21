@@ -116,6 +116,12 @@ const Header = () => {
         >
           <img src="/icon.svg" alt="menu icon" />
         </button>
+
+        {isAuthenticated && (
+          <Link to="/messages" className="cursor-pointer w-8">
+            <img src="/message-icon.svg" alt="message icon" />
+          </Link>
+        )}
       </div>
 
       {/* Search Bar */}
