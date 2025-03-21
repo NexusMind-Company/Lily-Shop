@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../store/shopSlice";
-import Loader from "../loader"
+import Loader from "../loader";
 
 const ProductCard = () => {
   const dispatch = useDispatch();
@@ -63,8 +63,12 @@ const ProductCard = () => {
                 <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
                   {product.name}
                 </li>
-                <li className="text-xs text-gray-600 line-clamp-2">{product.description}</li>
-                <li className="text-xs font-normal truncate">{product.address}</li>
+                <li className="text-xs text-gray-600 line-clamp-2">
+                  {product.description}
+                </li>
+                <li className="text-xs font-normal truncate">
+                  {product.address}
+                </li>
                 <button className="text-xs underline text-lily hover:text-black">
                   View Prices
                 </button>
@@ -74,13 +78,19 @@ const ProductCard = () => {
         </div>
 
         {/* Show More Button */}
-        {hasMoreProducts && (
+        {hasMoreProducts ? (
           <div className="w-full flex justify-center mt-6">
             <button
               onClick={showMoreProducts}
               className="px-6 py-2 cursor-pointer bg-lily text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200 font-poppins text-sm hover:bg-black"
             >
               Show More
+            </button>
+          </div>
+        ) : (
+          <div className="w-full flex justify-center mt-6">
+            <button className="px-6 py-2 cursor-pointer bg-ash text-white rounded-lg font-poppins text-sm ">
+              No More Products
             </button>
           </div>
         )}
