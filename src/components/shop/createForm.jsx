@@ -313,9 +313,31 @@ const CreateForm = () => {
 
       if (error?.status === 401 || error?.message?.includes("Unauthorized")) {
         setErrorMessage("Authentication required. Please log in.");
+      } else if (error?.status === 400) {
+        setErrorMessage("Invalid input. Please check your form and try again.");
+      } else if (error?.status === 403) {
+        setErrorMessage("You do not have permission to create a shop.");
+      } else if (error?.status === 404) {
+        setErrorMessage("The requested resource was not found.");
+      } else if (error?.status === 413) {
+        setErrorMessage(
+          "The uploaded file is too large. Please upload a smaller file."
+        );
+      } else if (error?.status === 422) {
+        setErrorMessage("Invalid data. Please check your input and try again.");
+      } else if (error?.status === 500) {
+        setErrorMessage(
+          "An error occurred on the server. Please try again later."
+        );
+      } else if (error?.message?.includes("Network Error")) {
+        setErrorMessage(
+          "Network error. Please check your internet connection and try again."
+        );
+      } else if (error?.message?.includes("timeout")) {
+        setErrorMessage("The request timed out. Please try again later.");
       } else {
         setErrorMessage(
-          error?.message || "Failed to create shop. Please try again."
+          error?.message || "An unexpected error occurred. Please try again."
         );
       }
     } finally {
@@ -457,7 +479,7 @@ const CreateForm = () => {
           <input
             ref={imageInputRef}
             className="hidden"
-            accept="image/png, image/jpeg, image/heif"
+            accept="image/png, image/jpeg"
             type="file"
             id="media-upload"
             onChange={handleImageChange}
