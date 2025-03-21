@@ -1,6 +1,5 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
-import MessageInput from "./MessageInput";
+import MessageInput from "./messageInput";
 
 export default function ChatPage({ chat, goBack }) {
   const [messages, setMessages] = useState([
