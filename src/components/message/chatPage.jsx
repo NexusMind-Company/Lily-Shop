@@ -33,8 +33,8 @@ export default function ChatPage({ chat, goBack }) {
             key={msg.id}
             className={`my-2 p-2 rounded-md max-w-xs ${
               msg.sender === "user"
-                ? "bg-green-500 text-white self-end"
-                : "bg-gray-300"
+                ? "bg-gray-300 self-end"
+                : "bg-blue-500 self-baseline"
             }`}
           >
             {msg.text}
