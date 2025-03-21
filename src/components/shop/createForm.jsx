@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { createShop } from "../../store/createShopSlice";
 import { useDispatch } from "react-redux";
 
+const MAX_FILE_SIZE_MB = 5; // Maximum file size in MB
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
+
 const CreateForm = () => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -54,6 +57,22 @@ const CreateForm = () => {
     return true;
   };
 
+  // Helper function to validate file type and size
+  const validateFile = (file) => {
+    if (!file) return false;
+
+    const isValidType = ALLOWED_FILE_TYPES.includes(file.type);
+    const isValidSize = file.size <= MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    if (!isValidType) {
+      return "Only JPEG and PNG image formats are allowed.";
+    }
+    if (!isValidSize) {
+      return `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`;
+    }
+    return null; // No errors
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
 
@@ -63,29 +82,22 @@ const CreateForm = () => {
       shopImage: true,
     }));
 
-    if (file) {
-      if (!validateImageType(file)) {
-        setErrors((prev) => ({
-          ...prev,
-          shopImage: "Only JPEG and PNG image formats are allowed.",
-        }));
-        // Reset the input value
-        e.target.value = "";
-        return;
-      }
-
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.shopImage;
-        return newErrors;
-      });
-      setImagePreview(URL.createObjectURL(file));
-    } else {
+    const validationError = validateFile(file);
+    if (validationError) {
       setErrors((prev) => ({
         ...prev,
-        shopImage: "Shop image is required.",
+        shopImage: validationError,
       }));
+      e.target.value = ""; // Reset the input value
+      return;
     }
+
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.shopImage;
+      return newErrors;
+    });
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleProductImageChange = (index, file) => {
@@ -95,34 +107,27 @@ const CreateForm = () => {
       [`product_image_${index}`]: true,
     }));
 
-    if (file) {
-      if (!validateImageType(file)) {
-        setErrors((prev) => ({
-          ...prev,
-          [`product_image_${index}`]:
-            "Only JPEG and PNG image formats are allowed.",
-        }));
-        return;
-      }
-
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[`product_image_${index}`];
-        return newErrors;
-      });
-      setProducts((prev) =>
-        prev.map((product, i) =>
-          i === index
-            ? { ...product, image: file, preview: URL.createObjectURL(file) }
-            : product
-        )
-      );
-    } else {
+    const validationError = validateFile(file);
+    if (validationError) {
       setErrors((prev) => ({
         ...prev,
-        [`product_image_${index}`]: "Product image is required.",
+        [`product_image_${index}`]: validationError,
       }));
+      return;
     }
+
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[`product_image_${index}`];
+      return newErrors;
+    });
+    setProducts((prev) =>
+      prev.map((product, i) =>
+        i === index
+          ? { ...product, image: file, preview: URL.createObjectURL(file) }
+          : product
+      )
+    );
   };
 
   const handleBlur = (field) => {
@@ -608,6 +613,7 @@ const CreateForm = () => {
             <Link to="/createShop">Discard</Link>
           </button>
           <button
+            disabled={loading}
             type="submit"
             className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer"
           >
