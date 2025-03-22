@@ -69,10 +69,10 @@ const Login = () => {
         <span className="border-b-2 border-sun">Log</span> In
       </h2>
 
-      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
         {/* Username Input */}
         <input
-          className="input rounded-none pt-0 h-[46px]"
+          className="input rounded-[7px] pt-0 h-[46px] mt-3"
           type="text"
           name="username"
           placeholder="Username"
@@ -82,7 +82,7 @@ const Login = () => {
         {/* Password Input with Toggle Icon */}
         <div className="relative">
           <input
-            className="input rounded-none pt-0 h-[46px] w-full pr-10"
+            className="input rounded-[7px] pt-0 h-[46px] w-full pr-10 mt-3"
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
@@ -90,7 +90,7 @@ const Login = () => {
           />
           <button
             type="button"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 rounded-[7px]"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
@@ -109,14 +109,14 @@ const Login = () => {
         {/* Login Button */}
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"
+          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer rounded-[7px]"
         >
           {loading ? "Loading..." : "Log In"}
         </button>
       </form>
 
       {/* Sign Up Link */}
-      <div className="font-inter text-xs font-medium">
+      <div className="font-inter text-sm font-medium">
         <Link to="/signup">
           Not a member yet?{" "}
           <span className="text-lily font-semibold">Create an Account</span>

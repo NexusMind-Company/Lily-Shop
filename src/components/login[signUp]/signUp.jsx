@@ -106,11 +106,11 @@ const SignUp = () => {
         <span className="border-b-2 border-sun">Regis</span>ter
       </h2>
 
-      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
         {/* username  input */}
         <div className="flex flex-col">
           <input
-            className="input rounded-none pt-0 h-[46px]"
+            className="input rounded-[7px] pt-0 h-[46px] mt-3"
             type="text"
             name="username"
             placeholder="Username"
@@ -124,7 +124,7 @@ const SignUp = () => {
         {/* Phone number Input */}
         <div className="flex flex-col">
           <input
-            className="input rounded-none pt-0 h-[46px]"
+            className="input rounded-[7px] pt-0 h-[46px] mt-3"
             type="number"
             name="number"
             placeholder="Phone Number"
@@ -138,7 +138,7 @@ const SignUp = () => {
         {/* Password Input with Toggle Icon */}
         <div className="relative">
           <input
-            className="input rounded-none pt-0 h-[46px] w-full pr-10"
+            className="input rounded-[7px] pt-0 h-[46px] w-full pr-10 mt-3"
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
@@ -161,14 +161,14 @@ const SignUp = () => {
 
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"
+          className="input pt-0 h-[46px] bg-sun border-none rounded-[7px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"
         >
           {loading ? "Loading ..." : "Register"}
         </button>
       </form>
 
       {/* Login Link */}
-      <div className="font-inter text-xs font-medium">
+      <div className="font-inter text-sm font-medium">
         <Link to="/login">
           Already a member?{" "}
           <span className="text-lily font-semibold">Log In</span>
