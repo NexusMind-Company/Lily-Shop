@@ -5,6 +5,7 @@ import Home from "./pages/home";
 import CreateShop from "./pages/createShop";
 import CreateForm from "./pages/createForm";
 import EditForm from "./pages/editForm";
+import EditShop from "./pages/editShop";
 import ProductDetails from "./pages/productDetails";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/editform" element={<EditForm />} />
+        <Route path="/editShop" element={<EditShop />} />
       </Routes>
       <Nav />
     </Router>
