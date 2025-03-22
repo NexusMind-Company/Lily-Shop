@@ -1,7 +1,6 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-
 import CreateShop from "./pages/createShop";
 import CreateForm from "./pages/createForm";
 import ProductDetails from "./pages/productDetails";
@@ -18,6 +17,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./store/authSlice";
 import Messages from "./pages/messagePage";
+import ScrollToTop from "./components/scrollToTop";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -30,6 +30,7 @@ export default function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
