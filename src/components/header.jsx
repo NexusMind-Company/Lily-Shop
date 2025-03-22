@@ -118,7 +118,7 @@ const Header = () => {
         </button>
 
         {isAuthenticated && (
-          <Link to="/messages" className="cursor-pointer w-8">
+          <Link to="/messages" className="cursor-pointer w-8 hidden">
             <img src="/message-icon.svg" alt="message icon" />
           </Link>
         )}
