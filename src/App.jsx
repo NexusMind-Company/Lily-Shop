@@ -3,6 +3,7 @@ import Nav from "./components/navbar";
 import Home from "./pages/home";
 
 import CreateShop from "./pages/createShop";
+
 import CreateForm from "./pages/createForm";
 import EditForm from "./pages/editForm";
 import EditShop from "./pages/editShop";
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/editform" element={<EditForm />} />
         <Route path="/editShop" element={<EditShop />} />
       </Routes>
+      
       <Nav />
     </Router>
   );
