@@ -5,8 +5,6 @@ import Home from "./pages/home";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
 // import AIButton from "./components/ai/AIButton";
-import CreateForm from "./pages/createForm";
-import EditForm from "./pages/editForm";
 import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
