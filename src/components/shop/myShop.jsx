@@ -15,14 +15,6 @@ const MyShop = () => {
 
   if (status === "loading") return <Loader />;
 
-  if (status === "failed") {
-    return (
-      <div className="text-red-500 text-center fixed top-5 right-5">
-        Failed to load profile. Please try again later.
-      </div>
-    );
-  }
-
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
       {/* Header */}
@@ -106,7 +98,7 @@ const MyShop = () => {
           <div className="flex items-center">
             <Link
               to="/createShop"
-              className="font-inter font-semibold text-xs px-3 md:text-sm flex items-center gap-2 py-2"
+              className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2 py-2"
             >
               Create New
               <img
