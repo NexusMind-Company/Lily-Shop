@@ -1,40 +1,22 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import api from "../services/api";
 
 // Async thunk to create a shop
 export const createShop = createAsyncThunk(
   "createShop/createShop",
-  async (formData, { rejectWithValue, getState }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      // Get user data from Redux state instead of localStorage
-      const userData = getState().auth.user_data;
-
-      if (!userData) {
-        throw new Error("No user data found. Please log in.");
-      }
-
-      const token = userData?.token?.access;
-      if (!token) {
-        throw new Error("No access token found.");
-      }
-
-      //console.log("Creating shop with token:", token);
-
-      const response = await axios.post(`${API_BASE_URL}/shops/`, formData, {
+      const response = await api.post("/shops/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
         },
       });
 
       return response.data;
     } catch (error) {
-      if (error.response) {
-        return rejectWithValue(error.response.data);
-      }
-      return rejectWithValue(error.message || "An error occurred");
+      return rejectWithValue(
+        error.response?.data || error.message || "An error occurred"
+      );
     }
   }
 );

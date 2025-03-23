@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { loginSuccess } from "../../store/authSlice";
+import { loginSuccess } from "../../redux/authSlice";
 import useAuth from "../hooks/useAuth";
 import displayError from "../utils/displayError";
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -109,7 +108,7 @@ const Login = () => {
         {/* Login Button */}
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none rounded-[3px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer rounded-[7px]"
+          className="input pt-0 h-[46px] bg-sun border-none font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer rounded-[7px]"
         >
           {loading ? "Loading..." : "Log In"}
         </button>
