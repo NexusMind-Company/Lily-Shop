@@ -10,14 +10,18 @@ const MyShop = () => {
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchProfile());
-    }
+    dispatch(fetchProfile());
   }, [dispatch, isAuthenticated]);
 
   if (status === "loading") return <Loader />;
 
-  const selectedShop = shops?.length > 0 ? shops[0] : null;
+  if (status === "failed") {
+    return (
+      <div className="text-red-500 text-center fixed top-5 right-5">
+        Failed to load profile. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
@@ -31,49 +35,53 @@ const MyShop = () => {
       {/* Shop Display */}
       <div className="flex flex-col items-start gap-3 w-full">
         <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-2 border-sun">
-          My Shop
+          My Shops
         </h2>
 
-        {/* Shop Card */}
-        {selectedShop ? (
-          <div className="grid grid-cols-2 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
-            <div className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg transition-shadow duration-200">
-              <div className="w-full h-40 md:h-48">
-                <img
-                  className="rounded-lg h-full w-full object-cover"
-                  src={selectedShop.image_url}
-                  alt={selectedShop.name}
-                />
-              </div>
-              <ul className="border-l-2 border-sun pl-2 font-inter">
-                <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
-                  {selectedShop.name}
-                </li>
-                <li className="text-xs text-gray-600 line-clamp-2">
-                  {selectedShop.description}
-                </li>
-                <li className="text-xs font-normal truncate">
-                  {selectedShop.address}
-                </li>
-              </ul>
-              <Link
-                to={`/shop/${selectedShop?.id}`}
-                className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
+        {shops && shops.length > 0 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+            {shops.map((shop) => (
+              <div
+                key={shop.id}
+                className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg transition-shadow duration-200"
               >
-                Products
-              </Link>
-              <div className="flex justify-between gap-1">
+                <div className="w-full h-40 md:h-48">
+                  <img
+                    className="rounded-lg h-full w-full object-cover"
+                    src={shop.image_url}
+                    alt={shop.name}
+                  />
+                </div>
+                <ul className="border-l-2 border-sun pl-2 font-inter">
+                  <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
+                    {shop.name}
+                  </li>
+                  <li className="text-xs text-gray-600 line-clamp-2">
+                    {shop.description}
+                  </li>
+                  <li className="text-xs font-normal truncate">
+                    {shop.address}
+                  </li>
+                </ul>
                 <Link
-                  to="/editShop"
-                  className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
+                  to={`/shop/${shop.id}/products`}
+                  className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
                 >
-                  Edit Shop
+                  Products
                 </Link>
-                <button className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 transition-colors duration-200">
-                  Delete
-                </button>
+                <div className="flex justify-between gap-1">
+                  <Link
+                    to={`/editShop/${shop.id}`}
+                    className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
+                  >
+                    Edit Shop
+                  </Link>
+                  <button className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 transition-colors duration-200">
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         ) : (
           <div>
