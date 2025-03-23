@@ -4,7 +4,6 @@ import Home from "./pages/home";
 import AIButton from "./components/ai/AIButton";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
-import EditForm from "./pages/editForm";
 import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
@@ -22,6 +21,7 @@ import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/scrollToTop";
 import Chat from "./pages/chat";
+import AddProducts from "./pages/addProducts";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -50,8 +50,8 @@ export default function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/editform" element={<EditForm />} />
         <Route path="/editShop" element={<EditShop />} />
+        <Route path="/addProducts" element={<AddProducts />} />
         <Route path="/chat" element={<Chat />} />
       </Routes>
       <AIButton />

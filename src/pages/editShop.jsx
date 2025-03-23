@@ -1,10 +1,11 @@
-import React from 'react'
-import EditShop from '../components/shop/editShop'
+import EditShop from "../components/shop/editShop";
 
 const editShop = () => {
   return (
-    <EditShop />
-  )
-}
+    <section>
+      <EditShop />
+    </section>
+  );
+};
 
-export default editShop
+export default editShop;
