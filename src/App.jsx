@@ -22,7 +22,7 @@ import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/scrollToTop";
 import Chat from "./pages/chat";
-import AddProducts from "./Pages/addProducts";
+import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 
 export default function App() {
