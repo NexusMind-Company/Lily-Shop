@@ -1,11 +1,23 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addProduct, resetAddProductState } from "../../redux/addProductSlice";
 
 const AddProducts = () => {
+  const { shop_id } = useParams();
+  console.log("Extracted shopId:", shop_id);
+  const dispatch = useDispatch();
+  const { status, error, success } = useSelector((state) => state.addProduct);
+
   const [products, setProducts] = useState([
     { name: "", price: "", image: null, preview: null },
   ]);
   const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+
+  if (!shop_id) {
+    return <p className="text-red-500">Error: Shop ID is missing!</p>;
+  }
 
   const handleAddProduct = () => {
     setProducts([
@@ -16,25 +28,6 @@ const AddProducts = () => {
 
   const handleDeleteProduct = (index) => {
     setProducts((prev) => prev.filter((_, i) => i !== index));
-
-    // Remove errors and touched states for the deleted product
-    const newErrors = { ...errors };
-    const newTouched = { ...touched };
-
-    Object.keys(errors).forEach((key) => {
-      if (key.includes(`_${index}`)) {
-        delete newErrors[key];
-      }
-    });
-
-    Object.keys(touched).forEach((key) => {
-      if (key.includes(`_${index}`)) {
-        delete newTouched[key];
-      }
-    });
-
-    setErrors(newErrors);
-    setTouched(newTouched);
   };
 
   const handleProductChange = (index, field, value) => {
@@ -43,24 +36,16 @@ const AddProducts = () => {
         i === index ? { ...product, [field]: value } : product
       )
     );
-
-    // Mark this field as touched
-    setTouched((prev) => ({
-      ...prev,
-      [`product_${field}_${index}`]: true,
-    }));
-
-    // Validate the field as it changes
-    validateField(`product_${field}_${index}`, value);
   };
 
   const handleProductImageChange = (index, file) => {
+    if (!file) return;
+
     const validTypes = ["image/jpeg", "image/png"];
-    if (file && !validTypes.includes(file.type)) {
+    if (!validTypes.includes(file.type)) {
       setErrors((prev) => ({
         ...prev,
-        [`product_image_${index}`]:
-          "Only JPEG and PNG image formats are allowed.",
+        [`product_image_${index}`]: "Only JPEG and PNG formats are allowed.",
       }));
       return;
     }
@@ -80,48 +65,28 @@ const AddProducts = () => {
     );
   };
 
-  const validateField = (field, value) => {
-    const newErrors = { ...errors };
-
-    if (field.startsWith("product_name_") && !value.trim()) {
-      const index = field.split("_")[2];
-      newErrors[`product_name_${index}`] = "Product name is required.";
-    } else if (field.startsWith("product_name_")) {
-      const index = field.split("_")[2];
-      delete newErrors[`product_name_${index}`];
+  const handleSubmit = async () => {
+    if (!shop_id) {
+      console.error("Shop ID is missing!");
+      return;
     }
 
-    if (field.startsWith("product_price_") && !value.trim()) {
-      const index = field.split("_")[2];
-      newErrors[`product_price_${index}`] = "Product price is required.";
-    } else if (field.startsWith("product_price_")) {
-      const index = field.split("_")[2];
-      delete newErrors[`product_price_${index}`];
-    }
-
-    setErrors(newErrors);
-  };
-
-  const handleSubmit = () => {
-    // Validate all products before submission
     const newErrors = {};
     products.forEach((product, index) => {
-      if (!product.name.trim()) {
-        newErrors[`product_name_${index}`] = "Product name is required.";
-      }
-      if (!product.price.trim()) {
-        newErrors[`product_price_${index}`] = "Product price is required.";
-      }
-      if (!product.image) {
-        newErrors[`product_image_${index}`] = "Product image is required.";
-      }
+      if (!product.name.trim()) newErrors[`product_name_${index}`] = "Required";
+      if (!product.price.trim())
+        newErrors[`product_price_${index}`] = "Required";
+      if (!product.image) newErrors[`product_image_${index}`] = "Required";
     });
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    if (Object.keys(newErrors).length === 0) {
-      console.log("Products submitted:", products);
-      // Perform submission logic here (e.g., API call)
+    try {
+      await dispatch(addProduct({ shop_id, products })).unwrap();
+      console.log("All products added successfully!");
+    } catch (err) {
+      console.error("Failed to add products:", err);
     }
   };
 
@@ -135,7 +100,22 @@ const AddProducts = () => {
         </div>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="w-full flex flex-col gap-5">
+      {success && (
+        <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+          ✅ Products added successfully!
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+          ❌ {error}
+        </div>
+      )}
+
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="w-full flex flex-col gap-5"
+      >
         {products.map((product, index) => (
           <div key={index} className="flex flex-col gap-5 border-b pb-5">
             {/* Product Name */}
@@ -143,10 +123,7 @@ const AddProducts = () => {
               <label className="label left-1 md:left-2">Name</label>
               <input
                 className={`input ${
-                  touched[`product_name_${index}`] &&
-                  errors[`product_name_${index}`]
-                    ? "border-red-500"
-                    : ""
+                  errors[`product_name_${index}`] ? "border-red-500" : ""
                 }`}
                 type="text"
                 value={product.name}
@@ -154,12 +131,11 @@ const AddProducts = () => {
                   handleProductChange(index, "name", e.target.value)
                 }
               />
-              {touched[`product_name_${index}`] &&
-                errors[`product_name_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_name_${index}`]}
-                  </span>
-                )}
+              {errors[`product_name_${index}`] && (
+                <span className="text-red-500 text-sm">
+                  {errors[`product_name_${index}`]}
+                </span>
+              )}
             </div>
 
             {/* Product Price */}
@@ -167,10 +143,7 @@ const AddProducts = () => {
               <label className="label left-1 md:left-2">Price</label>
               <input
                 className={`input ${
-                  touched[`product_price_${index}`] &&
-                  errors[`product_price_${index}`]
-                    ? "border-red-500"
-                    : ""
+                  errors[`product_price_${index}`] ? "border-red-500" : ""
                 }`}
                 type="text"
                 value={product.price}
@@ -178,12 +151,11 @@ const AddProducts = () => {
                   handleProductChange(index, "price", e.target.value)
                 }
               />
-              {touched[`product_price_${index}`] &&
-                errors[`product_price_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_price_${index}`]}
-                  </span>
-                )}
+              {errors[`product_price_${index}`] && (
+                <span className="text-red-500 text-sm">
+                  {errors[`product_price_${index}`]}
+                </span>
+              )}
             </div>
 
             {/* Product Image */}
@@ -191,7 +163,6 @@ const AddProducts = () => {
               <label className="font-medium text-gray-700">Image</label>
               <div
                 className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${
-                  touched[`product_image_${index}`] &&
                   errors[`product_image_${index}`]
                     ? "border-red-500"
                     : "border-gray-400"
@@ -209,12 +180,11 @@ const AddProducts = () => {
                   Upload Product Image
                 </span>
               </div>
-              {touched[`product_image_${index}`] &&
-                errors[`product_image_${index}`] && (
-                  <span className="text-red-500 text-sm">
-                    {errors[`product_image_${index}`]}
-                  </span>
-                )}
+              {errors[`product_image_${index}`] && (
+                <span className="text-red-500 text-sm">
+                  {errors[`product_image_${index}`]}
+                </span>
+              )}
               {product.preview && (
                 <img
                   src={product.preview}
@@ -246,8 +216,9 @@ const AddProducts = () => {
           type="button"
           onClick={handleSubmit}
           className="bg-lily text-white px-4 py-2 rounded-md hover:bg-gray-800 hover:text-white cursor-pointer"
+          disabled={status === "loading"}
         >
-          Submit Products
+          {status === "loading" ? "Submitting..." : "Submit Products"}
         </button>
       </form>
     </section>
