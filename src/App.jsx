@@ -1,7 +1,7 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-import AIButton from "./components/ai/AIButton";
+// import AIButton from "./components/ai/AIButton";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
 import EditShop from "./pages/editShop";
