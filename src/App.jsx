@@ -4,6 +4,9 @@ import Home from "./pages/home";
 // import AIButton from "./components/ai/AIButton";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
+// import AIButton from "./components/ai/AIButton";
+import CreateForm from "./pages/createForm";
+import EditForm from "./pages/editForm";
 import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
@@ -54,6 +57,7 @@ export default function App() {
         <Route path="/addProducts" element={<AddProducts />} />
         <Route path="/chat" element={<Chat />} />
       </Routes>
+      {/* <AIButton /> */}
       {/* <AIButton /> */}
       <Nav />
     </Router>
