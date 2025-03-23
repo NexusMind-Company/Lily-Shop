@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { fetchProfile } from "./profileSlice";
 
 const initialState = {
   user_data: (() => {
@@ -20,7 +21,6 @@ const authSlice = createSlice({
     loginSuccess: (state, action) => {
       let userData = action.payload.user_data;
 
-      // Ensure the data isn't already stringified
       if (typeof userData === "string") {
         try {
           userData = JSON.parse(userData);
@@ -31,14 +31,7 @@ const authSlice = createSlice({
 
       state.user_data = userData;
       state.isAuthenticated = true;
-
-      // Store correctly in localStorage
       localStorage.setItem("user_data", JSON.stringify(userData));
-
-      /*console.log(
-        "Stored data in localStorage:",
-        localStorage.getItem("user_data")
-      );*/
     },
 
     logout: (state) => {
@@ -48,6 +41,18 @@ const authSlice = createSlice({
     },
   },
 });
+
+// Thunk to handle login and trigger profile fetch
+export const handleLogin = (userData) => (dispatch) => {
+  dispatch(loginSuccess({ user_data: userData }));
+  dispatch(fetchProfile());
+};
+
+// Thunk to handle logout and reset profile
+export const handleLogout = () => (dispatch) => {
+  dispatch(logout());
+  dispatch(fetchProfile());
+};
 
 export const { loginSuccess, logout } = authSlice.actions;
 export default authSlice.reducer;
