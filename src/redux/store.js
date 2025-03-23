@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authSlice from "./authSlice";
 import shopReducer from "./shopSlice";
 import createShopReducer from "./createShopSlice";
+import profileReducer from "./profileSlice";
 import { setAuthToken } from "../services/api";
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authSlice,
     shops: shopReducer,
     createShop: createShopReducer,
+    profile: profileReducer,
   },
 });
 
