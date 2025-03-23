@@ -63,7 +63,7 @@ const MyShop = () => {
               </Link>
               <div className="flex justify-between gap-1">
                 <Link
-                  to=""
+                  to="/editShop"
                   className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
                 >
                   Edit Shop
