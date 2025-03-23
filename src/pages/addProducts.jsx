@@ -1,4 +1,4 @@
-import AddProducts from "../components/shop/AddProducts";
+import AddProducts from "../components/shop/addProducts";
 
 const addProducts = () => {
   return <section>
