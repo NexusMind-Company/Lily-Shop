@@ -1,9 +1,8 @@
-import { Link, useLocation } from "react-router-dom"; // Correct import
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const location = useLocation();
 
-  // More reliable path checking
   const isActive = (path) => {
     if (path === "/") {
       return (
@@ -22,7 +21,7 @@ const Navbar = () => {
         />
         <p>Home</p>
       </Link>
-      <Link to="/createShop" className="flex flex-col items-center">
+      <Link to="/myShop" className="flex flex-col items-center">
         <img
           src={isActive("/createShop") ? "/shop-active.png" : "/shop.png"}
           alt="shop-icon"
