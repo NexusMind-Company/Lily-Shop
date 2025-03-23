@@ -1,22 +1,22 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchShopById } from "../../redux/shopSlice";
+import { fetchProfile } from "../../redux/profileSlice";
 import Loader from "../loader";
 
 const MyShop = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const { selectedShop, status } = useSelector((state) => state.shops);
+  const { user, shops, status } = useSelector((state) => state.profile);
+  const isAuthenticated = !!user;
 
-  // Fetch the user's shop when authenticated and shop ID exists
   useEffect(() => {
-    if (isAuthenticated && user?.shopId) {
-      dispatch(fetchShopById(user.shopId));
-    }
-  }, [dispatch, isAuthenticated, user?.shopId]);
+    dispatch(fetchProfile());
+  }, [dispatch, isAuthenticated, shops.length]);
+  
 
   if (status === "loading") return <Loader />;
+
+  const selectedShop = shops.length > 0 ? shops[0] : null;
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
@@ -56,6 +56,7 @@ const MyShop = () => {
                 </li>
               </ul>
               <Link
+                //to={`/shop/${selectedShop.id}`}
                 to=""
                 className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
               >
@@ -68,10 +69,7 @@ const MyShop = () => {
                 >
                   Edit Shop
                 </Link>
-                <button
-                  to=""
-                  className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 transition-colors duration-200"
-                >
+                <button className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 transition-colors duration-200">
                   Delete
                 </button>
               </div>
@@ -86,7 +84,7 @@ const MyShop = () => {
         )}
       </div>
 
-      {/* Show if user is authenticated */}
+      {/* Authentication Status */}
       <div className="flex flex-col items-start justify-start w-full text-left py-5">
         {!isAuthenticated ? (
           <Link
