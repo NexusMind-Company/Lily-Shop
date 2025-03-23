@@ -1,25 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchShops } from "../../store/shopSlice";
+import { fetchShops } from "../../redux/shopSlice";
 import Loader from "../loader";
 
 const ProductCard = () => {
   const dispatch = useDispatch();
   const { shops, status, error } = useSelector((state) => state.shops);
-  const [visibleProducts, setVisibleProducts] = useState(4);
 
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchShops());
     }
   }, [status, dispatch]);
-
-  const showMoreProducts = () => {
-    setVisibleProducts((prev) => prev + 4);
-  };
-
-  const hasMoreProducts = visibleProducts < shops.length;
 
   if (status === "loading") {
     return <Loader />;
@@ -46,7 +39,7 @@ const ProductCard = () => {
 
         {/* Products Grid */}
         <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
-          {shops.slice(0, visibleProducts).map((product) => (
+          {shops.map((product) => (
             <Link
               to={`/product/${product.id}`}
               key={product.id}
@@ -76,24 +69,6 @@ const ProductCard = () => {
             </Link>
           ))}
         </div>
-
-        {/* Show More Button */}
-        {hasMoreProducts ? (
-          <div className="w-full flex justify-center mt-6">
-            <button
-              onClick={showMoreProducts}
-              className="px-6 py-2 cursor-pointer bg-lily text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200 font-poppins text-sm hover:bg-black"
-            >
-              Show More
-            </button>
-          </div>
-        ) : (
-          <div className="w-full flex justify-center mt-6">
-            <button className="px-6 py-2 cursor-pointer bg-ash text-white rounded-lg font-poppins text-sm ">
-              No More Shops
-            </button>
-          </div>
-        )}
       </div>
     </section>
   );

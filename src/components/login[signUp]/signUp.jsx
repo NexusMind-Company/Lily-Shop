@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useSelector, useDispatch } from "react-redux";
-import { loginSuccess } from "../../store/authSlice";
+import { loginSuccess } from "../../redux/authSlice";
 import useAuth from "../hooks/useAuth";
 import displayError from "../utils/displayError";
 
@@ -25,6 +25,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
 
   const isAuth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ const SignUp = () => {
       username,
       phone_number: formatPhone(phoneNumber),
       password,
+      email,
     });
   };
 
@@ -107,6 +109,20 @@ const SignUp = () => {
       </h2>
 
       <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
+        {/* email input */}
+        <div className="flex flex-col">
+          <input
+            className="input rounded-[7px] pt-0 h-[46px] mt-3"
+            type="text"
+            name="email"
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <p className="text-[#ff2b2b] font-bold">
+            {displayError(error, "email")}
+          </p>
+        </div>
+
         {/* username  input */}
         <div className="flex flex-col">
           <input

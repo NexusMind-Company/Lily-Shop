@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../store/authSlice";
-import { fetchShops } from "../store/shopSlice";
+import { logout } from "../redux/authSlice";
+import { fetchShops } from "../redux/shopSlice";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -118,7 +118,7 @@ const Header = () => {
         </button>
 
         {isAuthenticated && (
-          <Link to="/messages" className="cursor-pointer w-8">
+          <Link to="/messages" className="cursor-pointer w-8 hidden">
             <img src="/message-icon.svg" alt="message icon" />
           </Link>
         )}

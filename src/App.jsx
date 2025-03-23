@@ -1,13 +1,11 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-// import AIButton from "./components/ai/AIButton"
+import AIButton from "./components/ai/AIButton";
+import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
-
-import CreateForm from "./pages/createForm";
-import EditForm from "./pages/editForm";
 import EditShop from "./pages/editShop";
-import ProductDetails from "./pages/productDetails";
+import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
 import { BrowserRouter as Router, Route, Routes } from "react-router";
@@ -19,9 +17,11 @@ import ForgotPassword from "./pages/forgotPassword";
 import SearchResults from "./pages/searchResults";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "./store/authSlice";
+import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
-import Chat from "./pages/chat"
+import ScrollToTop from "./components/scrollToTop";
+import Chat from "./pages/chat";
+import AddProducts from "./pages/addProducts";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -34,12 +34,13 @@ export default function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/myShop" element={<MyShop />} />
         <Route path="/createShop" element={<CreateShop />} />
-        <Route path="/createForm" element={<CreateForm />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/product/:id" element={<ShopDetails />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -49,8 +50,8 @@ export default function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/editform" element={<EditForm />} />
         <Route path="/editShop" element={<EditShop />} />
+        <Route path="/addProducts" element={<AddProducts />} />
         <Route path="/chat" element={<Chat />} />
       </Routes>
       {/* <AIButton /> */}
