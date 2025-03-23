@@ -52,7 +52,7 @@ const CreateShop = () => {
         ...prev,
         shopImage: validationError,
       }));
-      e.target.value = ""; // Reset the input value
+      e.target.value = "";
       return;
     }
 
@@ -120,7 +120,7 @@ const CreateShop = () => {
       setSuccessMessage(true);
       setTimeout(() => {
         setSuccessMessage(false);
-        navigate("/");
+        navigate("/myShop");
       }, 2000);
     } catch (error) {
       console.error("Error creating shop:", error);
