@@ -1,6 +1,11 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
+<<<<<<< Updated upstream
+
+=======
+import AIButton from "./components/ai/AIButton"
+>>>>>>> Stashed changes
 import CreateShop from "./pages/createShop";
 
 import CreateForm from "./pages/createForm";
@@ -20,7 +25,11 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./store/authSlice";
 import Messages from "./pages/messagePage";
+<<<<<<< Updated upstream
+=======
 import ScrollToTop from "./components/scrollToTop";
+import Chat from "./pages/chat";
+>>>>>>> Stashed changes
 
 export default function App() {
   const dispatch = useDispatch();
@@ -51,8 +60,9 @@ export default function App() {
         <Route path="/messages" element={<Messages />} />
         <Route path="/editform" element={<EditForm />} />
         <Route path="/editShop" element={<EditShop />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
-      
+      <AIButton />
       <Nav />
     </Router>
   );
