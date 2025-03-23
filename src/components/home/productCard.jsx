@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchShops } from "../../store/shopSlice";
+import { fetchShops } from "../../redux/shopSlice";
 import Loader from "../loader";
 
 const ProductCard = () => {

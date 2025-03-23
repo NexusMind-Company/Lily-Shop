@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchShops } from "../../store/shopSlice";
+import { fetchShops } from "../../redux/shopSlice";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();

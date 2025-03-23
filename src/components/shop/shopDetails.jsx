@@ -1,22 +1,21 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchShops } from "../../store/shopSlice";
-import Loader from "../loader"
+import { fetchShopById } from "../../redux/shopSlice";
+import Loader from "../loader";
 
-const ProductDetails = () => {
+const ShopDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { shops, status, error } = useSelector((state) => state.shops);
+  const {
+    selectedShop: product,
+    status,
+    error,
+  } = useSelector((state) => state.shops);
 
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchShops());
-    }
-  }, [status, dispatch]);
-
-  // Find the product by ID
-  const product = shops.find((shop) => shop.id === parseInt(id));
+    dispatch(fetchShopById(id));
+  }, [id, dispatch]);
 
   if (status === "loading") {
     return <Loader />;
@@ -49,9 +48,11 @@ const ProductDetails = () => {
       {/* Status & Message Button */}
       <div className="flex justify-between w-full mt-5 font-poppins items-center">
         <div>
-          <p className="font-bold font-poppins text-[13px]/[19.5px]">Status:</p>
+          <p className="font-bold font-poppins text-[13px]/[19.5px]">
+            Status: <span className="text-lily">{product.owner_status}</span>
+          </p>
           <p className="font-normal font-poppins text-[11px]/[16.5px]">
-            Visits:
+            Visits: <span className="text-lily">{product.visitor_count}</span>
           </p>
         </div>
         <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border border-gray-300">
@@ -62,7 +63,6 @@ const ProductDetails = () => {
 
       {/* Description and Address Section */}
       <div className="flex flex-col gap-4 items-start mt-6 w-full">
-        {/* Description Section */}
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
             <span className="border-b-2 border-[#F6AD6D]">Descripti</span>on
@@ -72,7 +72,6 @@ const ProductDetails = () => {
           </p>
         </div>
 
-        {/* Address Section */}
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
             <span className="border-b-2 border-[#F6AD6D]">Addre</span>ss
@@ -113,12 +112,12 @@ const ProductDetails = () => {
         </div>
 
         {/* Contact */}
-        <p className="text-lily text-sm md:text-base font-semibold font-poppins uppercase mt-5">
-          Contacts: <span className="text-black">{product.contact}</span>
+        <p className="text-lily text-sm font-semibold font-poppins uppercase mt-5">
+          Contacts: <span className="text-black">{product.owner_phone}</span>
         </p>
       </div>
     </section>
   );
 };
 
-export default ProductDetails;
+export default ShopDetails;
