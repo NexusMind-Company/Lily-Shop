@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const EditShop = () => {
-  const [name, setName] = useState(''); 
+  const [name, setName] = useState("");
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
@@ -27,7 +27,6 @@ const EditShop = () => {
           type="text"
           className="w-full p-2 border rounded-[7px] h-[54px]"
           placeholder="Title"
-          
         />
         <label className="block text-sm font-medium"></label>
         <input
@@ -44,7 +43,9 @@ const EditShop = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium font-inter">Short description</label>
+        <label className="block text-sm font-medium font-inter">
+          Short description
+        </label>
         <textarea
           className="w-full p-2 border rounded-[7px] h-[100px] mt-2 resize-none"
           placeholder="Short description"
@@ -52,7 +53,9 @@ const EditShop = () => {
       </div>
 
       <div className="mt-4">
-        <label className="block text-sm font-medium font-inter">Detailed description</label>
+        <label className="block text-sm font-medium font-inter">
+          Detailed description
+        </label>
         <textarea
           className="w-full p-2 border rounded-[7px] h-[200px] mt-2 resize-none"
           placeholder="Detailed description"
@@ -171,36 +174,39 @@ const EditShop = () => {
               Upload
             </label>
           </div>
-         </div>
-         <div className="flex flex-col gap-3 ">
-  <label htmlFor="category" className="block text-md font-medium">
-    Category
-  </label>
-      <select className='w-full p-2 border rounded-[7px] h-[54px]' id="category">
-    <option value="">Select a category</option>
-    <option value="option1">option1</option>
-    <option value="option2">option2</option>
-    <option value="option3">option3</option>
-    <option value="option4">option4</option>
-    <option value="option5">option5</option>
-    </select>
-  </div>
-  </div>
-  <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px] ">
-          <button
-            type="button"
-            className="bg-ash text-white py-2 w-[105px] cursor-pointer"
-          >
-            <Link to="">Discard</Link>
-          </button>
-          <button
-            type="submit"
-            className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer"
-          >
-            Save & Deploy
-          </button>
         </div>
-  </section>
+        <div className="flex flex-col gap-3 ">
+          <label htmlFor="category" className="block text-md font-medium">
+            Category
+          </label>
+          <select
+            className="w-full p-2 border rounded-[7px] h-[54px]"
+            id="category"
+          >
+            <option value="">Select a category</option>
+            <option value="option1">option1</option>
+            <option value="option2">option2</option>
+            <option value="option3">option3</option>
+            <option value="option4">option4</option>
+            <option value="option5">option5</option>
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px] ">
+        <button
+          type="button"
+          className="bg-ash text-white py-2 w-[105px] cursor-pointer"
+        >
+          <Link to="">Discard</Link>
+        </button>
+        <button
+          type="submit"
+          className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer"
+        >
+          Save & Deploy
+        </button>
+      </div>
+    </section>
   );
 };
 
