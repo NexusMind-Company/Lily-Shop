@@ -10,13 +10,14 @@ const MyShop = () => {
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch, isAuthenticated, shops.length]);
-  
+    if (isAuthenticated) {
+      dispatch(fetchProfile());
+    }
+  }, [dispatch, isAuthenticated]);
 
   if (status === "loading") return <Loader />;
 
-  const selectedShop = shops.length > 0 ? shops[0] : null;
+  const selectedShop = shops?.length > 0 ? shops[0] : null;
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
@@ -35,7 +36,7 @@ const MyShop = () => {
 
         {/* Shop Card */}
         {selectedShop ? (
-          <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             <div className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg transition-shadow duration-200">
               <div className="w-full h-40 md:h-48">
                 <img
@@ -56,8 +57,7 @@ const MyShop = () => {
                 </li>
               </ul>
               <Link
-                //to={`/shop/${selectedShop.id}`}
-                to=""
+                to={`/shop/${selectedShop?.id}`}
                 className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
               >
                 Products
