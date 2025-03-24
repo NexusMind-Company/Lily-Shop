@@ -1,6 +1,6 @@
 import React from 'react'
-import{ useState } from 'react'
-import { Paperclip, Mic } from 'lucide-react'
+
+
 
 const lilyChat = () => {
   return (
