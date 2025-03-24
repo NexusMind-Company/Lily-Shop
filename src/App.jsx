@@ -24,6 +24,7 @@ import ScrollToTop from "./components/scrollToTop";
 import Chat from "./pages/chat";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
+import EditProducts from "./pages/editProducts";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
         <Route path="/shop/:shop_id/products" element={<Products />} />
         <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
+        <Route path="/shop/:product_id/edit-products" element={<EditProducts />} />
 
         <Route path="/chat" element={<Chat />} />
       </Routes>
