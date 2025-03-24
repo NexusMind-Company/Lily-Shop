@@ -23,6 +23,7 @@ import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/scrollToTop";
 import LilyChat from "./pages/lilyChat"
 import AddProducts from "./pages/addProducts";
+import Products from "./pages/products";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -51,9 +52,11 @@ export default function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/editShop" element={<EditShop />} />
-        <Route path="/addProducts" element={<AddProducts />} />
-        <Route path="/lilychat" element={<LilyChat />} />
+        <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
+        <Route path="/shop/:shop_id/products" element={<Products />} />
+        <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
+
+        <Route path="/chat" element={<Chat />} />
       </Routes>
       {/* <AIButton /> */}
       {/* <AIButton /> */}

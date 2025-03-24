@@ -31,7 +31,7 @@ const MyShop = () => {
         </h2>
 
         {shops && shops.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {shops.map((shop) => (
               <div
                 key={shop.id}
@@ -63,7 +63,7 @@ const MyShop = () => {
                 </Link>
                 <div className="flex justify-between gap-1">
                   <Link
-                    to={`/editShop/${shop.id}`}
+                    to={`/editShop/${shop.id}/edit-shop`}
                     className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
                   >
                     Edit Shop
@@ -98,7 +98,7 @@ const MyShop = () => {
           <div className="flex items-center">
             <Link
               to="/createShop"
-              className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2 py-2"
+              className="font-inter font-semibold text-xs md:text-sm flex items-center gap-2"
             >
               Create New
               <img
