@@ -3,6 +3,7 @@ import authSlice from "./authSlice";
 import shopReducer from "./shopSlice";
 import createShopReducer from "./createShopSlice";
 import profileReducer from "./profileSlice";
+import addProductReducer from "./addProductSlice";
 import { setAuthToken } from "../services/api";
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     shops: shopReducer,
     createShop: createShopReducer,
     profile: profileReducer,
+    addProduct: addProductReducer,
   },
 });
 
