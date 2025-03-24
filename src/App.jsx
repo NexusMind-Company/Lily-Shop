@@ -21,7 +21,7 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/scrollToTop";
-import Chat from "./pages/chat";
+import LilyChat from "./pages/lilyChat"
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
