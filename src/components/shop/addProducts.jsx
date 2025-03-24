@@ -1,19 +1,35 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct, resetAddProductState } from "../../redux/addProductSlice";
 
 const AddProducts = () => {
   const { shop_id } = useParams();
-  console.log("Extracted shopId:", shop_id);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { status, error, success } = useSelector((state) => state.addProduct);
+  const loading = status === "loading";
 
   const [products, setProducts] = useState([
     { name: "", price: "", image: null, preview: null },
   ]);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!shop_id) {
+      console.error("Error: Shop ID is missing!");
+      return;
+    }
+
+    if (success) {
+      setProducts([{ name: "", price: "", image: null, preview: null }]);
+      setTimeout(() => {
+        dispatch(resetAddProductState());
+        navigate("/myShop");
+      }, 2000);
+    }
+  }, [shop_id, success, dispatch, navigate]);
 
   if (!shop_id) {
     return <p className="text-red-500">Error: Shop ID is missing!</p>;
@@ -82,8 +98,23 @@ const AddProducts = () => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
+    const formData = new FormData();
+
+    // Add products as a JSON string
+    const productsData = products.map((product) => ({
+      name: product.name,
+      price: parseFloat(product.price),
+    }));
+    formData.append("products", JSON.stringify(productsData));
+
+    products.forEach((product) => {
+      if (product.image) {
+        formData.append("images", product.image);
+      }
+    });
+
     try {
-      await dispatch(addProduct({ shop_id, products })).unwrap();
+      await dispatch(addProduct({ shop_id, formData })).unwrap();
       console.log("All products added successfully!");
     } catch (err) {
       console.error("Failed to add products:", err);
@@ -100,9 +131,15 @@ const AddProducts = () => {
         </div>
       </div>
 
+      {loading && (
+        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+          ⏳ Adding products, please wait...
+        </div>
+      )}
+
       {success && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Products added successfully!
+          ✅ Products added successfully! Redirecting to homepage...
         </div>
       )}
 
@@ -216,9 +253,9 @@ const AddProducts = () => {
           type="button"
           onClick={handleSubmit}
           className="bg-lily text-white px-4 py-2 rounded-md hover:bg-gray-800 hover:text-white cursor-pointer"
-          disabled={status === "loading"}
+          disabled={loading}
         >
-          {status === "loading" ? "Submitting..." : "Submit Products"}
+          {loading ? "Submitting..." : "Submit Products"}
         </button>
       </form>
     </section>
