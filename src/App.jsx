@@ -21,7 +21,8 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/scrollToTop";
-import LilyChat from "./pages/lilyChat"
+import LilyChat from "./pages/lilyChat";
+import LilyChat2 from "./pages/lilyChat2";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 
@@ -56,7 +57,8 @@ export default function App() {
         <Route path="/shop/:shop_id/products" element={<Products />} />
         <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
 
-        <Route path="/chat" element={<Chat />} />
+        <Route path="/lilychat" element={<LilyChat/>} />
+        <Route path="/lilychat2" element={<LilyChat2/>} />
       </Routes>
       {/* <AIButton /> */}
       {/* <AIButton /> */}
