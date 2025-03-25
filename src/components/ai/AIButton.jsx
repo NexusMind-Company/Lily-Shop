@@ -17,7 +17,7 @@ const AIButton = () => {
 
     const handleNavigate = () => {
         setIsOpen(false); 
-        navigate('/chat'); 
+        navigate('/lilyChat'); 
     };
 
     return (
