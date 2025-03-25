@@ -74,7 +74,7 @@ const Login = () => {
           className="input rounded-[7px] pt-0 h-[46px] mt-3"
           type="text"
           name="username"
-          placeholder="Username"
+          placeholder="Username or Email"
           onChange={(e) => setUsername(e.target.value)}
         />
 
@@ -101,7 +101,7 @@ const Login = () => {
           <Link to="/forgotPassword">Forgot Password?</Link>
         </div>
         <p className="text-[#ff2b2b] font-bold lg:-mt-7">
-          {displayError(error, "detail")}
+          {displayError(error, "detail") || displayError(error, "non_field_errors")}
         </p>
         {/* display login error */}
 

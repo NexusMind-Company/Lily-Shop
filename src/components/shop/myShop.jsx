@@ -1,13 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import Loader from "../loader";
+import Delete from "./delete";
 
 const MyShop = () => {
+  const [delIsOpen, setDelIsOpen] = useState(false);
+  const [selectedShopId, setSelectedShopId] = useState(null);
   const dispatch = useDispatch();
   const { user, shops, status } = useSelector((state) => state.profile);
   const isAuthenticated = !!user;
+
+  const toggleDel = (shop_id = null) => {
+    setSelectedShopId(shop_id);
+    setDelIsOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -57,18 +65,21 @@ const MyShop = () => {
                 </ul>
                 <Link
                   to={`/shop/${shop.id}/products`}
-                  className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
+                  className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
                 >
                   Products
                 </Link>
                 <div className="flex justify-between gap-1">
                   <Link
                     to={`/editShop/${shop.id}/edit-shop`}
-                    className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white transition-colors duration-200"
+                    className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white transition-colors duration-200"
                   >
                     Edit Shop
                   </Link>
-                  <button className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 transition-colors duration-200">
+                  <button
+                    onClick={() => toggleDel(shop.id)}
+                    className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 active:bg-red-600 transition-colors duration-200"
+                  >
                     Delete
                   </button>
                 </div>
@@ -110,6 +121,14 @@ const MyShop = () => {
           </div>
         )}
       </div>
+
+      {/*Delete Component*/}
+      <Delete
+        delIsOpen={delIsOpen}
+        toggleDel={toggleDel}
+        shop_id={selectedShopId}
+        entityName="shop"
+      />
     </section>
   );
 };
