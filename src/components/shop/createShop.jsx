@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createShop } from "../../redux/createShopSlice";
@@ -277,7 +278,7 @@ const CreateShop = () => {
             type="button"
             className="bg-ash text-white py-2 w-[105px] cursor-pointer"
           >
-            <Link to="/createShop">Discard</Link>
+            <Link to="/myShop">Discard</Link>
           </button>
           <button
             disabled={loading}
