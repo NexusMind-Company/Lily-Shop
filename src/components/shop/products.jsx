@@ -1,18 +1,34 @@
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-import { fetchProducts } from "../../redux/addProductSlice";
+import { useEffect, useState } from "react";
+import { fetchProducts, deleteProduct } from "../../redux/addProductSlice";
+import ConfirmDeletePopup from "./confirmDeletePopUp";
 
 const Products = () => {
   const { shop_id } = useParams();
   const dispatch = useDispatch();
   const { products, status, error } = useSelector((state) => state.addProduct);
 
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
   useEffect(() => {
     if (shop_id) {
       dispatch(fetchProducts(shop_id));
     }
   }, [dispatch, shop_id]);
+
+  const handleDeleteClick = (productId) => {
+    setSelectedProductId(productId);
+    setIsPopupOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedProductId) {
+      dispatch(deleteProduct(selectedProductId));
+      setIsPopupOpen(false);
+    }
+  };
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl font-inter mx-auto overflow-hidden">
@@ -82,7 +98,10 @@ const Products = () => {
                   >
                     Edit
                   </Link>
-                  <button className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 active:bg-red-600 transition-colors duration-200">
+                  <button
+                    onClick={() => handleDeleteClick(product.id)}
+                    className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 active:bg-red-600 transition-colors duration-200"
+                  >
                     Delete
                   </button>
                 </div>
@@ -99,6 +118,13 @@ const Products = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Popup */}
+      <ConfirmDeletePopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        onConfirm={handleDeleteConfirm}
+      />
     </section>
   );
 };
