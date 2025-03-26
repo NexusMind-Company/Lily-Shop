@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import Loader from "../loader";
 import Delete from "./delete";
 
 const MyShop = () => {
@@ -21,8 +20,6 @@ const MyShop = () => {
     dispatch(fetchProfile());
   }, [dispatch, isAuthenticated]);
 
-  if (status === "loading") return <Loader />;
-
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
       {/* Header */}
@@ -38,7 +35,9 @@ const MyShop = () => {
           My Shops
         </h2>
 
-        {shops && shops.length > 0 ? (
+        {status === "loading" ? (
+          <p className="text-sm text-lily font-inter">Loading your shops....</p>
+        ) : shops && shops.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {shops.map((shop) => (
               <div
@@ -122,7 +121,7 @@ const MyShop = () => {
         )}
       </div>
 
-      {/*Delete Component*/}
+      {/* Delete Component */}
       <Delete
         delIsOpen={delIsOpen}
         toggleDel={toggleDel}

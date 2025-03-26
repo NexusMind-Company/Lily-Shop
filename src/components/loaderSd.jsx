@@ -1,6 +1,6 @@
-const Loader = () => {
+const LoaderSd = () => {
   return (
-    <div className="flex absolute top-[50%] right-[50%] items-center justify-center">
+    <div className="flex items-center justify-center min-h-screen">
       <div className="flex space-x-2">
         <div className="w-3 h-3 bg-lily rounded-full animate-bounce"></div>
         <div className="w-3 h-3 bg-lily rounded-full animate-bounce delay-200"></div>
@@ -10,4 +10,4 @@ const Loader = () => {
   );
 };
 
-export default Loader;
+export default LoaderSd;
