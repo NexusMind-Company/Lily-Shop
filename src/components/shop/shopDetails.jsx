@@ -17,6 +17,13 @@ const ShopDetails = () => {
     dispatch(fetchShopById(id));
   }, [id, dispatch]);
 
+  const handleCopyLink = () => {
+    const shopLink = `${window.location.origin}/shop/${id}`;
+    navigator.clipboard.writeText(shopLink).then(() => {
+      alert("Shop link copied to clipboard!");
+    });
+  };
+
   if (status === "loading") {
     return <LoaderSd />;
   }
@@ -37,7 +44,14 @@ const ShopDetails = () => {
       </div>
 
       {/* Product Image */}
-      <div className="mt-7 flex items-center justify-center w-full">
+      <div className="mt-7 flex flex-col items-center justify-center w-full relative">
+        <button
+          className="cursor-pointer flex items-center gap-0.5 text-right font-poppins text-xs font-medium absolute -top-6 right-0"
+          onClick={handleCopyLink}
+        >
+          <p>Copy</p>
+          <img className="w-4" src="/copy.svg" alt="copy-icon" />
+        </button>
         <img
           className="rounded-2xl h-[311px] w-[100%]"
           src={product.image_url}
@@ -45,7 +59,7 @@ const ShopDetails = () => {
         />
       </div>
 
-      {/* Status & Message Button */}
+      {/* Status, Message Button, and Copy Link */}
       <div className="flex justify-between w-full mt-5 font-poppins items-center">
         <div>
           <p className="font-bold font-poppins text-[13px]/[19.5px]">
@@ -55,6 +69,7 @@ const ShopDetails = () => {
             Visits: <span className="text-lily">{product.visitor_count}</span>
           </p>
         </div>
+
         <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border border-gray-300">
           <p>Coming Soon</p>
           <img className="w-5" src="/message-icon.svg" alt="message-icon" />
