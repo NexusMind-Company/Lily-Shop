@@ -29,7 +29,6 @@ const SearchResults = () => {
     }
   }, [categoryQuery]);
 
-  // Filter results based on search query and category
   useEffect(() => {
     if (!shops || shops.length === 0) {
       setResults([]);
@@ -44,6 +43,12 @@ const SearchResults = () => {
           shop.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           shop.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           shop.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shop.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (shop.products &&
+            Array.isArray(shop.products) &&
+            shop.products.some((product) =>
+              product.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            )) ||
           (shop.tags &&
             Array.isArray(shop.tags) &&
             shop.tags.some((tag) =>
