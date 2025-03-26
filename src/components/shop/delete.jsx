@@ -5,21 +5,18 @@ import { useEffect } from "react";
 
 const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
   const dispatch = useDispatch();
-  const { status, error } = useSelector((state) => state.deleteShop);
+  const { status } = useSelector((state) => state.deleteShop);
 
   const handleDelete = async () => {
     try {
       await dispatch(deleteShop(shop_id)).unwrap();
-      console.log(`${entityName} deleted successfully!`);
-      console.log("Deleting shop with ID:", shop_id);
-      toggleDel(); // Close the delete modal
-      dispatch(resetDeleteShopState()); // Reset the delete state
+      toggleDel();
+      dispatch(resetDeleteShopState());
     } catch (err) {
       console.error(`Failed to delete ${entityName}:`, err);
     }
   };
 
-  // Reset error state when the modal is closed
   useEffect(() => {
     if (!delIsOpen) {
       dispatch(resetDeleteShopState());
@@ -46,9 +43,6 @@ const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
           This will delete this {entityName} permanently. You cannot undo this
           action.
         </p>
-
-        {status === "loading" && <p className="text-blue-500">Deleting...</p>}
-        {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex gap-4 font-inter font-normal text-xs">
           <button
