@@ -62,6 +62,21 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
+// Async thunk to delete a product
+export const deleteProduct = createAsyncThunk(
+  "addProduct/deleteProduct",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/shops/products/${id}/delete/`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || error.message || "An error occurred"
+      );
+    }
+  }
+);
+
 const addProductSlice = createSlice({
   name: "addProduct",
   initialState: {
@@ -79,8 +94,31 @@ const addProductSlice = createSlice({
       state.productData = null;
     },
   },
+  resetDeleteProductState: (state) => {
+    state.deleteStatus = "idle";
+    state.error = null;
+  },
   extraReducers: (builder) => {
     builder
+      // Handle delete product actions
+      .addCase(deleteProduct.pending, (state) => {
+        state.deleteStatus = "loading";
+        state.error = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.deleteStatus = "succeeded";
+        state.products = state.products.filter(
+          (product) => product.id !== action.meta.arg
+        );
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.deleteStatus = "failed";
+        state.error =
+          action.payload ||
+          action.error?.message ||
+          "An unexpected error occurred";
+      })
+
       // Handle add product actions
       .addCase(addProduct.pending, (state) => {
         state.status = "loading";
@@ -99,7 +137,7 @@ const addProductSlice = createSlice({
           action.error?.message ||
           "An unexpected error occurred";
       })
-      
+
       // Handle fetch products actions
       .addCase(fetchProducts.pending, (state) => {
         state.status = "loading";
@@ -114,7 +152,7 @@ const addProductSlice = createSlice({
         state.error =
           action.payload || action.error?.message || "Failed to fetch products";
       })
-      
+
       // Handle update product actions
       .addCase(updateProduct.pending, (state) => {
         state.status = "loading";
@@ -133,5 +171,6 @@ const addProductSlice = createSlice({
   },
 });
 
-export const { resetAddProductState } = addProductSlice.actions;
+export const { resetAddProductState, resetDeleteProductState } =
+  addProductSlice.actions;
 export default addProductSlice.reducer;
