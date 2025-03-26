@@ -6,7 +6,7 @@ export const deleteShop = createAsyncThunk(
   "shop/deleteShop",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/shops/${id}/delete`);
+      const response = await api.delete(`/shops/${id}/delete/`);
       return response.data;
     } catch (error) {
       return rejectWithValue(
