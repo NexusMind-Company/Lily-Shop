@@ -61,8 +61,10 @@ const Products = () => {
 
         {/* Loading & Error States */}
         {status === "loading" ? (
-          <div className="flex items-center justify-center">
-            <p className="text-sm">Loading products...</p>
+          <div className="flex items-start">
+            <p className="text-sm text-lily text-left">
+              Loading your products...
+            </p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center">

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopById } from "../../redux/shopSlice";
-import Loader from "../loader";
+import LoaderSd from "../loaderSd";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -18,7 +18,7 @@ const ShopDetails = () => {
   }, [id, dispatch]);
 
   if (status === "loading") {
-    return <Loader />;
+    return <LoaderSd />;
   }
 
   if (error) {
