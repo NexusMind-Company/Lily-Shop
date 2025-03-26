@@ -1,31 +1,66 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState,useEffect } from "react";
+import { useNavigate,useLocation } from "react-router-dom";
+//  const paystackLink = "https://paystack.com/pay/4pqaf6-w2v";
 
 const Step2 = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const shopId = location.state?.shopId || null;
 
-   const paystackLink = "https://paystack.com/pay/4pqaf6-w2v";
+  useEffect(() => {
+    if (!shopId) {
+      alert("Shop information is missing! Please start from Step 1.");
+      navigate("/step1");
+    }
+  }, [shopId, navigate]);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    if (!shopId) return;
     setIsProcessing(true);
 
-    const paymentWindow = window.open(paystackLink, "_blank");
+    try {
+      const response = await fetch(
+        "https://forthcoming-rachele-skyreal-emerge-0ca15c0d.koyeb.app/ads/payment/initiate/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            shop_id: shopId,
+            amount: 5000,
+          }),
+        }
+      );
 
-    if (!paymentWindow) {
-      alert("Popup blocked! Please allow popups for this site.");
-      setIsProcessing(false);
-      return;
-    }
+      const data = await response.json();
 
-    // Check if user closed the Paystack tab, then redirect
-    const checkPaymentStatus = setInterval(() => {
-      if (paymentWindow.closed) {
-        clearInterval(checkPaymentStatus);
+      if (data.authorization_url) {
+        const paymentWindow = window.open(data.authorization_url, "_blank");
+
+        if (!paymentWindow) {
+          alert("Popup blocked! Please allow popups for this site.");
+          setIsProcessing(false);
+          return;
+        }
+
+        // Check if user closed the Paystack tab, then redirect
+        const checkPaymentStatus = setInterval(() => {
+          if (paymentWindow.closed) {
+            clearInterval(checkPaymentStatus);
+            setIsProcessing(false);
+            navigate("/createAdsForm");
+          }
+        }, 2000);
+      } else {
+        alert("Error generating payment link. Please try again.");
         setIsProcessing(false);
-        navigate("/createAdsForm");
       }
-    }, 2000);
+    } catch (error) {
+      alert("Failed to initiate payment. Please try later.");
+      setIsProcessing(false);
+    }
   };
 
   return (
