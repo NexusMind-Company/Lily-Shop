@@ -6,6 +6,29 @@ import { useDispatch } from "react-redux";
 
 const MAX_FILE_SIZE_MB = 5; // Maximum file size in MB
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+
+const validateFile = (file) => {
+  if (!file) return "No file selected.";
+
+  // Check file extension
+  const fileExtension = "." + file.name.split(".").pop().toLowerCase();
+  if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    return "Only JPEG and PNG formats are allowed.";
+  }
+
+  // Check MIME type
+  if (!file.type || !ALLOWED_FILE_TYPES.includes(file.type)) {
+    return "Invalid file type. Only JPEG and PNG formats are allowed.";
+  }
+
+  // Check file size
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    return `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`;
+  }
+
+  return null; // No errors
+};
 
 const CreateShop = () => {
   const [name, setName] = useState("");
@@ -22,21 +45,6 @@ const CreateShop = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const imageInputRef = useRef(null);
-
-  const validateFile = (file) => {
-    if (!file) return false;
-
-    const isValidType = ALLOWED_FILE_TYPES.includes(file.type);
-    const isValidSize = file.size <= MAX_FILE_SIZE_MB * 1024 * 1024;
-
-    if (!isValidType) {
-      return "Only JPEG and PNG image formats are allowed.";
-    }
-    if (!isValidSize) {
-      return `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`;
-    }
-    return null; // No errors
-  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -57,12 +65,98 @@ const CreateShop = () => {
       return;
     }
 
+    // Revoke previous preview URL to prevent memory leaks
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
     setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors.shopImage;
       return newErrors;
     });
     setImagePreview(URL.createObjectURL(file));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = "Please enter a shop name";
+    }
+    if (!address.trim()) {
+      newErrors.address = "Please enter a shop address";
+    }
+    if (!category.trim()) {
+      newErrors.category = "Please enter a shop category";
+    }
+    if (!description.trim()) {
+      newErrors.description = "Please enter a shop description";
+    }
+    if (!imageInputRef.current?.files[0]) {
+      newErrors.shopImage = "Please upload a shop image";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({
+      ...prev,
+      [field]: true,
+    }));
+
+    // Validate the field
+    let value;
+    switch (field) {
+      case "name":
+        value = name;
+        break;
+      case "address":
+        value = address;
+        break;
+      case "category":
+        value = category;
+        break;
+      case "description":
+        value = description;
+        break;
+      default:
+        value = "";
+    }
+
+    validateField(field, value);
+  };
+
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+
+    if (field === "name" && !value.trim()) {
+      newErrors.name = "Please enter a shop name";
+    } else if (field === "name") {
+      delete newErrors.name;
+    }
+
+    if (field === "address" && !value.trim()) {
+      newErrors.address = "Please enter a shop address";
+    } else if (field === "address") {
+      delete newErrors.address;
+    }
+
+    if (field === "category" && !value.trim()) {
+      newErrors.category = "Please enter a shop category";
+    } else if (field === "category") {
+      delete newErrors.category;
+    }
+
+    if (field === "description" && !value.trim()) {
+      newErrors.description = "Please enter a shop description";
+    } else if (field === "description") {
+      delete newErrors.description;
+    }
+
+    setErrors(newErrors);
   };
 
   const handleSubmit = async (e) => {
@@ -72,44 +166,17 @@ const CreateShop = () => {
     setSuccessMessage(false);
     setErrorMessage(null);
 
-    // Validate form
-    if (!name.trim()) {
-      setErrors((prev) => ({ ...prev, name: "Shop name is required." }));
-      return;
-    }
-    if (!address.trim()) {
-      setErrors((prev) => ({ ...prev, address: "Shop address is required." }));
-      return;
-    }
-    if (!category.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        category: "Shop category is required.",
-      }));
-      return;
-    }
-    if (!description.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        description: "Shop description is required.",
-      }));
-      return;
-    }
-    if (!imageInputRef.current?.files[0]) {
-      setErrors((prev) => ({
-        ...prev,
-        shopImage: "Shop image is required.",
-      }));
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("name", name);
-    formData.append("address", address);
-    formData.append("category", category);
-    formData.append("description", description);
+    formData.append("name", name.trim());
+    formData.append("address", address.trim());
+    formData.append("category", category.trim());
+    formData.append("description", description.trim());
 
     const imageFile = imageInputRef.current?.files[0];
     if (imageFile) {
@@ -117,15 +184,36 @@ const CreateShop = () => {
     }
 
     try {
-      const result = await dispatch(createShop(formData)).unwrap();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Request timed out. Please try again.")),
+          30000
+        )
+      );
+
+      const createShopPromise = dispatch(createShop(formData)).unwrap();
+      await Promise.race([createShopPromise, timeoutPromise]);
       setSuccessMessage(true);
       setTimeout(() => {
         setSuccessMessage(false);
         navigate("/myShop");
-      }, 2000);
-    } catch (error) {
-      console.error("Error creating shop:", error);
-      setErrorMessage("An error occurred. Please try again.");
+      }, 4000);
+    } catch (err) {
+      console.error("Failed to create shop:", err);
+      let errorMessage = "Failed to create shop. ";
+      if (err.message.includes("timeout")) {
+        errorMessage += "Request timed out. Please try again.";
+      } else if (err.message.includes("network")) {
+        errorMessage += "Network error. Please check your connection.";
+      } else if (err.status === 401) {
+        errorMessage = "Please log in to create a shop.";
+      } else if (err.status === 413) {
+        errorMessage =
+          "The uploaded file is too large. Please upload a smaller file.";
+      } else {
+        errorMessage += "Please try again later.";
+      }
+      setErrorMessage(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -134,28 +222,29 @@ const CreateShop = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
-        <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Shop</span>
           </h1>
         </div>
       </div>
 
+      {loading && (
+        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg flex items-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Creating shop, please wait...
+        </div>
+      )}
+
       {successMessage && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Shop created successfully! Redirecting to homepage...
+          ✅ Shop created successfully! Redirecting to your shop...
         </div>
       )}
 
       {errorMessage && (
         <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
           ❌ {errorMessage}
-        </div>
-      )}
-
-      {loading && (
-        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
-          ⏳ Creating shop, please wait...
         </div>
       )}
 
@@ -168,14 +257,23 @@ const CreateShop = () => {
           <input
             id="title"
             className={`input ${
-              touched.name && errors.name ? "border-red-500" : ""
+              touched.name && errors.name
+                ? "border-[1px] border-solid border-red-500"
+                : ""
             }`}
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (touched.name) {
+                validateField("name", e.target.value);
+              }
+            }}
+            onBlur={() => handleBlur("name")}
+            placeholder="Enter shop name"
           />
           {touched.name && errors.name && (
-            <span className="text-red-500 text-sm">{errors.name}</span>
+            <span className="text-red-500 text-sm mt-1">{errors.name}</span>
           )}
         </div>
 
@@ -187,14 +285,23 @@ const CreateShop = () => {
           <input
             id="address"
             className={`input ${
-              touched.address && errors.address ? "border-red-500" : ""
+              touched.address && errors.address
+                ? "border-[1px] border-solid border-red-500"
+                : ""
             }`}
             type="text"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              if (touched.address) {
+                validateField("address", e.target.value);
+              }
+            }}
+            onBlur={() => handleBlur("address")}
+            placeholder="Enter shop address"
           />
           {touched.address && errors.address && (
-            <span className="text-red-500 text-sm">{errors.address}</span>
+            <span className="text-red-500 text-sm mt-1">{errors.address}</span>
           )}
         </div>
 
@@ -206,14 +313,23 @@ const CreateShop = () => {
           <input
             id="category"
             className={`input ${
-              touched.category && errors.category ? "border-red-500" : ""
+              touched.category && errors.category
+                ? "border-[1px] border-solid border-red-500"
+                : ""
             }`}
             type="text"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              if (touched.category) {
+                validateField("category", e.target.value);
+              }
+            }}
+            onBlur={() => handleBlur("category")}
+            placeholder="Enter shop category"
           />
           {touched.category && errors.category && (
-            <span className="text-red-500 text-sm">{errors.category}</span>
+            <span className="text-red-500 text-sm mt-1">{errors.category}</span>
           )}
         </div>
 
@@ -221,16 +337,25 @@ const CreateShop = () => {
         <div className="flex flex-col">
           <label className="bLabel">Description</label>
           <textarea
-            className={`border ${
+            className={`border-[1px] border-solid ${
               touched.description && errors.description
                 ? "border-red-500"
                 : "border-black"
             } rounded-lg p-2 h-28`}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (touched.description) {
+                validateField("description", e.target.value);
+              }
+            }}
+            onBlur={() => handleBlur("description")}
+            placeholder="Enter shop description"
           />
           {touched.description && errors.description && (
-            <span className="text-red-500 text-sm">{errors.description}</span>
+            <span className="text-red-500 text-sm mt-1">
+              {errors.description}
+            </span>
           )}
         </div>
 
@@ -249,26 +374,28 @@ const CreateShop = () => {
 
           <label
             htmlFor="media-upload"
-            className={`w-full h-32 border-2 border-dashed ${
+            className={`w-full h-32 border-[2px] border-dashed ${
               touched.shopImage && errors.shopImage
                 ? "border-red-500"
                 : "border-gray-400"
-            } rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition`}
+            } rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition-colors`}
           >
-            <span className="border border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
-              Upload Shop Logo/Banner
+            <span className="border-[1px] border-solid border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
+              {imagePreview ? "Change Image" : "Upload Shop Logo/Banner"}
             </span>
           </label>
 
           {touched.shopImage && errors.shopImage && (
-            <span className="text-red-500 text-sm">{errors.shopImage}</span>
+            <span className="text-red-500 text-sm mt-1">
+              {errors.shopImage}
+            </span>
           )}
 
           {imagePreview && (
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-full h-32 mt-2 rounded-lg object-contain border border-gray-300"
+              className="w-full h-32 mt-2 rounded-lg object-contain border-[1px] border-solid border-gray-300"
             />
           )}
         </div>
@@ -276,16 +403,23 @@ const CreateShop = () => {
         <div className="flex items-center justify-evenly bg-orange-300 p-10 mt-5 font-inter font-medium text-xs/[13.31px]">
           <button
             type="button"
-            className="bg-ash text-white py-2 w-[105px] cursor-pointer"
+            className="bg-ash text-white py-2 w-[105px] cursor-pointer hover:bg-gray-700 transition-colors"
           >
             <Link to="/myShop">Discard</Link>
           </button>
           <button
             disabled={loading}
             type="submit"
-            className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer"
+            className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save & Deploy
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                Saving...
+              </span>
+            ) : (
+              "Save & Deploy"
+            )}
           </button>
         </div>
       </form>

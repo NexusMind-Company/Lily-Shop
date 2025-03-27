@@ -4,6 +4,32 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct, resetAddProductState } from "../../redux/addProductSlice";
 
+const MAX_FILE_SIZE_MB = 5; // Maximum file size in MB
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+
+const validateFile = (file) => {
+  if (!file) return "No file selected.";
+
+  // Check file extension
+  const fileExtension = "." + file.name.split(".").pop().toLowerCase();
+  if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    return "Only JPEG and PNG formats are allowed.";
+  }
+
+  // Check MIME type
+  if (!file.type || !ALLOWED_FILE_TYPES.includes(file.type)) {
+    return "Invalid file type. Only JPEG and PNG formats are allowed.";
+  }
+
+  // Check file size
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    return `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`;
+  }
+
+  return null; // No errors
+};
+
 const AddProducts = () => {
   const { shop_id } = useParams();
   const dispatch = useDispatch();
@@ -16,6 +42,18 @@ const AddProducts = () => {
   ]);
   const [errors, setErrors] = useState({});
 
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup preview URLs when component unmounts
+      products.forEach((product) => {
+        if (product.preview) {
+          URL.revokeObjectURL(product.preview);
+        }
+      });
+    };
+  }, [products]);
+
   useEffect(() => {
     if (!shop_id) {
       console.error("Error: Shop ID is missing!");
@@ -26,8 +64,8 @@ const AddProducts = () => {
       setProducts([{ name: "", price: "", image: null, preview: null }]);
       setTimeout(() => {
         dispatch(resetAddProductState());
-        navigate("/products");
-      }, 2000);
+        navigate("/myShop");
+      }, 4000);
     }
   }, [shop_id, success, dispatch, navigate]);
 
@@ -47,6 +85,39 @@ const AddProducts = () => {
   };
 
   const handleProductChange = (index, field, value) => {
+    if (field === "price") {
+      // Validate price input
+      if (value && !/^\d*\.?\d*$/.test(value)) {
+        setErrors((prev) => ({
+          ...prev,
+          [`product_price_${index}`]:
+            "Please enter a valid price (e.g., 10.99)",
+        }));
+        return;
+      }
+      if (parseFloat(value) < 0) {
+        setErrors((prev) => ({
+          ...prev,
+          [`product_price_${index}`]: "Price cannot be negative",
+        }));
+        return;
+      }
+      if (parseFloat(value) > 1000000) {
+        setErrors((prev) => ({
+          ...prev,
+          [`product_price_${index}`]: "Price cannot exceed 1,000,000",
+        }));
+        return;
+      }
+    }
+
+    // Clear error when user starts typing
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[`product_${field}_${index}`];
+      return newErrors;
+    });
+
     setProducts((prev) =>
       prev.map((product, i) =>
         i === index ? { ...product, [field]: value } : product
@@ -57,13 +128,18 @@ const AddProducts = () => {
   const handleProductImageChange = (index, file) => {
     if (!file) return;
 
-    const validTypes = ["image/jpeg", "image/png"];
-    if (!validTypes.includes(file.type)) {
+    const validationError = validateFile(file);
+    if (validationError) {
       setErrors((prev) => ({
         ...prev,
-        [`product_image_${index}`]: "Only JPEG and PNG formats are allowed.",
+        [`product_image_${index}`]: validationError,
       }));
       return;
+    }
+
+    // Revoke previous preview URL to prevent memory leaks
+    if (products[index].preview) {
+      URL.revokeObjectURL(products[index].preview);
     }
 
     setErrors((prev) => {
@@ -83,26 +159,39 @@ const AddProducts = () => {
 
   const handleSubmit = async () => {
     if (!shop_id) {
-      console.error("Shop ID is missing!");
+      setErrors({ submit: "Shop ID is missing. Please try again." });
       return;
     }
 
     const newErrors = {};
     products.forEach((product, index) => {
-      if (!product.name.trim()) newErrors[`product_name_${index}`] = "Required";
-      if (!product.price.trim())
-        newErrors[`product_price_${index}`] = "Required";
-      if (!product.image) newErrors[`product_image_${index}`] = "Required";
+      if (!product.name.trim()) {
+        newErrors[`product_name_${index}`] = "Please enter a product name";
+      }
+      if (!product.price.trim()) {
+        newErrors[`product_price_${index}`] = "Please enter a price";
+      } else if (isNaN(parseFloat(product.price))) {
+        newErrors[`product_price_${index}`] = "Please enter a valid price";
+      } else if (parseFloat(product.price) <= 0) {
+        newErrors[`product_price_${index}`] = "Price must be greater than 0";
+      }
+      if (!product.image) {
+        newErrors[`product_image_${index}`] = "Please upload a product image";
+      }
     });
 
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    if (Object.keys(newErrors).length > 0) {
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Please fix the errors before submitting",
+      }));
+      return;
+    }
 
     const formData = new FormData();
-
-    // Add products as a JSON string
     const productsData = products.map((product) => ({
-      name: product.name,
+      name: product.name.trim(),
       price: parseFloat(product.price),
     }));
     formData.append("products", JSON.stringify(productsData));
@@ -114,10 +203,28 @@ const AddProducts = () => {
     });
 
     try {
-      await dispatch(addProduct({ shop_id, formData })).unwrap();
-      console.log("All products added successfully!");
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Request timed out. Please try again.")),
+          30000
+        )
+      );
+
+      const addProductPromise = dispatch(
+        addProduct({ shop_id, formData })
+      ).unwrap();
+      await Promise.race([addProductPromise, timeoutPromise]);
     } catch (err) {
       console.error("Failed to add products:", err);
+      let errorMessage = "Failed to add products. ";
+      if (err.message.includes("timeout")) {
+        errorMessage += "Request timed out. Please try again.";
+      } else if (err.message.includes("network")) {
+        errorMessage += "Network error. Please check your connection.";
+      } else {
+        errorMessage += "Please try again later.";
+      }
+      setErrors({ submit: errorMessage });
     }
   };
 
@@ -132,20 +239,21 @@ const AddProducts = () => {
       </div>
 
       {loading && (
-        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
-          ⏳ Adding products, please wait...
+        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg flex items-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Adding products, please wait...
         </div>
       )}
 
       {success && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Products added successfully! Redirecting to your products...
+          ✅ Products added successfully! Redirecting to your shop...
         </div>
       )}
 
-      {error && (
+      {(error || errors.submit) && (
         <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
-          ❌ {error}
+          ❌ {error || errors.submit}
         </div>
       )}
 
@@ -169,7 +277,7 @@ const AddProducts = () => {
                 }
               />
               {errors[`product_name_${index}`] && (
-                <span className="text-red-500 text-sm">
+                <span className="text-red-500 text-sm mt-1">
                   {errors[`product_name_${index}`]}
                 </span>
               )}
@@ -178,18 +286,20 @@ const AddProducts = () => {
             {/* Product Price */}
             <div className="flex flex-col relative">
               <label className="label left-1 md:left-2">Price</label>
-              <input
-                className={`input ${
-                  errors[`product_price_${index}`] ? "border-red-500" : ""
-                }`}
-                type="text"
-                value={product.price}
-                onChange={(e) =>
-                  handleProductChange(index, "price", e.target.value)
-                }
-              />
+              <div className="relative">
+                <input
+                  className={`input ${
+                    errors[`product_price_${index}`] ? "border-red-500" : ""
+                  }`}
+                  type="text"
+                  value={product.price}
+                  onChange={(e) =>
+                    handleProductChange(index, "price", e.target.value)
+                  }
+                />
+              </div>
               {errors[`product_price_${index}`] && (
-                <span className="text-red-500 text-sm">
+                <span className="text-red-500 text-sm mt-1">
                   {errors[`product_price_${index}`]}
                 </span>
               )}
@@ -203,7 +313,7 @@ const AddProducts = () => {
                   errors[`product_image_${index}`]
                     ? "border-red-500"
                     : "border-gray-400"
-                } rounded-lg cursor-pointer hover:bg-gray-100`}
+                } rounded-lg cursor-pointer hover:bg-gray-100 transition-colors`}
               >
                 <input
                   type="file"
@@ -214,11 +324,11 @@ const AddProducts = () => {
                   }
                 />
                 <span className="text-gray-500 text-sm">
-                  Upload Product Image
+                  {product.preview ? "Change Image" : "Upload Product Image"}
                 </span>
               </div>
               {errors[`product_image_${index}`] && (
-                <span className="text-red-500 text-sm">
+                <span className="text-red-500 text-sm mt-1">
                   {errors[`product_image_${index}`]}
                 </span>
               )}
@@ -235,7 +345,7 @@ const AddProducts = () => {
             <button
               type="button"
               onClick={() => handleDeleteProduct(index)}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 cursor-pointer"
+              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
             >
               Delete Product
             </button>
@@ -245,17 +355,24 @@ const AddProducts = () => {
         <button
           type="button"
           onClick={handleAddProduct}
-          className="bg-gray-800 my-4 text-white px-4 py-2 rounded-md hover:bg-lily hover:text-white cursor-pointer"
+          className="bg-gray-800 my-4 text-white px-4 py-2 rounded-md hover:bg-lily hover:text-white cursor-pointer transition-colors"
         >
           Add Product
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          className="bg-lily text-white px-4 py-2 rounded-md hover:bg-gray-800 hover:text-white cursor-pointer"
+          className="bg-lily text-white px-4 py-2 rounded-md hover:bg-gray-800 hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          {loading ? "Submitting..." : "Submit Products"}
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Submitting...
+            </span>
+          ) : (
+            "Submit Products"
+          )}
         </button>
       </form>
     </section>

@@ -23,6 +23,7 @@ import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
+import { ShopProvider } from "./context/ShopContext";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -37,7 +38,7 @@ export default function App() {
   const isLilyChatPage = location.pathname === "/lilyChat";
 
   return (
-    <>
+    <ShopProvider>
       <ScrollToTop />
       {!isLilyChatPage && <Header />}
       <Routes>
@@ -64,6 +65,6 @@ export default function App() {
         <Route path="/lilyChat" element={<LilyChat />} />
       </Routes>
       {!isLilyChatPage && <Nav />}
-    </>
+    </ShopProvider>
   );
 }
