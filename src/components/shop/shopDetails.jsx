@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaderSd";
+import PopUp from "./popUp"; // Import the PopUp component
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -13,6 +14,8 @@ const ShopDetails = () => {
     error,
   } = useSelector((state) => state.shops);
 
+  const [copyPopUp, setCopyPopUp] = useState(false); // State for popup visibility
+
   useEffect(() => {
     dispatch(fetchShopById(id));
   }, [id, dispatch]);
@@ -20,7 +23,8 @@ const ShopDetails = () => {
   const handleCopyLink = () => {
     const shopLink = `${window.location.origin}/shop/${id}`;
     navigator.clipboard.writeText(shopLink).then(() => {
-      alert("Shop link copied to clipboard!");
+      setCopyPopUp(true);
+      setTimeout(() => setCopyPopUp(false), 2000);
     });
   };
 
@@ -131,6 +135,11 @@ const ShopDetails = () => {
           Contacts: <span className="text-black">{product.owner_phone}</span>
         </p>
       </div>
+
+      {/* PopUp Component */}
+      {copyPopUp && (
+        <PopUp copyPopUp={copyPopUp} handlePopUp={() => setCopyPopUp(false)} />
+      )}
     </section>
   );
 };
