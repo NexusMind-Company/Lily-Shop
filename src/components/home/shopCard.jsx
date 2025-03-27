@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
 import Loader from "../loader";
 
-const ProductCard = () => {
+const ShopCard = () => {
   const dispatch = useDispatch();
   const { shops, status, error } = useSelector((state) => state.shops);
 
@@ -74,4 +74,4 @@ const ProductCard = () => {
   );
 };
 
-export default ProductCard;
+export default ShopCard;

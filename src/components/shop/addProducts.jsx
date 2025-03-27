@@ -26,7 +26,7 @@ const AddProducts = () => {
       setProducts([{ name: "", price: "", image: null, preview: null }]);
       setTimeout(() => {
         dispatch(resetAddProductState());
-        navigate("/myShop");
+        navigate("/products");
       }, 2000);
     }
   }, [shop_id, success, dispatch, navigate]);
@@ -139,7 +139,7 @@ const AddProducts = () => {
 
       {success && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Products added successfully! Redirecting to homepage...
+          ✅ Products added successfully! Redirecting to your products...
         </div>
       )}
 
