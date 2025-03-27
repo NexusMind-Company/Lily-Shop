@@ -15,6 +15,7 @@ const ShopDetails = () => {
   } = useSelector((state) => state.shops);
 
   const [copyPopUp, setCopyPopUp] = useState(false); // State for popup visibility
+  const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
     dispatch(fetchShopById(id));
@@ -26,6 +27,10 @@ const ShopDetails = () => {
       setCopyPopUp(true);
       setTimeout(() => setCopyPopUp(false), 2000);
     });
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
   };
 
   if (status === "loading") {
@@ -43,7 +48,7 @@ const ShopDetails = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       {/* Product Title */}
-      <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
         <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
       </div>
 
@@ -56,11 +61,23 @@ const ShopDetails = () => {
           <p>Copy</p>
           <img className="w-4" src="/copy.svg" alt="copy-icon" />
         </button>
-        <img
-          className="rounded-2xl h-[311px] w-[100%]"
-          src={product.image_url}
-          alt={product.name}
-        />
+        <div className="w-full aspect-[16/9] relative overflow-hidden rounded-2xl">
+          {imageLoading && (
+            <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-2xl">
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+          )}
+          <img
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              imageLoading ? "opacity-0" : "opacity-100"
+            }`}
+            src={product.image_url}
+            alt={product.name}
+            onLoad={handleImageLoad}
+          />
+        </div>
       </div>
 
       {/* Status, Message Button, and Copy Link */}
@@ -74,7 +91,7 @@ const ShopDetails = () => {
           </p>
         </div>
 
-        <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border border-gray-300">
+        <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid border-gray-300">
           <p>Coming Soon</p>
           <img className="w-5" src="/message-icon.svg" alt="message-icon" />
         </button>
@@ -84,7 +101,7 @@ const ShopDetails = () => {
       <div className="flex flex-col gap-4 items-start mt-6 w-full">
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-2 border-[#F6AD6D]">Descripti</span>on
+            <span className="border-b-[2px] border-solid border-[#F6AD6D]">Descripti</span>on
           </h2>
           <p className="font-inter text-gray-700 text-sm leading-6">
             {product.description}
@@ -93,7 +110,7 @@ const ShopDetails = () => {
 
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-2 border-[#F6AD6D]">Addre</span>ss
+            <span className="border-b-[2px] border-solid border-[#F6AD6D]">Addre</span>ss
           </h2>
           <p className="font-inter text-gray-700 text-sm leading-6">
             {product.address}
@@ -104,7 +121,7 @@ const ShopDetails = () => {
       {/* Products Section */}
       <div className="flex flex-col gap-3 items-start my-5 w-full">
         <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
-          <span className="border-b-2 border-[#F6AD6D]">Produ</span>cts
+          <span className="border-b-[2px] border-solid border-[#F6AD6D]">Produ</span>cts
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
@@ -118,7 +135,7 @@ const ShopDetails = () => {
                 src={productItem.image_url}
                 alt={productItem.name}
               />
-              <ul className="border-l-2 border-[#F6AD6D] pl-2 font-inter">
+              <ul className="border-l-[2px] border-solid border-[#F6AD6D] pl-2 font-inter">
                 <li className="text-xs md:text-sm text-black font-semibold">
                   {productItem.name}
                 </li>
