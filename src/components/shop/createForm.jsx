@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createShop } from "../../store/createShopSlice";
@@ -357,7 +358,7 @@ const CreateShop = () => {
 
       {successMessage && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Shop created successfully! Redirecting to homepage...
+          ✅ Shop created successfully! Redirecting to your shop...
         </div>
       )}
 

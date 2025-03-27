@@ -1,15 +1,13 @@
 import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
-// import AIButton from "./components/ai/AIButton";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
-// import AIButton from "./components/ai/AIButton";
 import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
-import { BrowserRouter as Router, Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import Step2 from "./components/ads/step2";
@@ -28,6 +26,7 @@ import EditProducts from "./pages/editProducts";
 
 export default function App() {
   const dispatch = useDispatch();
+  const location = useLocation(); // useLocation is now safe to use
 
   useEffect(() => {
     if (localStorage.user_data) {
@@ -35,10 +34,12 @@ export default function App() {
     }
   }, []);
 
+  const isLilyChatPage = location.pathname === "/lilyChat";
+
   return (
-    <Router>
+    <>
       <ScrollToTop />
-      <Header />
+      {!isLilyChatPage && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/myShop" element={<MyShop />} />
@@ -60,12 +61,9 @@ export default function App() {
           path="/shop/:product_id/edit-products"
           element={<EditProducts />}
         />
-
         <Route path="/lilyChat" element={<LilyChat />} />
       </Routes>
-      {/* <AIButton /> */}
-      {/* <AIButton /> */}
-      <Nav />
-    </Router>
+      {!isLilyChatPage && <Nav />}
+    </>
   );
 }

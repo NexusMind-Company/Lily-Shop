@@ -1,11 +1,11 @@
-import ProductCard from "../components/home/productCard"
+import ShopCard from "../components/home/shopCard";
 
-const home = () => {
+const Home = () => {
   return (
     <section>
-        <ProductCard />
+      <ShopCard />
     </section>
-  )
-}
+  );
+};
 
-export default home
+export default Home;
