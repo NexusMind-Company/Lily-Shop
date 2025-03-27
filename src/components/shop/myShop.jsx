@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import Delete from "./delete";
+import { useShop } from "../../context/ShopContext";
 
 const MyShop = () => {
   const [delIsOpen, setDelIsOpen] = useState(false);
@@ -10,6 +11,7 @@ const MyShop = () => {
   const dispatch = useDispatch();
   const { user, shops, status } = useSelector((state) => state.profile);
   const isAuthenticated = !!user;
+  const { setShopId } = useShop();
 
   const toggleDel = (shop_id = null) => {
     setSelectedShopId(shop_id);
@@ -17,13 +19,38 @@ const MyShop = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch, isAuthenticated]);
+    if (status === "idle") {
+      dispatch(fetchProfile());
+    }
+  }, [dispatch, status]);
+
+  // Set shopId if user has only one shop
+  useEffect(() => {
+    if (shops && shops.length === 1) {
+      setShopId(shops[0].id);
+    }
+  }, [shops, setShopId]);
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
+        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
+          <h1 className="text-lg md:text-xl font-normal font-poppins px-2 text-center">
+            Welcome to <span className="text-lily">My Shop</span>
+          </h1>
+        </div>
+        <div className="w-full flex justify-center">
+          <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
       {/* Header */}
-      <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
         <h1 className="text-lg md:text-xl font-normal font-poppins px-2 text-center">
           Welcome to <span className="text-lily">My Shop</span>
         </h1>
@@ -31,13 +58,15 @@ const MyShop = () => {
 
       {/* Shop Display */}
       <div className="flex flex-col items-start gap-3 w-full">
-        <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-2 border-sun">
+        <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-[2px] border-solid border-sun">
           My Shops
         </h2>
 
         {status === "loading" ? (
-          <p className="text-sm text-lily font-inter">Loading your shops....</p>
-        ) : shops && shops.length > 0 ? (
+          <div className="w-full flex justify-center">
+            <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : shops.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {shops.map((shop) => (
               <div
@@ -51,7 +80,7 @@ const MyShop = () => {
                     alt={shop.name}
                   />
                 </div>
-                <ul className="border-l-2 border-sun pl-2 font-inter">
+                <ul className="border-l-[2px] border-solid border-sun pl-2 font-inter">
                   <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
                     {shop.name}
                   </li>
@@ -64,6 +93,7 @@ const MyShop = () => {
                 </ul>
                 <Link
                   to={`/shop/${shop.id}/products`}
+                  onClick={() => setShopId(shop.id)}
                   className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
                 >
                   Products
@@ -71,6 +101,7 @@ const MyShop = () => {
                 <div className="flex justify-between gap-1">
                   <Link
                     to={`/editShop/${shop.id}/edit-shop`}
+                    onClick={() => setShopId(shop.id)}
                     className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white transition-colors duration-200"
                   >
                     Edit Shop
