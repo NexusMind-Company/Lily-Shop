@@ -48,7 +48,7 @@ const ShopDetails = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       {/* Product Title */}
-      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
+      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center text-center px-2.5">
         <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
       </div>
 
@@ -101,7 +101,10 @@ const ShopDetails = () => {
       <div className="flex flex-col gap-4 items-start mt-6 w-full">
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-[2px] border-solid border-[#F6AD6D]">Descripti</span>on
+            <span className="border-b-[2px] border-solid border-[#F6AD6D]">
+              Descripti
+            </span>
+            on
           </h2>
           <p className="font-inter text-gray-700 text-sm leading-6">
             {product.description}
@@ -110,7 +113,10 @@ const ShopDetails = () => {
 
         <div className="w-full">
           <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-[2px] border-solid border-[#F6AD6D]">Addre</span>ss
+            <span className="border-b-[2px] border-solid border-[#F6AD6D]">
+              Addre
+            </span>
+            ss
           </h2>
           <p className="font-inter text-gray-700 text-sm leading-6">
             {product.address}
@@ -121,7 +127,10 @@ const ShopDetails = () => {
       {/* Products Section */}
       <div className="flex flex-col gap-3 items-start my-5 w-full">
         <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
-          <span className="border-b-[2px] border-solid border-[#F6AD6D]">Produ</span>cts
+          <span className="border-b-[2px] border-solid border-[#F6AD6D]">
+            Produ
+          </span>
+          cts
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
