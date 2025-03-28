@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import Delete from "./delete";
-import { useShop } from "../../context/ShopContext";
 
 const MyShop = () => {
   const [delIsOpen, setDelIsOpen] = useState(false);
@@ -12,7 +11,6 @@ const MyShop = () => {
   const navigate = useNavigate();
   const { shops, status } = useSelector((state) => state.profile);
   const { isAuthenticated } = useSelector((state) => state.auth);
-  const { setShopId } = useShop();
 
   const toggleDel = (shop_id = null) => {
     setSelectedShopId(shop_id);
@@ -31,13 +29,6 @@ const MyShop = () => {
       dispatch(fetchProfile());
     }
   }, [dispatch, status, isAuthenticated, navigate]);
-
-  // Set shopId if user has only one shop
-  useEffect(() => {
-    if (shops && shops.length === 1) {
-      setShopId(shops[0].id);
-    }
-  }, [shops, setShopId]);
 
   // Show loading state while checking authentication or fetching profile
   if (status === "loading" || !isAuthenticated) {
@@ -99,17 +90,25 @@ const MyShop = () => {
                     {shop.address}
                   </li>
                 </ul>
-                <Link
-                  to={`/shop/${shop.id}/products`}
-                  onClick={() => setShopId(shop.id)}
-                  className="bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
-                >
-                  Products
-                </Link>
+
+                <div className="flex gap-1">
+                  <Link
+                    to={`/shop/${shop.id}/products`}
+                    className="flex-1 bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
+                  >
+                    Products
+                  </Link>
+                  <Link
+                    to={`/shop/${shop.id}/paymentInitiation`}
+                    className="flex-1 bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
+                  >
+                    Purchase Ad
+                  </Link>
+                </div>
+
                 <div className="flex justify-between gap-1">
                   <Link
                     to={`/editShop/${shop.id}/edit-shop`}
-                    onClick={() => setShopId(shop.id)}
                     className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white transition-colors duration-200"
                   >
                     Edit Shop

@@ -5,7 +5,7 @@ import createShopReducer from "./createShopSlice";
 import profileReducer from "./profileSlice";
 import addProductReducer from "./addProductSlice";
 import deleteShopReducer from "./deleteShopSlice";
-import paymentInitiationReducer from "./paymentInitiationSlice";
+import adsReducer from "./adsSlice";
 import { setAuthToken } from "../services/api";
 
 export const store = configureStore({
@@ -16,7 +16,7 @@ export const store = configureStore({
     profile: profileReducer,
     addProduct: addProductReducer,
     deleteShop: deleteShopReducer,
-    payment: paymentInitiationReducer,
+    ads: adsReducer,
   },
 });
 
