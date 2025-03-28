@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 
+
 export const fetchShops = createAsyncThunk("shops/fetchShops", async () => {
   const response = await api.get("/shops", { skipAuth: true });
   return response.data;
