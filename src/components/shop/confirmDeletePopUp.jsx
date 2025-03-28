@@ -4,7 +4,7 @@ const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed right-[40%] top-[30%] z-50 flex flex-col gap-5 p-5 rounded-[10px] w-[90%] max-w-[400px] bg-white shadow-md transition-all duration-500 ease-in-out">
+    <div className="fixed right-[30%] lg:right-[40%] top-[30%] z-50 flex flex-col gap-5 p-5 rounded-[10px] w-[90%] max-w-[400px] bg-white shadow-md transition-all duration-500 ease-in-out">
       <h2 className="font-inter font-black text-sm">
         Are you sure you want to delete this product?
       </h2>

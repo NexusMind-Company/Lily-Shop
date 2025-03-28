@@ -270,7 +270,6 @@ const CreateShop = () => {
               }
             }}
             onBlur={() => handleBlur("name")}
-            placeholder="Enter shop name"
           />
           {touched.name && errors.name && (
             <span className="text-red-500 text-sm mt-1">{errors.name}</span>
@@ -298,7 +297,6 @@ const CreateShop = () => {
               }
             }}
             onBlur={() => handleBlur("address")}
-            placeholder="Enter shop address"
           />
           {touched.address && errors.address && (
             <span className="text-red-500 text-sm mt-1">{errors.address}</span>
@@ -326,7 +324,6 @@ const CreateShop = () => {
               }
             }}
             onBlur={() => handleBlur("category")}
-            placeholder="Enter shop category"
           />
           {touched.category && errors.category && (
             <span className="text-red-500 text-sm mt-1">{errors.category}</span>
@@ -350,7 +347,6 @@ const CreateShop = () => {
               }
             }}
             onBlur={() => handleBlur("description")}
-            placeholder="Enter shop description"
           />
           {touched.description && errors.description && (
             <span className="text-red-500 text-sm mt-1">
