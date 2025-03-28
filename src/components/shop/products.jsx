@@ -33,7 +33,7 @@ const Products = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl font-inter mx-auto overflow-hidden">
       <div className="w-full">
-        <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+        <div className="rounded-2xl border-[1px] border-solid border-black  h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             My <span className="text-lily">Products</span>
           </h1>

@@ -98,7 +98,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative z-40">
+    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow-ash shadow relative z-40">
       <Link to="/">
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
@@ -133,7 +133,7 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute hidden top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
+        className={`absolute hidden sm:flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
           searchOpen
             ? "opacity-100 scale-y-100 origin-top"
             : "opacity-0 scale-y-0 pointer-events-none"
