@@ -71,6 +71,12 @@ const Header = () => {
           shop.name?.toLowerCase().includes(value.toLowerCase()) ||
           shop.description?.toLowerCase().includes(value.toLowerCase()) ||
           shop.category?.toLowerCase().includes(value.toLowerCase()) ||
+          shop.address?.toLowerCase().includes(value.toLowerCase()) ||
+          (shop.products &&
+            Array.isArray(shop.products) &&
+            shop.products.some((product) =>
+              product.name?.toLowerCase().includes(value.toLowerCase())
+            )) ||
           (shop.tags &&
             Array.isArray(shop.tags) &&
             shop.tags.some((tag) =>
@@ -92,7 +98,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow relative z-40">
+    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow-ash shadow relative z-40">
       <Link to="/">
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
@@ -127,7 +133,7 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
+        className={`absolute hidden sm:flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
           searchOpen
             ? "opacity-100 scale-y-100 origin-top"
             : "opacity-0 scale-y-0 pointer-events-none"
@@ -140,7 +146,7 @@ const Header = () => {
           <input
             className="bg-white py-2 px-3 sm:py-1 sm:px-2 w-full rounded-lg border border-gray-300"
             type="text"
-            placeholder="Search by name, category, or tags..."
+            placeholder="Search by keyword"
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus={searchOpen}
@@ -171,10 +177,15 @@ const Header = () => {
                     <div>
                       <p className="font-medium">{shop.name}</p>
                       <p className="text-xs text-gray-600 truncate">
-                        {shop.price}{" "}
                         {shop.category && (
                           <span className="text-lily">• {shop.category}</span>
                         )}
+                        {shop.address && (
+                          <span className="text-lily">• {shop.address}</span>
+                        )}
+                        <span className="text-lily">
+                          • {shop.products.length} products
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -204,7 +215,7 @@ const Header = () => {
       >
         {isAuthenticated && (
           <li className="py-2 hover:text-lily">
-            <Link to="/createShop">My Shop</Link>
+            <Link to="/myShop">My Shop</Link>
           </li>
         )}
         <li className="py-2 hover:text-lily">

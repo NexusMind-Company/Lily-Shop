@@ -66,58 +66,58 @@ const EditShop = () => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // Clear any existing messages
-  setSuccessMessage(false);
-  setErrorMessage(null);
+    // Clear any existing messages
+    setSuccessMessage(false);
+    setErrorMessage(null);
 
-  setLoading(true);
+    setLoading(true);
 
-  const formData = new FormData();
+    const formData = new FormData();
 
-  // Append fields only if they are not empty
-  if (name.trim()) {
-    formData.append("name", name);
-  }
-  if (address.trim()) {
-    formData.append("address", address);
-  }
-  if (category.trim()) {
-    formData.append("category", category);
-  }
-  if (description.trim()) {
-    formData.append("description", description);
-  }
+    // Append fields only if they are not empty
+    if (name.trim()) {
+      formData.append("name", name);
+    }
+    if (address.trim()) {
+      formData.append("address", address);
+    }
+    if (category.trim()) {
+      formData.append("category", category);
+    }
+    if (description.trim()) {
+      formData.append("description", description);
+    }
 
-  const imageFile = imageInputRef.current?.files[0];
-  if (imageFile) {
-    formData.append("image", imageFile);
-  }
+    const imageFile = imageInputRef.current?.files[0];
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
 
-  try {
-    // Dispatch the updateShop action with the shop ID and form data
-    const result = await dispatch(
-      updateShop({ id: shop_id, updatedData: formData })
-    ).unwrap();
-    setSuccessMessage(true);
-    setTimeout(() => {
-      setSuccessMessage(false);
-      navigate("/myShop");
-    }, 2000);
-  } catch (error) {
-    console.error("Error updating shop:", error);
-    setErrorMessage("An error occurred. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      // Dispatch the updateShop action with the shop ID and form data
+      const result = await dispatch(
+        updateShop({ id: shop_id, updatedData: formData })
+      ).unwrap();
+      setSuccessMessage(true);
+      setTimeout(() => {
+        setSuccessMessage(false);
+        navigate("/myShop");
+      }, 2000);
+    } catch (error) {
+      console.error("Error updating shop:", error);
+      setErrorMessage("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
-        <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Edit <span className="text-lily">Shop</span>
           </h1>
@@ -126,7 +126,7 @@ const handleSubmit = async (e) => {
 
       {successMessage && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Shop updated successfully! Redirecting to homepage...
+          ✅ Shop updated successfully! Redirecting to your shop...
         </div>
       )}
 

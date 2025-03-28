@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createShop } from "../../store/createShopSlice";
@@ -348,7 +349,7 @@ const CreateShop = () => {
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
-        <div className="rounded-2xl border border-black h-16 w-full flex items-center justify-center">
+        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Create <span className="text-lily">Shop</span>
           </h1>
@@ -357,7 +358,7 @@ const CreateShop = () => {
 
       {successMessage && (
         <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
-          ✅ Shop created successfully! Redirecting to homepage...
+          ✅ Shop created successfully! Redirecting to your shop...
         </div>
       )}
 
