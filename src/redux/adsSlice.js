@@ -1,46 +1,33 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../services/api";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-// Create async thunk for creating an ad
-export const createAd = createAsyncThunk(
-  "ads/createAd",
-  async (formData, { rejectWithValue }) => {
+// Async thunk for initiating payment
+export const initiatePayment = createAsyncThunk(
+  "ads/initiatePayment",
+  async ({ shop_id, amount }, { rejectWithValue }) => {
     try {
-      const userData = localStorage.getItem("user_data");
-      if (!userData) {
-        throw new Error("No user data found in localStorage. Please log in.");
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData?.token?.access;
-
-      if (!token) {
-        throw new Error("No access token found in user data.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/ads/create`, {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.post("/ads/payment/initiate/", {
+        shop_id,
+        amount,
       });
-
-      if (!response.ok) {
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to create ad");
-        } else {
-          throw new Error("Unexpected response from the server");
-        }
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data || "Failed to initiate payment");
+    }
+  }
+);
+
+// Async thunk for verifying payment
+export const verifyPayment = createAsyncThunk(
+  "ads/verifyPayment",
+  async ({ reference }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/ads/payment/verify/", {
+        reference,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to verify payment");
     }
   }
 );
@@ -48,33 +35,55 @@ export const createAd = createAsyncThunk(
 const adsSlice = createSlice({
   name: "ads",
   initialState: {
-    ads: [],
-    loading: false,
-    error: null,
-    success: false,
+    paymentStatus: "idle",
+    paymentError: null,
+    paymentData: null,
+    verificationStatus: "idle",
+    verificationError: null,
+    verificationData: null,
   },
   reducers: {
-    resetSuccess: (state) => {
-      state.success = false;
+    resetPaymentState: (state) => {
+      state.paymentStatus = "idle";
+      state.paymentError = null;
+      state.paymentData = null;
+    },
+    resetVerificationState: (state) => {
+      state.verificationStatus = "idle";
+      state.verificationError = null;
+      state.verificationData = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(createAd.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // Payment initiation
+      .addCase(initiatePayment.pending, (state) => {
+        state.paymentStatus = "loading";
+        state.paymentError = null;
       })
-      .addCase(createAd.fulfilled, (state, action) => {
-        state.loading = false;
-        state.ads.push(action.payload);
-        state.success = true;
+      .addCase(initiatePayment.fulfilled, (state, action) => {
+        state.paymentStatus = "succeeded";
+        state.paymentData = action.payload;
       })
-      .addCase(createAd.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+      .addCase(initiatePayment.rejected, (state, action) => {
+        state.paymentStatus = "failed";
+        state.paymentError = action.payload;
+      })
+      // Payment verification
+      .addCase(verifyPayment.pending, (state) => {
+        state.verificationStatus = "loading";
+        state.verificationError = null;
+      })
+      .addCase(verifyPayment.fulfilled, (state, action) => {
+        state.verificationStatus = "succeeded";
+        state.verificationData = action.payload;
+      })
+      .addCase(verifyPayment.rejected, (state, action) => {
+        state.verificationStatus = "failed";
+        state.verificationError = action.payload;
       });
   },
 });
 
-export const { resetSuccess } = adsSlice.actions;
+export const { resetPaymentState, resetVerificationState } = adsSlice.actions;
 export default adsSlice.reducer;

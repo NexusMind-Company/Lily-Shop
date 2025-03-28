@@ -133,7 +133,7 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute hidden sm:flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
+        className={`absolute hidden sm:flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
           searchOpen
             ? "opacity-100 scale-y-100 origin-top"
             : "opacity-0 scale-y-0 pointer-events-none"
@@ -158,7 +158,7 @@ const Header = () => {
 
         {/* Search Results Dropdown */}
         {searchResults.length > 0 && (
-          <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-72 overflow-y-auto z-10">
+          <div className="absolute mt-10 w-full bg-white rounded-lg shadow-lg max-h-72 overflow-y-auto overflow-x-clip z-10">
             <ul>
               {searchResults.map((shop) => (
                 <li
@@ -214,13 +214,15 @@ const Header = () => {
         }`}
       >
         {isAuthenticated && (
-          <li className="py-2 hover:text-lily">
-            <Link to="/myShop">My Shop</Link>
-          </li>
+          <>
+            <li className="py-2 hover:text-lily">
+              <Link to="/myShop">My Shop</Link>
+            </li>
+            <li className="py-2 hover:text-lily">
+              <Link to="/myShops">Purchase Ads</Link>
+            </li>
+          </>
         )}
-        <li className="py-2 hover:text-lily">
-          <Link to="/purchaseAds">Purchase Ads</Link>
-        </li>
         {isAuthenticated ? (
           <li className="py-2 hover:text-lily">
             <button
@@ -231,9 +233,14 @@ const Header = () => {
             </button>
           </li>
         ) : (
-          <li className="py-2 hover:text-lily">
-            <Link to="/login">Sign In</Link>
-          </li>
+          <>
+            <li className="py-2 hover:text-lily">
+              <Link to="/signUp">Sign Up</Link>
+            </li>
+            <li className="py-2 hover:text-lily">
+              <Link to="/login">Sign In</Link>
+            </li>
+          </>
         )}
       </ul>
     </header>

@@ -62,7 +62,7 @@ const ShopCard = () => {
                     {product.address}
                   </li>
                   <button className="text-xs underline text-lily hover:text-black">
-                    View Prices
+                    View Products
                   </button>
                 </ul>
               </Link>
