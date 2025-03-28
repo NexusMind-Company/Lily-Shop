@@ -101,7 +101,8 @@ const Login = () => {
           <Link to="/forgotPassword">Forgot Password?</Link>
         </div>
         <p className="text-[#ff2b2b] font-bold lg:-mt-7">
-          {displayError(error, "detail") || displayError(error, "non_field_errors")}
+          {displayError(error, "detail") ||
+            displayError(error, "non_field_errors")}
         </p>
         {/* display login error */}
 
