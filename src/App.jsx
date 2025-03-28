@@ -10,8 +10,7 @@ import Login from "./pages/login";
 import { Route, Routes, useLocation } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
-import Step2 from "./components/ads/step2";
-import CreateAdsForm from "./components/ads/createAdsForm";
+import PaymentInitiation from "./components/ads/paymentInitiation";
 import ForgotPassword from "./pages/forgotPassword";
 import SearchResults from "./pages/searchResults";
 import { useEffect } from "react";
@@ -23,7 +22,7 @@ import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
-import { ShopProvider } from "./context/ShopContext";
+import VerifyTransaction from "./components/ads/verifyTransaction";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -38,7 +37,7 @@ export default function App() {
   const isLilyChatPage = location.pathname === "/lilyChat";
 
   return (
-    <ShopProvider>
+    <>
       <ScrollToTop />
       {!isLilyChatPage && <Header />}
       <Routes>
@@ -50,8 +49,10 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
-        <Route path="/step2/:shopId" element={<Step2 />} />
-        <Route path="/createAdsForm" element={<CreateAdsForm />} />
+        <Route
+          path="/shop/:shop_id/paymentInitiation"
+          element={<PaymentInitiation />}
+        />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
@@ -63,8 +64,9 @@ export default function App() {
           element={<EditProducts />}
         />
         <Route path="/lilyChat" element={<LilyChat />} />
+        <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {!isLilyChatPage && <Nav />}
-    </ShopProvider>
+    </>
   );
 }
