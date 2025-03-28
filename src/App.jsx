@@ -48,7 +48,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
-        <Route path="/step2" element={<Step2 />} />
+        <Route path="/step2/:shopId" element={<Step2 />} />
         <Route path="/createAdsForm" element={<CreateAdsForm />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
