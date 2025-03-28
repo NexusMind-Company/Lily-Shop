@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import Delete from "./delete";
@@ -9,8 +9,9 @@ const MyShop = () => {
   const [delIsOpen, setDelIsOpen] = useState(false);
   const [selectedShopId, setSelectedShopId] = useState(null);
   const dispatch = useDispatch();
-  const { user, shops, status } = useSelector((state) => state.profile);
-  const isAuthenticated = !!user;
+  const navigate = useNavigate();
+  const { shops, status } = useSelector((state) => state.profile);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const { setShopId } = useShop();
 
   const toggleDel = (shop_id = null) => {
@@ -19,10 +20,17 @@ const MyShop = () => {
   };
 
   useEffect(() => {
-    if (status === "idle") {
+    // Check authentication first
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    // Fetch profile if needed
+    if (status === "idle" || status === "failed") {
       dispatch(fetchProfile());
     }
-  }, [dispatch, status]);
+  }, [dispatch, status, isAuthenticated, navigate]);
 
   // Set shopId if user has only one shop
   useEffect(() => {
@@ -31,8 +39,8 @@ const MyShop = () => {
     }
   }, [shops, setShopId]);
 
-  // Show loading state while checking authentication
-  if (status === "loading") {
+  // Show loading state while checking authentication or fetching profile
+  if (status === "loading" || !isAuthenticated) {
     return (
       <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
