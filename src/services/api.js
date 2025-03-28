@@ -10,9 +10,32 @@ const api = axios.create({
 export const setAuthToken = (token) => {
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    // Also store in localStorage for persistence
+    localStorage.setItem("auth_token", token);
   } else {
     delete api.defaults.headers.common["Authorization"];
+    localStorage.removeItem("auth_token");
   }
 };
+
+// Initialize token from localStorage on service creation
+const storedToken = localStorage.getItem("auth_token");
+if (storedToken) {
+  setAuthToken(storedToken);
+}
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

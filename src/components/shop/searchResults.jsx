@@ -7,6 +7,7 @@ const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [imageLoading, setImageLoading] = useState({});
 
   const { shops, status } = useSelector((state) => state.shops);
   const dispatch = useDispatch();
@@ -29,7 +30,6 @@ const SearchResults = () => {
     }
   }, [categoryQuery]);
 
-  // Filter results based on search query and category
   useEffect(() => {
     if (!shops || shops.length === 0) {
       setResults([]);
@@ -44,6 +44,12 @@ const SearchResults = () => {
           shop.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           shop.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           shop.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shop.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (shop.products &&
+            Array.isArray(shop.products) &&
+            shop.products.some((product) =>
+              product.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            )) ||
           (shop.tags &&
             Array.isArray(shop.tags) &&
             shop.tags.some((tag) =>
@@ -61,6 +67,47 @@ const SearchResults = () => {
 
     setResults(filteredResults);
   }, [searchQuery, categoryQuery, selectedCategory, shops]);
+
+  const handleImageLoad = (shopId) => {
+    setImageLoading((prev) => ({
+      ...prev,
+      [shopId]: false,
+    }));
+  };
+
+  // Show loading state while fetching shops
+  if (status === "loading") {
+    return (
+      <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+        <div className="flex flex-col items-start gap-1">
+          <div className="text-sm">
+            <Link to="/" className="pr-0.5 hover:underline">
+              HOME
+            </Link>
+            <span>/</span>
+            <Link
+              to="/searchResults"
+              className="text-lily pl-0.5 hover:underline"
+            >
+              RESULTS
+            </Link>
+          </div>
+          <div>
+            <h1 className="text-xs md:text-base font-medium font-inter text-left text-ash">
+              {searchQuery
+                ? `Search Results for "${searchQuery}"`
+                : categoryQuery
+                ? `Products in "${categoryQuery}"`
+                : "All Products"}
+            </h1>
+          </div>
+        </div>
+        <div className="w-full flex justify-center">
+          <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
@@ -112,14 +159,26 @@ const SearchResults = () => {
               key={shop.id}
               className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg hover:rounded-2xl hover:pb-3 transition-shadow duration-200"
             >
-              <div className="w-full h-40 md:h-48">
+              <div className="w-full h-40 md:h-48 relative">
+                {imageLoading[shop.id] !== false && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  </div>
+                )}
                 <img
-                  className="rounded-lg h-full w-full object-cover"
+                  className={`rounded-lg h-full w-full object-cover transition-opacity duration-300 ${
+                    imageLoading[shop.id] !== false
+                      ? "opacity-0"
+                      : "opacity-100"
+                  }`}
                   src={shop.image_url}
                   alt={shop.name}
+                  onLoad={() => handleImageLoad(shop.id)}
                 />
               </div>
-              <ul className="border-l-2 border-sun pl-2 font-inter">
+              <ul className="border-l-[2px] border-solid border-sun pl-2 font-inter">
                 <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
                   {shop.name}
                 </li>
