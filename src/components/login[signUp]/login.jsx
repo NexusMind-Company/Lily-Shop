@@ -65,7 +65,7 @@ const Login = () => {
   return (
     <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
-        <span className="border-b-2 border-sun">Log</span> In
+        <span className="border-b-[2px] border-solid border-sun">Log</span> In
       </h2>
 
       <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
