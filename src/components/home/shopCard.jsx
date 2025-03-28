@@ -29,7 +29,7 @@ const ShopCard = () => {
 
       {/* For You Section */}
       <div className="flex flex-col items-start gap-3 w-full">
-        <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-2 border-sun">
+        <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-[2px] border-solid border-sun">
           For You
         </h2>
 
