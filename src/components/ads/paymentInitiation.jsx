@@ -21,30 +21,12 @@ const PaymentInitiation = () => {
 
   useEffect(() => {
     if (paymentStatus === "succeeded" && paymentData?.authorization_url) {
-      const paymentWindow = window.open(
-        paymentData.authorization_url,
-        "_blank"
-      );
-
-      if (!paymentWindow) {
-        alert("Popup blocked! Please allow popups for this site.");
-        setIsProcessing(false);
-        return;
-      }
-
-      // Check if user closed the Paystack tab, then redirect
-      const checkPaymentStatus = setInterval(() => {
-        if (paymentWindow.closed) {
-          clearInterval(checkPaymentStatus);
-          setIsProcessing(false);
-          navigate("/myShop");
-        }
-      }, 2000);
+      window.location.href = paymentData.authorization_url; // Redirect in the same tab
     } else if (paymentStatus === "failed") {
-      alert(JSON.stringify(paymentError) ||  "Failed to initiate payment. Please try later.");
+      alert(JSON.stringify(paymentError) || "Failed to initiate payment. Please try later.");
       setIsProcessing(false);
     }
-  }, [paymentStatus, paymentData, paymentError, navigate]);
+  }, [paymentStatus, paymentData, paymentError]);
 
   const handlePayment = async () => {
     if (!shop_id) return;
