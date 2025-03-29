@@ -41,7 +41,7 @@ const PaymentInitiation = () => {
         }
       }, 2000);
     } else if (paymentStatus === "failed") {
-      alert(paymentError || "Failed to initiate payment. Please try later.");
+      alert(JSON.stringify(paymentError) ||  "Failed to initiate payment. Please try later.");
       setIsProcessing(false);
     }
   }, [paymentStatus, paymentData, paymentError, navigate]);
@@ -49,7 +49,7 @@ const PaymentInitiation = () => {
   const handlePayment = async () => {
     if (!shop_id) return;
     setIsProcessing(true);
-    dispatch(initiatePayment({ shop_id, amount: 5000 }));
+    dispatch(initiatePayment({shop_id: String(shop_id), amount: 5000 }));
   };
 
   return (

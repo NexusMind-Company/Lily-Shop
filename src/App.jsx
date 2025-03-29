@@ -11,6 +11,7 @@ import { Route, Routes, useLocation } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import PaymentInitiation from "./components/ads/paymentInitiation";
+import Step1 from "./components/ads/step1";
 import ForgotPassword from "./pages/forgotPassword";
 import SearchResults from "./pages/searchResults";
 import { useEffect } from "react";
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
+        <Route path="/shop/:shop_id/step1" element={<Step1/>} />
         <Route
           path="/shop/:shop_id/paymentInitiation"
           element={<PaymentInitiation />}

@@ -99,7 +99,7 @@ const MyShop = () => {
                     Products
                   </Link>
                   <Link
-                    to={`/shop/${shop.id}/paymentInitiation`}
+                    to={`/shop/${shop.id}/step1`}
                     className="flex-1 bg-sun p-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white  transition-colors duration-200"
                   >
                     Purchase Ad
