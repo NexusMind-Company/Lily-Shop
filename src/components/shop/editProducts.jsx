@@ -32,7 +32,7 @@ const EditProducts = () => {
       setProduct({ name: "", price: "", image: null, preview: null });
       setTimeout(() => {
         dispatch(resetAddProductState());
-        navigate("/products");
+        navigate("/myShop");
       }, 2000);
     }
   }, [product_id, success, dispatch, navigate]);
@@ -77,15 +77,20 @@ const EditProducts = () => {
     }
 
     const newErrors = {};
-    if (!product.name.trim()) newErrors.product_name = "Required";
-    if (!product.price.trim()) newErrors.product_price = "Required";
+    if (!product.name.trim() && !product.price.trim() && !product.image) {
+      newErrors.general = "At least one field must be updated.";
+    }
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
     const formData = new FormData();
-    formData.append("name", product.name);
-    formData.append("price", parseFloat(product.price));
+    if (product.name.trim()) {
+      formData.append("name", product.name);
+    }
+    if (product.price.trim()) {
+      formData.append("price", parseFloat(product.price));
+    }
     if (product.image) {
       formData.append("image", product.image);
     }
@@ -120,8 +125,14 @@ const EditProducts = () => {
       )}
 
       {error && (
-        <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-10 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
           ❌ {error}
+        </div>
+      )}
+
+      {errors.general && (
+        <div className="fixed top-14 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+          ❌ {errors.general}
         </div>
       )}
 

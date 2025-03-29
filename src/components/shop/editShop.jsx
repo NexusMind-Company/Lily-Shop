@@ -96,8 +96,19 @@ const EditShop = () => {
       formData.append("image", imageFile);
     }
 
+    if (
+      !formData.has("name") &&
+      !formData.has("address") &&
+      !formData.has("category") &&
+      !formData.has("description") &&
+      !formData.has("image")
+    ) {
+      setErrorMessage("At least one field must be updated.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Dispatch the updateShop action with the shop ID and form data
       const result = await dispatch(
         updateShop({ id: shop_id, updatedData: formData })
       ).unwrap();

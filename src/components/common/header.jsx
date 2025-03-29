@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/authSlice";
-import { fetchShops } from "../redux/shopSlice";
+import { logout } from "../../redux/authSlice";
+import { fetchShops } from "../../redux/shopSlice";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);

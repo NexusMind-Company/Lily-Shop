@@ -1,5 +1,5 @@
-import Header from "./components/header";
-import Nav from "./components/navbar";
+import Header from "./components/common/header";
+import Nav from "./components/common/navbar";
 import Home from "./pages/home";
 import MyShop from "./pages/myShop";
 import CreateShop from "./pages/createShop";
@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
-import ScrollToTop from "./components/scrollToTop";
+import ScrollToTop from "./components/common/scrollToTop";
 import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
@@ -27,8 +27,7 @@ import VerifyTransaction from "./components/ads/verifyTransaction";
 
 export default function App() {
   const dispatch = useDispatch();
-  const location = useLocation(); // useLocation is now safe to use
-
+  const location = useLocation();
   useEffect(() => {
     if (localStorage.user_data) {
       dispatch(loginSuccess({ user_data: localStorage.user_data }));
