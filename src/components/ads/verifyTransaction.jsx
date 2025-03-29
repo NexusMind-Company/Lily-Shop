@@ -1,24 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyPayment } from "../../redux/adsSlice";
-import { useNavigate } from "react-router-dom"; // Assuming you're using React Router
+import { useNavigate, useLocation } from "react-router-dom"; 
 
 const VerifyTransaction = () => {
-  const [reference, setReference] = useState("");
+  const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { verificationStatus, verificationData, verificationError } = useSelector(
     (state) => state.ads
   );
 
-  const handleVerify = () => {
-    if (!reference.trim()) {
-      alert("Please enter a valid transaction reference.");
-      return;
+  const [reference, setReference] = useState("");
+
+  useEffect(() => {
+    // Extract query params
+    const params = new URLSearchParams(location.search);
+    const ref = params.get("reference"); // Get reference from URL
+
+    if (ref) {
+      setReference(ref);
+      dispatch(verifyPayment({ reference: ref })); // Dispatch verifyPayment on mount
     }
-    dispatch(verifyPayment({ reference }));
-  };
+  }, [location.search, dispatch]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -33,25 +37,7 @@ const VerifyTransaction = () => {
 
       {verificationStatus !== "succeeded" ? (
         <div className="space-y-7">
-          <div>
-            <label htmlFor="reference" className="block text-md font-medium text-black mb-1 py-2">
-              Transaction Reference
-            </label>
-            <input
-              id="reference"
-              type="text"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="Enter your transaction reference ID"
-              className="w-full p-3 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 py-4"
-            />
-            <p className="text-mb text-black mt-1 py-5">
-              You can find this in your payment confirmation email or bank statement
-            </p>
-          </div>
-
           <button
-            onClick={handleVerify}
             disabled={verificationStatus === "loading"}
             className={`w-full mt-2 py-3 hover:text-white hover:bg-lily cursor-pointer rounded-md transition-colors ${
               verificationStatus === "loading"
@@ -59,20 +45,13 @@ const VerifyTransaction = () => {
                 : "bg-sun text-black hover:bg-opacity-90"
             }`}
           >
-
-            {verificationStatus === "loading" ? "Verifying..." : "Verify Payment"}
+            {verificationStatus === "loading" ? "Verifying..." : "Verifying Payment..."}
           </button>
 
           {verificationStatus === "failed" && (
             <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
               <p className="font-medium">❌ Verification Failed</p>
               <p>{verificationError}</p>
-              <button 
-                onClick={() => setReference("")}
-                className="mt-2 text-sm text-red-700 underline"
-              >
-                Try different reference
-              </button>
             </div>
           )}
         </div>
@@ -103,27 +82,23 @@ const VerifyTransaction = () => {
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-600 font-medium mb-2">Your Reference ID</p>
             <div className="flex justify-between items-center">
-              <p className="font-mono text-blue-800 break-all">
-                {verificationData?.reference || reference}
-              </p>
+              <p className="font-mono text-blue-800 break-all">{reference}</p>
               <button
-                onClick={() => copyToClipboard(verificationData?.reference || reference)}
+                onClick={() => copyToClipboard(reference)}
                 className="ml-2 text-blue-600 hover:text-blue-800 text-sm font-medium whitespace-nowrap"
               >
                 Copy
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Save this ID for your records
-            </p>
+            <p className="text-xs text-gray-500 mt-2">Save this ID for your records</p>
           </div>
 
           {/* Primary Action */}
           <button
-            onClick={() => navigate("/myShop")} // Or your desired destination
-            className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => navigate("/myShop")}
+            className="w-full py-3 bg-sun text-white rounded-md hover:bg-lily"
           >
-            Return to Dashboard
+            Return to your Shop
           </button>
         </div>
       )}
