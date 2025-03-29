@@ -22,7 +22,7 @@ const ShopDetails = () => {
   }, [id, dispatch]);
 
   const handleCopyLink = () => {
-    const shopLink = `${window.location.origin}/shop/${id}`;
+    const shopLink = `${window.location.origin}/product/${id}`;
     navigator.clipboard.writeText(shopLink).then(() => {
       setCopyPopUp(true);
       setTimeout(() => setCopyPopUp(false), 2000);
