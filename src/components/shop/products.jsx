@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { fetchProducts, deleteProduct } from "../../redux/addProductSlice";
 import ConfirmDeletePopup from "./confirmDeletePopUp";
+import ProductSkeleton from "../loaders/productSkeleton";
 
 const Products = () => {
   const { shop_id } = useParams();
@@ -61,17 +62,17 @@ const Products = () => {
 
         {/* Loading & Error States */}
         {status === "loading" ? (
-          <div className="flex items-start">
-            <p className="text-sm text-lily text-left">
-              Loading your products...
-            </p>
+          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <ProductSkeleton key={index} />
+            ))}
           </div>
         ) : error ? (
           <div className="flex items-center justify-center">
             <p className="text-sm text-red-500">{error}</p>
           </div>
         ) : products.length > 0 ? (
-          // Render Products List
+          //Products List
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {products.map((product) => (
               <div

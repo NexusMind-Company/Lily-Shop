@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
-import Loader from "../loader";
+//import Loader from "../loader";
+import SkeletonLoader from "../loaders/skeletonLoader";
 
 const ShopCard = () => {
   const dispatch = useDispatch();
@@ -35,7 +36,11 @@ const ShopCard = () => {
 
         {/* Products Grid */}
         {status === "loading" ? (
-          <Loader />
+          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <SkeletonLoader key={index} />
+            ))}
+          </div>
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {shops.map((product) => (

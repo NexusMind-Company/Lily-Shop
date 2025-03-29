@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopById } from "../../redux/shopSlice";
-import LoaderSd from "../loaderSd";
-import PopUp from "./popUp"; // Import the PopUp component
+import LoaderSd from "../loaders/loaderSd";
+import PopUp from "./popUp";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -14,7 +14,7 @@ const ShopDetails = () => {
     error,
   } = useSelector((state) => state.shops);
 
-  const [copyPopUp, setCopyPopUp] = useState(false); // State for popup visibility
+  const [copyPopUp, setCopyPopUp] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {

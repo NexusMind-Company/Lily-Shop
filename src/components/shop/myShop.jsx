@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import Delete from "./delete";
+import MyShopSkeleton from "../loaders/myShopSkeleton";
 
 const MyShop = () => {
   const [delIsOpen, setDelIsOpen] = useState(false);
@@ -30,22 +31,6 @@ const MyShop = () => {
     }
   }, [dispatch, status, isAuthenticated, navigate]);
 
-  // Show loading state while checking authentication or fetching profile
-  if (status === "loading" || !isAuthenticated) {
-    return (
-      <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
-        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
-          <h1 className="text-lg md:text-xl font-normal font-poppins px-2 text-center">
-            Welcome to <span className="text-lily">My Shop</span>
-          </h1>
-        </div>
-        <div className="w-full flex justify-center">
-          <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden font-inter">
       {/* Header */}
@@ -62,8 +47,10 @@ const MyShop = () => {
         </h2>
 
         {status === "loading" ? (
-          <div className="w-full flex justify-center">
-            <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <MyShopSkeleton key={index} />
+            ))}
           </div>
         ) : shops.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
