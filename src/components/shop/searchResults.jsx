@@ -111,7 +111,7 @@ const SearchResults = () => {
   }
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       {/* Navigation */}
       <div className="flex flex-col items-start gap-1">
         <div className="text-sm">
