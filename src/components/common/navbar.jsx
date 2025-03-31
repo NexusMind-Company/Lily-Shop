@@ -13,7 +13,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between px-7 w-full relative bottom-5 md:bottom-2 mt-20 overflow-hidden">
+    <nav className="flex items-center justify-between px-7 w-full fixed bottom-5 md:bottom-2 mt-20 overflow-hidden">
       <Link to="/" className="flex flex-col items-center">
         <img
           src={isActive("/") ? "/home-active.svg" : "/home.svg"}
