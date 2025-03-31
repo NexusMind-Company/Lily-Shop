@@ -24,6 +24,7 @@ import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
 import VerifyTransaction from "./components/ads/verifyTransaction";
+import FetchAdDetails from "./pages/fetchAdDetails";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -49,7 +50,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
-        <Route path="/shop/:shop_id/step1" element={<Step1/>} />
+        <Route path="/shop/:shop_id/step1" element={<Step1 />} />
         <Route
           path="/shop/:shop_id/paymentInitiation"
           element={<PaymentInitiation />}
@@ -65,6 +66,7 @@ export default function App() {
           element={<EditProducts />}
         />
         <Route path="/lilyChat" element={<LilyChat />} />
+        <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {!isLilyChatPage && <Nav />}
