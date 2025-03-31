@@ -14,6 +14,8 @@ const ShopDetails = () => {
     error,
   } = useSelector((state) => state.shops);
 
+  const[imageEnlarged, setImageEnlarged] = useState(false); // State uses to enlarge image
+
   const [copyPopUp, setCopyPopUp] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -27,6 +29,14 @@ const ShopDetails = () => {
       setCopyPopUp(true);
       setTimeout(() => setCopyPopUp(false), 2000);
     });
+  };
+
+  const handleImageClick = () => {
+    setImageEnlarged(true);
+  };
+
+  const imagepopup = () =>{
+    setImageEnlarged(false);
   };
 
   const handleImageLoad = () => {
@@ -76,10 +86,23 @@ const ShopDetails = () => {
             src={product.image_url}
             alt={product.name}
             onLoad={handleImageLoad}
+            onClick={handleImageClick}
           />
         </div>
       </div>
-
+      {/* Enlarged Image Section */}
+      {imageEnlarged && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={imagepopup}
+        >
+          <img
+        className="max-w-[90%] max-h-[90%] rounded-lg"
+        src={product.image_url}
+        alt={product.name}
+          />
+        </div>
+      )}
       {/* Status, Message Button, and Copy Link */}
       <div className="flex justify-between w-full mt-5 font-poppins items-center">
         <div>
