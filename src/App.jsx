@@ -1,5 +1,5 @@
-import Header from "./components/header";
-import Nav from "./components/navbar";
+import Header from "./components/common/header";
+import Nav from "./components/common/navbar";
 import Home from "./pages/home";
 import MyShop from "./pages/myShop";
 import Ratings from "./components/shop/ratings";
@@ -19,17 +19,17 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
-import ScrollToTop from "./components/scrollToTop";
+import ScrollToTop from "./components/common/scrollToTop";
 import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
 import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
 import VerifyTransaction from "./components/ads/verifyTransaction";
+import FetchAdDetails from "./pages/fetchAdDetails";
 
 export default function App() {
   const dispatch = useDispatch();
-  const location = useLocation(); // useLocation is now safe to use
-
+  const location = useLocation();
   useEffect(() => {
     if (localStorage.user_data) {
       dispatch(loginSuccess({ user_data: localStorage.user_data }));
@@ -52,7 +52,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
-        <Route path="/shop/:shop_id/step1" element={<Step1/>} />
+        <Route path="/shop/:shop_id/step1" element={<Step1 />} />
         <Route
           path="/shop/:shop_id/paymentInitiation"
           element={<PaymentInitiation />}
@@ -68,6 +68,7 @@ export default function App() {
           element={<EditProducts />}
         />
         <Route path="/lilyChat" element={<LilyChat />} />
+        <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {!isLilyChatPage && <Nav />}

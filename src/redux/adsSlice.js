@@ -32,6 +32,19 @@ export const verifyPayment = createAsyncThunk(
   }
 );
 
+// Async thunk for fetching ad details
+export const fetchAdDetails = createAsyncThunk(
+  "ads/fetchAdDetails",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/ads/${id}/`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch ad details");
+    }
+  }
+);
+
 const adsSlice = createSlice({
   name: "ads",
   initialState: {
@@ -41,6 +54,9 @@ const adsSlice = createSlice({
     verificationStatus: "idle",
     verificationError: null,
     verificationData: null,
+    adDetailsStatus: "idle",
+    adDetailsError: null,
+    adDetails: null,
   },
   reducers: {
     resetPaymentState: (state) => {
@@ -52,6 +68,11 @@ const adsSlice = createSlice({
       state.verificationStatus = "idle";
       state.verificationError = null;
       state.verificationData = null;
+    },
+    resetAdDetailsState: (state) => {
+      state.adDetailsStatus = "idle";
+      state.adDetailsError = null;
+      state.adDetails = null;
     },
   },
   extraReducers: (builder) => {
@@ -81,9 +102,22 @@ const adsSlice = createSlice({
       .addCase(verifyPayment.rejected, (state, action) => {
         state.verificationStatus = "failed";
         state.verificationError = action.payload;
+      })
+      // Fetch ad details
+      .addCase(fetchAdDetails.pending, (state) => {
+        state.adDetailsStatus = "loading";
+        state.adDetailsError = null;
+      })
+      .addCase(fetchAdDetails.fulfilled, (state, action) => {
+        state.adDetailsStatus = "succeeded";
+        state.adDetails = action.payload;
+      })
+      .addCase(fetchAdDetails.rejected, (state, action) => {
+        state.adDetailsStatus = "failed";
+        state.adDetailsError = action.payload;
       });
   },
 });
 
-export const { resetPaymentState, resetVerificationState } = adsSlice.actions;
+export const { resetPaymentState, resetVerificationState, resetAdDetailsState } = adsSlice.actions;
 export default adsSlice.reducer;

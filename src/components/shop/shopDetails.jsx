@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopById } from "../../redux/shopSlice";
-import LoaderSd from "../loaderSd";
-import PopUp from "./popUp"; // Import the PopUp component
+import LoaderSd from "../loaders/loaderSd";
+import PopUp from "./popUp";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -16,7 +16,7 @@ const ShopDetails = () => {
 
   const[imageEnlarged, setImageEnlarged] = useState(false); // State uses to enlarge image
 
-  const [copyPopUp, setCopyPopUp] = useState(false); // State for popup visibility
+  const [copyPopUp, setCopyPopUp] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ const ShopDetails = () => {
   }
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       {/* Product Title */}
       <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center text-center px-2.5">
         <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
