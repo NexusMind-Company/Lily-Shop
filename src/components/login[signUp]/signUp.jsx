@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -12,16 +13,11 @@ const formatPhone = (num) => {
   const split = num.toString().split("");
   split.shift();
   split.unshift("+234");
-  const newNum = split.join("");
-
-  return newNum;
+  return split.join("");
 };
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  // const [error, setError] = useState([]);
-
-  //User fields input
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [username, setUsername] = useState("");
@@ -30,23 +26,11 @@ const SignUp = () => {
   const isAuth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  //useAuth custom hooks
-  const { login, signup, loading, error, data } = useAuth();
-
-  //for navigation
+  const { signup, loading, error, data } = useAuth();
   const navigate = useNavigate();
 
-  //handleSubmit
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // if (!username || !phoneNumber || !password) {
-    //   setError([{ others: 'All input must be filled' }])
-    //   return;
-    // }
-
-    // console.log(username, phoneNumber, password)
-    // handleSubmitAsync(username, editNumber(phoneNumber), password);
 
     signup(apiUrl + "/auth/users", {
       username,
@@ -63,53 +47,14 @@ const SignUp = () => {
     }
   }, [data]);
 
-  // //handling signup auth;
-  // const handleSubmitAsync = async (user, phone, pass) => {
-  //   setError([]);
-  //   setSucessLoginMsg(false)
-
-  //   try {
-  //     const request = await axios.post(apiUrl + 'auth/users/', { username: user, phone_number: phone, password: pass })
-  //     const response = { user, phone, pass }
-  //     if (response.username) {
-  //       setSucessLoginMsg(true)
-  //       localStorage.setItem('username', response.username)
-  //     }
-
-  //     // cb(user, phone)
-
-  //   } catch (err) {
-  //     if (err.status == 400) {
-  //       setError((prevState) => [...prevState, err.response.data])
-  //       const error = err.response.data
-  //       // setError()
-  //       console.log(error)
-  //     } else {
-  //       setError([{ others: 'Network issue, TRY AGAIN !!!' }])
-  //     }
-  //   }
-  // }
-
-  //login after a user is signup
-  // const login = async (user, pass) => {
-
-  //   try {
-  //     const request = await axios.post(apiUrl + '/auth/user_data/', { username: user, password: pass })
-  //     const response = request.data;
-  //     cconsole.log(response)
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
-
   return (
-    <section className="mt-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="my-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
         <span className="border-b-[2px] border-solid border-sun">Regis</span>ter
       </h2>
 
       <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
-        {/* email input */}
+        {/* Email Input */}
         <div className="flex flex-col">
           <input
             className="input rounded-[7px] pt-0 h-[46px] mt-3"
@@ -123,7 +68,7 @@ const SignUp = () => {
           </p>
         </div>
 
-        {/* username  input */}
+        {/* Username Input */}
         <div className="flex flex-col">
           <input
             className="input rounded-[7px] pt-0 h-[46px] mt-3"
@@ -137,7 +82,7 @@ const SignUp = () => {
           </p>
         </div>
 
-        {/* Phone number Input */}
+        {/* Phone Number Input */}
         <div className="flex flex-col">
           <input
             className="input rounded-[7px] pt-0 h-[46px] mt-3"
@@ -169,12 +114,12 @@ const SignUp = () => {
           </button>
         </div>
 
-        {/* error msg */}
+        {/* General Error Message */}
         <p className="text-[#ff2b2b] font-bold">
           {displayError(error, "others")}
         </p>
-        {/* Register Button */}
 
+        {/* Register Button */}
         <button
           type="submit"
           className="input pt-0 h-[46px] bg-sun border-none rounded-[7px] font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer"

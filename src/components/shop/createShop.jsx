@@ -166,7 +166,16 @@ const CreateShop = () => {
     setSuccessMessage(false);
     setErrorMessage(null);
 
+    // Validate the form
     if (!validateForm()) {
+      // Mark all fields as touched to display error messages
+      setTouched({
+        name: true,
+        address: true,
+        category: true,
+        description: true,
+        shopImage: true,
+      });
       return;
     }
 
@@ -220,7 +229,7 @@ const CreateShop = () => {
   };
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-10 mb-44 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
@@ -237,7 +246,7 @@ const CreateShop = () => {
       )}
 
       {successMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 md:right-5 right-0 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
           ✅ Shop created successfully! Redirecting to your shop...
         </div>
       )}
@@ -406,7 +415,7 @@ const CreateShop = () => {
           <button
             disabled={loading}
             type="submit"
-            className="bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="z-10 bg-white text-black py-2 w-[105px] hover:bg-lily hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span className="flex items-center gap-2">
