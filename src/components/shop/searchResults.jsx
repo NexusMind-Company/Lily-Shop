@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
+import SkeletonLoader from "../loaders/skeletonLoader";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,6 @@ const SearchResults = () => {
     }
   }, [status, dispatch]);
 
-  // Update selected category when categoryQuery changes
   useEffect(() => {
     if (categoryQuery) {
       setSelectedCategory(categoryQuery);
@@ -75,7 +75,6 @@ const SearchResults = () => {
     }));
   };
 
-  // Show loading state while fetching shops
   if (status === "loading") {
     return (
       <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
@@ -102,15 +101,17 @@ const SearchResults = () => {
             </h1>
           </div>
         </div>
-        <div className="w-full flex justify-center">
-          <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
+        <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonLoader key={index} />
+          ))}
         </div>
       </section>
     );
   }
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       {/* Navigation */}
       <div className="flex flex-col items-start gap-1">
         <div className="text-sm">
