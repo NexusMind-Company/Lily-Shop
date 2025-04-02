@@ -2,6 +2,7 @@ import Header from "./components/header";
 import Nav from "./components/navbar";
 import Home from "./pages/home";
 import MyShop from "./pages/myShop";
+import Ratings from "./components/shop/ratings";
 import CreateShop from "./pages/createShop";
 import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
@@ -44,6 +45,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/myShop" element={<MyShop />} />
+        <Route path="/rating" element={<Ratings/>} />
         <Route path="/createShop" element={<CreateShop />} />
         <Route path="/product/:id" element={<ShopDetails />} />
         <Route path="/settings" element={<Settings />} />
