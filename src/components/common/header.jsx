@@ -218,9 +218,6 @@ const Header = () => {
             <li className="py-2 hover:text-lily">
               <Link to="/myShop">My Shop</Link>
             </li>
-            <li className="py-2 hover:text-lily">
-              <Link to="/myShop">Purchase Ads</Link>
-            </li>
           </>
         )}
         {isAuthenticated ? (
