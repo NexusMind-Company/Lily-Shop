@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
-//import Loader from "../loader";
 import SkeletonLoader from "../loaders/skeletonLoader";
 
 const ShopCard = () => {
@@ -19,6 +18,20 @@ const ShopCard = () => {
     return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
   }
 
+  const combinedShops =
+    status === "succeeded"
+      ? [
+          ...(shops.sponsored_shops || []).map((shop) => ({
+            ...shop,
+            isSponsored: true,
+          })),
+          ...(shops.for_you || []).map((shop) => ({
+            ...shop,
+            isSponsored: false,
+          })),
+        ]
+      : [];
+
   return (
     <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       {/* Title */}
@@ -32,9 +45,8 @@ const ShopCard = () => {
       <div className="flex flex-col items-start gap-3 w-full">
         <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-[2px] border-solid border-sun">
           For You
-        </h2>
+        </h2>                                                                                                                                                                                                                                                                                                                             
 
-        {/* Products Grid */}
         {status === "loading" ? (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -43,31 +55,36 @@ const ShopCard = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
-            {shops.map((product) => (
+            {combinedShops.map((shop) => (
               <Link
-                to={`/product/${product.id}`}
-                key={product.id}
+                to={`/shop/${shop.id}`}
+                key={shop.id}
                 className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg transition-shadow duration-200"
               >
-                <div className="w-full h-40 md:h-48">
+                <div className="relative w-full h-40 md:h-48">
                   <img
                     className="rounded-lg h-full w-full object-cover"
-                    src={product.image_url}
-                    alt={product.name}
+                    src={shop.image_url}
+                    alt={shop.name}
                   />
+                  {shop.isSponsored && (
+                    <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
+                      Ad
+                    </span>
+                  )}
                 </div>
                 <ul className="border-l-2 border-sun pl-2 font-inter">
                   <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
-                    {product.name}
+                    {shop.name}
                   </li>
                   <li className="text-xs text-gray-600 line-clamp-2">
-                    {product.description}
+                    {shop.description}
                   </li>
                   <li className="text-xs font-normal truncate">
-                    {product.address}
+                    {shop.address}
                   </li>
                   <button className="text-xs underline text-lily hover:text-black">
-                    View Products
+                    View Details
                   </button>
                 </ul>
               </Link>

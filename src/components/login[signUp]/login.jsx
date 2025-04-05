@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/authSlice";
 import useAuth from "../hooks/useAuth";
 import displayError from "../utils/displayError";
@@ -9,24 +9,20 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-
-  //handle Error
-  // const [error, setError] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const { login, loading, error, data } = useAuth();
 
   const dispatch = useDispatch();
-  const state = useSelector((state) => state.auth);
-
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // handleSubmitAsync()
-    login(apiUrl + "/auth/token/", { username, password });
+    const payload = { username_or_email: username, password };
+
+    login(apiUrl + "/auth/login/", payload);
   };
 
   useEffect(() => {
@@ -36,32 +32,6 @@ const Login = () => {
     }
   }, [data]);
 
-  // //handling the api for login auth
-  // const handleSubmitAsync = async () => {
-  //   setError(null);
-
-  //   console.log(username, password)
-  //   if (!username || !password) {
-  //     console.log('all input must be filled')
-  //     return
-  //   }
-
-  //   try {
-  //     const request = await axios.post(apiUrl + 'auth/token/', { username, password })
-  //     const response = request.data
-  //     dispatch(loginSuccess({ token: response.access, username }))
-
-  //     //after login been successful then user get redirects to the homepage
-  //     navigate('/')
-  //   } catch (err) {
-  //     if (err.status == 401) {
-  //       setError(err.response.data)
-  //     } else {
-  //       console.log(err)
-  //     }
-  //   }
-  // }
-
   return (
     <section className="my-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
@@ -69,7 +39,7 @@ const Login = () => {
       </h2>
 
       <form className="flex flex-col gap-7" onSubmit={handleSubmit}>
-        {/* Username Input */}
+        {/* Username or Email Input */}
         <input
           className="input rounded-[7px] pt-0 h-[46px] mt-3"
           type="text"
@@ -104,7 +74,6 @@ const Login = () => {
           {displayError(error, "detail") ||
             displayError(error, "non_field_errors")}
         </p>
-        {/* display login error */}
 
         {/* Login Button */}
         <button
@@ -122,6 +91,13 @@ const Login = () => {
           <span className="text-lily font-semibold">Create an Account</span>
         </Link>
       </div>
+
+      <p className="text-[#ff2b2b] font-bold lg:-mt-7">
+        {displayError(error, "username_or_email") ||
+          displayError(error, "password") ||
+          displayError(error, "detail") ||
+          displayError(error, "non_field_errors")}
+      </p>
     </section>
   );
 };

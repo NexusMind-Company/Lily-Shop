@@ -7,22 +7,25 @@ const useAuth = () => {
   const [data, setData] = useState(null);
 
   const authentication = async (url, credentials) => {
-    setError([]); // Clear previous errors
+    setError([]);
     setLoading(true);
 
     try {
       const response = await axios.post(url, credentials);
       setData(response.data);
     } catch (err) {
-      if (err.response && (err.response.status === 400 || err.response.status === 401)) {
-        // Extract error messages from the backend response
+      if (
+        err.response &&
+        (err.response.status === 400 || err.response.status === 401)
+      ) {
+        console.error("Backend Error Response:", err.response.data);
+
         const backendErrors = err.response.data;
         const formattedErrors = Object.keys(backendErrors).map((key) => ({
           [key]: backendErrors[key],
         }));
         setError(formattedErrors);
       } else {
-        // Handle network or unexpected errors
         setError([{ others: "Network error! Please try again later." }]);
         console.error(err);
       }

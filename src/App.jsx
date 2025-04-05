@@ -45,9 +45,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/myShop" element={<MyShop />} />
-        <Route path="/rating" element={<Ratings/>} />
+        <Route path="/rating" element={<Ratings />} />
         <Route path="/createShop" element={<CreateShop />} />
-        <Route path="/product/:id" element={<ShopDetails />} />
+        <Route path="/shop/:id" element={<ShopDetails />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
