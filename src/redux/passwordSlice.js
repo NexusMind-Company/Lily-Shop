@@ -1,118 +1,127 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../services/api";
 
-// Base URL for the API
-const API_BASE_URL = "https://your-api-domain.com/api";
-
-// Async thunk for requesting a password reset
+// Request password reset
 export const requestPasswordReset = createAsyncThunk(
   "password/requestPasswordReset",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/password-reset/request/`, { email });
+      const response = await api.post("/auth/password-reset/request/", {
+        email,
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(
+        error.response?.data || "Failed to request password reset"
+      );
     }
   }
 );
 
-// Async thunk for verifying the password reset token
+// Verify password reset token
 export const verifyPasswordReset = createAsyncThunk(
   "password/verifyPasswordReset",
   async ({ uid, token }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/password-reset/verify/`, { uid, token });
+      const response = await api.post("/auth/password-reset/verify/", {
+        uid,
+        token,
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(
+        error.response?.data || "Failed to verify password reset token"
+      );
     }
   }
 );
 
-// Async thunk for confirming the password reset
+// Confirm password reset
 export const confirmPasswordReset = createAsyncThunk(
   "password/confirmPasswordReset",
   async ({ uid, token, new_password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/password-reset/confirm/`, {
+      const response = await api.post("/auth/password-reset/confirm/", {
         uid,
         token,
         new_password,
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(
+        error.response?.data || "Failed to confirm password reset"
+      );
     }
   }
 );
 
-const initialState = {
-  loading: false,
-  success: null,
-  error: null,
-};
-
 const passwordSlice = createSlice({
   name: "password",
-  initialState,
+  initialState: {
+    status: "idle",
+    error: null,
+    successMessage: null,
+  },
   reducers: {
-    resetState: (state) => {
-      state.loading = false;
-      state.success = null;
+    clearPasswordState: (state) => {
+      state.status = "idle";
       state.error = null;
+      state.successMessage = null;
     },
   },
   extraReducers: (builder) => {
-    // Request Password Reset
     builder
+      // Request Password Reset
       .addCase(requestPasswordReset.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
         state.error = null;
-        state.success = null;
+        state.successMessage = null;
       })
       .addCase(requestPasswordReset.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = action.payload;
+        state.status = "succeeded";
+        state.successMessage =
+          action.payload.message || "Password reset email sent successfully.";
       })
       .addCase(requestPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+        state.status = "failed";
+        state.error = action.payload || "Failed to request password reset.";
+      })
 
-    // Verify Password Reset
-    builder
+      // Verify Password Reset
       .addCase(verifyPasswordReset.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
         state.error = null;
-        state.success = null;
+        state.successMessage = null;
       })
       .addCase(verifyPasswordReset.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = action.payload;
+        state.status = "succeeded";
+        state.successMessage =
+          action.payload.message ||
+          "Password reset token verified successfully.";
       })
       .addCase(verifyPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+        state.status = "failed";
+        state.error =
+          action.payload || "Failed to verify password reset token.";
+      })
 
-    // Confirm Password Reset
-    builder
+      // Confirm Password Reset
       .addCase(confirmPasswordReset.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
         state.error = null;
-        state.success = null;
+        state.successMessage = null;
       })
       .addCase(confirmPasswordReset.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = action.payload;
+        state.status = "succeeded";
+        state.successMessage =
+          action.payload.message || "Password reset successfully.";
       })
       .addCase(confirmPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.status = "failed";
+        state.error = action.payload || "Failed to confirm password reset.";
       });
   },
 });
 
-export const { resetState } = passwordSlice.actions;
+export const { clearPasswordState } = passwordSlice.actions;
 export default passwordSlice.reducer;

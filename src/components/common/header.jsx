@@ -60,12 +60,22 @@ const Header = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+  
+    console.log("Shops Data:", shops); // Debug log
+  
     if (!value.trim()) {
       setSearchResults([]);
       return;
     }
-
-    const filteredResults = shops
+  
+    // Combine sponsored_shops and for_you into a single array
+    const combinedShops = [
+      ...(shops.sponsored_shops || []),
+      ...(shops.for_you || []),
+    ];
+  
+    // Filter the combined array based on the search term
+    const filteredResults = combinedShops
       .filter(
         (shop) =>
           shop.name?.toLowerCase().includes(value.toLowerCase()) ||
@@ -83,7 +93,8 @@ const Header = () => {
               tag.toLowerCase().includes(value.toLowerCase())
             ))
       )
-      .slice(0, 5);
+      .slice(0, 5); // Limit results to 5
+  
     setSearchResults(filteredResults);
   };
 
@@ -164,10 +175,10 @@ const Header = () => {
                 <li
                   key={shop.id}
                   className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0"
-                  onClick={() => navigate(`/product/${shop.id}`)}
+                  onClick={() => navigate(`/shop/${shop.id}`)}
                 >
                   <div className="flex items-center">
-                    {shop.image && (
+                    {shop.image_url && (
                       <img
                         src={shop.image_url}
                         alt={shop.name}
@@ -183,9 +194,6 @@ const Header = () => {
                         {shop.address && (
                           <span className="text-lily">• {shop.address}</span>
                         )}
-                        <span className="text-lily">
-                          • {shop.products.length} products
-                        </span>
                       </p>
                     </div>
                   </div>

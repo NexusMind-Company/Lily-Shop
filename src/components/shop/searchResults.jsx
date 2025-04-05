@@ -31,13 +31,26 @@ const SearchResults = () => {
   }, [categoryQuery]);
 
   useEffect(() => {
-    if (!shops || shops.length === 0) {
+    if (!shops || Object.keys(shops).length === 0) {
       setResults([]);
       return;
     }
 
-    let filteredResults = [...shops];
+    // Combine sponsored_shops and for_you into a single array
+    const combinedShops = [
+      ...(shops.sponsored_shops || []).map((shop) => ({
+        ...shop,
+        isSponsored: true, // Add an indicator for sponsored shops
+      })),
+      ...(shops.for_you || []).map((shop) => ({
+        ...shop,
+        isSponsored: false, // Regular shops
+      })),
+    ];
 
+    let filteredResults = [...combinedShops];
+
+    // Filter by search query
     if (searchQuery) {
       filteredResults = filteredResults.filter(
         (shop) =>
@@ -58,6 +71,7 @@ const SearchResults = () => {
       );
     }
 
+    // Filter by category
     const categoryFilter = categoryQuery || selectedCategory;
     if (categoryFilter) {
       filteredResults = filteredResults.filter(
@@ -156,7 +170,7 @@ const SearchResults = () => {
         <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
           {results.map((shop) => (
             <Link
-              to={`/product/${shop.id}`}
+              to={`/shop/${shop.id}`}
               key={shop.id}
               className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg hover:rounded-2xl hover:pb-3 transition-shadow duration-200"
             >
@@ -178,6 +192,11 @@ const SearchResults = () => {
                   alt={shop.name}
                   onLoad={() => handleImageLoad(shop.id)}
                 />
+                {shop.isSponsored && (
+                  <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
+                    Ad
+                  </span>
+                )}
               </div>
               <ul className="border-l-[2px] border-solid border-sun pl-2 font-inter">
                 <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
@@ -188,7 +207,7 @@ const SearchResults = () => {
                 </li>
                 <li className="text-xs font-normal truncate">{shop.address}</li>
                 <button className="text-xs underline text-lily hover:text-black">
-                  View Prices
+                  View Details
                 </button>
               </ul>
             </Link>
