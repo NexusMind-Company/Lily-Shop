@@ -118,7 +118,7 @@ const ShopCard = () => {
                   />
                   {shop.isSponsored && (
                     <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
-                      Ad
+                      Sponsored
                     </span>
                   )}
                 </div>

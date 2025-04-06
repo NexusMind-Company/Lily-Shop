@@ -36,19 +36,25 @@ const SearchResults = () => {
       return;
     }
 
-    // Combine sponsored_shops and for_you into a single array
-    const combinedShops = [
-      ...(Array.isArray(shops?.sponsored_shops)
+    let combinedShops = [];
+
+    if (Array.isArray(shops)) {
+      combinedShops = shops.map((shop) => ({
+        ...shop,
+        isSponsored: false,
+      }));
+    } else if (typeof shops === "object") {
+      const sponsoredShops = Array.isArray(shops.sponsored_shops)
         ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
-        : []),
-      ...(Array.isArray(shops?.for_you)
+        : [];
+      const forYouShops = Array.isArray(shops.for_you)
         ? shops.for_you.map((shop) => ({ ...shop, isSponsored: false }))
-        : []),
-    ];
+        : [];
+      combinedShops = [...sponsoredShops, ...forYouShops];
+    }
 
     let filteredResults = [...combinedShops];
 
-    // Filter by search query
     if (searchQuery) {
       filteredResults = filteredResults.filter(
         (shop) =>
@@ -69,7 +75,6 @@ const SearchResults = () => {
       );
     }
 
-    // Filter by category
     const categoryFilter = categoryQuery || selectedCategory;
     if (categoryFilter) {
       filteredResults = filteredResults.filter(
