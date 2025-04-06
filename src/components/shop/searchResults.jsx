@@ -38,14 +38,12 @@ const SearchResults = () => {
 
     // Combine sponsored_shops and for_you into a single array
     const combinedShops = [
-      ...(shops.sponsored_shops || []).map((shop) => ({
-        ...shop,
-        isSponsored: true, // Add an indicator for sponsored shops
-      })),
-      ...(shops.for_you || []).map((shop) => ({
-        ...shop,
-        isSponsored: false, // Regular shops
-      })),
+      ...(Array.isArray(shops?.sponsored_shops)
+        ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
+        : []),
+      ...(Array.isArray(shops?.for_you)
+        ? shops.for_you.map((shop) => ({ ...shop, isSponsored: false }))
+        : []),
     ];
 
     let filteredResults = [...combinedShops];
