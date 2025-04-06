@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
@@ -7,6 +7,12 @@ import SkeletonLoader from "../loaders/skeletonLoader";
 const ShopCard = () => {
   const dispatch = useDispatch();
   const { shops, status, error } = useSelector((state) => state.shops);
+  const [debugInfo, setDebugInfo] = useState({
+    hasData: false,
+    sponsoredCount: 0,
+    forYouCount: 0,
+    combinedCount: 0
+  });
 
   useEffect(() => {
     if (status === "idle") {
@@ -15,9 +21,29 @@ const ShopCard = () => {
   }, [status, dispatch]);
 
   useEffect(() => {
-    // Debug log to see what's coming from the API
+    // Enhanced debug logging
     if (status === "succeeded") {
-      console.log("Shops data:", shops);
+      console.log("Shop Status:", status);
+      console.log("Full shops object:", shops);
+      console.log("shops.sponsored_shops:", shops?.sponsored_shops);
+      console.log("shops.for_you:", shops?.for_you);
+      
+      const sponsoredShops = Array.isArray(shops?.sponsored_shops) ? shops.sponsored_shops : [];
+      const forYouShops = Array.isArray(shops?.for_you) ? shops.for_you : [];
+      
+      setDebugInfo({
+        hasData: shops !== null && shops !== undefined,
+        sponsoredCount: sponsoredShops.length,
+        forYouCount: forYouShops.length,
+        combinedCount: sponsoredShops.length + forYouShops.length
+      });
+      
+      console.log("Debug info:", {
+        hasData: shops !== null && shops !== undefined,
+        sponsoredCount: sponsoredShops.length,
+        forYouCount: forYouShops.length,
+        combinedCount: sponsoredShops.length + forYouShops.length
+      });
     }
   }, [shops, status]);
 
@@ -25,19 +51,25 @@ const ShopCard = () => {
     return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
   }
 
-  const combinedShops =
-    status === "succeeded"
-      ? [
-          ...((shops?.sponsored_shops || []).map((shop) => ({
-            ...shop,
-            isSponsored: true,
-          })) || []),
-          ...((shops?.for_you || []).map((shop) => ({
-            ...shop,
-            isSponsored: false,
-          })) || []),
-        ]
-      : [];
+  // Ensure shops is treated as an object even if it's an array
+  const shopsObject = shops && typeof shops === 'object' ? shops : {};
+  
+  // Check if each property exists and is an array, otherwise use empty array
+  const sponsoredShops = Array.isArray(shopsObject.sponsored_shops) 
+    ? shopsObject.sponsored_shops 
+    : [];
+    
+  const forYouShops = Array.isArray(shopsObject.for_you) 
+    ? shopsObject.for_you 
+    : [];
+  
+  // Create the combined shops array
+  const combinedShops = status === "succeeded" 
+    ? [
+        ...sponsoredShops.map(shop => ({ ...shop, isSponsored: true })),
+        ...forYouShops.map(shop => ({ ...shop, isSponsored: false }))
+      ]
+    : [];
 
   // Check if we have any shops to display
   const hasShops = combinedShops.length > 0;
@@ -50,6 +82,17 @@ const ShopCard = () => {
           Welcome to <span className="text-lily">Lily Shops</span>
         </h1>
       </div>
+
+      {/* Debug Panel (Remove in production) */}
+      {status === "succeeded" && (
+        <div className="w-full p-3 bg-gray-100 rounded border text-xs">
+          <p>Status: {status}</p>
+          <p>Has Data: {debugInfo.hasData ? 'Yes' : 'No'}</p>
+          <p>Sponsored Shops: {debugInfo.sponsoredCount}</p>
+          <p>For You Shops: {debugInfo.forYouCount}</p>
+          <p>Combined Shops: {debugInfo.combinedCount}</p>
+        </div>
+      )}
 
       {/* For You Section */}
       <div className="flex flex-col items-start gap-3 w-full">
@@ -65,7 +108,7 @@ const ShopCard = () => {
           </div>
         ) : !hasShops ? (
           <div className="w-full text-center py-10">
-            <p className="text-gray-500">No shops found.</p>
+            <p className="text-gray-500">No shops found. Please check the API response format.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
