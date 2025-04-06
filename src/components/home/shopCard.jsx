@@ -9,9 +9,8 @@ const ShopCard = () => {
   const { shops, status, error } = useSelector((state) => state.shops);
   const [debugInfo, setDebugInfo] = useState({
     hasData: false,
-    sponsoredCount: 0,
-    forYouCount: 0,
-    combinedCount: 0
+    shopCount: 0,
+    dataFormat: "",
   });
 
   useEffect(() => {
@@ -21,28 +20,33 @@ const ShopCard = () => {
   }, [status, dispatch]);
 
   useEffect(() => {
-    // Enhanced debug logging
-    if (status === "succeeded") {
-      console.log("Shop Status:", status);
-      console.log("Full shops object:", shops);
-      console.log("shops.sponsored_shops:", shops?.sponsored_shops);
-      console.log("shops.for_you:", shops?.for_you);
-      
-      const sponsoredShops = Array.isArray(shops?.sponsored_shops) ? shops.sponsored_shops : [];
-      const forYouShops = Array.isArray(shops?.for_you) ? shops.for_you : [];
-      
+    if (status === "succeeded" && shops) {
+      console.log("Shop data loaded:", shops);
+
+      // Determine the data format
+      const isArrayFormat = Array.isArray(shops);
+      const isObjectFormat =
+        !isArrayFormat &&
+        typeof shops === "object" &&
+        (Array.isArray(shops.for_you) || Array.isArray(shops.sponsored_shops));
+
+      const shopCount = isArrayFormat
+        ? shops.length
+        : isObjectFormat
+        ? (Array.isArray(shops.for_you) ? shops.for_you.length : 0) +
+          (Array.isArray(shops.sponsored_shops)
+            ? shops.sponsored_shops.length
+            : 0)
+        : 0;
+
       setDebugInfo({
-        hasData: shops !== null && shops !== undefined,
-        sponsoredCount: sponsoredShops.length,
-        forYouCount: forYouShops.length,
-        combinedCount: sponsoredShops.length + forYouShops.length
-      });
-      
-      console.log("Debug info:", {
-        hasData: shops !== null && shops !== undefined,
-        sponsoredCount: sponsoredShops.length,
-        forYouCount: forYouShops.length,
-        combinedCount: sponsoredShops.length + forYouShops.length
+        hasData: Boolean(shops),
+        shopCount,
+        dataFormat: isArrayFormat
+          ? "array"
+          : isObjectFormat
+          ? "object"
+          : "unknown",
       });
     }
   }, [shops, status]);
@@ -51,28 +55,31 @@ const ShopCard = () => {
     return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
   }
 
-  // Ensure shops is treated as an object even if it's an array
-  const shopsObject = shops && typeof shops === 'object' ? shops : {};
-  
-  // Check if each property exists and is an array, otherwise use empty array
-  const sponsoredShops = Array.isArray(shopsObject.sponsored_shops) 
-    ? shopsObject.sponsored_shops 
-    : [];
-    
-  const forYouShops = Array.isArray(shopsObject.for_you) 
-    ? shopsObject.for_you 
-    : [];
-  
-  // Create the combined shops array
-  const combinedShops = status === "succeeded" 
-    ? [
-        ...sponsoredShops.map(shop => ({ ...shop, isSponsored: true })),
-        ...forYouShops.map(shop => ({ ...shop, isSponsored: false }))
-      ]
-    : [];
+  // Process shops data based on the format
+  let processedShops = [];
 
-  // Check if we have any shops to display
-  const hasShops = combinedShops.length > 0;
+  if (status === "succeeded" && shops) {
+    if (Array.isArray(shops)) {
+      // Direct array format (production)
+      processedShops = shops.map((shop) => ({
+        ...shop,
+        isSponsored: false, // No sponsored shops in this format
+      }));
+    } else if (typeof shops === "object") {
+      // Object format with categories (development)
+      const sponsoredShops = Array.isArray(shops.sponsored_shops)
+        ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
+        : [];
+
+      const forYouShops = Array.isArray(shops.for_you)
+        ? shops.for_you.map((shop) => ({ ...shop, isSponsored: false }))
+        : [];
+
+      processedShops = [...sponsoredShops, ...forYouShops];
+    }
+  }
+
+  const hasShops = processedShops.length > 0;
 
   return (
     <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
@@ -87,10 +94,8 @@ const ShopCard = () => {
       {status === "succeeded" && (
         <div className="w-full p-3 bg-gray-100 rounded border text-xs">
           <p>Status: {status}</p>
-          <p>Has Data: {debugInfo.hasData ? 'Yes' : 'No'}</p>
-          <p>Sponsored Shops: {debugInfo.sponsoredCount}</p>
-          <p>For You Shops: {debugInfo.forYouCount}</p>
-          <p>Combined Shops: {debugInfo.combinedCount}</p>
+          <p>Data Format: {debugInfo.dataFormat}</p>
+          <p>Shop Count: {debugInfo.shopCount}</p>
         </div>
       )}
 
@@ -108,11 +113,11 @@ const ShopCard = () => {
           </div>
         ) : !hasShops ? (
           <div className="w-full text-center py-10">
-            <p className="text-gray-500">No shops found. Please check the API response format.</p>
+            <p className="text-gray-500">No shops found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
-            {combinedShops.map((shop) => (
+            {processedShops.map((shop) => (
               <Link
                 to={`/shop/${shop.id}`}
                 key={shop.id}
