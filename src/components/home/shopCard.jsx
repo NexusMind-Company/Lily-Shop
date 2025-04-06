@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
@@ -7,11 +7,6 @@ import SkeletonLoader from "../loaders/skeletonLoader";
 const ShopCard = () => {
   const dispatch = useDispatch();
   const { shops, status, error } = useSelector((state) => state.shops);
-  const [debugInfo, setDebugInfo] = useState({
-    hasData: false,
-    shopCount: 0,
-    dataFormat: "",
-  });
 
   useEffect(() => {
     if (status === "idle") {
@@ -19,54 +14,44 @@ const ShopCard = () => {
     }
   }, [status, dispatch]);
 
+  // For future debugging if needed
+  /*
   useEffect(() => {
     if (status === "succeeded" && shops) {
       console.log("Shop data loaded:", shops);
-
+      
       // Determine the data format
       const isArrayFormat = Array.isArray(shops);
-      const isObjectFormat =
-        !isArrayFormat &&
-        typeof shops === "object" &&
-        (Array.isArray(shops.for_you) || Array.isArray(shops.sponsored_shops));
-
-      const shopCount = isArrayFormat
-        ? shops.length
-        : isObjectFormat
-        ? (Array.isArray(shops.for_you) ? shops.for_you.length : 0) +
-          (Array.isArray(shops.sponsored_shops)
-            ? shops.sponsored_shops.length
-            : 0)
-        : 0;
-
-      setDebugInfo({
+      const isObjectFormat = !isArrayFormat && typeof shops === 'object' && 
+                            (Array.isArray(shops.for_you) || Array.isArray(shops.sponsored_shops));
+      
+      const shopCount = isArrayFormat ? shops.length : 
+                     (isObjectFormat ? 
+                      (Array.isArray(shops.for_you) ? shops.for_you.length : 0) + 
+                      (Array.isArray(shops.sponsored_shops) ? shops.sponsored_shops.length : 0) : 0);
+      
+      console.log({
         hasData: Boolean(shops),
         shopCount,
-        dataFormat: isArrayFormat
-          ? "array"
-          : isObjectFormat
-          ? "object"
-          : "unknown",
+        dataFormat: isArrayFormat ? "array" : (isObjectFormat ? "object" : "unknown")
       });
     }
   }, [shops, status]);
+  */
 
   if (error) {
     return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
   }
 
-  // Process shops data based on the format
   let processedShops = [];
 
   if (status === "succeeded" && shops) {
     if (Array.isArray(shops)) {
-      // Direct array format (production)
       processedShops = shops.map((shop) => ({
         ...shop,
-        isSponsored: false, // No sponsored shops in this format
+        isSponsored: false,
       }));
     } else if (typeof shops === "object") {
-      // Object format with categories (development)
       const sponsoredShops = Array.isArray(shops.sponsored_shops)
         ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
         : [];
@@ -90,14 +75,16 @@ const ShopCard = () => {
         </h1>
       </div>
 
-      {/* Debug Panel (Remove in production) */}
+      {/* Debug Panel */}
+      {/*
       {status === "succeeded" && (
         <div className="w-full p-3 bg-gray-100 rounded border text-xs">
           <p>Status: {status}</p>
-          <p>Data Format: {debugInfo.dataFormat}</p>
-          <p>Shop Count: {debugInfo.shopCount}</p>
+          <p>Data Format: {Array.isArray(shops) ? "array" : "object"}</p>
+          <p>Shop Count: {processedShops.length}</p>
         </div>
       )}
+      */}
 
       {/* For You Section */}
       <div className="flex flex-col items-start gap-3 w-full">

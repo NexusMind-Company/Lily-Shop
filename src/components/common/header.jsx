@@ -60,21 +60,24 @@ const Header = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-  
-    console.log("Shops Data:", shops); // Debug log
-  
+
+    console.log("Shops Data:", shops);
+
     if (!value.trim()) {
       setSearchResults([]);
       return;
     }
-  
+
     // Combine sponsored_shops and for_you into a single array
     const combinedShops = [
-      ...(shops.sponsored_shops || []),
-      ...(shops.for_you || []),
+      ...(Array.isArray(shops?.sponsored_shops)
+        ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
+        : []),
+      ...(Array.isArray(shops?.for_you)
+        ? shops.for_you.map((shop) => ({ ...shop, isSponsored: false }))
+        : []),
     ];
-  
-    // Filter the combined array based on the search term
+
     const filteredResults = combinedShops
       .filter(
         (shop) =>
@@ -93,8 +96,8 @@ const Header = () => {
               tag.toLowerCase().includes(value.toLowerCase())
             ))
       )
-      .slice(0, 5); // Limit results to 5
-  
+      .slice(0, 5);
+
     setSearchResults(filteredResults);
   };
 
