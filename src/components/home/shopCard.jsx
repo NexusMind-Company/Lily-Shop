@@ -21,14 +21,19 @@ const ShopCard = () => {
   const combinedShops =
     status === "succeeded"
       ? [
-          ...(shops.sponsored_shops || []).map((shop) => ({
+          ...(Array.isArray(shops.sponsored_shops)
+            ? shops.sponsored_shops
+            : []
+          ).map((shop) => ({
             ...shop,
             isSponsored: true,
           })),
-          ...(shops.for_you || []).map((shop) => ({
-            ...shop,
-            isSponsored: false,
-          })),
+          ...(Array.isArray(shops.for_you) ? shops.for_you : []).map(
+            (shop) => ({
+              ...shop,
+              isSponsored: false,
+            })
+          ),
         ]
       : [];
 
@@ -45,7 +50,7 @@ const ShopCard = () => {
       <div className="flex flex-col items-start gap-3 w-full">
         <h2 className="font-poppins font-bold text-black text-sm uppercase border-b-[2px] border-solid border-sun">
           For You
-        </h2>                                                                                                                                                                                                                                                                                                                             
+        </h2>
 
         {status === "loading" ? (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
