@@ -61,22 +61,17 @@ const Header = () => {
     const value = e.target.value;
     setSearchTerm(value);
 
-    console.log("Shops Data:", shops); // Debug log
-
     if (!value.trim()) {
       setSearchResults([]);
       return;
     }
 
-    // Process shops data based on format
     let combinedShops = [];
 
     if (shops) {
       if (Array.isArray(shops)) {
-        // Direct array format (production)
         combinedShops = shops;
       } else if (typeof shops === "object") {
-        // Object format with categories (development)
         combinedShops = [
           ...(Array.isArray(shops.sponsored_shops)
             ? shops.sponsored_shops
@@ -86,7 +81,6 @@ const Header = () => {
       }
     }
 
-    // Filter the combined array based on the search term
     const filteredResults = combinedShops
       .filter(
         (shop) =>
@@ -105,7 +99,7 @@ const Header = () => {
               tag.toLowerCase().includes(value.toLowerCase())
             ))
       )
-      .slice(0, 5); // Limit results to 5
+      .slice(0, 5);
 
     setSearchResults(filteredResults);
   };
