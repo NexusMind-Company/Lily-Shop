@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import { useDispatch, useSelector } from "react-redux";
 import { deleteShop, resetDeleteShopState } from "../../redux/deleteShopSlice";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
   const dispatch = useDispatch();
   const { status } = useSelector((state) => state.deleteShop);
+
+  const cancelBtnRef = useRef();
 
   const handleDelete = async () => {
     try {
@@ -18,6 +20,20 @@ const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
   };
 
   useEffect(() => {
+    if (delIsOpen && cancelBtnRef.current) {
+      cancelBtnRef.current.focus();
+    }
+  }, [delIsOpen]);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && delIsOpen) toggleDel();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [delIsOpen, toggleDel]);
+
+  useEffect(() => {
     if (!delIsOpen) {
       dispatch(resetDeleteShopState());
     }
@@ -28,7 +44,10 @@ const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
   return (
     <section
       aria-hidden={!delIsOpen}
-      className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) toggleDel();
+      }}
     >
       <div
         className={`flex flex-col gap-5 p-5 rounded-[10px] w-[90%] max-w-[400px] bg-white shadow-md transition-all duration-500 ease-in-out ${
@@ -44,8 +63,15 @@ const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
           action.
         </p>
 
+        {status === "failed" && (
+          <p className="text-red-500 text-xs">
+            Failed to delete {entityName}. Please try again.
+          </p>
+        )}
+
         <div className="flex gap-4 font-inter font-normal text-xs">
           <button
+            ref={cancelBtnRef}
             onClick={toggleDel}
             className="text-black border py-1 px-5 rounded hover:bg-gray-100"
           >

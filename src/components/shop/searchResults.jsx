@@ -94,7 +94,7 @@ const SearchResults = () => {
 
   if (status === "loading") {
     return (
-      <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+      <section className="mt-28 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
         <div className="flex flex-col items-start gap-1">
           <div className="text-sm">
             <Link to="/" className="pr-0.5 hover:underline">

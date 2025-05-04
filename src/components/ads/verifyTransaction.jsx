@@ -29,7 +29,7 @@ const VerifyTransaction = () => {
   };
 
   return (
-    <div className="max-w-sm mx-auto my-10 p-10 py-10 border-black min-h-screen rounded-lg shadow-md">
+    <div className="max-w-sm mx-auto mt-28 mb-10 p-10 py-10 border-black min-h-screen rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-center mb-6 text-black">
         {verificationStatus === "succeeded"
           ? "Payment Verified"

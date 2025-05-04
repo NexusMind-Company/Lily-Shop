@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router";
-import { requestPasswordReset, clearPasswordState } from "../../redux/passwordSlice";
+import {
+  requestPasswordReset,
+  clearPasswordState,
+} from "../../redux/passwordSlice";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const dispatch = useDispatch();
-  const { status, error, successMessage } = useSelector((state) => state.password);
+  const { status, error, successMessage } = useSelector(
+    (state) => state.password
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,7 +23,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <section className="relative mt-10 flex flex-col gap-20 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="relative mt-28 flex flex-col gap-20 px-7 min-h-screen max-w-3xl mx-auto">
       <div className="rounded-2xl border border-black h-[70px] md:w-full flex items-center justify-center">
         <h1 className="text-xl/[30px] font-normal font-poppins">
           Forgot <span className="text-lily">Password</span>
@@ -57,10 +62,14 @@ const ForgotPassword = () => {
       </form>
 
       {status === "failed" && (
-        <p className="fixed top-14 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">{error}</p>
+        <p className="fixed top-14 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+          {error}
+        </p>
       )}
       {status === "succeeded" && (
-        <p className="fixed top-14 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">{successMessage}</p>
+        <p className="fixed top-14 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+          {successMessage}
+        </p>
       )}
     </section>
   );
