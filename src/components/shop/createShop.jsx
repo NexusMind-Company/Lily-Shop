@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createShop } from "../../redux/createShopSlice";
 import { useDispatch } from "react-redux";
@@ -46,10 +46,28 @@ const CreateShop = () => {
   const navigate = useNavigate();
   const imageInputRef = useRef(null);
 
+  useEffect(() => {
+    if (successMessage) {
+      setName("");
+      setAddress("");
+      setCategory("");
+      setDescription("");
+      setImagePreview(null);
+      setTouched({});
+      setErrors({});
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
 
-    // Mark as touched
     setTouched((prev) => ({
       ...prev,
       shopImage: true,
@@ -65,7 +83,6 @@ const CreateShop = () => {
       return;
     }
 
-    // Revoke previous preview URL to prevent memory leaks
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
@@ -162,13 +179,10 @@ const CreateShop = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Clear any existing messages
     setSuccessMessage(false);
     setErrorMessage(null);
 
-    // Validate the form
     if (!validateForm()) {
-      // Mark all fields as touched to display error messages
       setTouched({
         name: true,
         address: true,
@@ -229,7 +243,7 @@ const CreateShop = () => {
   };
 
   return (
-    <section className="mt-10 mb-44 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-28 mb-44 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">

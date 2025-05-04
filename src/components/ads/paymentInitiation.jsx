@@ -23,7 +23,10 @@ const PaymentInitiation = () => {
     if (paymentStatus === "succeeded" && paymentData?.authorization_url) {
       window.location.href = paymentData.authorization_url; // Redirect in the same tab
     } else if (paymentStatus === "failed") {
-      alert(JSON.stringify(paymentError) || "Failed to initiate payment. Please try later.");
+      alert(
+        JSON.stringify(paymentError) ||
+          "Failed to initiate payment. Please try later."
+      );
       setIsProcessing(false);
     }
   }, [paymentStatus, paymentData, paymentError]);
@@ -31,11 +34,11 @@ const PaymentInitiation = () => {
   const handlePayment = async () => {
     if (!shop_id) return;
     setIsProcessing(true);
-    dispatch(initiatePayment({shop_id: String(shop_id), amount: 5000 }));
+    dispatch(initiatePayment({ shop_id: String(shop_id), amount: 5000 }));
   };
 
   return (
-    <section className="mt-10 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-28 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-black h-[70px] flex items-center justify-center">
           <h1 className="text-xl/[30px] font-normal">
