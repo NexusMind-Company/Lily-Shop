@@ -33,7 +33,7 @@ const Login = () => {
   }, [data]);
 
   return (
-    <section className="my-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="mt-28 mb-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
         <span className="border-b-[2px] border-solid border-sun">Log</span> In
       </h2>

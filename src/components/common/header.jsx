@@ -114,9 +114,16 @@ const Header = () => {
     }
   };
 
+  const handleLogoClick = (e) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
-    <header className="flex items-center justify-between h-16 px-3 md:px-6 shadow-ash shadow relative z-40">
-      <Link to="/">
+    <header className="flex items-center justify-between bg-[#FFFAE7] w-full fixed top-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
+      <Link to="/" onClick={handleLogoClick}>
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
 
