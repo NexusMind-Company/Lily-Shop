@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShops } from "../../redux/shopSlice";
 import SkeletonLoader from "../loaders/skeletonLoader";
+import ErrorDisplay from "../common/ErrorDisplay";
 
 const ShopCard = () => {
   const dispatch = useDispatch();
@@ -40,7 +41,7 @@ const ShopCard = () => {
   */
 
   if (error) {
-    return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
+    return <ErrorDisplay message={error} center={true} />;
   }
 
   let processedShops = [];
@@ -67,9 +68,9 @@ const ShopCard = () => {
   const hasShops = processedShops.length > 0;
 
   return (
-    <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
+    <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 lg:px-20 overflow-hidden">
       {/* Title */}
-      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
+      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center lg:w-[70%] mx-auto">
         <h1 className="text-lg md:text-xl font-normal font-poppins px-2 text-center">
           Welcome to <span className="text-lily">Lily Shops</span>
         </h1>
@@ -93,17 +94,19 @@ const ShopCard = () => {
         </h2>
 
         {status === "loading" ? (
-          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 w-full">
             {Array.from({ length: 8 }).map((_, index) => (
               <SkeletonLoader key={index} />
             ))}
           </div>
         ) : !hasShops ? (
           <div className="w-full text-center py-10">
-            <p className="text-gray-500">No shops found.</p>
+            <p className="text-gray-500">
+              No shops available right now. Check back later!
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
+          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 w-full">
             {processedShops.map((shop) => (
               <Link
                 to={`/shop/${shop.id}`}

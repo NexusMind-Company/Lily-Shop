@@ -1,17 +1,31 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { fetchProducts, deleteProduct } from "../../redux/addProductSlice";
+import {
+  fetchProducts,
+  deleteProduct,
+  resetDeleteProductStatus,
+} from "../../redux/addProductSlice";
 import ConfirmDeletePopup from "./confirmDeletePopUp";
 import ProductSkeleton from "../loaders/productSkeleton";
+import ErrorDisplay from "../common/ErrorDisplay";
 
 const Products = () => {
   const { shop_id } = useParams();
   const dispatch = useDispatch();
-  const { products, status, error } = useSelector((state) => state.addProduct);
+  const {
+    products,
+    status: fetchStatus,
+    error: fetchError,
+    deleteSuccess,
+  } = useSelector((state) => state.addProduct);
+  const navigate = useNavigate();
 
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const [deleteProductError, setDeleteProductError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (shop_id) {
@@ -19,15 +33,64 @@ const Products = () => {
     }
   }, [dispatch, shop_id]);
 
+  useEffect(() => {
+    if (deleteSuccess) {
+      setSuccessMessage("Product deleted successfully!");
+      setIsPopupOpen(false);
+      setSelectedProductId(null);
+      dispatch(resetDeleteProductStatus());
+
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [deleteSuccess, dispatch]);
+
   const handleDeleteClick = (productId) => {
     setSelectedProductId(productId);
+    setDeleteProductError(null);
+    setIsDeletingProduct(false);
+    setSuccessMessage("");
     setIsPopupOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (selectedProductId) {
-      dispatch(deleteProduct(selectedProductId));
-      setIsPopupOpen(false);
+      setIsDeletingProduct(true);
+      setDeleteProductError(null);
+      setSuccessMessage("");
+      try {
+        await dispatch(deleteProduct(selectedProductId)).unwrap();
+      } catch (err) {
+        setDeleteProductError(
+          (err && typeof err === "object" && err.message) ||
+            "Failed to delete product. Please try again."
+        );
+      } finally {
+        setIsDeletingProduct(false);
+      }
+    }
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedProductId(null);
+    setIsDeletingProduct(false);
+    setDeleteProductError(null);
+  };
+
+  const handleEditProductClick = (product) => {
+    if (product && product.id) {
+      navigate(`/shop/${product.id}/edit-products`, {
+        state: { productToEdit: product },
+      });
+    } else {
+      console.error(
+        "Cannot edit product: Product data or ID is missing.",
+        product
+      );
     }
   };
 
@@ -41,7 +104,12 @@ const Products = () => {
         </div>
       </div>
 
-      {/* Add New Products */}
+      {successMessage && (
+        <div className="w-full my-3 p-3 text-green-700 bg-green-100 rounded-md border border-green-300 text-center">
+          {successMessage}
+        </div>
+      )}
+
       <div className="flex items-start justify-start text-left">
         <Link
           to={`/shop/${shop_id}/add-products`}
@@ -52,7 +120,6 @@ const Products = () => {
         </Link>
       </div>
 
-      {/* Products Section */}
       <div className="flex flex-col gap-5 pt-10">
         <div className="flex items-start justify-start">
           <h2 className="font-poppins font-semibold text-xs text-black md:text-sm uppercase border-b-2 border-sun text-left">
@@ -60,19 +127,15 @@ const Products = () => {
           </h2>
         </div>
 
-        {/* Loading & Error States */}
-        {status === "loading" ? (
+        {fetchStatus === "loading" ? (
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductSkeleton key={index} />
             ))}
           </div>
-        ) : error ? (
-          <div className="flex items-center justify-center">
-            <p className="text-sm text-red-500">{error}</p>
-          </div>
+        ) : fetchError ? (
+          <ErrorDisplay message={fetchError} center={true} />
         ) : products.length > 0 ? (
-          //Products List
           <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
             {products.map((product) => (
               <div
@@ -95,12 +158,12 @@ const Products = () => {
                   </li>
                 </ul>
                 <div className="flex justify-between gap-3">
-                  <Link
-                    to={`/shop/${product.id}/edit-products`}
+                  <button
+                    onClick={() => handleEditProductClick(product)}
                     className="bg-sun p-1 flex-1 text-xs font-bold text-center hover:bg-lily hover:text-white active:bg-lily active:text-white transition-colors duration-200"
                   >
                     Edit
-                  </Link>
+                  </button>
                   <button
                     onClick={() => handleDeleteClick(product.id)}
                     className="bg-ash text-white p-1 flex-1 text-xs font-bold text-center hover:bg-red-600 active:bg-red-600 transition-colors duration-200"
@@ -112,20 +175,27 @@ const Products = () => {
             ))}
           </div>
         ) : (
-          // No Products Found Message
-          <div className="flex items-center justify-center">
-            <p className="text-sm">
-              No items found.
+          <div className="w-full text-center py-10">
+            <p className="text-gray-500">
+              You haven&apos;t added any products yet.
             </p>
+            <Link
+              to={`/shop/${shop_id}/add-products`}
+              className="text-lily hover:underline mt-2 inline-block"
+            >
+              Add your first product!
+            </Link>
           </div>
         )}
       </div>
 
-      {/* Delete Confirmation Popup */}
       <ConfirmDeletePopup
         isOpen={isPopupOpen}
-        onClose={() => setIsPopupOpen(false)}
+        onClose={handleClosePopup}
         onConfirm={handleDeleteConfirm}
+        isLoading={isDeletingProduct}
+        error={deleteProductError}
+        entityName="product"
       />
     </section>
   );

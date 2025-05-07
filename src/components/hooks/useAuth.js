@@ -2,12 +2,12 @@ import { useState } from "react";
 import axios from "axios";
 
 const useAuth = () => {
-  const [error, setError] = useState([]);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
 
   const authentication = async (url, credentials) => {
-    setError([]);
+    setError(null);
     setLoading(true);
 
     try {
@@ -19,15 +19,10 @@ const useAuth = () => {
         (err.response.status === 400 || err.response.status === 401)
       ) {
         console.error("Backend Error Response:", err.response.data);
-
-        const backendErrors = err.response.data;
-        const formattedErrors = Object.keys(backendErrors).map((key) => ({
-          [key]: backendErrors[key],
-        }));
-        setError(formattedErrors);
+        setError(err.response.data || { _error: "An unknown validation error occurred." });
       } else {
-        setError([{ others: "Network error! Please try again later." }]);
-        console.error(err);
+        setError({ _error: "Network error or unexpected issue. Please try again later." });
+        console.error("Network/Server Error:", err);
       }
     } finally {
       setLoading(false);
@@ -35,10 +30,12 @@ const useAuth = () => {
   };
 
   const login = async (url, credentials) => {
+    setData(null);
     return await authentication(url, credentials);
   };
 
   const signup = async (url, credentials) => {
+    setData(null);
     return await authentication(url, credentials);
   };
 

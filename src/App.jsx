@@ -15,9 +15,9 @@ import PaymentInitiation from "./components/ads/paymentInitiation";
 import Step1 from "./components/ads/step1";
 import ForgotPassword from "./pages/forgotPassword";
 import SearchResults from "./pages/searchResults";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "./redux/authSlice";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess, logout } from "./redux/authSlice";
 import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/common/scrollToTop";
 import LilyChat from "./pages/lilyChat";
@@ -26,17 +26,35 @@ import Products from "./pages/products";
 import EditProducts from "./pages/editProducts";
 import VerifyTransaction from "./components/ads/verifyTransaction";
 import FetchAdDetails from "./pages/fetchAdDetails";
+import useIdleTimeout from "./hooks/useIdleTimeout";
+import IdleTimeoutPopup from "./components/common/idleTimeoutPopup";
 
 export default function App() {
   const dispatch = useDispatch();
   const location = useLocation();
+  const isAuthenticated = useSelector((state) => !!state.auth.user_data);
+  const [showIdlePopup, setShowIdlePopup] = useState(false);
+
   useEffect(() => {
     if (localStorage.user_data) {
       dispatch(loginSuccess({ user_data: localStorage.user_data }));
     }
-  }, []);
+  }, [dispatch]);
+
+  const handleIdle = () => {
+    if (isAuthenticated) {
+      dispatch(logout());
+      setShowIdlePopup(true);
+    }
+  };
+
+  useIdleTimeout(handleIdle, 5 * 60 * 1000);
 
   const isLilyChatPage = location.pathname === "/lilyChat";
+
+  const closeIdlePopup = () => {
+    setShowIdlePopup(false);
+  };
 
   return (
     <>
@@ -72,6 +90,8 @@ export default function App() {
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {!isLilyChatPage && <Nav />}
+
+      {showIdlePopup && <IdleTimeoutPopup onClose={closeIdlePopup} />}
     </>
   );
 }

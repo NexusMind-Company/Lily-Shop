@@ -1,4 +1,4 @@
-import ForgotPassword from "../components/login[signUp]/forgotPassword"
+import ForgotPassword from "../components/auth/forgotPassword"
 
 const forgotPassword = () => {
   return (

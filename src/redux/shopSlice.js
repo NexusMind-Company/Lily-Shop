@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 
-
 export const fetchShops = createAsyncThunk("shops/fetchShops", async () => {
   const response = await api.get("/shops", { skipAuth: true });
   return response.data;
@@ -23,7 +22,11 @@ const shopSlice = createSlice({
     status: "idle",
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearSelectedShopState: (state) => {
+      state.selectedShop = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Fetch all shops
@@ -43,6 +46,7 @@ const shopSlice = createSlice({
       .addCase(fetchShopById.pending, (state) => {
         state.status = "loading";
         state.selectedShop = null;
+        state.error = null;
       })
       .addCase(fetchShopById.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -51,8 +55,11 @@ const shopSlice = createSlice({
       .addCase(fetchShopById.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+        state.selectedShop = null;
       });
   },
 });
+
+export const { clearSelectedShopState } = shopSlice.actions;
 
 export default shopSlice.reducer;
