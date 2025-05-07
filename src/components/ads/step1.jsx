@@ -31,7 +31,7 @@ const Step1 = () => {
         </div>
 
         <p className="text-xl font-semibold px-4 text-lily">
-          <span className="text-black">₦</span> 5,000
+          <span className="text-black">₦</span> 10,000
         </p>
       </div>
 

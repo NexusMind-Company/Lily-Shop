@@ -11,7 +11,7 @@ body {
   }
 
   .input {
-    @apply w-full border-black border-solid border-[1px] pt-4 h-14 px-4 rounded-[7px];
+    @apply w-full border-black border-solid border-[1px] h-14 px-4 rounded-[7px];
   }
 
   .bLabel {
