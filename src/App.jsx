@@ -28,6 +28,8 @@ import VerifyTransaction from "./components/ads/verifyTransaction";
 import FetchAdDetails from "./pages/fetchAdDetails";
 import useIdleTimeout from "./hooks/useIdleTimeout";
 import IdleTimeoutPopup from "./components/common/idleTimeoutPopup";
+import { HelmetProvider } from 'react-helmet-async';
+import SEO from './components/common/SEO';
 
 export default function App() {
   const dispatch = useDispatch();
@@ -57,7 +59,8 @@ export default function App() {
   };
 
   return (
-    <>
+    <HelmetProvider>
+      <SEO />
       <ScrollToTop />
       {!isLilyChatPage && <Header />}
       <Routes>
@@ -92,6 +95,6 @@ export default function App() {
       {!isLilyChatPage && <Nav />}
 
       {showIdlePopup && <IdleTimeoutPopup onClose={closeIdlePopup} />}
-    </>
+    </HelmetProvider>
   );
 }

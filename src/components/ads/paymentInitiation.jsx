@@ -53,7 +53,7 @@ const PaymentInitiation = () => {
 
         <div className="flex justify-between font-inter font-medium text-sm border p-4 border-black rounded-md">
           <p>Amount (NGN)</p>
-          <p>₦10,000</p>
+          <p>₦5,000</p>
         </div>
       </div>
 
