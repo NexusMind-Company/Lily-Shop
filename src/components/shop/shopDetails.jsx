@@ -20,11 +20,9 @@ const ShopDetails = () => {
   const [copyPopUp, setCopyPopUp] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
-  // State for inline quantity editing
   const [orderingProductId, setOrderingProductId] = useState(null);
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
 
-  // Event handlers for quantity - MUST be defined before early returns
   const handleStartOrder = useCallback((productId) => {
     setOrderingProductId(productId);
     setCurrentOrderQuantity(1);
@@ -35,27 +33,36 @@ const ShopDetails = () => {
     if (!isNaN(newQuantity) && newQuantity >= 1) {
       setCurrentOrderQuantity(newQuantity);
     } else if (event.target.value === "") {
-      setCurrentOrderQuantity(""); // Allow empty input temporarily
+      setCurrentOrderQuantity("");
     }
   }, []);
 
   const handleIncrementQuantity = useCallback(() => {
-    setCurrentOrderQuantity((prev) => (typeof prev === 'number' ? prev + 1 : 1));
+    setCurrentOrderQuantity((prev) =>
+      typeof prev === "number" ? prev + 1 : 1
+    );
   }, []);
 
   const handleDecrementQuantity = useCallback(() => {
-    setCurrentOrderQuantity((prev) => (typeof prev === 'number' && prev > 1 ? prev - 1 : 1));
+    setCurrentOrderQuantity((prev) =>
+      typeof prev === "number" && prev > 1 ? prev - 1 : 1
+    );
   }, []);
 
-  const handleConfirmOrder = useCallback((productId) => {
-    const finalQuantity = typeof currentOrderQuantity === 'number' && currentOrderQuantity >= 1 ? currentOrderQuantity : 1;
-    // Safely access product.id only if product is defined
-    const shopId = product ? product.id : "Unknown Shop";
-    console.log(
-      `Confirmed order for product ID: ${productId}, Quantity: ${finalQuantity} from shop ID: ${shopId}`
-    );
-    setOrderingProductId(null); // Reset after confirming
-  }, [currentOrderQuantity, product]); // product dependency added
+  const handleConfirmOrder = useCallback(
+    (productId) => {
+      const finalQuantity =
+        typeof currentOrderQuantity === "number" && currentOrderQuantity >= 1
+          ? currentOrderQuantity
+          : 1;
+      const shopId = product ? product.id : "Unknown Shop";
+      console.log(
+        `Confirmed order for product ID: ${productId}, Quantity: ${finalQuantity} from shop ID: ${shopId}`
+      );
+      setOrderingProductId(null);
+    },
+    [currentOrderQuantity, product]
+  );
 
   const handleCancelOrder = useCallback(() => {
     setOrderingProductId(null);
@@ -220,40 +227,44 @@ const ShopDetails = () => {
               {orderingProductId === productItem.id ? (
                 <div className="mt-2 flex flex-col gap-2 items-center">
                   <div className="flex items-center gap-2">
-                    <button 
-                      onClick={handleDecrementQuantity} 
+                    <button
+                      onClick={handleDecrementQuantity}
                       className="px-2 py-1 border rounded-md hover:bg-gray-100"
                     >
                       -
                     </button>
-                    <input 
-                      type="number" 
-                      value={currentOrderQuantity} 
+                    <input
+                      type="number"
+                      value={currentOrderQuantity}
                       onChange={handleQuantityChange}
-                      onBlur={() => { // Ensure quantity is at least 1 on blur if empty
-                        if (currentOrderQuantity === "" || currentOrderQuantity < 1) {
+                      onBlur={() => {
+                        // Ensure quantity is at least 1 on blur if empty
+                        if (
+                          currentOrderQuantity === "" ||
+                          currentOrderQuantity < 1
+                        ) {
                           setCurrentOrderQuantity(1);
                         }
                       }}
                       className="w-12 text-center border rounded-md p-1"
                       min="1"
                     />
-                    <button 
-                      onClick={handleIncrementQuantity} 
+                    <button
+                      onClick={handleIncrementQuantity}
                       className="px-2 py-1 border rounded-md hover:bg-gray-100"
                     >
                       +
                     </button>
                   </div>
                   <div className="flex gap-2 w-full">
-                    <button 
-                      onClick={() => handleConfirmOrder(productItem.id)} 
+                    <button
+                      onClick={() => handleConfirmOrder(productItem.id)}
                       className="flex-1 bg-green-500 text-white p-1.5 text-xs font-bold text-center rounded-md hover:bg-green-600 transition-colors"
                     >
                       Confirm
                     </button>
-                    <button 
-                      onClick={handleCancelOrder} 
+                    <button
+                      onClick={handleCancelOrder}
                       className="flex-1 bg-gray-300 text-black p-1.5 text-xs font-bold text-center rounded-md hover:bg-gray-400 transition-colors"
                     >
                       Cancel

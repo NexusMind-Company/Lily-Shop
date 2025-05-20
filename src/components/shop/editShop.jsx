@@ -112,7 +112,7 @@ const EditShop = () => {
 
   const handleImageInputChange = useCallback(
     (e) => {
-      const file = e.target.files[0];
+    const file = e.target.files[0];
       setImageError(null);
       setSelectedFile(null);
 
@@ -122,14 +122,14 @@ const EditShop = () => {
         return;
       }
 
-      const validationError = validateFile(file);
-      if (validationError) {
+    const validationError = validateFile(file);
+    if (validationError) {
         setImageError(validationError);
         setSelectedFile(null);
         if (imageInputRef.current) imageInputRef.current.value = "";
         setCurrentImagePreview(existingShop?.image_url || null);
-        return;
-      }
+      return;
+    }
       setSelectedFile(file);
       setFieldErrors((prev) => {
         const newErrs = { ...prev };
@@ -279,8 +279,8 @@ const EditShop = () => {
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Shop Name
-              </label>
-              <input
+          </label>
+          <input
                 type="text"
                 id="name"
                 name="name"
@@ -293,8 +293,8 @@ const EditShop = () => {
               />
               {fieldErrors.name && (
                 <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
-              )}
-            </div>
+          )}
+        </div>
 
             <div>
               <label
@@ -302,10 +302,10 @@ const EditShop = () => {
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Shop Address
-              </label>
-              <input
+          </label>
+          <input
                 type="text"
-                id="address"
+            id="address"
                 name="address"
                 value={values.address}
                 onChange={handleChange}
@@ -318,8 +318,8 @@ const EditShop = () => {
                 <p className="text-red-500 text-xs mt-1">
                   {fieldErrors.address}
                 </p>
-              )}
-            </div>
+          )}
+        </div>
 
             <div>
               <label
@@ -327,10 +327,10 @@ const EditShop = () => {
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Shop Category
-              </label>
-              <input
+          </label>
+          <input
                 type="text"
-                id="category"
+            id="category"
                 name="category"
                 value={values.category}
                 onChange={handleChange}
@@ -343,8 +343,8 @@ const EditShop = () => {
                 <p className="text-red-500 text-xs mt-1">
                   {fieldErrors.category}
                 </p>
-              )}
-            </div>
+          )}
+        </div>
 
             <div>
               <label
@@ -353,7 +353,7 @@ const EditShop = () => {
               >
                 Shop Description
               </label>
-              <textarea
+          <textarea
                 id="description"
                 name="description"
                 rows="4"
@@ -368,8 +368,8 @@ const EditShop = () => {
                 <p className="text-red-500 text-xs mt-1">
                   {fieldErrors.description}
                 </p>
-              )}
-            </div>
+          )}
+        </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -414,11 +414,11 @@ const EditShop = () => {
                           ? "Change file"
                           : "Upload a file"}
                       </span>
-                      <input
+          <input
                         type="file"
                         id="shopImageEdit"
                         name="shopImageEdit"
-                        ref={imageInputRef}
+            ref={imageInputRef}
                         onChange={handleImageInputChange}
                         accept={ALLOWED_EXTENSIONS.join(",")}
                         className="sr-only"
@@ -461,18 +461,18 @@ const EditShop = () => {
                 <p className="text-red-500 text-xs mt-1">
                   {fieldErrors.shopImage}
                 </p>
-              )}
-            </div>
+          )}
+        </div>
 
-            <button
-              type="submit"
+          <button
+            type="submit"
               disabled={isSubmitting || submissionStatus === "loading"}
               className="input pt-0 h-[46px] bg-sun border-none rounded-[7px] font-inter font-bold text-[15px]/[18.51px] disabled:opacity-50 hover:bg-lily hover:text-white cursor-pointer"
-            >
+          >
               {submissionStatus === "loading"
                 ? "Updating Shop..."
                 : "Save Changes"}
-            </button>
+          </button>
           </form>
         )}
 
