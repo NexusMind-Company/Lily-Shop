@@ -1,7 +1,7 @@
 import ShopDetails from "../components/shop/shopDetails";
 import SEO from "../components/common/SEO";
 
-const productDetails = () => {
+const productDetails = ({ shop }) => {
   return (
     <>
       <SEO
@@ -16,7 +16,7 @@ const productDetails = () => {
         type="business.business"
       />
       <section>
-        <ShopDetails />
+        <ShopDetails shop={shop} />
       </section>
     </>
   );
