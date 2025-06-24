@@ -30,6 +30,7 @@ import useIdleTimeout from "./hooks/useIdleTimeout";
 import IdleTimeoutPopup from "./components/common/idleTimeoutPopup";
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/common/SEO';
+import Footer from "./components/common/footer";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -93,6 +94,8 @@ export default function App() {
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {!isLilyChatPage && <Nav />}
+
+      <Footer />
 
       {showIdlePopup && <IdleTimeoutPopup onClose={closeIdlePopup} />}
     </HelmetProvider>
