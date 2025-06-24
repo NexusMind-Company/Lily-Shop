@@ -5,6 +5,7 @@ import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
 import PopUp from "./popUp";
 import ErrorDisplay from "../common/ErrorDisplay";
+import Ratings from "./ratings";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -16,7 +17,7 @@ const ShopDetails = () => {
   } = useSelector((state) => state.shops);
 
   const [imageEnlarged, setImageEnlarged] = useState(false);
-
+  const [showRatings, setShowRatings] = useState(false);
   const [copyPopUp, setCopyPopUp] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -92,6 +93,10 @@ const ShopDetails = () => {
     setImageLoading(false);
   };
 
+  const toggleRatingsView = () => {
+    setShowRatings((prev) => !prev);
+  };
+
   if (status === "loading") {
     return <LoaderSd />;
   }
@@ -110,7 +115,6 @@ const ShopDetails = () => {
       <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center text-center px-2.5">
         <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
       </div>
-
       {/* Product Image */}
       <div className="mt-7 flex flex-col items-center justify-center w-full relative">
         <button
@@ -152,7 +156,13 @@ const ShopDetails = () => {
           />
         </div>
       )}
-      {/* Status, Message Button, and Copy Link */}
+      <div className="flex justify-between w-full mt-5 font-poppins items-center">
+        {/* Contact */}
+        <p className="text-lily text-sm font-semibold font-poppins uppercase mt-5">
+          Contacts: <span className="text-black">{product.owner_phone}</span>
+        </p>
+      </div>
+      {/* Status, Message Button, and Copy Link */}{" "}
       <div className="flex justify-between w-full mt-5 font-poppins items-center">
         <div>
           <p className="font-bold font-poppins text-[13px]/[19.5px]">
@@ -161,14 +171,39 @@ const ShopDetails = () => {
           <p className="font-normal font-poppins text-[11px]/[16.5px]">
             Visits: <span className="text-lily">{product.visitor_count}</span>
           </p>
+        </div>{" "}
+        <div className="flex flex-col md:flex-row items-center gap-2">
+          <button
+            onClick={toggleRatingsView}
+            className={`text-${showRatings ? "white" : "black"} ${
+              showRatings ? "bg-lily" : "bg-white"
+            } px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid ${
+              showRatings ? "border-lily" : "border-gray-300"
+            } hover:opacity-90 transition-all duration-200 shadow-sm`}
+          >
+            <p>{showRatings ? "Close Rating" : "Rate Shop"}</p>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill={showRatings ? "white" : "none"}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              />
+            </svg>
+          </button>
+
+          <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid border-gray-300">
+            <p>Coming Soon</p>
+            <img className="w-5" src="/message-icon.svg" alt="message-icon" />
+          </button>
         </div>
-
-        <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid border-gray-300">
-          <p>Coming Soon</p>
-          <img className="w-5" src="/message-icon.svg" alt="message-icon" />
-        </button>
       </div>
-
       {/* Description and Address Section */}
       <div className="flex flex-col gap-4 items-start mt-6 w-full">
         <div className="w-full">
@@ -195,7 +230,6 @@ const ShopDetails = () => {
           </p>
         </div>
       </div>
-
       {/* Products Section */}
       <div className="flex flex-col gap-3 items-start my-5 w-full">
         <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
@@ -204,7 +238,6 @@ const ShopDetails = () => {
           </span>
           cts
         </h2>
-
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
           {product.products.map((productItem) => (
             <div
@@ -281,14 +314,38 @@ const ShopDetails = () => {
               )}
             </div>
           ))}
-        </div>
-
-        {/* Contact */}
-        <p className="text-lily text-sm font-semibold font-poppins uppercase mt-5">
-          Contacts: <span className="text-black">{product.owner_phone}</span>
-        </p>
+        </div>{" "}
       </div>
-
+      {/* Ratings Component */}
+      {showRatings && (
+        <div className="fixed inset-0 bg-white bg-opacity-98 backdrop-blur-sm z-50 overflow-auto pt-2 pb-20 animate-fadeIn">
+          <div className="max-w-4xl mx-auto px-4 relative">
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={toggleRatingsView}
+                className="bg-lily text-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:bg-opacity-90 transition-all"
+                aria-label="Close ratings"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />{" "}
+                </svg>
+              </button>{" "}
+            </div>
+            <Ratings shopName={product.name} />
+          </div>
+        </div>
+      )}
       {/* PopUp Component */}
       {copyPopUp && (
         <PopUp copyPopUp={copyPopUp} handlePopUp={() => setCopyPopUp(false)} />
