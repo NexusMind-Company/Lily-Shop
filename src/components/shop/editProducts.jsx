@@ -163,7 +163,7 @@ const EditProducts = () => {
       const parsedPrice = parseFloat(formValues.price);
       if (isNaN(parsedPrice) || parsedPrice <= 0) {
         setFieldErrors((prev) => ({
-      ...prev,
+          ...prev,
           price: "If provided, price must be a positive number.",
         }));
         priceFieldHasError = true;
@@ -271,8 +271,8 @@ const EditProducts = () => {
       )}
 
       {initialProductData && (
-      <form
-        className="w-full flex flex-col gap-5"
+        <form
+          className="w-full flex flex-col gap-5"
           onSubmit={handleFormSubmit(actualSubmitLogic)}
           noValidate
         >
@@ -283,8 +283,8 @@ const EditProducts = () => {
             >
               Product Name
             </label>
-          <input
-            type="text"
+            <input
+              type="text"
               id="name"
               name="name"
               value={values.name}
@@ -296,8 +296,8 @@ const EditProducts = () => {
             />
             {fieldErrors.name && (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
-          )}
-        </div>
+            )}
+          </div>
 
           <div>
             <label
@@ -306,8 +306,8 @@ const EditProducts = () => {
             >
               Price (₦)
             </label>
-          <input
-            type="text"
+            <input
+              type="text"
               id="price"
               name="price"
               value={values.price}
@@ -320,8 +320,8 @@ const EditProducts = () => {
             />
             {fieldErrors.price && (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.price}</p>
-          )}
-        </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -378,8 +378,8 @@ const EditProducts = () => {
                         ? "Change file"
                         : "Upload an image"}
                     </span>
-            <input
-              type="file"
+                    <input
+                      type="file"
                       id={`product_image_edit_${product_id}`}
                       name="productImageEdit"
                       ref={imageInputRef}
@@ -392,7 +392,7 @@ const EditProducts = () => {
                     <p className="pl-1">or drag and drop</p>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-ash">
                   PNG, JPG up to {MAX_FILE_SIZE_MB}MB
                 </p>
               </div>
@@ -422,7 +422,7 @@ const EditProducts = () => {
                 >
                   Cancel Change
                 </button>
-          </div>
+              </div>
             )}
             {imageError && (
               <p className="text-red-500 text-xs mt-1">{imageError}</p>
@@ -431,17 +431,17 @@ const EditProducts = () => {
               <p className="text-red-500 text-xs mt-1">
                 {fieldErrors.productImage}
               </p>
-          )}
-        </div>
+            )}
+          </div>
 
-        <button
+          <button
             type="submit"
             disabled={isSubmitting}
             className="bg-sun text-white px-4 py-2 rounded-md hover:bg-lily focus:outline-none focus:ring focus:border-lily"
           >
             {isSubmitting ? "Updating..." : "Update Product"}
-        </button>
-      </form>
+          </button>
+        </form>
       )}
     </section>
   );

@@ -494,7 +494,7 @@ const CreateShop = () => {
                 : "border-gray-400"
             } rounded-lg cursor-pointer flex items-center justify-center hover:bg-gray-100 transition`}
           >
-            <span className="border border-gray-300 px-4 py-2 rounded-lg text-gray-500 text-sm">
+            <span className="border border-gray-300 px-4 py-2 rounded-lg text-ash text-sm">
               Upload Shop Logo/Banner
             </span>
           </label>
@@ -596,9 +596,7 @@ const CreateShop = () => {
                       handleProductImageChange(index, e.target.files[0]);
                     }}
                   />
-                  <span className="text-gray-500 text-sm">
-                    Upload Product Image
-                  </span>
+                  <span className="text-ash text-sm">Upload Product Image</span>
                 </div>
 
                 {touched[`product_image_${index}`] &&
