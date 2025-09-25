@@ -28,9 +28,16 @@ import VerifyTransaction from "./components/ads/verifyTransaction";
 import FetchAdDetails from "./pages/fetchAdDetails";
 import useIdleTimeout from "./hooks/useIdleTimeout";
 import IdleTimeoutPopup from "./components/common/idleTimeoutPopup";
-import { HelmetProvider } from 'react-helmet-async';
-import SEO from './components/common/SEO';
-import Footer from "./components/common/footer";
+import { HelmetProvider } from "react-helmet-async";
+import SEO from "./components/common/SEO";
+import VerifyEmail from "./components/auth/verifyEmail";
+import VerifyCode from "./components/auth/verifyCode";
+import CreateUsername from "./components/auth/createUsername";
+import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfilePic";
+import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
+import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
+import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
+import Feed from "./pages/feed";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -53,8 +60,6 @@ export default function App() {
 
   useIdleTimeout(handleIdle, 5 * 60 * 1000);
 
-  const isLilyChatPage = location.pathname === "/lilyChat";
-
   const closeIdlePopup = () => {
     setShowIdlePopup(false);
   };
@@ -63,7 +68,7 @@ export default function App() {
     <HelmetProvider>
       <SEO />
       <ScrollToTop />
-      {!isLilyChatPage && <Header />}
+      {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Header />} */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/myShop" element={<MyShop />} />
@@ -73,6 +78,14 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-code" element={<VerifyCode />} />
+        <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/create-username" element={<CreateUsername />} />
+        <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
+        <Route path="/birthday-picker" element={<BirthdayPicker />} />
+        <Route path="/feed" element={<Feed />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/shop/:shop_id/step1" element={<Step1 />} />
         <Route
@@ -93,9 +106,9 @@ export default function App() {
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
-      {!isLilyChatPage && <Nav />}
+      {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}
 
-      <Footer />
+      {/* {!isLoginPage && !isSignupPage && !isLilyChatPage && <Footer />} */}
 
       {showIdlePopup && <IdleTimeoutPopup onClose={closeIdlePopup} />}
     </HelmetProvider>

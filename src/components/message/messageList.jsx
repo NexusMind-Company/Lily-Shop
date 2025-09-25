@@ -53,11 +53,11 @@ export default function MessageList({ openChat }) {
             <div className="w-10 h-10 rounded-full bg-gray-400"></div>
             <div>
               <h3 className="font-semibold">{chat.name}</h3>
-              <p className="text-gray-500 text-sm">{chat.lastMessage}</p>
+              <p className="text-ash text-sm">{chat.lastMessage}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-gray-500 text-sm">{chat.time}</p>
+            <p className="text-ash text-sm">{chat.time}</p>
             {chat.unread && <span className="text-red-500 text-xs">🔴</span>}
           </div>
         </div>
