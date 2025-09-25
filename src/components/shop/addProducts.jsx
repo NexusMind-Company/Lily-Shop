@@ -402,7 +402,7 @@ const AddProducts = () => {
                         <p className="pl-1">or drag and drop</p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ash">
                       PNG, JPG up to {MAX_FILE_SIZE_MB}MB
                     </p>
                   </div>
