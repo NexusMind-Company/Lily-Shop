@@ -77,7 +77,7 @@ const CreateShop = () => {
 
   const handleImageInputChange = useCallback(
     (e) => {
-    const file = e.target.files[0];
+      const file = e.target.files[0];
       setImageError(null);
       setSelectedFile(null);
       if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -85,20 +85,20 @@ const CreateShop = () => {
 
       if (!file) return;
 
-    const validationError = validateFile(file);
-    if (validationError) {
+      const validationError = validateFile(file);
+      if (validationError) {
         setImageError(validationError);
         if (imageInputRef.current) imageInputRef.current.value = "";
-      return;
-    }
+        return;
+      }
 
       setSelectedFile(file);
       setImagePreview(URL.createObjectURL(file));
       setFieldErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors.shopImage;
-      return newErrors;
-    });
+        const newErrors = { ...prev };
+        delete newErrors.shopImage;
+        return newErrors;
+      });
     },
     [imagePreview, setFieldErrors]
   );
@@ -107,7 +107,7 @@ const CreateShop = () => {
     if (!selectedFile) {
       setImageError("Please upload a shop image.");
       setFieldErrors((prev) => ({
-      ...prev,
+        ...prev,
         shopImage: "Shop image is required.",
       }));
       setSubmissionStatus("idle");
@@ -358,10 +358,10 @@ const CreateShop = () => {
                     accept={ALLOWED_EXTENSIONS.join(",")}
                     className="sr-only"
                   />
-            </span>
+                </span>
                 {!selectedFile && <p className="pl-1">or drag and drop</p>}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-ash">
                 PNG, JPG, JPEG up to {MAX_FILE_SIZE_MB}MB
               </p>
             </div>
@@ -371,7 +371,7 @@ const CreateShop = () => {
             <div className="mt-2 text-sm text-gray-700 flex items-center justify-between">
               <span className="truncate max-w-[calc(100%-4rem)]">
                 Selected: {selectedFile.name}
-            </span>
+              </span>
               <button
                 type="button"
                 onClick={() => {
@@ -400,13 +400,13 @@ const CreateShop = () => {
           )}
         </div>
 
-          <button
-            type="submit"
+        <button
+          type="submit"
           className="input pt-0 h-[46px] bg-sun border-none rounded-[7px] font-inter font-bold text-[15px]/[18.51px] disabled:opacity-50 hover:bg-lily hover:text-white cursor-pointer"
           disabled={isSubmitting || submissionStatus === "loading"}
         >
           {submissionStatus === "loading" ? "Creating Shop..." : "Create Shop"}
-          </button>
+        </button>
       </form>
     </section>
   );

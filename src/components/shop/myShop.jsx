@@ -159,7 +159,7 @@ const MyShop = () => {
                       {shop.description || "No description"}
                     </li>
                     <li
-                      className="text-xs font-normal text-gray-500 truncate"
+                      className="text-xs font-normal text-ash truncate"
                       title={shop.address}
                     >
                       {shop.address || "No address"}
@@ -218,7 +218,7 @@ const MyShop = () => {
       {/* Fallback for non-authenticated users, though useEffect handles redirect */}
       {!isAuthenticated && fetchShopsStatus !== "loading" && (
         <div className="flex flex-col items-center justify-center w-full text-center py-10">
-          <p className="text-gray-500 mb-4">
+          <p className="text-ash mb-4">
             Please log in to view and manage your shops.
           </p>
           <Link

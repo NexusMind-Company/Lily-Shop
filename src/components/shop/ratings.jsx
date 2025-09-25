@@ -39,7 +39,7 @@ const Ratings = ({ shopName }) => {
             </div>
             <div className="flex-1">
               <h3 className="font-poppins text-[14px] font-medium">User</h3>
-              <p className="font-inter text-[12px] font-medium text-gray-500">
+              <p className="font-inter text-[12px] font-medium text-ash">
                 Reviews are public and include your account information
               </p>
             </div>
@@ -65,7 +65,7 @@ const Ratings = ({ shopName }) => {
               );
             })}
           </div>
-          <p className="text-sm text-gray-500 mb-4 text-center">
+          <p className="text-sm text-ash mb-4 text-center">
             {rating
               ? `You rated this shop ${rating} out of 5 stars`
               : "Select a rating"}

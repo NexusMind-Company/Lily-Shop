@@ -46,7 +46,7 @@ const PaymentInitiation = () => {
           </h1>
         </div>
 
-        <p className="text-gray-500 text-sm mt-2">STEP 2 OF 2</p>
+        <p className="text-ash text-sm mt-2">STEP 2 OF 2</p>
         <p className="border-b border-black pb-4 font-medium text-black">
           Payment
         </p>

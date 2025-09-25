@@ -101,7 +101,7 @@ const ShopCard = () => {
           </div>
         ) : !hasShops ? (
           <div className="w-full text-center py-10">
-            <p className="text-gray-500">
+            <p className="text-ash">
               No shops available right now. Check back later!
             </p>
           </div>
