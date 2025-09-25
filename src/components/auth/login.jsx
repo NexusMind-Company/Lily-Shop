@@ -1,162 +1,136 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "../../redux/authSlice";
-import useAuth from "../hooks/useAuth";
-import useFormValidation from "../../hooks/useFormValidation";
-const apiUrl = import.meta.env.VITE_API_URL;
+import { useMutation } from "@tanstack/react-query";
 
-const INITIAL_STATE = {
-  username_or_email: "",
-  password: "",
-};
-
-const VALIDATION_RULES = {
-  username_or_email: {
-    required: true,
-    requiredMessage: "Username or email is required",
-  },
-  password: { required: true, requiredMessage: "Password is required" },
+// API call
+const loginApi = async ({ phone_or_email, password }) => {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone_or_email, password }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
 };
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const {
-    values,
-    errors,
-    isSubmitting,
-    handleChange,
-    handleBlur,
-    handleSubmit: handleValidationSubmit,
-    setErrors: setValidationErrors,
-  } = useFormValidation(INITIAL_STATE, VALIDATION_RULES);
-
-  const {
-    login,
-    loading: authLoading,
-    error: authError,
-    data: authData,
-  } = useAuth();
-
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [values, setValues] = useState({ phone_or_email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const submitCallback = async (validatedValues) => {
-    await login(apiUrl + "/auth/login/", validatedValues);
+  const mutation = useMutation({
+    mutationFn: loginApi,
+    onSuccess: () => navigate("/dashboard"),
+    onError: (err) => {
+      setErrors({
+        phone_or_email: err.phone_or_email?.[0],
+        password: err.password?.[0],
+        form: err.detail || "Login failed",
+      });
+    },
+  });
+
+  const handleChange = (e) => {
+    setValues({ ...values, [e.target.name]: e.target.value });
   };
 
-  useEffect(() => {
-    if (authData) {
-      dispatch(loginSuccess({ user_data: authData }));
-      navigate("/");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setErrors({});
+    if (!values.phone_or_email) {
+      setErrors({ phone_or_email: "Phone or email is required" });
+      return;
     }
-  }, [authData, dispatch, navigate]);
-
-  useEffect(() => {
-    if (authError) {
-      const backendErrors = {};
-      if (authError._error) {
-        backendErrors.form = authError._error;
-      } else {
-        backendErrors.form =
-          (authError.detail ?? authError.non_field_errors?.join(", ")) ||
-          undefined;
-        backendErrors.username_or_email =
-          authError.username_or_email?.join(", ") || undefined;
-        backendErrors.password = authError.password?.join(", ") || undefined;
-      }
-
-      const filteredErrors = Object.entries(backendErrors)
-        .filter(([_, value]) => value !== undefined)
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-
-      if (Object.keys(filteredErrors).length > 0) {
-        setValidationErrors(filteredErrors);
-      }
+    if (!values.password) {
+      setErrors({ password: "Password is required" });
+      return;
     }
-  }, [authError, setValidationErrors]);
+    mutation.mutate(values);
+  };
 
   return (
-    <section className="mt-28 mb-10 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+      <div className="flex items-center bg-[#FFFAE7] absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
+        <Link to="/">
+          <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
+        </Link>
+      </div>
+
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
-        <span className="border-b-[2px] border-solid border-sun">Log</span> In
+        <span className="border-b-[2px] border-solid pb-[2px] border-lily">
+          Log
+        </span>{" "}
+        in
       </h2>
 
-      <form
-        className="flex flex-col gap-7"
-        onSubmit={handleValidationSubmit(submitCallback)}
-        noValidate
-      >
-        {errors.form && (
-          <p className="text-red-500 text-sm -mb-4">{errors.form}</p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <input
+          type="text"
+          name="phone_or_email"
+          value={values.phone_or_email}
+          onChange={handleChange}
+          placeholder="Phone or email"
+          className={`input rounded-[7px] h-[46px] ${
+            errors.phone_or_email ? "border-red-500" : ""
+          }`}
+        />
+        {errors.phone_or_email && (
+          <p className="text-red-500 text-xs">{errors.phone_or_email}</p>
         )}
 
-        <div>
-          <input
-            className={`input rounded-[7px] pt-0 h-[46px] mt-3 w-full ${
-              errors.username_or_email ? "border-red-500" : ""
-            }`}
-            type="text"
-            name="username_or_email"
-            placeholder="Username or Email"
-            value={values.username_or_email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            aria-invalid={errors.username_or_email ? "true" : "false"}
-          />
-          {errors.username_or_email && (
-            <p className="text-red-500 text-xs mt-1">
-              {errors.username_or_email}
-            </p>
-          )}
-        </div>
-
         <div className="relative">
-          <div>
-            <input
-              className={`input rounded-[7px] pt-0 h-[46px] w-full pr-10 mt-3 ${
-                errors.password ? "border-red-500" : ""
-              }`}
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              value={values.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              aria-invalid={errors.password ? "true" : "false"}
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 pt-3 text-gray-500 rounded-[7px]"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-          )}
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={values.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className={`input rounded-[7px] h-[46px] w-full pr-10 ${
+              errors.password ? "border-red-500" : ""
+            }`}
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+          </button>
         </div>
+        {errors.password && (
+          <p className="text-red-500 text-xs">{errors.password}</p>
+        )}
 
-        <div className="text-right font-inter text-xs underline font-semibold flex items-center justify-end">
-          <Link to="/forgotPassword">Forgot Password?</Link>
+        <div className="text-xs font-medium self-end">
+          <Link to="/forgotPassword" className="underline">
+            Forgot Password?
+          </Link>
         </div>
 
         <button
           type="submit"
-          className="input pt-0 h-[46px] bg-sun border-none font-inter font-bold text-[15px]/[18.51px] hover:bg-lily hover:text-white cursor-pointer rounded-[7px] disabled:opacity-50"
-          disabled={isSubmitting || authLoading}
+          disabled={mutation.isLoading}
+          className={`h-[46px] rounded-full font-bold text-white ${
+            mutation.isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-lily hover:bg-darklily"
+          }`}
         >
-          {isSubmitting || authLoading ? "Loading..." : "Log In"}
+          {mutation.isLoading ? "LOGGING IN..." : "LOG IN"}
         </button>
+        {errors.form && (
+          <p className="text-red-500 text-sm text-center">{errors.form}</p>
+        )}
       </form>
 
-      <div className="font-inter text-sm font-medium">
-        <Link to="/signup">
-          Not a member yet?{" "}
-          <span className="text-lily font-semibold">Create an Account</span>
+      <div className="self-start">
+        <Link to={"/signUp"}>
+          <p className="text-xs font-semibold">
+            Not a member yet?{" "}
+            <span className="text-lily underline">Create an Account</span>
+          </p>
         </Link>
       </div>
     </section>

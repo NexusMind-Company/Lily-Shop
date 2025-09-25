@@ -101,7 +101,7 @@ const VerifyTransaction = () => {
                 Copy
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-ash mt-2">
               Save this ID for your records
             </p>
           </div>

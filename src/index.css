@@ -23,6 +23,18 @@ body {
   --font-inter: Inter, sans-serif;
   --font-poppins: Poppins, sans-serif;
   --color-ash: #898585;
+  --color-disabled: #d5d5d5;
+  --color-disabled__text: #979797;
   --color-lily: #4eb75e;
+  --color-darklily: #3da64d;
   --color-sun: #f6ad6d;
+}
+
+/* Hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
