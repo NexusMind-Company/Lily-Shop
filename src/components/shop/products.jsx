@@ -176,9 +176,7 @@ const Products = () => {
           </div>
         ) : (
           <div className="w-full text-center py-10">
-            <p className="text-gray-500">
-              You haven&apos;t added any products yet.
-            </p>
+            <p className="text-ash">You haven&apos;t added any products yet.</p>
             <Link
               to={`/shop/${shop_id}/add-products`}
               className="text-lily hover:underline mt-2 inline-block"

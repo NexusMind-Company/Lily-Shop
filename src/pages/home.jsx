@@ -1,5 +1,8 @@
 import ShopCard from "../components/home/shopCard";
 import SEO from "../components/common/SEO";
+import Header from "../components/common/header";
+import Footer from "../components/common/footer";
+import Navbar from "../components/common/navbar";
 
 const Home = () => {
   return (
@@ -11,7 +14,10 @@ const Home = () => {
         type="website"
       />
       <section>
+        <Header />
         <ShopCard />
+        <Navbar />
+        <Footer />
       </section>
     </>
   );

@@ -17,7 +17,7 @@ const Step1 = () => {
           </h1>
         </div>
 
-        <p className="text-gray-500 text-sm mt-2 font-poppins">STEP 1 OF 2</p>
+        <p className="text-ash text-sm mt-2 font-poppins">STEP 1 OF 2</p>
 
         {/* Plan Selection */}
         <div className="space-y-2 font-poppins">
