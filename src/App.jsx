@@ -38,6 +38,7 @@ import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 import Feed from "./pages/feed";
+import Profile from "./pages/profile";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -102,6 +103,7 @@ export default function App() {
           path="/shop/:product_id/edit-products"
           element={<EditProducts />}
         />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/lilyChat" element={<LilyChat />} />
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
