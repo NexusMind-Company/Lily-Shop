@@ -50,7 +50,7 @@ const ProfileHead = () => {
         <span>.</span>
         <p>{formatK(parseInt(user?.views) || 0)} views</p>
         <span>.</span>
-        <p>{user?.videos || "0"} videos</p>
+        <p>{user?.videos || "0"} contents</p>
         <span>.</span>
         <p>{user?.shops?.length || "0"} shops</p>
       </div>
