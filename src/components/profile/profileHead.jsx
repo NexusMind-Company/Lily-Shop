@@ -1,13 +1,18 @@
 import { ChevronLeft } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 // Profile Heading Component
 const ProfileHead = () => {
   const user = useSelector((state) => state.profile.user);
+  const navigate = useNavigate();
 
   return (
     <div className="relative w-full h-[25%] bg-lily rounded-b-[40px] text-white pt-15">
-      <button type="button" className="absolute top-[20px] left-[20px] bg-white rounded-full">
+      <button
+        type="button"
+        className="absolute top-[20px] left-[20px] bg-white rounded-full hover:bg-gray-200 transition-colors"
+        onClick={() => navigate(-1)}>
         <ChevronLeft className="text-black p-[3px]" size={25} />
       </button>
       <img
@@ -16,10 +21,8 @@ const ProfileHead = () => {
         className="w-[100px] h-[100px] mx-auto rounded-full"
       />
       <div className="flex justify-center items-center gap-2 pt-5">
-        <p className="text-center text-xl font-bold ">
-          {user?.name || "Profile Name"}
-        </p>
-        <img src="./check.png" alt="check icon" className="w-4 h-4"/>
+        <p className="text-center text-xl font-bold ">{user?.name || "Profile Name"}</p>
+        <img src="./check.png" alt="check icon" className="w-4 h-4" />
       </div>
       <div className="flex justify-center gap-2 pt-4 text-nowrap flex-wrap">
         <p>{user?.followers || "0k"} followers</p>
@@ -31,10 +34,10 @@ const ProfileHead = () => {
         <p>{user?.shops?.length || "0"} shops</p>
       </div>
       <div className="flex justify-center gap-5 pb-5 pt-3 text-black font-semibold text-sm">
-        <button type="button" className="bg-white rounded-2xl w-30 py-1">
+        <button type="button" className="bg-white rounded-2xl w-30 py-1 hover:bg-gray-200 transition-colors">
           Follow
         </button>
-        <button type="button" className="bg-white rounded-2xl w-30 py-1">
+        <button type="button" className="bg-white rounded-2xl w-30 py-1 hover:bg-gray-200 transition-colors">
           Message
         </button>
       </div>
