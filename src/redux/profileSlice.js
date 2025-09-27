@@ -9,6 +9,7 @@ export const fetchProfile = createAsyncThunk(
   }
 );
 
+
 const profileSlice = createSlice({
   name: "profile",
   initialState: {
