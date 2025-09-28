@@ -1,5 +1,3 @@
-import Header from "./components/common/header";
-import Nav from "./components/common/navbar";
 import Home from "./pages/home";
 import MyShop from "./pages/myShop";
 import Ratings from "./components/shop/ratings";
@@ -8,7 +6,7 @@ import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
-import { Route, Routes, useLocation } from "react-router";
+import { Route, Routes } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import PaymentInitiation from "./components/ads/paymentInitiation";
@@ -39,10 +37,11 @@ import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 import Feed from "./pages/feed";
 import Profile from "./pages/profile";
+import Notifications from "./pages/notifications";
+import Account from "./pages/account";
 
 export default function App() {
   const dispatch = useDispatch();
-  const location = useLocation();
   const isAuthenticated = useSelector((state) => !!state.auth.user_data);
   const [showIdlePopup, setShowIdlePopup] = useState(false);
 
@@ -96,6 +95,7 @@ export default function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
         <Route path="/shop/:shop_id/products" element={<Products />} />
         <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
@@ -106,6 +106,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/lilyChat" element={<LilyChat />} />
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+        <Route path="/account" element={<Account />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
       </Routes>
       {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}
