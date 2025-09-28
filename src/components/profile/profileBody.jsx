@@ -1,36 +1,18 @@
-import { useState } from "react";
-import ProfileShops from "./profileShops";
-import ProfilePosts from "./profilePosts";
+import ProfileBodyOwner from "./profileBodyOwner";
+import ProfileBodyVisiting from "./profileBodyVisiting";
+import { useSelector } from "react-redux";
 
-// Profile Body Component
-const ProfileBody = () => {
-  const [activeIcon, setActiveIcon] = useState("mingcute");
+const ProfileHead = ({ userId }) => {
+  const authUserId = useSelector((state) => state.auth.user?.id);
+
+  // Logic: If the visiting user is the owner, show owner post body
+  const isOwner = userId === authUserId;
 
   return (
-    <div className="w-full h-[70%]">
-      <div className="flex justify-between border-b-2 border-b-gray-400 px-3">
-        <img
-          src={activeIcon==="mingcute" ? "./mingcute black.svg" : "./mingcute.svg"}
-          alt="mingcute icon"
-          className={`w-8 h-8 cursor-pointer ${
-            activeIcon === "mingcute" ? "border-b-2 border-b-black text-black" : "border-b-0"
-          }`}
-          onClick={() => setActiveIcon("mingcute")}
-        />
-        <img
-          src={activeIcon === "shop" ? "./shop black.svg": "./shop.svg"}
-          alt="shop icon"
-          className={`w-8 h-8 cursor-pointer ${
-            activeIcon === "shop" ? "border-b-2 border-b-black text-black" : "border-b-0"
-          }`}
-          onClick={() => setActiveIcon("shop")}
-        />
-      </div>
-      <div>
-        {activeIcon === "mingcute" ? <ProfilePosts /> : <ProfileShops />}
-      </div>
+    <div>
+      {isOwner ? <ProfileBodyOwner /> : <ProfileBodyVisiting />}
     </div>
   );
 };
 
-export default ProfileBody;
+export default ProfileHead;
