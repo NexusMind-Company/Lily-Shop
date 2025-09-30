@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Settings = () => {
   return (
-    <section className="mt-14 min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
+    <section className="my-14 min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="w-full ">
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
@@ -62,6 +62,13 @@ const Settings = () => {
           if (settingData.title === "Account") {
             return (
               <Link to="/account" key={settingData.id} className="block">
+                {itemContent}
+              </Link>
+            );
+          }
+          if (settingData.title === "Wallet") {
+            return (
+              <Link to="/wallet" key={settingData.id} className="block">
                 {itemContent}
               </Link>
             );
