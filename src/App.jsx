@@ -39,6 +39,7 @@ import Feed from "./pages/feed";
 import Profile from "./pages/profile";
 import Notifications from "./pages/notifications";
 import Account from "./pages/account";
+import WalletPage from "./pages/wallet";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -103,11 +104,13 @@ export default function App() {
           path="/shop/:product_id/edit-products"
           element={<EditProducts />}
         />
+        <Route path="/wallet" element={<WalletPage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/lilyChat" element={<LilyChat />} />
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/account" element={<Account />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
+
       </Routes>
       {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}
 
