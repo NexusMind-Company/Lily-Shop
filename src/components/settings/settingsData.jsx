@@ -1,4 +1,5 @@
 import { User, Bell, MessageCircle, Wallet, LogOut, Users } from "lucide-react";
+import About from "../about/About";
 
 export const settingsData = [
   {
@@ -32,6 +33,7 @@ export const settingsData = [
     title: "About",
     description: "Learn more about us",
     icon: <Users className="text-black" size={32} />,
+    component: About 
   },
   {
     id: 6,
