@@ -41,6 +41,7 @@ import Notifications from "./pages/notifications";
 import Account from "./pages/account";
 import WalletPage from "./pages/wallet";
 import TransactionsPage from "./pages/transactions";
+import About from "./components/about/About";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -106,6 +107,7 @@ export default function App() {
           element={<EditProducts />}
         />
         <Route path="/wallet" element={<WalletPage />} />
+         <Route path="/about" element={<About />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/lilyChat" element={<LilyChat />} />
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
