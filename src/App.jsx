@@ -41,6 +41,10 @@ import Notifications from "./pages/notifications";
 import Account from "./pages/account";
 import WalletPage from "./pages/wallet";
 import TransactionsPage from "./pages/transactions";
+import CreateContentPage from "./pages/createContent";
+import About from "./components/about/About";
+import TopUpPage from "./pages/topup";
+import WithdrawPage from "./pages/withdraw";
 
 export default function App() {
   const dispatch = useDispatch();
