@@ -41,6 +41,9 @@ import Notifications from "./pages/notifications";
 import Account from "./pages/account";
 import WalletPage from "./pages/wallet";
 import TransactionsPage from "./pages/transactions";
+import CreateContentPage from "./pages/createContent"
+import TopUpPage from "./pages/topup";
+import WithdrawPage from "./pages/withdraw";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -88,6 +91,7 @@ export default function App() {
         <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
         <Route path="/birthday-picker" element={<BirthdayPicker />} />
         <Route path="/feed" element={<Feed />} />
+        <Route path="/createContent" element={<CreateContentPage />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/shop/:shop_id/step1" element={<Step1 />} />
         <Route
@@ -112,6 +116,8 @@ export default function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
+        <Route path="/withdraw" element={<WithdrawPage />} />
+        <Route path="/topup" element={<TopUpPage />} />
 
       </Routes>
       {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}

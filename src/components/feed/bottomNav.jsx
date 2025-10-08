@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Link } from "react-router-dom";
 
 const BottomNav = ({ activePage, setActivePage }) => {
@@ -56,7 +56,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
       </Link>
       {/* Create */}
       <Link
-        to="/create"
+        to="/createContent"
         className={`flex flex-col items-center relative ${
           activePage === "create" ? "text-lily" : "text-ash"
         }`}
