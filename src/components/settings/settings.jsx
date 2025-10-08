@@ -73,6 +73,13 @@ const Settings = () => {
               </Link>
             );
           }
+              if (settingData.title === "About") {
+            return (
+              <Link to="/about" key={settingData.id} className="block">
+                {itemContent}
+              </Link>
+            );
+          }
           return <div key={settingData.id}>{itemContent}</div>;
         })}
       </div>
