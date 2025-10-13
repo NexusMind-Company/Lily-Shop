@@ -65,7 +65,6 @@ function CameraRecorderModal({ open, onClose, onAddMedia }) {
     }
   };
 
-
   const takePhoto = () => {
     const video = videoRef.current;
     if (!video || (video.readyState !== 4 && video.readyState !== 2)) {
@@ -109,6 +108,8 @@ function CameraRecorderModal({ open, onClose, onAddMedia }) {
         type: "video",
         file,
       });
+
+      onClose(); // Add this line to close modal
     };
 
     mediaRecorderRef.current.start();
@@ -125,7 +126,9 @@ function CameraRecorderModal({ open, onClose, onAddMedia }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 grid place-items-center p-4">
+    <div
+      className="fixed inset-0 bg-black/70 z-50 grid place-items-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <div className="flex gap-2 text-sm">
