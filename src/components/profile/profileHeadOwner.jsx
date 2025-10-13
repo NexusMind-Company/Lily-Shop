@@ -1,7 +1,7 @@
 import { EllipsisVertical } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useState } from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 // Profile Heading Component for Owner
 const ProfileHeadOwner = () => {
@@ -16,8 +16,14 @@ const ProfileHeadOwner = () => {
         </button>
         {menuOpen && (
           <ul className="bg-white text-black w-[140px] rounded shadow-lg ml-2 absolute top-0 right-full">
-            <Link to="/settings"><li className="p-2 hover:bg-gray-200 cursor-pointer border-b border-gray-400">Settings</li></Link>
-            <Link to="" ><li className="p-2 hover:bg-gray-200 cursor-pointer">Remove Ads</li></Link>
+            <Link to="/settings">
+              <li className="p-2 hover:bg-gray-200 cursor-pointer border-b border-gray-400">
+                Settings
+              </li>
+            </Link>
+            <Link to="">
+              <li className="p-2 hover:bg-gray-200 cursor-pointer">Remove Ads</li>
+            </Link>
           </ul>
         )}
       </div>
@@ -44,4 +50,3 @@ const ProfileHeadOwner = () => {
 };
 
 export default ProfileHeadOwner;
-// filepath: c:\Users\HP\Desktop\Lily shops\Lily-Shop\src\components\profile\profileHeadOwner.jsx
