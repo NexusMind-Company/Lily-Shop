@@ -30,16 +30,15 @@ function UploadContent() {
     setActiveItems((prev) => [...prev, media]);
   };
 
-
   const handleGoBack = () => {
-  setTab((prev) => Math.max(prev - 1, 0));
-};
+    setTab((prev) => Math.max(prev - 1, 0));
+  };
 
-const handlePublish = () => {
-  alert("Content published!");
-  setTab(0);
-  setActiveItems([]);
-};
+  const handlePublish = () => {
+    alert("Content published!");
+    setTab(0);
+    setActiveItems([]);
+  };
 
   const fileInputRef = useRef(null);
   const tabLabels = ["Upload/Record", "Details", "Product Details", "Preview & Publish"];
@@ -98,7 +97,7 @@ const handlePublish = () => {
         </div>
       </div>
 
-            {/* Upload tab */}
+      {/* Upload tab */}
       <div className="flex-grow overflow-auto">
         {tab === 0 && (
           <div className="h-full flex flex-col">
@@ -112,24 +111,12 @@ const handlePublish = () => {
                   ref={fileInputRef}
                   onChange={(e) => {
                     const files = Array.from(e.target.files);
-                    const videoFile = files.find((file) => file.type.startsWith("video"));
-                    if (videoFile) {
-                      setActiveItems([
-                        {
-                          previewUrl: URL.createObjectURL(videoFile),
-                          type: "video",
-                          file: videoFile,
-                        },
-                      ]);
-                    } else {
-                      setActiveItems(
-                        files.map((file) => ({
-                          previewUrl: URL.createObjectURL(file),
-                          type: "image",
-                          file,
-                        }))
-                      );
-                    }
+                    const newMedia = files.map((file) => ({
+                      previewUrl: URL.createObjectURL(file),
+                      type: file.type.startsWith("video") ? "video" : "image",
+                      file: file,
+                    }));
+                    setActiveItems((prev) => [...prev, ...newMedia]);
                   }}
                 />
                 <button
@@ -275,11 +262,12 @@ const handlePublish = () => {
             )}
             {/* Action Buttons */}
             <div className="flex gap-5 my-10 justify-end ">
-            
-              <button onClick={handleGoBack} className="bg-red-500 py-2 px-4 rounded-md text-white" >
+              <button onClick={handleGoBack} className="bg-red-500 py-2 px-4 rounded-md text-white">
                 Go Back
               </button>
-              <button onClick={handlePublish} className="bg-lily text-white py-2 px-4 rounded-md">Publish</button>
+              <button onClick={handlePublish} className="bg-lily text-white py-2 px-4 rounded-md">
+                Publish
+              </button>
             </div>
           </div>
         )}
