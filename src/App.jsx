@@ -41,6 +41,14 @@ import Notifications from "./pages/notifications";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
 import About from "./components/about/About";
+import WalletPage from "./pages/wallet";
+import TransactionHistory from "./pages/transaction-history";
+import DepositPage from "./pages/deposit";
+import WithdrawPage from "./pages/withdraw";
+import AddBankAccountPage from "./pages/addBankAccount";
+import BankAccountDetailsPage from "./pages/bankAccountDetails";
+import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
+import WithdrawSuccessPage from "./pages/withdrawSuccess";
 
 
 export default function App() {
@@ -113,6 +121,14 @@ export default function App() {
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
         <Route path="/account" element={<Account />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
+        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/transaction-history" element={<TransactionHistory />} />
+        <Route path="/deposit" element={<DepositPage />} />
+        <Route path="/withdraw" element={<WithdrawPage />} />
+        <Route path="/addBankAccount" element={<AddBankAccountPage />} />
+        <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
+        <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
+        <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
       
 
       </Routes>
@@ -124,3 +140,4 @@ export default function App() {
     </HelmetProvider>
   );
 }
+
