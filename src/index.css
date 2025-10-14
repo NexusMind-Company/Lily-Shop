@@ -25,6 +25,7 @@ body {
   --color-ash: #898585;
   --color-disabled: #d5d5d5;
   --color-disabled__text: #979797;
+  --color-main: #fffae7;
   --color-lily: #4eb75e;
   --color-darklily: #3da64d;
   --color-sun: #f6ad6d;
@@ -37,4 +38,39 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* For the TikTok/IG style feed view */
+.media-container-cover {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background-color: #000;
+  overflow: hidden;
+  display: flex; /* Added for alignment */
+  justify-content: center; /* Added for alignment */
+  align-items: center; /* Added for alignment */
+}
+
+.media-container-cover img,
+.media-container-cover video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* For the single item "fit inside" view (e.g., Product Details) */
+.media-container-contain {
+  width: 100%;
+  /* REMOVED: height: 100%; -- This was the main cause of the oversized background. */
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.media-container-contain img,
+.media-container-contain video {
+  max-width: 100%;
+  max-height: 100%; /* This is fine, as it's constrained by the natural media height */
+  object-fit: contain;
 }
