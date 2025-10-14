@@ -267,7 +267,7 @@ This protects users while keeping things simple and fair for vendors.`
           </p>
           <div className="flex items-center gap-2 text-blue-600 text-sm">
             <span>📧</span>
-            <span>ai.nexusmind@gmail.com</span>
+            <span> info.lilyshops@gmail.com</span>
           </div>
         </div>
       </div>
