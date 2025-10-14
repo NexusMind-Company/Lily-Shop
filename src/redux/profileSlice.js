@@ -25,3 +25,14 @@ export const profileSlice = createSlice({
 
 export const { fetchProfileStart, fetchProfileSuccess, fetchProfileFailure } = profileSlice.actions;
 export default profileSlice.reducer;
+
+export const fetchProfile = () => async (dispatch) => {
+  try {
+    dispatch(fetchProfileStart());
+    const response = await fetch("/api/profile");
+    const data = await response.json();
+    dispatch(fetchProfileSuccess(data));
+  } catch (error) {
+    dispatch(fetchProfileFailure(error.toString()));
+  }
+};
