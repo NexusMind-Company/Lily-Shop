@@ -48,3 +48,4 @@ export const getAuthProfile = async () => {
 };
 
 export default api;
+
