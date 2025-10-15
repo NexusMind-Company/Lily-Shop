@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const createUsernameApi = async ({ contact, username }) => {
-  const res = await fetch("/api/create-username", {
+  const res = await fetch("/auth/username/set/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contact, username }),
