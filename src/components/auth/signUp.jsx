@@ -5,11 +5,8 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 
 // API call
-const DJANGO_BASE_URL = "http://127.0.0.1:8000";
-const SIGNUP_URL = `${DJANGO_BASE_URL}/auth/users/`;
-const signupApi = async () => {
-  // const urlSearchParams = new URLSearchParams(userData);
-  const res = await fetch(SIGNUP_URL, {
+const signupApi = async ({ phone_or_email, password }) => {
+  const res = await fetch("/auth/users/", {
     method: "POST",
     header: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone_or_email, password }),

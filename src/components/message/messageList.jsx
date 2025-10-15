@@ -41,12 +41,12 @@ export default function MessageList({ openChat }) {
       <input
         type="text"
         placeholder="Search"
-        className="w-full p-2 pl-5 mb-4 border rounded-full"
+        className="w-full p-2 pl-5 mb-4 border-2 rounded-full hover:border-lily outline-none"
       />
       {messages.map((chat) => (
         <div
           key={chat.id}
-          className="flex items-center justify-between p-3 cursor-pointer w-full"
+          className="flex items-center justify-between p-1 cursor-pointer w-full"
           onClick={() => openChat(chat)}
         >
           <div className="flex items-center gap-3">
