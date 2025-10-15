@@ -12,7 +12,7 @@ export default function MessageInput({ sendMessage }) {
   };
 
   return (
-    <div className="flex items-center p-2 border-t">
+    <div className="flex items-center p-2 w-full">
       <input
         type="text"
         value={message}
@@ -22,7 +22,7 @@ export default function MessageInput({ sendMessage }) {
       />
       <button
         onClick={handleSend}
-        className="ml-2 bg-green-500 text-white p-2 rounded-md"
+        className="ml-2 bg-[#075e54] text-white px-4 py-2 rounded-md hover:bg-[#064c44]"
       >
         Send
       </button>
