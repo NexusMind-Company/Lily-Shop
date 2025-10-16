@@ -1,17 +1,17 @@
-import SEO from "../components/common/SEO";
+import { useState } from "react";
+import MessagesList from "../components/inbox/messagesList";
+import ChatPage from "../components/inbox/chatPage";
 
-const Messages = () => {
+export default function Messages() {
+  const [activeChat, setActiveChat] = useState(null);
+
   return (
-    <>
-      <SEO
-        title="Messages - Lily Shops"
-        description="Connect with shop owners and customers through Lily Shops messaging system. Manage your conversations and inquiries."
-        keywords="messages, chat, communication, customer service, Lily Shops, shop communication"
-        type="website"
-      />
-      {/* ... rest of your component ... */}
-    </>
+    <section className="h-screen">
+      {activeChat ? (
+        <ChatPage chat={activeChat} goBack={() => setActiveChat(null)} />
+      ) : (
+        <MessagesList openChat={setActiveChat} />
+      )}
+    </section>
   );
-};
-
-export default Messages;
+}

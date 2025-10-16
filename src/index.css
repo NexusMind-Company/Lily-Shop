@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-  @apply bg-[#FFFAE7];
+  @apply bg-white;
   @apply border-black;
 }
 
