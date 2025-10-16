@@ -8,10 +8,12 @@ import { useMutation } from "@tanstack/react-query";
 const signupApi = async ({ phone_or_email, password }) => {
   const res = await fetch("/auth/users/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    header: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone_or_email, password }),
   });
-  if (!res.ok) throw await res.json();
+  if (!res.ok) {
+    throw await res.json();
+  }
   return res.json();
 };
 
@@ -77,7 +79,7 @@ const SignUp = () => {
     }
     if (detectInputType(phone_or_email) === "unknown") {
       setErrors({
-        phone_or_email: "Enter a valid Nigerian phone number or email",
+        phone_or_email: "Enter a valid phone number or email",
       });
       return;
     }
@@ -85,12 +87,12 @@ const SignUp = () => {
       setErrors({ password: "Password is required" });
       return;
     }
-    if (password.length < 6) {
-      setErrors({ password: "Password must be at least 6 characters" });
+    if (password.length < 8) {
+      setErrors({ password: "Password must be at least 8 characters" });
       return;
     }
 
-    mutation.mutate(values);
+    mutation.mutate(value);
   };
 
   return (
