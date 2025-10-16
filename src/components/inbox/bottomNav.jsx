@@ -3,7 +3,7 @@ import { MessageSquareText, House, Store, CirclePlus, User } from "lucide-react"
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (
-    <div className="flex justify-around items-center bg-[#FFFAE7] h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
+    <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
         to="/feed"
@@ -18,9 +18,9 @@ const BottomNav = ({ activePage, setActivePage }) => {
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "home" ? (
-            <House className="h-7 w-7" />
+            <House className=" text-lily h-7 w-7" />
           ) : (
-            <House className="text-lily h-7 w-7" />
+            <House className="h-7 w-7" />
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Home</span>
@@ -60,24 +60,24 @@ const BottomNav = ({ activePage, setActivePage }) => {
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "create" ? (
-            <CirclePlus className=" text-lily h-7 w-7" />
+            <CirclePlus className="text-lily h-7 w-7" />
           ) : (
             <CirclePlus className=" h-7 w-7" />
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Create</span>
       </Link>
-      {/* Chatroom */}
+      {/* inbox */}
       <Link
         to="/inbox"
         className={`flex flex-col items-center relative ${
-          activePage === "" ? "text-lily" : "text-ash"
+          activePage === "inbox" ? "text-lily" : "text-ash"
         }`}>
         <button
           onClick={() => setActivePage("inbox")}
           className={`${
             activePage === "inbox"
-              ? "grid place-items-cente size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
+              ? "grid place-items-center size-10 rounded-full -top-2.5 absolute transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "inbox" ? (
@@ -92,7 +92,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
             </div>
           )}
         </button>
-        <span className="text-xs font-poppins mt-6">inbox</span>
+        <span className="text-xs font-poppins mt-6">Inbox</span>
       </Link>
       {/* Profile */}
       <Link

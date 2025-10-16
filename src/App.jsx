@@ -16,7 +16,6 @@ import SearchResults from "./pages/searchResults";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess, logout } from "./redux/authSlice";
-import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/common/scrollToTop";
 import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
@@ -37,7 +36,6 @@ import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 import Feed from "./pages/feed";
 import Profile from "./pages/profile";
-import Notifications from "./pages/notifications";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
 import About from "./components/about/About";
@@ -49,6 +47,10 @@ import AddBankAccountPage from "./pages/addBankAccount";
 import BankAccountDetailsPage from "./pages/bankAccountDetails";
 import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
 import WithdrawSuccessPage from "./pages/withdrawSuccess";
+import OrdersPage from "./pages/orders";
+import ActivityPage from "./pages/activity";
+import InboxPage from "./pages/inbox";
+import Messages from "./pages/messages";
 
 
 export default function App() {
@@ -106,8 +108,6 @@ export default function App() {
         />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/notifications" element={<Notifications />} />
         <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
         <Route path="/shop/:shop_id/products" element={<Products />} />
         <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
@@ -129,6 +129,10 @@ export default function App() {
         <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
         <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
         <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
+        <Route path="/inbox" element={<InboxPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/messages" element={<Messages />} />
       
 
       </Routes>
