@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const forgotPasswordApi = async ({ phone_or_email }) => {
-  const res = await fetch("/api/forgot-password", {
+  const res = await fetch("/auth/password-change/request/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone_or_email }),
