@@ -19,7 +19,6 @@ const FeedItem = ({ post, onVideoInit }) => {
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  
   const dispatch = useDispatch();
 
   // When the component mounts, pass the media ref's value up to the parent.
@@ -29,9 +28,29 @@ const FeedItem = ({ post, onVideoInit }) => {
     }
   }, [onVideoInit]);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+  //API call for adding likes
+  const handleLike = async () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, {
+        method: newLikedState ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: newLikedState }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update like");
+      const data = await res.json();
+
+      if (data?.likes !== undefined) setLikeCount(data.likes);
+    } catch (err) {
+      console.error(err);
+      // Revert UI if API fails
+      setIsLiked(!newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev - 1 : prev + 1));
+    }
   };
 
   const handleDoubleTap = () => {
@@ -39,14 +58,12 @@ const FeedItem = ({ post, onVideoInit }) => {
     setShowLikeAnimation(true);
   };
 
-  
   const handleAddToCart = () => {
-    
     const itemToAdd = {
-      id: post.id, 
+      id: post.id,
       productName: post.productName || post.caption.slice(0, 30),
       price: post.price,
-      quantity: 1, 
+      quantity: 1,
       mediaSrc: post.media?.[0]?.src,
     };
 
@@ -141,7 +158,6 @@ const FeedItem = ({ post, onVideoInit }) => {
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
             {/* Profile Pic */}
             <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
-              
               <img
                 src={post.userpic}
                 alt={post.username}
