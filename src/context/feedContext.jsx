@@ -7,7 +7,7 @@ import { mockPosts } from '../components/feed/mockData';
 const USE_MOCK = true;
 
 const fetchFeed = async () => {
-  const res = await fetch('/api/feed');
+  const res = await fetch('/shops/home/');
   if (!res.ok) throw new Error('Failed to fetch feed');
   return res.json();
 };
