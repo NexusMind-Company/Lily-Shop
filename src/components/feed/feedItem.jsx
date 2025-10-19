@@ -35,7 +35,7 @@ const FeedItem = ({ post, onVideoInit }) => {
     setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
 
     try {
-      const res = await fetch(`/api/posts/${post.id}/like`, {
+      const res = await fetch(`/shops/products/${posts.id}/like`, {
         method: newLikedState ? "POST" : "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ liked: newLikedState }),
