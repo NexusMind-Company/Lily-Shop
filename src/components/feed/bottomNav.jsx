@@ -1,5 +1,5 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import { MessageSquareText, House, Store, CirclePlus, User } from "lucide-react";
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (

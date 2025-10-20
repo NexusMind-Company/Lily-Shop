@@ -6,7 +6,7 @@ import EditShop from "./pages/editShop";
 import ShopDetails from "./pages/shopDetails";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
-import { Route, Routes, useLocation } from "react-router";
+import { Route, Routes } from "react-router";
 import SignUp from "./pages/signUp";
 import PurchaseAds from "./pages/purchaseAds";
 import PaymentInitiation from "./components/ads/paymentInitiation";
@@ -16,7 +16,6 @@ import SearchResults from "./pages/searchResults";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess, logout } from "./redux/authSlice";
-import Messages from "./pages/messagePage";
 import ScrollToTop from "./components/common/scrollToTop";
 import LilyChat from "./pages/lilyChat";
 import AddProducts from "./pages/addProducts";
@@ -38,10 +37,26 @@ import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPag
 import Feed from "./pages/feed";
 import ProductDetails from "./components/feed/product/productDetails";
 import FeedLayout from "./layouts/feedLayouts";
+import Profile from "./pages/profile";
+import Account from "./pages/account";
+import CreateContentPage from "./pages/createContent";
+import About from "./components/about/About";
+import WalletPage from "./pages/wallet";
+import TransactionHistory from "./pages/transaction-history";
+import DepositPage from "./pages/deposit";
+import WithdrawPage from "./pages/withdraw";
+import AddBankAccountPage from "./pages/addBankAccount";
+import BankAccountDetailsPage from "./pages/bankAccountDetails";
+import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
+import WithdrawSuccessPage from "./pages/withdrawSuccess";
+import OrdersPage from "./pages/orders";
+import ActivityPage from "./pages/activity";
+import InboxPage from "./pages/inbox";
+import Messages from "./pages/messages";
+
 
 export default function App() {
   const dispatch = useDispatch();
-  const location = useLocation();
   const isAuthenticated = useSelector((state) => !!state.auth.user_data);
   const [showIdlePopup, setShowIdlePopup] = useState(false);
 
@@ -97,7 +112,6 @@ export default function App() {
         />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/searchResults" element={<SearchResults />} />
-        <Route path="/messages" element={<Messages />} />
         <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
         <Route path="/shop/:shop_id/products" element={<Products />} />
         <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
@@ -105,9 +119,26 @@ export default function App() {
           path="/shop/:product_id/edit-products"
           element={<EditProducts />}
         />
+         <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/lilyChat" element={<LilyChat />} />
         <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+        <Route path="/account" element={<Account />} />
         <Route path="/verify-transaction" element={<VerifyTransaction />} />
+        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/transaction-history" element={<TransactionHistory />} />
+        <Route path="/deposit" element={<DepositPage />} />
+        <Route path="/withdraw" element={<WithdrawPage />} />
+        <Route path="/addBankAccount" element={<AddBankAccountPage />} />
+        <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
+        <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
+        <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
+        <Route path="/inbox" element={<InboxPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/messages" element={<Messages />} />
+      
+
       </Routes>
       {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}
 
@@ -117,3 +148,4 @@ export default function App() {
     </HelmetProvider>
   );
 }
+
