@@ -9,6 +9,7 @@ import deleteShopReducer from "./deleteShopSlice";
 import adsReducer from "./adsSlice";
 import passwordReducer from "./passwordSlice";
 import feedReducer from "./feedCommentSlice";
+import contentReducer from "./contentSlice";
 import { setAuthToken } from "../services/api";
 
 export const store = configureStore({
@@ -23,6 +24,7 @@ export const store = configureStore({
     ads: adsReducer,
     password: passwordReducer,
     feed: feedReducer,
+    content: contentReducer,
   },
 });
 

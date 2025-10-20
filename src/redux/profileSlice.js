@@ -1,38 +1,38 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../services/api";
+import { createSlice } from "@reduxjs/toolkit";
 
-export const fetchProfile = createAsyncThunk(
-  "profile/fetchProfile",
-  async () => {
-    const response = await api.get("/auth/profile");
-    return response.data;
-  }
-);
-
-const profileSlice = createSlice({
+export const profileSlice = createSlice({
   name: "profile",
   initialState: {
-    user: null,
-    shops: [],
-    status: "idle",
+    data: null,
+    loading: false,
     error: null,
   },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchProfile.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchProfile.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.user = action.payload;
-        state.shops = action.payload.shops;
-      })
-      .addCase(fetchProfile.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
-      });
+  reducers: {
+    fetchProfileStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchProfileSuccess: (state, action) => {
+      state.data = action.payload;
+      state.loading = false;
+    },
+    fetchProfileFailure: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
   },
 });
 
+export const { fetchProfileStart, fetchProfileSuccess, fetchProfileFailure } = profileSlice.actions;
 export default profileSlice.reducer;
+
+export const fetchProfile = () => async (dispatch) => {
+  try {
+    dispatch(fetchProfileStart());
+    const response = await fetch("/api/profile");
+    const data = await response.json();
+    dispatch(fetchProfileSuccess(data));
+  } catch (error) {
+    dispatch(fetchProfileFailure(error.toString()));
+  }
+};
