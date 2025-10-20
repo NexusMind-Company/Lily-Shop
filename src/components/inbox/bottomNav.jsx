@@ -6,7 +6,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
     <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
-        to="/feed"
+        to="/home"
         className={`flex flex-col items-center relative ${
           activePage === "home" ? "text-lily" : "text-ash"
         }`}>
@@ -27,18 +27,18 @@ const BottomNav = ({ activePage, setActivePage }) => {
       </Link>
       {/* Shops */}
       <Link
-        to="/createShop"
+        to="/shops"
         className={`flex flex-col items-center relative ${
-          activePage === "shop" ? "text-lily" : "text-ash"
+          activePage === "shops" ? "text-lily" : "text-ash"
         }`}>
         <button
-          onClick={() => setActivePage("shop")}
+          onClick={() => setActivePage("shops")}
           className={`${
-            activePage === "shop"
+            activePage === "shops"
               ? "grid place-items-center size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
-          {activePage === "shop" ? (
+          {activePage === "shops" ? (
             <Store className=" text-lily h-7 w-7" />
           ) : (
             <Store className="h-7 w-7" />

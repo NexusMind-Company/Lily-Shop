@@ -20,7 +20,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
           {activePage === "home" ? (
             <House className="h-7 w-7" />
           ) : (
-            <House className="text-lily h-7 w-7" />
+            <House className="h-7 w-7" />
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Home</span>
@@ -35,7 +35,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
           onClick={() => setActivePage("shops")}
           className={`${
             activePage === "shops"
-              ? "grid place-items-center size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
+              ? "grid place-items-center size-10 rounded-full absolute -top-2.5 transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "shops" ? (
@@ -115,6 +115,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
         </button>
         <span className="text-xs font-poppins mt-6">Profile</span>
       </Link>
+
     </div>
   );
 };

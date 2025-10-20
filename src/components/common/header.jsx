@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import { fetchShops } from "../../redux/shopSlice";
+import { Search } from "lucide-react";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -122,12 +123,12 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between bg-[#FFFAE7] w-full fixed top-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
+    <header className="flex items-center justify-between w-full fixed top-0 h-16 px-3 md:px-6 shadow-md bg-white z-40">
       <Link to="/" onClick={handleLogoClick}>
         <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
       </Link>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 ">
         <button
           className="cursor-pointer"
           onClick={() => {
@@ -136,7 +137,7 @@ const Header = () => {
           }}
           ref={searchButtonRef}
         >
-          <img src="/search.svg" alt="search-button" />
+          <Search className="w-7 h-7"/>
         </button>
 
         <button
@@ -175,7 +176,7 @@ const Header = () => {
             onChange={handleSearchChange}
             autoFocus={searchOpen}
           />
-          <button type="submit" className="absolute right-3">
+          <button type="submit" className="absolute right-3 ">
             <img src="/search-icon.svg" alt="search-icon" />
           </button>
         </form>

@@ -1,4 +1,3 @@
-import Home from "./pages/home";
 import MyShop from "./pages/myShop";
 import Ratings from "./components/shop/ratings";
 import CreateShop from "./pages/createShop";
@@ -34,7 +33,6 @@ import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfileP
 import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
-import Feed from "./pages/feed";
 import Profile from "./pages/profile";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
@@ -51,6 +49,8 @@ import OrdersPage from "./pages/orders";
 import ActivityPage from "./pages/activity";
 import InboxPage from "./pages/inbox";
 import Messages from "./pages/messages";
+import Shops from "./pages/shops";
+import Home from "./pages/home";
 
 
 export default function App() {
@@ -98,7 +98,7 @@ export default function App() {
         <Route path="/create-username" element={<CreateUsername />} />
         <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
         <Route path="/birthday-picker" element={<BirthdayPicker />} />
-        <Route path="/feed" element={<Feed />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/createContent" element={<CreateContentPage />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/shop/:shop_id/step1" element={<Step1 />} />
@@ -133,6 +133,7 @@ export default function App() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/shops" element={<Shops />} />
       
 
       </Routes>
