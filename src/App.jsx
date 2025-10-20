@@ -33,6 +33,7 @@ import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfileP
 import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
+import Feed from "./pages/feed";
 import Profile from "./pages/profile";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
@@ -98,7 +99,7 @@ export default function App() {
         <Route path="/create-username" element={<CreateUsername />} />
         <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
         <Route path="/birthday-picker" element={<BirthdayPicker />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/feed" element={<Feed />} />
         <Route path="/createContent" element={<CreateContentPage />} />
         <Route path="/purchaseAds" element={<PurchaseAds />} />
         <Route path="/shop/:shop_id/step1" element={<Step1 />} />
