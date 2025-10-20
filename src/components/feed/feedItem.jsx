@@ -2,8 +2,14 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
+
+// Local component imports
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./VideoPlayer";
+import CommentsModal from "./comments/commentsModal";
+import ShareModal from "./share/shareModal";
+
+// Redux imports
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "../../redux/cartSlice";
 
@@ -16,10 +22,12 @@ const FeedItem = ({ post, onVideoInit }) => {
   const isVideo = post?.media?.[0]?.type === "video";
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isFollowed, setIsFollowed] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  
   const dispatch = useDispatch();
 
   // When the component mounts, pass the media ref's value up to the parent.
@@ -34,24 +42,34 @@ const FeedItem = ({ post, onVideoInit }) => {
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
   };
 
+  const handleFollow = () => {
+    setIsFollowed(!isFollowed);
+  };
+
   const handleDoubleTap = () => {
     if (!isLiked) handleLike();
     setShowLikeAnimation(true);
   };
 
-  
   const handleAddToCart = () => {
-    
     const itemToAdd = {
-      id: post.id, 
+      id: post.id,
       productName: post.productName || post.caption.slice(0, 30),
       price: post.price,
-      quantity: 1, 
+      quantity: 1,
       mediaSrc: post.media?.[0]?.src,
     };
 
     // Dispatch the action using the action creator from cartSlice
     dispatch(addItemToCart(itemToAdd));
+  };
+
+  const handleOpenComments = () => {
+    setShowCommentsModal(true);
+  };
+
+  const handleOpenShare = () => {
+    setShowShareModal(true);
   };
 
   return (
@@ -88,8 +106,8 @@ const FeedItem = ({ post, onVideoInit }) => {
             onAnimationComplete={() => setShowLikeAnimation(false)}
           >
             <Heart
-              className="w-24 h-24 text-white drop-shadow-lg"
-              fill="white"
+              className="w-24 h-24 text-lily drop-shadow-lg"
+              fill="#4eb75e"
             />
           </motion.div>
         )}
@@ -115,10 +133,19 @@ const FeedItem = ({ post, onVideoInit }) => {
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="font-semibold ml-1 opacity-80"
                 >
-                  {isExpanded ? "...less" : "...more"}
+                  {isExpanded ? "...less" : "...see more"}
                 </button>
               )}
             </motion.p>
+
+            {/* music Track */}
+            <p className="font-light flex items-center gap-1">
+              <span>
+                <img src="/icons/music.svg" alt="" />
+              </span>
+              {post.musicTrack}
+            </p>
+
             {/* Add to cart and buy now */}
             <div className="flex items-center space-x-2 pt-2">
               <button
@@ -139,14 +166,26 @@ const FeedItem = ({ post, onVideoInit }) => {
             </div>
           </div>
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
-            {/* Profile Pic */}
-            <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
-              
-              <img
-                src={post.userpic}
-                alt={post.username}
-                className="w-full h-full object-contain"
-              />
+            {/* Profile Pic and follow button */}
+            <div className=" relative flex items-center">
+              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+                <img
+                  src={post.userpic}
+                  alt={post.username}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <button
+                onClick={handleFollow}
+                className="absolute top-[80%] right-1/3"
+              >
+                <img
+                  src={`${
+                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                  }`}
+                  alt={`Follow ${post.username}`}
+                />
+              </button>
             </div>
             {/* Like Icon */}
             <button onClick={handleLike} className="flex flex-col items-center">
@@ -159,15 +198,21 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(likeCount)}
               </span>
             </button>
-            {/* Comments Icon */}
-            <button className="flex flex-col items-center">
+            {/* Comments Icon - MODIFIED to open modal */}
+            <button
+              onClick={handleOpenComments}
+              className="flex flex-col items-center"
+            >
               <img src="/icons/message-alt.svg" alt="" />
               <span className="text-xs font-semibold">
                 {formatCount(post.comments)}
               </span>
             </button>
             {/* Share Icon */}
-            <button className="flex flex-col items-center">
+            <button
+              onClick={handleOpenShare}
+              className="flex flex-col items-center"
+            >
               <img src="/icons/send-alt.svg" alt="" />
               <span className="text-xs font-semibold">
                 {formatCount(post.shares)}
@@ -195,6 +240,27 @@ const FeedItem = ({ post, onVideoInit }) => {
           </div>
         </div>
       </div>
+
+      {/* RENDER THE COMMENTS MODAL */}
+      <AnimatePresence>
+        {showCommentsModal && (
+          <CommentsModal
+            isOpen={showCommentsModal}
+            onClose={() => setShowCommentsModal(false)}
+            postId={post.id} // Pass the unique ID of the post
+            totalComments={post.comments} // Pass the total count for the header
+          />
+        )}
+
+        {showShareModal && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            postUrl={`https://yourapp.com/post/${post.id}`} // Example URL structure
+            postCaption={post.caption}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
