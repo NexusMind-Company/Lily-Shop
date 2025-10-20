@@ -38,4 +38,14 @@ api.interceptors.response.use(
   }
 );
 
+// 
+export const getAuthProfile = async () => {
+  const token = localStorage.getItem("token");
+  const response = await axios.get("/auth/profile", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
 export default api;
+

@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const sendVerificationApi = async (contact) => {
-  const res = await fetch("/api/send-code", {
+  const res = await fetch("/auth/verify-email/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contact }),
