@@ -3,10 +3,10 @@ import { MessageSquareText, House, Store, CirclePlus, User } from "lucide-react"
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (
-    <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
+    <div className="flex justify-around items-center bg-[#FFFAE7] h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
-        to="/home"
+        to="/feed"
         className={`flex flex-col items-center relative ${
           activePage === "home" ? "text-lily" : "text-ash"
         }`}>
@@ -27,18 +27,18 @@ const BottomNav = ({ activePage, setActivePage }) => {
       </Link>
       {/* Shops */}
       <Link
-        to="/shops"
+        to="/createShop"
         className={`flex flex-col items-center relative ${
-          activePage === "shops" ? "text-lily" : "text-ash"
+          activePage === "shop" ? "text-lily" : "text-ash"
         }`}>
         <button
-          onClick={() => setActivePage("shops")}
+          onClick={() => setActivePage("shop")}
           className={`${
-            activePage === "shops"
+            activePage === "shop"
               ? "grid place-items-center size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
-          {activePage === "shops" ? (
+          {activePage === "shop" ? (
             <Store className=" text-lily h-7 w-7" />
           ) : (
             <Store className="h-7 w-7" />
