@@ -1,3 +1,4 @@
+import { FeedProvider } from "./context/feedContext"; // ✅ import provider
 import MyShop from "./pages/myShop";
 import Ratings from "./components/shop/ratings";
 import CreateShop from "./pages/createShop";
@@ -33,7 +34,6 @@ import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfileP
 import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
-import Feed from "./pages/feed";
 import Profile from "./pages/profile";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
@@ -52,7 +52,6 @@ import InboxPage from "./pages/inbox";
 import Messages from "./pages/messages";
 import Shops from "./pages/shops";
 import Home from "./pages/home";
-
 
 export default function App() {
   const dispatch = useDispatch();
@@ -82,68 +81,67 @@ export default function App() {
     <HelmetProvider>
       <SEO />
       <ScrollToTop />
-      {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Header />} */}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/myShop" element={<MyShop />} />
-        <Route path="/rating" element={<Ratings />} />
-        <Route path="/createShop" element={<CreateShop />} />
-        <Route path="/shop/:id" element={<ShopDetails />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/verify-code" element={<VerifyCode />} />
-        <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/create-username" element={<CreateUsername />} />
-        <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
-        <Route path="/birthday-picker" element={<BirthdayPicker />} />
-        <Route path="/feed" element={<Feed />} />
-        <Route path="/createContent" element={<CreateContentPage />} />
-        <Route path="/purchaseAds" element={<PurchaseAds />} />
-        <Route path="/shop/:shop_id/step1" element={<Step1 />} />
-        <Route
-          path="/shop/:shop_id/paymentInitiation"
-          element={<PaymentInitiation />}
-        />
-        <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route path="/searchResults" element={<SearchResults />} />
-        <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
-        <Route path="/shop/:shop_id/products" element={<Products />} />
-        <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
-        <Route
-          path="/shop/:product_id/edit-products"
-          element={<EditProducts />}
-        />
-         <Route path="/about" element={<About />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/lilyChat" element={<LilyChat />} />
-        <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/verify-transaction" element={<VerifyTransaction />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/transaction-history" element={<TransactionHistory />} />
-        <Route path="/deposit" element={<DepositPage />} />
-        <Route path="/withdraw" element={<WithdrawPage />} />
-        <Route path="/addBankAccount" element={<AddBankAccountPage />} />
-        <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
-        <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
-        <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
-        <Route path="/inbox" element={<InboxPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/shops" element={<Shops />} />
-      
 
-      </Routes>
-      {/* {!isLilyChatPage && !isLoginPage && !isSignupPage && <Nav />} */}
-
-      {/* {!isLoginPage && !isSignupPage && !isLilyChatPage && <Footer />} */}
+      {/* ✅ Wrap all routes in FeedProvider */}
+      <FeedProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/myShop" element={<MyShop />} />
+          <Route path="/rating" element={<Ratings />} />
+          <Route path="/createShop" element={<CreateShop />} />
+          <Route path="/shop/:id" element={<ShopDetails />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-code" element={<VerifyCode />} />
+          <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/create-username" element={<CreateUsername />} />
+          <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
+          <Route path="/birthday-picker" element={<BirthdayPicker />} />
+          <Route path="/createContent" element={<CreateContentPage />} />
+          <Route path="/purchaseAds" element={<PurchaseAds />} />
+          <Route path="/shop/:shop_id/step1" element={<Step1 />} />
+          <Route
+            path="/shop/:shop_id/paymentInitiation"
+            element={<PaymentInitiation />}
+          />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/searchResults" element={<SearchResults />} />
+          <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
+          <Route path="/shop/:shop_id/products" element={<Products />} />
+          <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
+          <Route
+            path="/shop/:product_id/edit-products"
+            element={<EditProducts />}
+          />
+          <Route path="/about" element={<About />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/lilyChat" element={<LilyChat />} />
+          <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/verify-transaction" element={<VerifyTransaction />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/transaction-history" element={<TransactionHistory />} />
+          <Route path="/deposit" element={<DepositPage />} />
+          <Route path="/withdraw" element={<WithdrawPage />} />
+          <Route path="/addBankAccount" element={<AddBankAccountPage />} />
+          <Route
+            path="/bankAccountDetails"
+            element={<BankAccountDetailsPage />}
+          />
+          <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
+          <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
+          <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/shops" element={<Shops />} />
+        </Routes>
+      </FeedProvider>
 
       {showIdlePopup && <IdleTimeoutPopup onClose={closeIdlePopup} />}
     </HelmetProvider>
   );
 }
-
