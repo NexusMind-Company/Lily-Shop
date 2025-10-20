@@ -1,38 +1,80 @@
-// mockData.js
 export const mockPosts = [
   {
     id: 1,
-    username: "Bloom_Threads",
+    username: "Bloom Threads",
     caption:
-      "Your wardrobe called… it wants an upgrade 👗💖 Shop the new drop now!",
-    mediaUrl: "/feed-image.png", // local or hosted video
+      "Your wardrobe called… it wants an upgrade 👗💖 Shop the new drop now! This flowery patterned sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral",
     likes: 120,
-    userpic: "/feed-userpic.png",
+    userpic: "/new-profile-image.png",
     comments: 34,
     shares: 10,
     views: 100,
+    productName: "Flowery Patterned Sundress",
+    rating: 4.8,
+    reviews: 24,
+    price: 12500,
+    postTime: "1hr",
+    description:
+      "This flowery patterned sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral pressings, prestigeous.",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "video", src: "/video.mp4" },
+      { type: "image", src: "/feed-image2.png" },
+      { type: "image", src: "/feed-image.png" },
+    ],
+    musicTrack: "Summer Renaissance - Beyoncé",
   },
 
   {
     id: 2,
     username: "Sarah",
     caption: "Chilling on a Sunday 🌴",
-    mediaUrl: "/feed-image.png",
     likes: 200,
-    userpic: "/feed-userpic",
+    userpic: "/feed-image.png",
     comments: 15,
     shares: 8,
     views: 10,
+    productName: "yellow Sundress",
+    rating: 3.8,
+    reviews: 56,
+    price: 9000,
+    postTime: "3 days",
+    description:
+      "This Yellow sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral pressings, prestigeous.",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "image", src: "/feed-image2.png" },
+      { type: "image", src: "/feed-image.png" },
+      { type: "video", src: "/video.mp4" },
+    ],
+    musicTrack: "Good days - SZA",
   },
 
   {
     id: 3,
     username: "La vida",
     caption: "Building a website on a meet",
-    mediaUrl: "./video.mp4",
     likes: 200,
+    userpic: "/feed-image2.png",
     comments: 15,
     shares: 8,
     views: 167,
+    productName: "Anker Speaker",
+    rating: 4.8,
+    reviews: 14,
+    price: 122500,
+    postTime: "1 week",
+    description:
+      "This speaker has an ultra bass that gives you that pure music vibe",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "image", src: "/feed-image2.png" },
+      { type: "video", src: "/video.mp4" },
+      { type: "image", src: "/feed-image.png" },
+    ],
+    musicTrack: "FE!N -  Travis Scott",
   },
 ];
