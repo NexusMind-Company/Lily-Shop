@@ -18,7 +18,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "home" ? (
-            <House className=" text-lily h-7 w-7" />
+            <House className="h-7 w-7" />
           ) : (
             <House className="h-7 w-7" />
           )}
@@ -35,7 +35,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
           onClick={() => setActivePage("shops")}
           className={`${
             activePage === "shops"
-              ? "grid place-items-center size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
+              ? "grid place-items-center size-10 rounded-full absolute -top-2.5 transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "shops" ? (
@@ -60,24 +60,24 @@ const BottomNav = ({ activePage, setActivePage }) => {
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "create" ? (
-            <CirclePlus className="text-lily h-7 w-7" />
+            <CirclePlus className=" text-lily h-7 w-7" />
           ) : (
             <CirclePlus className=" h-7 w-7" />
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Create</span>
       </Link>
-      {/* inbox */}
+      {/* Chatroom */}
       <Link
         to="/inbox"
         className={`flex flex-col items-center relative ${
-          activePage === "inbox" ? "text-lily" : "text-ash"
+          activePage === "" ? "text-lily" : "text-ash"
         }`}>
         <button
           onClick={() => setActivePage("inbox")}
           className={`${
             activePage === "inbox"
-              ? "grid place-items-center size-10 rounded-full -top-2.5 absolute transform -translate-x-1/2 left-1/2"
+              ? "grid place-items-cente size-10 rounded-full absolute transform -translate-x-1/2 left-1/2"
               : "grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
           }`}>
           {activePage === "inbox" ? (
@@ -92,7 +92,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
             </div>
           )}
         </button>
-        <span className="text-xs font-poppins mt-6">Inbox</span>
+        <span className="text-xs font-poppins mt-6">inbox</span>
       </Link>
       {/* Profile */}
       <Link
@@ -115,6 +115,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
         </button>
         <span className="text-xs font-poppins mt-6">Profile</span>
       </Link>
+
     </div>
   );
 };
