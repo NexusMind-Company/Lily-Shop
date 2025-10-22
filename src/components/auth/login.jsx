@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const loginApi = async ({ phone_or_email, password }) => {
-  const res = await fetch("/auth/login", {
+  const res = await fetch("https://lily-shop-backend.onrender.com/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone_or_email, password }),

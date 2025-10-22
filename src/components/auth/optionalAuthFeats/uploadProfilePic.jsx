@@ -122,16 +122,19 @@ const UploadProfilePic = () => {
       // Create new abort controller
       uploadControllerRef.current = new AbortController();
 
-      const response = await fetch(`${apiUrl}/api/upload-profile-picture`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: formData,
-        signal: uploadControllerRef.current.signal,
-        // Add timeout
-        timeout: 30000, // 30 seconds
-      });
+      const response = await fetch(
+        `https://lily-shop-backend.onrender.com/api/upload-profile-picture`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+          body: formData,
+          signal: uploadControllerRef.current.signal,
+          // Add timeout
+          timeout: 30000, // 30 seconds
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

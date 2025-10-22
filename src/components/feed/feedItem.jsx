@@ -37,9 +37,32 @@ const FeedItem = ({ post, onVideoInit }) => {
     }
   }, [onVideoInit]);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+  //API call for adding likes
+  const handleLike = async () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+
+    try {
+      const res = await fetch(
+        `https://lily-shop-backend.onrender.com/shops/products/${posts.id}/like`,
+        {
+          method: newLikedState ? "POST" : "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ liked: newLikedState }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update like");
+      const data = await res.json();
+
+      if (data?.likes !== undefined) setLikeCount(data.likes);
+    } catch (err) {
+      console.error(err);
+      // Revert UI if API fails
+      setIsLiked(!newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev - 1 : prev + 1));
+    }
   };
 
   const handleFollow = () => {

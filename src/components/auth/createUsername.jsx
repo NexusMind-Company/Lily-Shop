@@ -4,11 +4,14 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const createUsernameApi = async ({ contact, username }) => {
-  const res = await fetch("/auth/username/set/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact, username }),
-  });
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/auth/username/set/",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contact, username }),
+    }
+  );
   if (!res.ok) throw await res.json();
   return res.json();
 };

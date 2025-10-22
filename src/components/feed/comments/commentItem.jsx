@@ -23,11 +23,19 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
   };
 
   return (
-    <div className={`flex space-x-3 py-2 ${isReply ? "ml-6 border-l-2 border-gray-100 pl-4" : ""}`}>
+    <div
+      className={`flex space-x-3 py-2 ${
+        isReply ? "ml-6 border-l-2 border-gray-100 pl-4" : ""
+      }`}
+    >
       {/* Avatar */}
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
         {comment.userpic ? (
-          <img src={comment.userpic} alt={comment.user} className="w-full h-full rounded-full object-cover" />
+          <img
+            src={comment.userpic}
+            alt={comment.user}
+            className="w-full h-full rounded-full object-cover"
+          />
         ) : (
           initials
         )}
@@ -42,7 +50,9 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
           </div>
           <p className="text-sm text-gray-700 mt-1">
             {comment.replyingTo && (
-              <span className="text-lily font-semibold mr-1">@{comment.replyingTo}</span>
+              <span className="text-lily font-semibold mr-1">
+                @{comment.replyingTo}
+              </span>
             )}
             {comment.text}
           </p>
@@ -50,11 +60,18 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
 
         {/* Actions */}
         <div className="flex items-center space-x-4 text-xs mt-1 text-gray-500 pl-2">
-          <button onClick={handleReplyClick} className="font-semibold hover:text-lily transition-colors">
+          <button
+            onClick={handleReplyClick}
+            className="font-semibold hover:text-lily transition-colors"
+          >
             Reply
           </button>
           <span className="flex items-center space-x-1">
-            <img src="/icons/heart-outline.svg" alt="Likes" className="w-3 h-3" />
+            <img
+              src="/icons/heart-outline.svg"
+              alt="Likes"
+              className="w-3 h-3"
+            />
             <span>{comment.likes}</span>
           </span>
         </div>
@@ -98,6 +115,3 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
 };
 
 export default CommentItem;
-
-
-

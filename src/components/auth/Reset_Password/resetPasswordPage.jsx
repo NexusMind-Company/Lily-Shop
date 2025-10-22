@@ -6,11 +6,14 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const resetPasswordApi = async ({ password }) => {
-  const res = await fetch("/api/reset-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/api/reset-password",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    }
+  );
   if (!res.ok) throw await res.json();
   return res.json();
 };

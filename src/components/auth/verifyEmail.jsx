@@ -4,11 +4,14 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const sendVerificationApi = async (contact) => {
-  const res = await fetch("/auth/verify-email/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact }),
-  });
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/auth/verify-email/",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contact }),
+    }
+  );
   if (!res.ok) throw await res.json();
   return res.json();
 };

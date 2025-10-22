@@ -6,7 +6,9 @@ import ProductItem from "./productItem";
 
 // This can be in a separate api.js file, but for now it's here
 const fetchProductById = async (id) => {
-  const res = await fetch(`/api/product/${id}`);
+  const res = await fetch(
+    `https://lily-shop-backend.onrender.com/shops/products/{id}/`
+  );
   if (!res.ok) throw new Error("Failed to fetch product");
   return res.json();
 };

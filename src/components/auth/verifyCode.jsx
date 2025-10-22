@@ -15,11 +15,14 @@ const verifyCodeApi = async ({ contact, code }) => {
 
 // API call to resend code
 const resendCodeApi = async (contact) => {
-  const res = await fetch("/api/send-code", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact }),
-  });
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/api/send-code",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contact }),
+    }
+  );
   if (!res.ok) throw await res.json();
   return res.json();
 };

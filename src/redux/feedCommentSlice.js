@@ -1,9 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-// Assuming you have an API service and mock data configured
-// import api from "../services/api";
-import { mockPosts } from "../components/feed/mockData";
 
-const USE_MOCK_DATA = true;
+// Base API URL – change this to your actual backend base URL
+const BASE_URL = "https://lily-shop-backend.onrender.com";
 
 // Helper to recursively find a parent comment and add a reply
 const findCommentAndAddReply = (comments, newComment) => {
@@ -25,36 +23,56 @@ const findCommentAndAddReply = (comments, newComment) => {
   return false;
 };
 
-// Async thunk to fetch comments
+// ✅ Fetch comments for a specific product
 export const fetchComments = createAsyncThunk(
   "feed/fetchComments",
-  async (postId, { rejectWithValue }) => {
+  async (productId, { rejectWithValue }) => {
     try {
-      if (USE_MOCK_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-        const post = mockPosts.find((p) => p.id === postId);
-        return post?.commentsData || [];
+      const response = await fetch(
+        `${BASE_URL}/shops/products/${productId}/comments/`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch comments: ${response.status}`);
       }
-      // const response = await api.get(`/posts/${postId}/comments`);
-      // return response.data;
+
+      const data = await response.json();
+      return data; // Must be an array of comments
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
-// Async thunk to post a new comment or reply
+// ✅ Post a new comment or reply
 export const postComment = createAsyncThunk(
   "feed/postComment",
   async (commentData, { rejectWithValue }) => {
     try {
-      if (USE_MOCK_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate network delay
-        // In a real API, the backend would return the complete, saved comment object
-        return { ...commentData, id: `server_${Date.now()}` }; // Return a "server-confirmed" ID
+      const { postId, parentId, text } = commentData;
+
+      const payload = {
+        text,
+        parent: parentId || null,
+      };
+
+      const response = await fetch(
+        `${BASE_URL}/shops/products/${postId}/comment-create/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to post comment: ${response.status}`);
       }
-      // const response = await api.post(`/posts/${commentData.postId}/comments`, commentData);
-      // return response.data;
+
+      const data = await response.json();
+      return data; // Should return the created comment from backend
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -74,7 +92,7 @@ const feedSlice = createSlice({
       if (newComment.parentId) {
         findCommentAndAddReply(state.comments, newComment);
       } else {
-        state.comments.unshift(newComment); // Add top-level comments to the top
+        state.comments.unshift(newComment);
       }
     },
     clearComments: (state) => {
@@ -100,14 +118,15 @@ const feedSlice = createSlice({
       })
       // Post Comment
       .addCase(postComment.fulfilled, (state, action) => {
-        // The optimistic update is already done by `addLocalComment`.
-        // You could optionally replace the local comment with the server-returned one if IDs differ.
-        console.log("Comment posted successfully:", action.payload);
+        const newComment = action.payload;
+        if (newComment.parentId) {
+          findCommentAndAddReply(state.comments, newComment);
+        } else {
+          state.comments.unshift(newComment);
+        }
       })
       .addCase(postComment.rejected, (state, action) => {
         console.error("Failed to post comment:", action.payload);
-        // Here you would add logic to handle the UI feedback for the failure.
-        // For example, finding the optimistic comment and marking it as "failed to send".
       });
   },
 });

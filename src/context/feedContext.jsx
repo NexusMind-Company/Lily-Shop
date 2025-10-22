@@ -1,14 +1,21 @@
-import React, { createContext, useContext, useState, useRef, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import { useQuery } from "@tanstack/react-query";
 
 // You can move your mock data import here or keep it where it is
-import { mockPosts } from '../components/feed/mockData';
+import { mockPosts } from "../components/feed/mockData";
 
 const USE_MOCK = true;
 
 const fetchFeed = async () => {
-  const res = await fetch('/api/feed');
-  if (!res.ok) throw new Error('Failed to fetch feed');
+  const res = await fetch("https://lily-shop-backend.onrender.com/api/feed");
+  if (!res.ok) throw new Error("Failed to fetch feed");
   return res.json();
 };
 
@@ -19,8 +26,12 @@ export const FeedProvider = ({ children }) => {
   const scrollPositionRef = useRef(0);
 
   // Data fetching is now managed by the context provider
-  const { data: postsFromApi = [], isLoading, error } = useQuery({
-    queryKey: ['feed'],
+  const {
+    data: postsFromApi = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["feed"],
     queryFn: fetchFeed,
     enabled: !USE_MOCK,
   });
@@ -28,17 +39,20 @@ export const FeedProvider = ({ children }) => {
   const posts = USE_MOCK ? mockPosts : postsFromApi;
 
   const toggleMute = useCallback(() => {
-    setIsMuted(prev => !prev);
+    setIsMuted((prev) => !prev);
   }, []);
 
-  const value = useMemo(() => ({
-    posts,
-    isLoading,
-    error,
-    isMuted,
-    toggleMute,
-    scrollPositionRef,
-  }), [posts, isLoading, error, isMuted, toggleMute]);
+  const value = useMemo(
+    () => ({
+      posts,
+      isLoading,
+      error,
+      isMuted,
+      toggleMute,
+      scrollPositionRef,
+    }),
+    [posts, isLoading, error, isMuted, toggleMute]
+  );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
 };
@@ -46,7 +60,7 @@ export const FeedProvider = ({ children }) => {
 export const useFeed = () => {
   const context = useContext(FeedContext);
   if (!context) {
-    throw new Error('useFeed must be used within a FeedProvider');
+    throw new Error("useFeed must be used within a FeedProvider");
   }
   return context;
 };
