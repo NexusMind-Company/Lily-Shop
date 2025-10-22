@@ -1,8 +1,8 @@
-import ProfileHeadOwner from "./profileHeadOwner";
-import ProfileHeadVisiting from "./profileHeadVisiting";
+import ProfileOwner from "./profileOwner";
+import ProfileVisiting from "./profileVisiting";
 import { useSelector } from "react-redux";
 
-const ProfileHead = ({ userId }) => {
+const Profiles = ({ userId }) => {
   const authUserId = useSelector((state) => state.auth.user?.id);
 
   // Logic: If the visiting user is the owner, show owner head
@@ -10,9 +10,9 @@ const ProfileHead = ({ userId }) => {
 
   return (
     <div>
-      {isOwner ? <ProfileHeadOwner /> : <ProfileHeadVisiting />}
+      {isOwner ? <ProfileOwner /> : <ProfileVisiting /> }
     </div>
   );
 };
 
-export default ProfileHead;
+export default Profiles;
