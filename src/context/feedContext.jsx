@@ -14,7 +14,7 @@ import { mockPosts } from "../components/feed/mockData";
 const USE_MOCK = true;
 
 const fetchFeed = async () => {
-  const res = await fetch("https://lily-shop-backend.onrender.com/api/feed");
+  const res = await fetch("https://lily-shop-backend.onrender.com/shops/home");
   if (!res.ok) throw new Error("Failed to fetch feed");
   return res.json();
 };
