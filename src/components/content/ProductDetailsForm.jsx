@@ -61,6 +61,7 @@ const ProductDetailsForm = ({ details, setDetails }) => {
           onChange={handleChange}
         />
       </div>
+      
       <div className="mb-2">
         <label>Stock Status:</label>
         <select
@@ -73,6 +74,7 @@ const ProductDetailsForm = ({ details, setDetails }) => {
           <option value="out_of_stock">Out of Stock</option>
         </select>
       </div>
+
       <div className="mb-2">
         <label>Buy Now CTA:</label>
         <input

@@ -3,10 +3,10 @@ import { MessageSquareText, House, Store, CirclePlus, User } from "lucide-react"
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (
-    <div className="flex justify-around items-center bg-[#FFFAE7] h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
+    <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
-        to="/feed"
+        to="/"
         className={`flex flex-col items-center relative ${
           activePage === "home" ? "text-lily" : "text-ash"
         }`}>

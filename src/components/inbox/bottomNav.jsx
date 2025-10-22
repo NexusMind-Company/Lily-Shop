@@ -6,7 +6,7 @@ const BottomNav = ({ activePage, setActivePage }) => {
     <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
-        to="/home"
+        to="/"
         className={`flex flex-col items-center relative ${
           activePage === "home" ? "text-lily" : "text-ash"
         }`}>

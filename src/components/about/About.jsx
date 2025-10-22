@@ -1,6 +1,8 @@
 // src/components/settings/About.jsx
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 
 const About = () => {
   const [expandedSections, setExpandedSections] = useState({});
@@ -219,14 +221,18 @@ This protects users while keeping things simple and fair for vendors.`
     ]
   };
 
+  const navigate = useNavigate();
+
   return (
-    <section className="my-14 min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
+    <section className=" min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
       {/* Header - Matching Wallet styling */}
-      <div className="w-full">
-        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
-          <h1 className="text-xl font-normal font-poppins">About LilyShops</h1>
-        </div>
-      </div>
+        <header className="flex items-center justify-center py-4  relative">
+        <Link onClick={() => {navigate(-1)}}  className="absolute left-4 top-4">
+          <ChevronLeft className="w-8 h-8 text-gray-700" />
+        </Link>
+        <h1 className="text-lg font-semibold text-gray-800">About Us</h1>
+      </header>
+
 
       {/* Main Content */}
       <div className="flex flex-col gap-4">

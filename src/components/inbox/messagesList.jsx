@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router";
 import { useState } from "react";
 import BottomNav from "./bottomNav";
+import { useNavigate } from "react-router";
 
 /* eslint-disable react/prop-types */
 const messages = [
@@ -37,11 +38,13 @@ const messages = [
 
 export default function MessagesList({ openChat }) {
     const [activePage, setActivePage] = useState("inbox");
+const navigate = useNavigate();
+
   return (
     <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto">
       {/* Header */}
       <header className="relative p-4 ">
-        <Link to="/inbox">
+        <Link onClick={() => {navigate(-1)}}>
           <ChevronLeft className="absolute w-8 h-8" />
         </Link>
         <h1 className="text-[20px] font-semibold text-center">Messages</h1>

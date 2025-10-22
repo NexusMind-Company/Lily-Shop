@@ -1,11 +1,9 @@
-import ProfileHead from "../components/profile/profileHead";
-import ProfileBody from "../components/profile/profileBody";
+import Profiles from "../components/profile/profiles";
 
 const Profile = () => {
   return (
     <>
-      <ProfileHead />;
-      <ProfileBody />;
+      <Profiles />
     </>
   );
 };

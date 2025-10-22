@@ -1,12 +1,14 @@
 import { ChevronLeft, CreditCard, Banknote } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 export default function Deposit() {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="relative p-4 border-2 border-gray-300">
-        <Link to="/wallet">
+      <header className="relative p-4 ">
+        <Link onClick={() => {navigate(-1)}}>
           <ChevronLeft className="absolute w-8 h-8" />
         </Link>
         <h1 className="text-lg font-semibold text-center">Deposit</h1>
