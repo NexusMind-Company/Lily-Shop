@@ -41,7 +41,6 @@ const CreatePost = () => {
 
   //  Publish handler
   const handlePublish = () => {
-    console.log(" Publishing post:", formData);
     alert("Post published successfully!");
   };
 
