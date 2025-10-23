@@ -1,4 +1,3 @@
-
 import { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
@@ -14,7 +13,7 @@ import {
   Crop,
 } from "lucide-react";
 import { mockPickMusic } from "../utils/mockMusicPicker";
-import Cropper from "react-easy-crop";
+// import Cropper from "react-easy-crop";
 
 const createImage = (url) =>
   new Promise((resolve, reject) => {
@@ -71,7 +70,9 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
         video: { facingMode: flipped ? "user" : "environment" },
         audio: mode === "video",
       };
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const mediaStream = await navigator.mediaDevices.getUserMedia(
+        constraints
+      );
       setStream(mediaStream);
       if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch (error) {
@@ -155,11 +156,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
   const getDurationMs = () => {
     switch (duration) {
-      case "15s": return 15000;
-      case "30s": return 30000;
-      case "60s": return 60000;
-      case "2m": return 120000;
-      default: return 15000;
+      case "15s":
+        return 15000;
+      case "30s":
+        return 30000;
+      case "60s":
+        return 60000;
+      case "2m":
+        return 120000;
+      default:
+        return 15000;
     }
   };
 
