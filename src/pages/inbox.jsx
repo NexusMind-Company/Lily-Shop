@@ -1,4 +1,4 @@
-import InboxList from "../components/inbox/inboxList";
+import InboxList from "../components/inbox/InboxList"
 
 export default function InboxPage(){
     return(
