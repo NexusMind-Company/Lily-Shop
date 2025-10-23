@@ -1,0 +1,27 @@
+{
+  "name": "Lily Shop - Create Your Online Store",
+  "short_name": "Lily Shop",
+  "description": "Create your own virtual store and sell products online with AI-powered chatbot support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lilly-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lilly-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "shopping", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}
