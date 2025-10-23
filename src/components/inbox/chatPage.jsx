@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Camera, SendHorizontal, File, EllipsisVertical, Phone, ChevronLeft } from "lucide-react";
 
 const ChatPage = () => {
@@ -53,12 +53,14 @@ const ChatPage = () => {
     setMessages([...messages, ...newMsgs]);
   };
 
+  const navigate = useNavigate()
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
-          <Link to="/inbox"><ChevronLeft className="w-8 h-8"/></Link>
+          <Link onClick={() => navigate(-1)}><ChevronLeft className="w-8 h-8"/></Link>
           <div className="w-8 h-8 bg-pink-200 rounded-full flex items-center justify-center text-sm font-bold">
             🌸
           </div>
