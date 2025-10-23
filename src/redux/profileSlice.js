@@ -1,6 +1,8 @@
-import { createSlice } from "@reduxjs/toolkit";
 
-export const profileSlice = createSlice({
+import { createSlice } from "@reduxjs/toolkit";
+import { getAuthProfile } from "../services/api";
+
+const profileSlice = createSlice({
   name: "profile",
   initialState: {
     data: null,
@@ -23,16 +25,23 @@ export const profileSlice = createSlice({
   },
 });
 
-export const { fetchProfileStart, fetchProfileSuccess, fetchProfileFailure } = profileSlice.actions;
+export const {
+  fetchProfileStart,
+  fetchProfileSuccess,
+  fetchProfileFailure,
+} = profileSlice.actions;
+
 export default profileSlice.reducer;
 
+// Async thunk
 export const fetchProfile = () => async (dispatch) => {
   try {
     dispatch(fetchProfileStart());
-    const response = await fetch("/api/profile");
-    const data = await response.json();
+    const data = await getAuthProfile();
     dispatch(fetchProfileSuccess(data));
   } catch (error) {
-    dispatch(fetchProfileFailure(error.toString()));
+    const message =
+      error.response?.data?.detail || error.message || "Failed to fetch profile";
+    dispatch(fetchProfileFailure(message));
   }
 };

@@ -1,4 +1,4 @@
-// src/pages/Followers.jsx
+
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 

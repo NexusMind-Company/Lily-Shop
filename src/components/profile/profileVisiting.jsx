@@ -1,5 +1,6 @@
-// src/pages/Profile.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProfile } from "../../redux/profileSlice";
 import {
   Grid,
   Megaphone,
@@ -9,118 +10,121 @@ import {
   ChevronLeft,
   MessageSquareText,
   FlagTriangleRight,
-  LinkIcon,
   Ban,
   Play,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-
-// Example data
-const posts = [
-  { views: "2.1k", img: "/dress.png", isVideo: false },
-  { views: "4.8k", img: "/video-thumbnail.png", isVideo: true },
-  { views: "1.2k", img: "/dress2.png", isVideo: false },
-  { views: "3.6k", img: "/video2.png", isVideo: true },
-  { views: "5.4k", img: "/dress3.png", isVideo: false },
-  { views: "2.7k", img: "/video3.png", isVideo: true },
-  { views: "1.1k", img: "/dress4.png", isVideo: false },
-  { views: "2.9k", img: "/dress5.png", isVideo: false },
-  { views: "7.2k", img: "/video4.png", isVideo: true },
-];
-
-const announcements = Array(9).fill({
-  views: "2.1k",
-  title: "New Collection!",
-  img: "/announcement.png",
-});
-
-const favorites = Array(9).fill({
-  views: "2.1k",
-  name: "Favorite Dress",
-  img: "/favorite.png",
-});
-
-// 🟢 Posts Tab Component (with Play Button Overlay)
-function PostsGrid() {
-  return posts.length === 0 ? (
-    <div className="text-center text-gray-400 my-8">No posts</div>
-  ) : (
-    <div className="grid grid-cols-3 gap-3 my-2 px-4">
-      {posts.map((post, i) => (
-        <div key={i} className="relative rounded-lg overflow-hidden">
-          <img
-            src={post.img}
-            alt="Post"
-            className="w-full aspect-square object-cover bg-black"
-          />
-
-          {/* Play Button Overlay */}
-          {post.isVideo && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-              <div className=" rounded-full p-2 shadow-md">
-                <Play size={30} className="text-white" />
-              </div>
-            </div>
-          )}
-
-          {/* Views Label */}
-          <div className="absolute bottom-1 left-1 flex items-center text-white text-xs drop-shadow-md">
-            <Eye size={15} className="mr-1" /> {post.views}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// 🟣 Announcements Tab Component
-function AnnouncementsGrid() {
-  return announcements.length === 0 ? (
-    <div className="text-center text-gray-400 my-8">No announcements</div>
-  ) : (
-    <div className="grid grid-cols-3 gap-3 my-2 px-4">
-      {announcements.map((item, i) => (
-        <div key={i} className="relative rounded-lg overflow-hidden">
-          <img
-            src={item.img}
-            alt="Announcement"
-            className="w-full aspect-square object-cover bg-black"
-          />
-          <div className="absolute bottom-1 left-1 flex items-center text-white text-xs drop-shadow-md">
-            <Eye size={15} className="mr-1" /> {item.views}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// 💖 Favorites Tab Component
-function FavoritesGrid() {
-  return favorites.length === 0 ? (
-    <div className="text-center text-gray-400 my-8">No favorites</div>
-  ) : (
-    <div className="grid grid-cols-3 gap-3 my-2 px-4">
-      {favorites.map((item, i) => (
-        <div key={i} className="relative rounded-lg overflow-hidden">
-          <img
-            src={item.img}
-            alt="Favorite"
-            className="w-full aspect-square object-cover bg-black"
-          />
-          <div className="absolute bottom-1 left-1 flex items-center text-white text-xs drop-shadow-md">
-            <Eye size={15} className="mr-1" /> {item.views}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isDropDown, setIsDropDown] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { username } = useParams();
+
+  const { data, loading, error } = useSelector((state) => state.profile);
+
+  useEffect(() => {
+    dispatch(fetchProfile(username)); // fetch another user’s profile
+  }, [dispatch, username]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500">Loading profile...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500">
+        <p>{error}</p>
+      </div>
+    );
+
+  if (!data)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-500">
+        <p>No profile data found.</p>
+      </div>
+    );
+
+  const { user = {}, products = [] } = data;
+  const posts = products || [];
+  const announcements = []; // You can hook to backend later
+  const favorites = []; // Optional future feature
+
+  // --- Tabs Components ---
+  const PostsGrid = () => {
+    if (!posts.length) {
+      return <div className="text-center text-gray-400 my-8">No posts</div>;
+    }
+    return (
+      <div className="grid grid-cols-3 gap-3 my-2 px-4">
+        {posts.map((post, i) => (
+          <div key={i} className="relative rounded-lg overflow-hidden">
+            <img
+              src={post.image || "/placeholder.png"}
+              alt="Post"
+              className="w-full aspect-square object-cover bg-black"
+            />
+            {post.is_video && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <Play size={28} className="text-white" />
+              </div>
+            )}
+            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+              <Eye size={15} className="mr-1" /> {post.views || 0}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const AnnouncementsGrid = () => {
+    if (!announcements.length) {
+      return <div className="text-center text-gray-400 my-8">No announcements</div>;
+    }
+    return (
+      <div className="grid grid-cols-3 gap-3 my-2 px-4">
+        {announcements.map((item, i) => (
+          <div key={i} className="relative rounded-lg">
+            <img
+              src={item.img}
+              alt="Announcement"
+              className="w-full aspect-square object-cover bg-black"
+            />
+            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+              <Eye size={15} className="mr-1" /> {item.views}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const FavoritesGrid = () => {
+    if (!favorites.length) {
+      return <div className="text-center text-gray-400 my-8">No favorites</div>;
+    }
+    return (
+      <div className="grid grid-cols-3 gap-3 my-2 px-4">
+        {favorites.map((item, i) => (
+          <div key={i} className="relative rounded-lg">
+            <img
+              src={item.img}
+              alt="Favorite"
+              className="w-full aspect-square object-cover bg-black"
+            />
+            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+              <Eye size={15} className="mr-1" /> {item.views}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white min-h-screen text-gray-800">
@@ -130,27 +134,21 @@ const ProfileVisiting = () => {
           <ChevronLeft size={25} />
         </button>
         <h2 className="font-semibold text-lg">Profile</h2>
-        <div className="flex gap-3 relative">
-          <Link to="/settings">
-            <LinkIcon size={25} />
-          </Link>
+        <div className="relative">
           <EllipsisVertical
             size={25}
-            onClick={() => setIsDropDown(!isDropDown)}
             className="cursor-pointer"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
           />
-          {isDropDown && (
-            <ul
-              className="absolute bg-white p-1 top-full right-0 rounded-lg shadow-md z-10"
-              onClick={() => setIsDropDown(false)}
-            >
-              <li className="flex items-center gap-1 px-5 py-2 hover:bg-gray-100 cursor-pointer">
-                <FlagTriangleRight size={15} /> Report
-              </li>
-              <li className="flex items-center gap-1 px-5 py-2 hover:bg-gray-100 cursor-pointer">
-                <Ban size={15} /> Block
-              </li>
-            </ul>
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full bg-white border rounded-lg shadow-md z-10 w-32">
+              <button className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
+                <FlagTriangleRight size={15} className="mr-2" /> Report
+              </button>
+              <button className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
+                <Ban size={15} className="mr-2" /> Block
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -159,42 +157,49 @@ const ProfileVisiting = () => {
       <div className="mt-6 px-4">
         <div className="flex gap-2 items-center">
           <img
-            src="/avatar.png"
+            src={user.avatar || "/avatar.png"}
             alt="Profile"
-            className="w-20 h-20 rounded-full mb-2"
+            className="w-20 h-20 rounded-full mb-2 object-cover"
           />
           <div>
-            <h3 className="font-semibold">Faith Owolewa</h3>
-            <p className="text-gray-500 text-sm">@Faithzy</p>
+            <h3 className="font-semibold">{user.full_name || "Unnamed User"}</h3>
+            <p className="text-gray-500 text-sm">@{user.username}</p>
           </div>
         </div>
 
         <p className="mt-1 text-sm">
-          Bloom Threads offers expertly crafted clothing for every occasion. We
-          focus on quality and unique designs that allow your personal style to
-          bloom.
+          {user.bio ||
+            "This user hasn’t added a bio yet. Follow them to see their latest updates and products!"}
         </p>
 
         {/* Stats */}
-        <div className="flex mt-4 space-x-5 text-sm items-center">
-          <div className="flex flex-col items-center">
-            <span className="font-bold text-xl">0</span>
-            <p>Posts</p>
+        <div className="flex mt-4 space-x-5 text-sm items-center justify-between">
+          <div className="flex gap-5">
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-2xl">{posts.length}</span>
+              <p>Posts</p>
+            </div>
+            <Link to={`/followers/${user.username}`}>
+              <div className="flex flex-col items-center">
+                <p className="font-bold text-2xl">{user.followers_count || 0}</p>
+                <p>Followers</p>
+              </div>
+            </Link>
+            <Link to={`/following/${user.username}`}>
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-2xl">{user.following_count || 0}</span>
+                <p>Following</p>
+              </div>
+            </Link>
           </div>
-          <div className="flex flex-col items-center">
-            <p className="font-bold text-xl">120</p>
-            <p>Followers</p>
+          <div className="flex gap-4 items-center">
+            <button className="border-2 font-bold text-lg bg-lily text-white px-6 py-2 rounded-full">
+              Follow
+            </button>
+            <Link to="/messages">
+              <MessageSquareText size={40} className="text-red-500" />
+            </Link>
           </div>
-          <div className="flex flex-col items-center">
-            <span className="font-bold text-xl">36</span>
-            <p>Following</p>
-          </div>
-          <button className="bg-lily text-white px-8 font-bold py-2 rounded-full">
-            Follow
-          </button>
-          <Link to="/messages">
-            <MessageSquareText size={30} className="text-red-500" />
-          </Link>
         </div>
       </div>
 

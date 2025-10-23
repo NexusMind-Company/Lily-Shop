@@ -1,8 +1,8 @@
-import UploadContent from "../components/content/uploadContent";
+import CreatePost from "../components/content/CreatePost";
 const CreateContentPage = () => {
   return (
     <section>
-      <UploadContent />
+      <CreatePost />
     </section>
   );
 };
