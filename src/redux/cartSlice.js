@@ -1,37 +1,54 @@
-import { createSlice } from "@reduxjs/toolkit";
+// redux/cartSlice.js
+import { createSlice, createSelector } from "@reduxjs/toolkit";
 
-// Define the initial state for the cart: an empty list of items
-const initialState = {
-  items: [],
-};
-
-export const cartSlice = createSlice({
+const cartSlice = createSlice({
   name: "cart",
-  initialState,
+  initialState: {
+    items: [], // [{ id, productName, price, quantity, mediaSrc, color, size }]
+  },
   reducers: {
-    // This is the action that FeedItem.jsx will dispatch
     addItemToCart: (state, action) => {
-      const newItem = action.payload; // This is the product object passed from the component
-      
-      // 1. Check if the item (by ID) is already in the cart
-      // NOTE: For simplicity, we assume the item ID alone defines uniqueness.
-      // In a real app, you might check ID + color + size.
-      const existingItem = state.items.find((item) => item.id === newItem.id);
+      const newItem = action.payload;
+      const existingItem = state.items.find(
+        (item) =>
+          item.id === newItem.id &&
+          item.color === newItem.color && // Consider color and size for uniqueness
+          item.size === newItem.size
+      );
 
       if (existingItem) {
-        // 2. If it exists, increase its quantity (IMMUTABLY, thanks to RTK)
-        existingItem.quantity += newItem.quantity;
+        existingItem.quantity += newItem.quantity || 1;
       } else {
-        // 3. If it's new, add the item to the array
-        state.items.push(newItem);
+        state.items.push({ ...newItem, quantity: newItem.quantity || 1 });
       }
     },
-    // You would add more actions here (e.g., removeItemFromCart, clearCart)
+    updateItemQuantity: (state, action) => {
+      const { id, quantity } = action.payload;
+      const item = state.items.find((item) => item.id === id);
+      if (item) {
+        item.quantity = quantity;
+      }
+    },
+    removeItemFromCart: (state, action) => {
+      const idToRemove = action.payload;
+      state.items = state.items.filter((item) => item.id !== idToRemove);
+    },
+    clearCart: (state) => {
+      state.items = [];
+    },
   },
 });
 
-// Export the action creator so components can use it
-export const { addItemToCart } = cartSlice.actions;
-
-// Export the reducer function to be added to the store
+export const { addItemToCart, updateItemQuantity, removeItemFromCart, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;
+
+// Selectors
+export const selectCartItems = (state) => state.cart.items;
+export const selectCartTotal = createSelector(
+  [selectCartItems],
+  (items) => items.reduce((total, item) => total + item.price * item.quantity, 0)
+);
+export const selectCartItemCount = createSelector(
+  [selectCartItems],
+  (items) => items.reduce((count, item) => count + item.quantity, 0)
+);

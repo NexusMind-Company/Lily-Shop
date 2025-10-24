@@ -40,7 +40,7 @@ export const mockPosts = [
       {
         id: 102,
         user: "Anu Folarin",
-        rating: 4,
+        rating: 1,
         date: "19/09/25",
         text: "The dress is very nice. I love it so much. 😍",
       },
@@ -204,7 +204,7 @@ export const mockPosts = [
       {
         id: 102,
         user: "Anu Folarin",
-        rating: 4,
+        rating: 2,
         date: "19/09/25",
         text: "The dress is very nice. I love it so much. 😍",
       },

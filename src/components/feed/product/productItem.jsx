@@ -98,6 +98,8 @@ const ProductItem = ({ product }) => {
   const handleAddToCart = () => {
     const payload = {
       id: product.id,
+      username: product.username,
+      mediaSrc: product.media[0].src,
       productName: product.productName || product.title,
       price: product.price,
       color: selectedColor,
@@ -105,7 +107,7 @@ const ProductItem = ({ product }) => {
       quantity,
     };
     setIsAddedToCart(!isAddedToCart);
-    setTimeout(() => setIsAddedToCart(false), 3000);
+    // setTimeout(() => setIsAddedToCart(false), 3000);
 
     dispatch(addItemToCart(payload));
   };

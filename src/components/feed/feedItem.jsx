@@ -56,6 +56,7 @@ const FeedItem = ({ post, onVideoInit }) => {
       id: post.id,
       productName: post.productName || post.caption.slice(0, 30),
       price: post.price,
+      username: post.username,
       quantity: 1,
       mediaSrc: post.media?.[0]?.src,
     };
@@ -116,6 +117,27 @@ const FeedItem = ({ post, onVideoInit }) => {
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
+            {/* Profile Pic and follow button */}
+            <div className=" relative flex items-center">
+              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+                <img
+                  src={post.userpic}
+                  alt={post.username}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <button
+                onClick={handleFollow}
+                className="absolute top-[80%] left-3"
+              >
+                <img
+                  src={`${
+                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                  }`}
+                  alt={`Follow ${post.username}`}
+                />
+              </button>
+            </div>
             {/* Username */}
             <div className="flex items-center space-x-2">
               <h1 className="font-bold">{post.username}</h1>
@@ -166,27 +188,6 @@ const FeedItem = ({ post, onVideoInit }) => {
             </div>
           </div>
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
-            {/* Profile Pic and follow button */}
-            <div className=" relative flex items-center">
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
-                <img
-                  src={post.userpic}
-                  alt={post.username}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <button
-                onClick={handleFollow}
-                className="absolute top-[80%] right-1/3"
-              >
-                <img
-                  src={`${
-                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                  }`}
-                  alt={`Follow ${post.username}`}
-                />
-              </button>
-            </div>
             {/* Like Icon */}
             <button onClick={handleLike} className="flex flex-col items-center">
               <img
@@ -218,18 +219,18 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(post.shares)}
               </span>
             </button>
-            {/* Promote Icon */}
+            {/* Promote Icon
             <button className="flex flex-col items-center">
               <img src="/icons/loudspeaker.svg" alt="" />
               <span className="text-xs text-white font-semibold">
                 {`Promote`}
               </span>
             </button>
-            {/* Message Trader Icon */}
+            Message Trader Icon
             <button className="flex flex-col items-center">
               <img src="/icons/mail.svg" alt="" />
               <span className="text-xs font-semibold">{`Message`}</span>
-            </button>
+            </button> */}
             {/* Views Icon */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
@@ -256,7 +257,7 @@ const FeedItem = ({ post, onVideoInit }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://yourapp.com/post/${post.id}`} // Example URL structure
+            postUrl={`https://lilyshop.com/post/${post.id}`} // Example URL structure
             postCaption={post.caption}
           />
         )}
