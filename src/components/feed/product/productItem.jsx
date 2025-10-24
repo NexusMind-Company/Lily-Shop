@@ -105,15 +105,36 @@ const ProductItem = ({ product }) => {
       color: selectedColor,
       size: selectedSize,
       quantity,
+      pickupAddress: product.pickupAddress,
+      deliveryAddress: product.deliveryAddress,
+      deliveryCharge: product.deliveryCharge,
+      serviceCharge: product.serviceCharge,
     };
-    setIsAddedToCart(!isAddedToCart);
-    // setTimeout(() => setIsAddedToCart(false), 3000);
+    setIsAddedToCart(true);
+    // setTimeout(() => setIsAddedToCart(false), 3000); // You can re-enable this
 
     dispatch(addItemToCart(payload));
   };
 
   const handleCheckout = () => {
-    navigate("/checkout");
+    // First, add the item to the cart
+    const payload = {
+      id: product.id,
+      username: product.username,
+      mediaSrc: product.media[0].src,
+      productName: product.productName || product.title,
+      price: product.price,
+      color: selectedColor,
+      size: selectedSize,
+      quantity,
+    };
+    dispatch(addItemToCart(payload));
+
+    // Then, navigate to the cart page, passing this item's ID
+    // so the cart page knows what to display.
+    navigate("/checkout", {
+      state: { selectedItemIds: [product.id] },
+    });
   };
 
   const handleViewAll = () => {
@@ -131,13 +152,8 @@ const ProductItem = ({ product }) => {
   const hasMoreReviews = reviewsArray.length > 3;
 
   return (
-    // <-- 1. MAIN CONTAINER: Wraps everything and sets the layout context.
     <div className="relative bg-white w-full md:max-w-xl mx-auto min-h-screen">
-      {/* <-- 2. SCROLLABLE CONTENT AREA: Contains everything EXCEPT the action buttons. */}
-      {/* Note the `pb-28` class, which adds padding to the bottom to prevent the last */}
-      {/* items from being hidden by the fixed footer. */}
       <div className="p-4 space-y-3 pb-28">
-        {/* Media Carousel */}
         <div className="w-full aspect-8/10 relative group">
           <Swiper
             modules={[Navigation, Pagination]}
@@ -183,7 +199,7 @@ const ProductItem = ({ product }) => {
           </button>
         </div>
 
-        {/* Title, Price, Rating */}
+        {/* ... (Rest of your component: Title, Price, Description, etc. - no changes) ... */}
         <div className="flex justify-between items-center pt-2">
           <h2 className="font-semibold text-lg">
             {product.productName || product.title}
@@ -196,8 +212,6 @@ const ProductItem = ({ product }) => {
         <p className="text-green-700 font-semibold">{`N${formatPrice(
           product.price
         )}`}</p>
-
-        {/* Description */}
         <motion.p layout className="text-sm font-normal">
           {isExpanded
             ? product.caption
@@ -211,8 +225,6 @@ const ProductItem = ({ product }) => {
             </button>
           )}
         </motion.p>
-
-        {/* Delivery Details */}
         <p className="font-semibold">
           Est delivery:{" "}
           <span className="font-normal">{product.estDelivery}</span>
@@ -221,8 +233,6 @@ const ProductItem = ({ product }) => {
           Delivery Location:{" "}
           <span className="font-normal">{product.deliveryLocation}</span>
         </p>
-
-        {/* Quantity Selector */}
         <div className="flex items-center gap-2">
           <span>Quantity</span>
           <button
@@ -239,8 +249,6 @@ const ProductItem = ({ product }) => {
             +
           </button>
         </div>
-
-        {/* Color Selector */}
         <div>
           <span>Color:</span>
           <div className="flex gap-2 mt-1">
@@ -257,8 +265,6 @@ const ProductItem = ({ product }) => {
             ))}
           </div>
         </div>
-
-        {/* Size Selector */}
         <div>
           <span>Size:</span>
           <div className="flex gap-2 mt-1">
@@ -275,8 +281,6 @@ const ProductItem = ({ product }) => {
             ))}
           </div>
         </div>
-
-        {/* Reviews Section */}
         <div className="space-y-4 pt-4">
           <div className="flex justify-between items-center w-full">
             <h2 className="font-semibold text-lg">
@@ -302,8 +306,6 @@ const ProductItem = ({ product }) => {
             </p>
           )}
         </div>
-
-        {/* Vendor Details */}
         <div className="pt-4 border-t border-gray-200 space-y-2">
           <h3 className="font-semibold text-md">Vendor Details</h3>
           <div className="flex justify-between items-center">
@@ -331,6 +333,7 @@ const ProductItem = ({ product }) => {
         </div>
       </div>
 
+      {/* Fixed Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-200 shadow-t-lg">
         <div className="max-w-xl mx-auto p-4">
           <div className="flex gap-3">

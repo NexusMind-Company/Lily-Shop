@@ -91,7 +91,7 @@ export default function App() {
           <Route element={<FeedLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/product-details/:id" element={<ProductDetails />} />
-            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CartPage />} />
           </Route>
           <Route path="/myShop" element={<MyShop />} />
           <Route path="/rating" element={<Ratings />} />

@@ -65,7 +65,7 @@ const CartModal = ({ isOpen, onClose }) => {
     }
     onClose(); // Close the modal
     // Pass the selected IDs as an array in the navigation state
-    navigate("/cart", {
+    navigate("/checkout", {
       state: { selectedItemIds: Array.from(selectedItems) },
     });
   };
@@ -101,7 +101,7 @@ const CartModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] bg-black/50 flex justify-center items-end"
+          className="fixed inset-0 z-50 bg-black/50 flex justify-center items-end"
           onClick={onClose}
         >
           <motion.div
@@ -109,7 +109,7 @@ const CartModal = ({ isOpen, onClose }) => {
             animate={{ y: "0%" }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15"
+            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[90vh] mb-15"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
