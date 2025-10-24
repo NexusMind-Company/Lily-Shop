@@ -6,11 +6,18 @@ import { useMutation } from "@tanstack/react-query";
 
 // API call
 const signupApi = async ({ phone_or_email, password }) => {
-  const res = await fetch("/auth/users/", {
-    method: "POST",
-    header: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone_or_email, password }),
-  });
+  const body = {
+    email_or_phonenumber: phone_or_email, // <-- Renamed this key
+    password: password,
+  };
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/auth/users/",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
   if (!res.ok) {
     throw await res.json();
   }
@@ -18,21 +25,11 @@ const signupApi = async ({ phone_or_email, password }) => {
 };
 
 // Helpers
-const formatPhone = (num) => {
-  if (!num || typeof num !== "string" || num.length < 10) return num;
-  const cleaned = num.startsWith("+234")
-    ? num.substring(4)
-    : num.startsWith("0")
-    ? num.substring(1)
-    : num;
-  if (/^\d{10}$/.test(cleaned)) return "+234" + cleaned;
-  return num;
-};
 
 const detectInputType = (value) => {
   if (!value) return null;
   const emailPattern = /^\S+@\S+\.\S+$/;
-  const phonePattern = /^(0[789][01]\d{8}|\+234[789][01]\d{8}|[789][01]\d{8})$/;
+  const phonePattern = /^\+?\d{9,15}$/;
   if (emailPattern.test(value)) return "email";
   if (phonePattern.test(value)) return "phone";
   return "unknown";
@@ -47,17 +44,14 @@ const SignUp = () => {
   const mutation = useMutation({
     mutationFn: signupApi,
     onSuccess: (_, vars) => {
-      // Navigate to verification step with contact in URL
-      const type = detectInputType(vars.phone_or_email);
-      const contact =
-        type === "phone"
-          ? formatPhone(vars.phone_or_email)
-          : vars.phone_or_email;
-      navigate(`/verify-email?contact=${encodeURIComponent(contact)}`);
+      navigate(
+        `/verify-email?contact=${encodeURIComponent(vars.phone_or_email)}`
+      );
     },
     onError: (err) => {
+      console.error("Signup Error:", err);
       setErrors({
-        phone_or_email: err.phone_or_email?.[0],
+        phone_or_email: err.email_or_phonenumber?.[0],
         password: err.password?.[0],
         form: err.detail || "Registration failed",
       });
@@ -92,7 +86,7 @@ const SignUp = () => {
       return;
     }
 
-    mutation.mutate(value);
+    mutation.mutate(values);
   };
 
   return (
