@@ -1,119 +1,73 @@
-import { useState, useRef } from "react";
+
 import PropTypes from "prop-types";
+import { mockPickMusic } from "../utils/mockMusicPicker";
+import { Music, X } from "lucide-react";
+import { useState } from "react";
 
-const MusicPicker = ({ onMusicChange }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMusic, setSelectedMusic] = useState(null);
-  const [volume, setVolume] = useState(0.5);
-  const audioRef = useRef(null);
+const MusicPicker = ({ selectedMusic, setSelectedMusic }) => {
+  const [loading, setLoading] = useState(false);
 
-  // Mocked LilyShops music library
-  const musicLibrary = [
-    {
-      id: "1",
-      name: "Blinding Lights",
-      artist: "The Weeknd",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    },
-    {
-      id: "2",
-      name: "Levitating",
-      artist: "Dua Lipa",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    },
-    {
-      id: "3",
-      name: "Watermelon Sugar",
-      artist: "Harry Styles",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    },
-    {
-      id: "4",
-      name: "Shape of You",
-      artist: "Ed Sheeran",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    },
-    {
-      id: "5",
-      name: "Dance Monkey",
-      artist: "Tones and I",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-    },
-  ];
-
-  const filteredTracks = musicLibrary.filter(
-    (track) =>
-      track.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleAddMusic = (track) => {
-    setSelectedMusic(track);
-    if (onMusicChange) {
-      onMusicChange(track);
+  const handlePickMusic = async () => {
+    setLoading(true);
+    try {
+      const selected = await mockPickMusic();
+      if (selected) setSelectedMusic(selected);
+    } catch (error) {
+      console.error("Error selecting music:", error);
+    } finally {
+      setLoading(false);
     }
-    // Optionally, sync with video logic can be added here
   };
 
-  const handleVolumeChange = (e) => {
-    const newVolume = Number(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-    }
+  const handleRemove = () => {
+    setSelectedMusic(null);
   };
 
   return (
-    <div className="music-picker bg-gray-100 border rounded p-4 shadow">
-      <h2 className="text-xl font-bold mb-4">Add Music</h2>
-      <input
-        type="text"
-        placeholder="Search for songs or artists..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <div className="space-y-4 mb-4">
-        {filteredTracks.map((track) => (
-          <div key={track.id} className="flex items-center bg-white rounded p-2 shadow">
-            <div className="flex-1">
-              <div className="font-semibold">{track.name}</div>
-              <div className="text-sm text-gray-600">{track.artist}</div>
-            </div>
-            <button
-              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-              onClick={() => handleAddMusic(track)}>
-              Add
-            </button>
-          </div>
-        ))}
-        {filteredTracks.length === 0 && <div className="text-gray-500">No songs found.</div>}
+    <div className="bg-white p-4 rounded-lg border border-gray-400">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 ">
+          <Music className="w-5 h-5 text-lily" />
+          <span className="font-medium ">Add Music</span>
+        </div>
+
+        {!selectedMusic ? (
+          <button
+            onClick={handlePickMusic}
+            disabled={loading}
+            className={` font-semibold ${
+              loading
+                ? "cursor-wait"
+                : "text-lily hover:underline"
+            }`}
+          >
+            {loading ? "Loading..." : "Pick Song"}
+          </button>
+        ) : (
+          <button
+            onClick={handlePickMusic}
+            className=" text-lily hover:underline font-semibold"
+          >
+            Change
+          </button>
+        )}
       </div>
+
       {selectedMusic && (
-        <div className="mt-6 p-4 bg-white rounded shadow">
-          <div className="font-semibold mb-2">
-            Added: {selectedMusic.name} - {selectedMusic.artist}
+        <div className="mt-3 flex items-center justify-between bg-gray-200 p-3 rounded-lg">
+          <div>
+            <p className="font-semibold ">
+              {selectedMusic.name}
+            </p>
+            <p className=" ">{selectedMusic.artist}</p>
           </div>
-          <audio
-            ref={audioRef}
-            src={selectedMusic.url}
-            controls
-            volume={volume}
-            style={{ width: "100%" }}
-          />
-          <label className="block mt-2">
-            Volume:
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={handleVolumeChange}
-              className="ml-2"
-            />
-            <span className="ml-2">{Math.round(volume * 100)}%</span>
-          </label>
+
+          <button
+            onClick={handleRemove}
+            className="p-1 rounded-full hover:bg-gray-600 transition"
+          >
+            <X className="w-7 h-7 text-red-400" />
+          </button>
         </div>
       )}
     </div>
@@ -121,18 +75,11 @@ const MusicPicker = ({ onMusicChange }) => {
 };
 
 MusicPicker.propTypes = {
-  selectedSong: PropTypes.string,
-  onSongSelect: PropTypes.func.isRequired,
-  songs: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      title: PropTypes.string.isRequired,
-      artist: PropTypes.string,
-      url: PropTypes.string,
-    })
-  ).isRequired,
-  videoUrl: PropTypes.string, // Add this line for videoUrl prop validation
-  onMusicChange: PropTypes.func, // Add this line for onMusicChange prop validation
+  selectedMusic: PropTypes.shape({
+    name: PropTypes.string,
+    artist: PropTypes.string,
+  }),
+  setSelectedMusic: PropTypes.func.isRequired,
 };
 
 export default MusicPicker;

@@ -30,8 +30,8 @@ export default function WithdrawConfirm() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="relative p-4 border-2 border-gray-300">
-        <Link to="/bankAccountDetails">
+      <header className="relative p-4 ">
+        <Link onClick={() => {navigate(-1)}}>
           <ChevronLeft className="absolute w-8 h-8" />
         </Link>
         <h1 className="text-lg font-semibold text-center">Withdraw</h1>
