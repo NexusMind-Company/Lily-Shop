@@ -1,7 +1,9 @@
+import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { BsBroadcast } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
+import CartModal from "./cart/cartModal";
 
 const TopNav = ({ activeTab, setActiveTab }) => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -9,6 +11,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchRef = useRef(null);
   const searchButtonRef = useRef(null);
+  const [showCartModal, setShowCartModal] = useState(false);
 
   const EMPTY_ARRAY = [];
 
@@ -17,7 +20,9 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   // Add to cart Logic
   const cartItems = useSelector((state) => state.cart?.items || EMPTY_ARRAY);
   const cartItemCount = cartItems.reduce(
-    (total, item) => total + (item.quantity || 1),0);
+    (total, item) => total + (item.quantity || 1),
+    0
+  );
 
   const location = useLocation();
 
@@ -101,6 +106,9 @@ const TopNav = ({ activeTab, setActiveTab }) => {
     }
   };
 
+  const handleOpenCart = () => {
+    setShowCartModal(true);
+  };
   return (
     <div className="flex items-center w-full h-16 px-4 bg-transparent fixed top-0 left-0 z-50">
       <div className="flex items-center justify-between w-lg mx-auto md:w-4xl">
@@ -158,9 +166,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           <div className="pr-2">
             <button
               className="cursor-pointer relative"
-              onClick={() => {
-                navigate("/cart");
-              }}
+              onClick={handleOpenCart}
             >
               <img
                 src="./icons/cart.svg"
@@ -251,6 +257,15 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           )}
         </div>
       </div>
+      {/* RENDER THE CART MODAL */}
+      <AnimatePresence>
+        {showCartModal && (
+          <CartModal
+            isOpen={showCartModal}
+            onClose={() => setShowCartModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
