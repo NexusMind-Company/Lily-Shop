@@ -22,93 +22,37 @@ export const mockPosts = [
     colors: ["white", "pink", "black"],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     media: [
-      { type: "video", src: "/video.mp4" },
       { type: "image", src: "/feed-image2.png" },
       { type: "image", src: "/feed-image.png" },
+      { type: "video", src: "/video.mp4" },
     ],
     musicTrack: "Summer Renaissance - Beyoncé",
     estDelivery: "2-7 days",
     deliveryLocation: "Lagos, Ilorin, Abuja",
+
+    pickupAddress: "123 Bloom St, Victoria Island, Lagos",
+    deliveryAddress: "Default user address: 22 Owode street, Ajegunle, Lagos", // Example user address
+    deliveryCharge: 1500,
+
     reviewsData: [
-      {
-        id: 101,
-        user: "Adetayo Gbemisola",
-        rating: 5,
-        date: "19/09/25",
-        text: "The design is both stylish and comfortable, making it easy to dress up or down. I love the vibrant colors and the flattering fit that accentuates my figure. Overall, this sundress is a fantastic addition to my wardrobe, and I highly recommend it to anyone looking for a chic and versatile piece!",
-      },
-      {
-        id: 102,
-        user: "Anu Folarin",
-        rating: 4,
-        date: "19/09/25",
-        text: "The dress is very nice. I love it so much. 😍",
-      },
-      {
-        id: 103,
-        user: "Jago Chiamaka",
-        rating: 5,
-        date: "19/09/25",
-        text: "The fabric is soft and breathable, perfect for warm days. I love how it flows and the unique pattern really stands out; it’s versatile enough for both casual outings and special occasions. I can’t recommend it enough for anyone wanting to elevate their summer style!",
-      },
-      {
-        id: 104,
-        user: "Bimbo Adekunle",
-        rating: 4,
-        date: "19/09/25",
-        text: "Good quality for the price, fits well. Fast shipping. A must-buy!",
-      },
-      {
-        id: 105,
-        user: "Tunde Olayinka",
-        rating: 5,
-        date: "19/09/25",
-        text: "Absolutely stunning! Looks exactly like the picture. Five stars!",
-      },
+      /* ...reviews... */
     ],
     commentsData: [
-      {
-        id: 1,
-        user: "Temiloluwa Gbolahan",
-        userpic: "/new-profile-image.png",
-        text: "I got something like this for my girl, and it's super pretty!",
-        timeAgo: "19/09/25",
-        likes: 13,
-        replies: [
-          {
-            id: 11,
-            user: "Julia Adeniyi",
-            userpic: "/new-profile-image.png",
-            text: "Did you get it from this vendor?",
-            timeAgo: "19/09/25",
-            likes: 13,
-            replyingTo: "Adetayo Gbemisola",
-          },
-        ],
-      },
-      {
-        id: 2,
-        user: "Adetayo Gbemisola",
-        text: "I bought one for my friend, and she adores it! It's held up really well.",
-        timeAgo: "5d",
-        likes: 13,
-        replies: [],
-      },
+      /* ...comments... */
     ],
   },
-
   {
     id: 2,
     username: "Sarah",
     vendorNumber: "+2348011236578",
-    vendorDetail: "",
+    vendorDetail: "Chic and affordable fashion finds.",
     caption: "Chilling on a Sunday 🌴",
     likes: 200,
     userpic: "/feed-image.png",
     comments: 15,
     shares: 8,
     views: 10,
-    productName: "yellow Sundress",
+    productName: "Yellow Sundress",
     rating: 3.8,
     reviews: 56,
     price: 9000,
@@ -125,46 +69,14 @@ export const mockPosts = [
     musicTrack: "Good days - SZA",
     estDelivery: "15-20 days",
     deliveryLocation: "Lagos, Ogun, Oyo",
-    reviewsData: [
-      {
-        id: 101,
-        user: "Adetayo Gbemisola",
-        rating: 5,
-        date: "19/09/25",
-        text: "The design is both stylish and comfortable, making it easy to dress up or down. I love the vibrant colors and the flattering fit that accentuates my figure. Overall, this sundress is a fantastic addition to my wardrobe, and I highly recommend it to anyone looking for a chic and versatile piece!",
-      },
-      {
-        id: 102,
-        user: "Anu Folarin",
-        rating: 4,
-        date: "19/09/25",
-        text: "The dress is very nice. I love it so much. 😍",
-      },
-      {
-        id: 103,
-        user: "Ugo Chiamaka",
-        rating: 5,
-        date: "19/09/25",
-        text: "The fabric is soft and breathable, perfect for warm days. I love how it flows and the unique pattern really stands out; it’s versatile enough for both casual outings and special occasions. I can’t recommend it enough for anyone wanting to elevate their summer style!",
-      },
-      {
-        id: 104,
-        user: "Bimbo Adekunle",
-        rating: 4,
-        date: "19/09/25",
-        text: "Good quality for the price, fits well. Fast shipping. A must-buy!",
-      },
-      {
-        id: 105,
-        user: "Tunde Olayinka",
-        rating: 5,
-        date: "19/09/25",
-        text: "Absolutely stunning! Looks exactly like the picture. Five stars!",
-      },
-    ],
-    commentsData: [], // Empty comments for post ID 2
-  },
 
+    pickupAddress: "Shop 45, Tejuosho Market, Yaba, Lagos",
+    deliveryAddress: "Default user address: 10 Bodija Estate, Ibadan, Oyo", // Example user address
+    deliveryCharge: 1200,
+
+    reviewsData: [],
+    commentsData: [],
+  },
   {
     id: 3,
     username: "La vida",
@@ -190,46 +102,15 @@ export const mockPosts = [
       { type: "video", src: "/video.mp4" },
       { type: "image", src: "/feed-image.png" },
     ],
-    musicTrack: "FE!N -  Travis Scott",
+    musicTrack: "FE!N - Travis Scott",
     estDelivery: "7-15 days",
     deliveryLocation: "World wide",
-    reviewsData: [
-      {
-        id: 101,
-        user: "Adetayo Gbemisola",
-        rating: 5,
-        date: "19/09/25",
-        text: "The design is both stylish and comfortable, making it easy to dress up or down. I love the vibrant colors and the flattering fit that accentuates my figure. Overall, this sundress is a fantastic addition to my wardrobe, and I highly recommend it to anyone looking for a chic and versatile piece!",
-      },
-      {
-        id: 102,
-        user: "Anu Folarin",
-        rating: 4,
-        date: "19/09/25",
-        text: "The dress is very nice. I love it so much. 😍",
-      },
-      {
-        id: 103,
-        user: "Ugo Chiamaka",
-        rating: 5,
-        date: "19/09/25",
-        text: "The fabric is soft and breathable, perfect for warm days. I love how it flows and the unique pattern really stands out; it’s versatile enough for both casual outings and special occasions. I can’t recommend it enough for anyone wanting to elevate their summer style!",
-      },
-      {
-        id: 104,
-        user: "Bimbo Adekunle",
-        rating: 4,
-        date: "19/09/25",
-        text: "Good quality for the price, fits well. Fast shipping. A must-buy!",
-      },
-      {
-        id: 105,
-        user: "Tunde Olayinka",
-        rating: 5,
-        date: "19/09/25",
-        text: "Absolutely stunning! Looks exactly like the picture. Five stars!",
-      },
-    ],
-    commentsData: [], // Empty comments for post ID 3
+
+    pickupAddress: "Online Only - No Pickup Available",
+    deliveryAddress: "Default user address: Plot 5, Asokoro, Abuja",
+    deliveryCharge: 3500,
+
+    reviewsData: [],
+    commentsData: [],
   },
 ];

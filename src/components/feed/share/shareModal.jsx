@@ -10,7 +10,7 @@ const getSocialIcon = (type) => {
         <img src="/icons/whatsapp.svg" alt="WhatsApp" className="w-8 h-8" />
       );
     case "X":
-      return <img src="/icons/X.svg" alt="Twitter" className="w-8 h-8" />;
+      return <img src="/icons/x.svg" alt="Twitter" className="w-8 h-8" />;
     case "Facebook":
       return (
         <img src="/icons/facebook.svg" alt="Facebook" className="w-8 h-8" />
@@ -108,11 +108,26 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
 
             {/* Content */}
             <div className="p-5 space-y-6">
+              {/* Social Media Shortcuts */}
+              <div className="grid grid-cols-4 gap-1 pt-4 border-t border-gray-200">
+                {shareOptions.map((option) => (
+                  <a
+                    key={option.name}
+                    href={option.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center py-4 bg-lily hover:bg-ash rounded-full gap-1"
+                  >
+                    {getSocialIcon(option.name)}
+                    <span className="text-xs text-gray-600">{option.name}</span>
+                  </a>
+                ))}
+              </div>
               {/* Primary Actions */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-4 gap-6">
                 <button
                   onClick={handleNativeShare}
-                  className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors space-y-2"
+                  className="flex flex-col items-center justify-center size-22 bg-lily hover:bg-ash rounded-full transition-colors"
                 >
                   <Share2 size={24} className="text-gray-700" />
                   <span className="text-sm font-semibold text-gray-800">
@@ -121,38 +136,22 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors space-y-2"
+                  className="flex flex-col items-center justify-center size-22 bg-lily hover:bg-ash rounded-full transition-colors"
                 >
                   <Copy
                     size={24}
                     className={`transition-colors ${
-                      isCopied ? "text-lily" : "text-gray-700"
+                      isCopied ? "text-darklily" : "text-gray-700"
                     }`}
                   />
                   <span
                     className={`text-sm font-semibold transition-colors ${
-                      isCopied ? "text-lily" : "text-gray-800"
+                      isCopied ? "text-darklily" : "text-gray-800"
                     }`}
                   >
                     {isCopied ? "Copied!" : "Copy Link"}
                   </span>
                 </button>
-              </div>
-
-              {/* Social Media Shortcuts */}
-              <div className="grid grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-                {shareOptions.map((option) => (
-                  <a
-                    key={option.name}
-                    href={option.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-2 hover:bg-gray-100 rounded-lg space-y-2"
-                  >
-                    {getSocialIcon(option.name)}
-                    <span className="text-xs text-gray-600">{option.name}</span>
-                  </a>
-                ))}
               </div>
             </div>
           </motion.div>

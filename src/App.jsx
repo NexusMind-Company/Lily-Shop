@@ -32,6 +32,8 @@ import VerifyCode from "./components/auth/verifyCode";
 import CreateUsername from "./components/auth/createUsername";
 import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfilePic";
 import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
+import ProductDetails from "./components/feed/product/productDetails";
+import FeedLayout from "./layouts/feedLayouts";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 import Profile from "./pages/profile";
@@ -52,6 +54,7 @@ import InboxPage from "./pages/inbox";
 import Messages from "./pages/messages";
 import Shops from "./pages/shops";
 import Home from "./pages/home";
+import CartPage from "./components/feed/cart/cartPage";
 import NotificationPage from "./pages/notifications";
 import ChangeDOBPage from "./pages/ChangeDOB";
 import ChangePhonePage from "./pages/ChangePhone";
@@ -96,7 +99,11 @@ export default function App() {
       {/* ✅ Wrap all routes in FeedProvider */}
       <FeedProvider>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route element={<FeedLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/product-details/:id" element={<ProductDetails />} />
+            <Route path="/checkout" element={<CartPage />} />
+          </Route>
           <Route path="/myShop" element={<MyShop />} />
           <Route path="/rating" element={<Ratings />} />
           <Route path="/createShop" element={<CreateShop />} />

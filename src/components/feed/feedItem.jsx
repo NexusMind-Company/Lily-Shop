@@ -28,7 +28,7 @@ const FeedItem = ({ post, onVideoInit }) => {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   // When the component mounts, pass the media ref's value up to the parent.
   useEffect(() => {
@@ -51,18 +51,23 @@ const FeedItem = ({ post, onVideoInit }) => {
     setShowLikeAnimation(true);
   };
 
-  const handleAddToCart = () => {
-    const itemToAdd = {
-      id: post.id,
-      productName: post.productName || post.caption.slice(0, 30),
-      price: post.price,
-      quantity: 1,
-      mediaSrc: post.media?.[0]?.src,
-    };
+  // const handleAddToCart = () => {
+  //   const itemToAdd = {
+  //     id: post.id,
+  //     productName: post.productName || post.caption.slice(0, 30),
+  //     price: post.price,
+  //     username: post.username,
+  //     quantity: 1,
+  //     mediaSrc: post.media?.[0]?.src,
+  // pickupAddress: post.pickupAddress,
+  // deliveryAddress: post.deliveryAddress,
+  // deliveryCharge: post.deliveryCharge,
+  // serviceCharge: post.serviceCharge,
+  //   };
 
-    // Dispatch the action using the action creator from cartSlice
-    dispatch(addItemToCart(itemToAdd));
-  };
+  //   // Dispatch the action using the action creator from cartSlice
+  //   dispatch(addItemToCart(itemToAdd));
+  // };
 
   const handleOpenComments = () => {
     setShowCommentsModal(true);
@@ -74,16 +79,16 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   return (
     <div
-      className="relative w-full h-full bg-black text-white"
+      className="relative w-full h-full bg-lily text-white"
       onDoubleClick={handleDoubleTap}
     >
-      <div className="media-container-cover">
+      <div className="media-container-cover w-full h-full">
         {post?.media && post.media.length > 1 ? (
           <MediaCarousel
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
-            containerClassName="media-container-cover"
+            containerClassName="media-container-cover w-full h-full"
           />
         ) : isVideo ? (
           <VideoPlayer ref={mediaRef} src={post.media[0].src} />
@@ -92,6 +97,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             src={post.media?.[0]?.src}
             alt={post.productName}
+            className="w-full h-full object-cover"
           />
         )}
       </div>
@@ -116,9 +122,30 @@ const FeedItem = ({ post, onVideoInit }) => {
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
-            {/* Username */}
-            <div className="flex items-center space-x-2">
-              <h1 className="font-bold">{post.username}</h1>
+            {/* Profile Pic and follow button */}
+            <div className="relative gap-3 flex items-center">
+              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+                <img
+                  src={post.userpic}
+                  alt={post.username}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <button
+                onClick={handleFollow}
+                className="absolute top-[80%] left-3"
+              >
+                <img
+                  src={`${
+                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                  }`}
+                  alt={`Follow ${post.username}`}
+                />
+              </button>
+              {/* Username */}
+              <div className="flex items-center space-x-2">
+                <h1 className="font-bold">{post.username}</h1>
+              </div>
             </div>
             <h2 className="font-bold text-lg">
               {post.productName || post.caption.slice(0, 30)}
@@ -148,12 +175,12 @@ const FeedItem = ({ post, onVideoInit }) => {
 
             {/* Add to cart and buy now */}
             <div className="flex items-center space-x-2 pt-2">
-              <button
+              {/* <button
                 onClick={handleAddToCart} // THIS CONNECTS TO THE REDUX LOGIC
                 className="flex items-center bg-white rounded-full p-2"
               >
                 <img src="/icons/cart-add.svg" alt="Add to cart" />
-              </button>
+              </button> */}
               <Link
                 to={`/product-details/${post.id}`}
                 className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
@@ -166,27 +193,6 @@ const FeedItem = ({ post, onVideoInit }) => {
             </div>
           </div>
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
-            {/* Profile Pic and follow button */}
-            <div className=" relative flex items-center">
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
-                <img
-                  src={post.userpic}
-                  alt={post.username}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <button
-                onClick={handleFollow}
-                className="absolute top-[80%] right-1/3"
-              >
-                <img
-                  src={`${
-                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                  }`}
-                  alt={`Follow ${post.username}`}
-                />
-              </button>
-            </div>
             {/* Like Icon */}
             <button onClick={handleLike} className="flex flex-col items-center">
               <img
@@ -218,18 +224,18 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(post.shares)}
               </span>
             </button>
-            {/* Promote Icon */}
+            {/* Promote Icon
             <button className="flex flex-col items-center">
               <img src="/icons/loudspeaker.svg" alt="" />
               <span className="text-xs text-white font-semibold">
                 {`Promote`}
               </span>
             </button>
-            {/* Message Trader Icon */}
+            Message Trader Icon
             <button className="flex flex-col items-center">
               <img src="/icons/mail.svg" alt="" />
               <span className="text-xs font-semibold">{`Message`}</span>
-            </button>
+            </button> */}
             {/* Views Icon */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
@@ -256,7 +262,7 @@ const FeedItem = ({ post, onVideoInit }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://yourapp.com/post/${post.id}`} // Example URL structure
+            postUrl={`https://lilyshop.com/post/${post.id}`} // Example URL structure
             postCaption={post.caption}
           />
         )}
