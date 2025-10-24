@@ -13,8 +13,8 @@ export default function Withdraw() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="relative p-4 border-2 border-gray-300">
-        <Link to="/transaction-history">
+      <header className="relative p-4 ">
+        <Link onClick={() => {navigate(-1)}}>
           <ChevronLeft className="absolute w-8 h-8" />
         </Link>
         <h1 className="text-lg font-semibold text-center">Withdraw</h1>

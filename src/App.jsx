@@ -55,6 +55,17 @@ import Messages from "./pages/messages";
 import Shops from "./pages/shops";
 import Home from "./pages/home";
 import CartPage from "./components/feed/cart/cartPage";
+import NotificationPage from "./pages/notifications";
+import ChangeDOBPage from "./pages/ChangeDOB";
+import ChangePhonePage from "./pages/ChangePhone";
+import ChangePasswordPage from "./pages/ChangePassword";
+import ChangeUsernamePage from "./pages/ChangeUsername";
+import DeleteAccountPage from "./pages/DeleteAccount";
+import ConfirmPhonePage from "./pages/ConfirmPhone";
+import EditProfilePage from "./pages/editProfile";
+import FollowingPage from "./pages/following";
+import FollowersPage from "./pages/followers";
+
 
 export default function App() {
   const dispatch = useDispatch();
@@ -145,6 +156,18 @@ export default function App() {
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/shops" element={<Shops />} />
+          <Route path="/notifications" element={<NotificationPage />} />
+          <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
+          <Route path="/ChangePhone" element={<ChangePhonePage />} />
+          <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+          <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
+          <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+          <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
+        <Route path="/editProfile" element={<EditProfilePage />} />
+        <Route path="/followers" element={<FollowersPage />} />
+        <Route path="/following" element={<FollowingPage />} />
+        
+
         </Routes>
       </FeedProvider>
 

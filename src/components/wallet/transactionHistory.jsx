@@ -1,5 +1,6 @@
 import { ChevronLeft, Plus, Landmark, ShoppingCart, Undo2, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function TransactHistory() {
   const transactions = [
@@ -61,10 +62,12 @@ export default function TransactHistory() {
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white">
-      <header className="relative p-4 border-2 border-gray-300">
-        <Link to="/wallet">
+      <header className="relative p-4 ">
+        <Link onClick={() => {navigate(-1)}}>
           <ChevronLeft className="absolute w-8 h-8" />
         </Link>
         <h1 className="text-lg font-semibold text-center">Transaction History</h1>

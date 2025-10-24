@@ -68,7 +68,7 @@ const ShopCard = () => {
   const hasShops = processedShops.length > 0;
 
   return (
-    <section className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto">
+    <section className="bg-white min-h-screen relative w-full overflow-hidden md:w-4xl md:mx-auto">
        <div className="mt-28 mb-20 flex flex-col px-4 md:px-7 gap-5 md:gap-7 lg:px-20">
         {/* Title */}
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center lg:w-[70%] mx-auto">
