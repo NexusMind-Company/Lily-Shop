@@ -28,7 +28,7 @@ const FeedItem = ({ post, onVideoInit }) => {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   // When the component mounts, pass the media ref's value up to the parent.
   useEffect(() => {
@@ -51,19 +51,23 @@ const FeedItem = ({ post, onVideoInit }) => {
     setShowLikeAnimation(true);
   };
 
-  const handleAddToCart = () => {
-    const itemToAdd = {
-      id: post.id,
-      productName: post.productName || post.caption.slice(0, 30),
-      price: post.price,
-      username: post.username,
-      quantity: 1,
-      mediaSrc: post.media?.[0]?.src,
-    };
+  // const handleAddToCart = () => {
+  //   const itemToAdd = {
+  //     id: post.id,
+  //     productName: post.productName || post.caption.slice(0, 30),
+  //     price: post.price,
+  //     username: post.username,
+  //     quantity: 1,
+  //     mediaSrc: post.media?.[0]?.src,
+  // pickupAddress: post.pickupAddress,
+  // deliveryAddress: post.deliveryAddress,
+  // deliveryCharge: post.deliveryCharge,
+  // serviceCharge: post.serviceCharge,
+  //   };
 
-    // Dispatch the action using the action creator from cartSlice
-    dispatch(addItemToCart(itemToAdd));
-  };
+  //   // Dispatch the action using the action creator from cartSlice
+  //   dispatch(addItemToCart(itemToAdd));
+  // };
 
   const handleOpenComments = () => {
     setShowCommentsModal(true);
@@ -75,16 +79,16 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   return (
     <div
-      className="relative w-full h-full bg-black text-white"
+      className="relative w-full h-full bg-lily text-white"
       onDoubleClick={handleDoubleTap}
     >
-      <div className="media-container-cover">
+      <div className="media-container-cover w-full h-full">
         {post?.media && post.media.length > 1 ? (
           <MediaCarousel
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
-            containerClassName="media-container-cover"
+            containerClassName="media-container-cover w-full h-full"
           />
         ) : isVideo ? (
           <VideoPlayer ref={mediaRef} src={post.media[0].src} />
@@ -93,6 +97,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             src={post.media?.[0]?.src}
             alt={post.productName}
+            className="w-full h-full object-cover"
           />
         )}
       </div>
@@ -118,7 +123,7 @@ const FeedItem = ({ post, onVideoInit }) => {
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             {/* Profile Pic and follow button */}
-            <div className=" relative flex items-center">
+            <div className="relative gap-3 flex items-center">
               <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                 <img
                   src={post.userpic}
@@ -137,10 +142,10 @@ const FeedItem = ({ post, onVideoInit }) => {
                   alt={`Follow ${post.username}`}
                 />
               </button>
-            </div>
-            {/* Username */}
-            <div className="flex items-center space-x-2">
-              <h1 className="font-bold">{post.username}</h1>
+              {/* Username */}
+              <div className="flex items-center space-x-2">
+                <h1 className="font-bold">{post.username}</h1>
+              </div>
             </div>
             <h2 className="font-bold text-lg">
               {post.productName || post.caption.slice(0, 30)}
@@ -170,12 +175,12 @@ const FeedItem = ({ post, onVideoInit }) => {
 
             {/* Add to cart and buy now */}
             <div className="flex items-center space-x-2 pt-2">
-              <button
+              {/* <button
                 onClick={handleAddToCart} // THIS CONNECTS TO THE REDUX LOGIC
                 className="flex items-center bg-white rounded-full p-2"
               >
                 <img src="/icons/cart-add.svg" alt="Add to cart" />
-              </button>
+              </button> */}
               <Link
                 to={`/product-details/${post.id}`}
                 className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
