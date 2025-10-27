@@ -84,7 +84,13 @@ const FeedContainer = () => {
   return (
     <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
-        <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* --- MODIFICATION 1: Make TopNav an overlay --- */}
+        <div className="absolute top-0 left-0 right-0">
+          <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+
+        {/* This scroll container is now correct. It will be h-full (screen height) */}
+        {/* and sit *behind* the navs. */}
         <div
           ref={scrollContainerRef}
           className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
@@ -98,7 +104,11 @@ const FeedContainer = () => {
             </div>
           ))}
         </div>
-        <BottomNav activePage={activePage} setActivePage={setActivePage} />
+
+        {/* --- MODIFICATION 2: Make BottomNav an overlay --- */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <BottomNav activePage={activePage} setActivePage={setActivePage} />
+        </div>
       </div>
     </main>
   );
