@@ -27,10 +27,8 @@ export default function MediaCarousel({ media }) {
   return (
     <div className="relative">
       <Swiper
-        // ADD Navigation module here
         modules={[Pagination, Navigation]}
         pagination={pagination}
-        // ADD navigation configuration (default classes will be created)
         navigation={true}
         className="aspect-square" // Ensures a 1:1 aspect ratio like the design
       >
@@ -58,53 +56,6 @@ export default function MediaCarousel({ media }) {
         {/* Swiper's fraction pagination automatically creates this element with the correct classes */}
         <div className="swiper-pagination"></div>
       </Swiper>
-
-      {/* Custom styling for the fraction pagination AND arrows */}
-      <style>{`
-        /* --- PAGINATION (FRACTION NUMBERS) STYLING --- */
-        .swiper-pagination {
-          position: absolute;
-          bottom: 10px !important;
-          left: 50% !important;
-          transform: translateX(-50%);
-          /* Changing background to green and text color to white */
-          background-color: rgba(0, 128, 0, 0.7) !important; /* Green background */
-          color: white !important; /* White text for contrast */
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 12px;
-          width: auto !important;
-        }
-
-        /* Target the actual pagination numbers/text inside the container */
-        .swiper-pagination-fraction {
-            color: white !important; /* Ensure the text inside is white */
-        }
-        
-        /* --- ARROWS (NAVIGATION BUTTONS) STYLING --- */
-        /* Targets the arrow button containers */
-        .swiper-button-next,
-        .swiper-button-prev {
-            /* Change the color of the arrow icon (the default Swiper uses SVG or a custom character, whose color is controlled by the 'color' CSS property) */
-            color: #008000 !important; /* Set arrow color to Green */
-            /* Optional: You may want to change the size or add a background */
-            font-size: 28px !important; 
-            /* Optional: Add a subtle white background for visibility */
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            padding: 2px;
-            width: 40px; /* Adjust size */
-            height: 40px; /* Adjust size */
-        }
-
-        /* Hide the navigation buttons if they are disabled (e.g., at the start/end of the slider) */
-        .swiper-button-next.swiper-button-disabled,
-        .swiper-button-prev.swiper-button-disabled {
-            opacity: 0.3 !important;
-            cursor: default;
-        }
-
-      `}</style>
     </div>
   );
 }

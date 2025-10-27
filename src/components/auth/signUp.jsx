@@ -3,6 +3,41 @@ import { useDispatch, useSelector } from "react-redux";
 import { createUser, resetCreateUserState } from "../../redux/createUserSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+<<<<<<< HEAD
+=======
+import { useMutation } from "@tanstack/react-query";
+
+// API call
+const signupApi = async ({ phone_or_email, password }) => {
+  const body = {
+    email_or_phonenumber: phone_or_email, // <-- Renamed this key
+    password: password,
+  };
+  const res = await fetch(
+    "https://lily-shop-backend.onrender.com/auth/users/",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    throw await res.json();
+  }
+  return res.json();
+};
+
+// Helpers
+
+const detectInputType = (value) => {
+  if (!value) return null;
+  const emailPattern = /^\S+@\S+\.\S+$/;
+  const phonePattern = /^\+?\d{9,15}$/;
+  if (emailPattern.test(value)) return "email";
+  if (phonePattern.test(value)) return "phone";
+  return "unknown";
+};
+>>>>>>> 8081735a6a2c0c8527a81519a350339394bce904
 
 const SignUp = () => {
   const dispatch = useDispatch();
@@ -16,6 +51,26 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
+<<<<<<< HEAD
+=======
+  const mutation = useMutation({
+    mutationFn: signupApi,
+    onSuccess: (_, vars) => {
+      navigate(
+        `/verify-email?contact=${encodeURIComponent(vars.phone_or_email)}`
+      );
+    },
+    onError: (err) => {
+      console.error("Signup Error:", err);
+      setErrors({
+        phone_or_email: err.email_or_phonenumber?.[0],
+        password: err.password?.[0],
+        form: err.detail || "Registration failed",
+      });
+    },
+  });
+
+>>>>>>> 8081735a6a2c0c8527a81519a350339394bce904
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
@@ -41,6 +96,25 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       dispatch(createUser(values));
     }
+<<<<<<< HEAD
+=======
+    if (detectInputType(phone_or_email) === "unknown") {
+      setErrors({
+        phone_or_email: "Enter a valid phone number or email",
+      });
+      return;
+    }
+    if (!password) {
+      setErrors({ password: "Password is required" });
+      return;
+    }
+    if (password.length < 8) {
+      setErrors({ password: "Password must be at least 8 characters" });
+      return;
+    }
+
+    mutation.mutate(values);
+>>>>>>> 8081735a6a2c0c8527a81519a350339394bce904
   };
 
   useEffect(() => {

@@ -1,5 +1,4 @@
-import React from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useFeed } from "../../../context/feedContext";
 import ProductItem from "./productItem";
@@ -36,7 +35,7 @@ const ProductDetails = () => {
   if (!product) return <p className="text-center mt-8">Product not found.</p>;
 
   return (
-    <div className=" flex flex-col items-center">
+    <div className="flex bg-white flex-col items-center">
       <ProductItem product={product} />
     </div>
   );
