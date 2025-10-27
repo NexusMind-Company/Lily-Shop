@@ -1,17 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-
-// API call
-const sendVerificationApi = async (contact) => {
-  const res = await fetch("/auth/verify-email/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact }),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+import { useDispatch, useSelector } from "react-redux";
+import { verifyEmail, resetVerifyEmailState } from "../../redux/verifyEmailSlice";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
