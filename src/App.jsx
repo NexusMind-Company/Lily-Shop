@@ -62,6 +62,8 @@ import ConfirmPhonePage from "./pages/ConfirmPhone";
 import EditProfilePage from "./pages/editProfile";
 import FollowingPage from "./pages/following";
 import FollowersPage from "./pages/followers";
+import ReceiptPage from "./pages/reciept";
+import WalletCallbackPage from "./pages/wallet-callback"
 
 
 export default function App() {
@@ -159,6 +161,8 @@ export default function App() {
         <Route path="/editProfile" element={<EditProfilePage />} />
         <Route path="/followers" element={<FollowersPage />} />
         <Route path="/following" element={<FollowingPage />} />
+        <Route path="/reciept" element={<ReceiptPage />} />
+        <Route path="/walletCallback" element={<WalletCallbackPage />} />
         
 
         </Routes>
