@@ -67,6 +67,16 @@ import FeedProductDetails from "./pages/feedProductDetails";
 import Cart from "./pages/cart";
 import ReceiptPage from "./pages/reciept";
 import WalletCallbackPage from "./pages/wallet-callback";
+import ChooseAddressPage from "./pages/chooseAddressPage";
+import AddAddressPage from "./pages/AddAddressPage";
+import ChoosePickupPage from "./pages/choosePickupPage";
+import ChooseCardPage from "./pages/ChooseCardPage";
+import AddCardPage from "./pages/AddCardPage";
+import PasswordModalPage from "./pages/PasswordModalPage";
+import PaymentLoadingPage from "./pages/paymentLoading";
+import BankTransferPage from "./pages/BankTransferPage";
+import PaymentSuccessPage from "./pages/paymentsSucessPage";
+import PaymentFailedPage from "./pages/paymentFailedPage";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -174,6 +184,17 @@ export default function App() {
           <Route path="/following" element={<FollowingPage />} />
           <Route path="/reciept" element={<ReceiptPage />} />
           <Route path="/walletCallback" element={<WalletCallbackPage />} />
+          <Route path="/choose-address" element={<ChooseAddressPage />} />
+          <Route path="/add-address" element={<AddAddressPage />} />
+          <Route path="/select-pickup" element={<ChoosePickupPage />} />
+          <Route path="/select-payment" element={<ChooseCardPage />} />
+          <Route path="/add-card" element={<AddCardPage />} />
+          <Route path="/password" element={<PasswordModalPage />} />
+          <Route path="/bank-transfer" element={<BankTransferPage />} />
+          <Route path="/payment-loading" element={<PaymentLoadingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>
 
