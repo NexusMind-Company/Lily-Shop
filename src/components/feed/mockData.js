@@ -34,12 +34,8 @@ export const mockPosts = [
     deliveryAddress: "Default user address: 22 Owode street, Ajegunle, Lagos", // Example user address
     deliveryCharge: 1500,
 
-    reviewsData: [
-      /* ...reviews... */
-    ],
-    commentsData: [
-      /* ...comments... */
-    ],
+    reviewsData: [],
+    commentsData: [],
   },
   {
     id: 2,

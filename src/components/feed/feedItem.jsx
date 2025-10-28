@@ -5,7 +5,7 @@ import { Heart } from "lucide-react";
 
 // Local component imports
 import MediaCarousel from "../common/mediaCarousel";
-import VideoPlayer from "./videoPlayer"
+import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
 
@@ -62,7 +62,7 @@ const FeedItem = ({ post, onVideoInit }) => {
   // pickupAddress: post.pickupAddress,
   // deliveryAddress: post.deliveryAddress,
   // deliveryCharge: post.deliveryCharge,
-  // serviceCharge: post.serviceCharge,
+  // deliveryTime: post.deliveryTime,
   //   };
 
   //   // Dispatch the action using the action creator from cartSlice
@@ -119,7 +119,7 @@ const FeedItem = ({ post, onVideoInit }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
+      <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             {/* Profile Pic and follow button */}
@@ -143,9 +143,9 @@ const FeedItem = ({ post, onVideoInit }) => {
                 />
               </button>
               {/* Username */}
-              <div className="flex items-center space-x-2">
+              <button className="flex items-center space-x-2">
                 <h1 className="font-bold">{post.username}</h1>
-              </div>
+              </button>
             </div>
             <h2 className="font-bold text-lg">
               {post.productName || post.caption.slice(0, 30)}
@@ -219,7 +219,7 @@ const FeedItem = ({ post, onVideoInit }) => {
               onClick={handleOpenShare}
               className="flex flex-col items-center"
             >
-              <img src="/icons/send-alt.svg" alt="" />
+              <img src="/icons/share.svg" alt="" />
               <span className="text-xs font-semibold">
                 {formatCount(post.shares)}
               </span>
@@ -230,12 +230,12 @@ const FeedItem = ({ post, onVideoInit }) => {
               <span className="text-xs text-white font-semibold">
                 {`Promote`}
               </span>
-            </button>
-            Message Trader Icon
-            <button className="flex flex-col items-center">
-              <img src="/icons/mail.svg" alt="" />
-              <span className="text-xs font-semibold">{`Message`}</span>
             </button> */}
+            {/* Message Trader Icon */}
+            <button className="flex flex-col items-center">
+              <img src="/icons/send-alt.svg" alt="" />
+              <span className="text-xs font-semibold">{`Message`}</span>
+            </button>
             {/* Views Icon */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />

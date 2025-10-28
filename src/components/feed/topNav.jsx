@@ -1,23 +1,25 @@
+// TopNav.js
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { BsBroadcast } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import CartModal from "./cart/cartModal";
+import SearchModal from "./SearchModal"; // <-- 1. Import the new modal
 
 const TopNav = ({ activeTab, setActiveTab }) => {
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const searchRef = useRef(null);
-  const searchButtonRef = useRef(null);
+  // --- 2. Remove all search-related states ---
+  // const [searchOpen, setSearchOpen] = useState(false);
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [searchResults, setSearchResults] = useState([]);
+  // const searchRef = useRef(null);
+  // const searchButtonRef = useRef(null);
+  
+  // --- 3. Add state for the new search modal ---
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
 
   const EMPTY_ARRAY = [];
-
-  const shops = useSelector((state) => state.shops.shops);
-
-  // Add to cart Logic
   const cartItems = useSelector((state) => state.cart?.items || EMPTY_ARRAY);
   const cartItemCount = cartItems.reduce(
     (total, item) => total + (item.quantity || 1),
@@ -25,95 +27,29 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   );
 
   const location = useLocation();
-
   const navigate = useNavigate();
 
   useEffect(() => {
-    setSearchOpen(false);
+    // --- 4. Close the modal on navigation ---
+    setIsSearchModalOpen(false);
   }, [location.pathname]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target) &&
-        searchButtonRef.current &&
-        !searchButtonRef.current.contains(event.target) &&
-        searchOpen
-      ) {
-        setSearchOpen(false);
-      }
-    };
+  // --- 5. Remove the old useEffect for handleClickOutside ---
+  // (No longer needed as the modal is full-screen)
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [searchOpen]);
-
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (!value.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    let combinedShops = [];
-
-    if (shops) {
-      if (Array.isArray(shops)) {
-        combinedShops = shops;
-      } else if (typeof shops === "object") {
-        combinedShops = [
-          ...(Array.isArray(shops.sponsored_shops)
-            ? shops.sponsored_shops
-            : []),
-          ...(Array.isArray(shops.for_you) ? shops.for_you : []),
-        ];
-      }
-    }
-
-    const filteredResults = combinedShops
-      .filter(
-        (shop) =>
-          shop.name?.toLowerCase().includes(value.toLowerCase()) ||
-          shop.description?.toLowerCase().includes(value.toLowerCase()) ||
-          shop.category?.toLowerCase().includes(value.toLowerCase()) ||
-          shop.address?.toLowerCase().includes(value.toLowerCase()) ||
-          (shop.products &&
-            Array.isArray(shop.products) &&
-            shop.products.some((product) =>
-              product.name?.toLowerCase().includes(value.toLowerCase())
-            )) ||
-          (shop.tags &&
-            Array.isArray(shop.tags) &&
-            shop.tags.some((tag) =>
-              tag.toLowerCase().includes(value.toLowerCase())
-            ))
-      )
-      .slice(0, 5);
-
-    setSearchResults(filteredResults);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`);
-      setSearchOpen(false);
-      setSearchResults([]);
-      setSearchTerm("");
-    }
-  };
+  // --- 6. Remove all search handler functions ---
+  // const handleSearchChange = (e) => { ... };
+  // const handleSearchSubmit = (e) => { ... };
 
   const handleOpenCart = () => {
     setShowCartModal(true);
   };
+  
   return (
     <div className="flex items-center w-full h-16 px-4 bg-transparent fixed top-0 left-0 z-50">
       <div className="flex items-center justify-between w-lg mx-auto md:w-4xl">
         <div className="pl-2">
-          <BsBroadcast className="size-5 md:size-7 text-white" />
+          <BsBroadcast className="size-5 md:size-7 text-white hidden" />
         </div>
         <div className="flex gap-6">
           <button
@@ -124,7 +60,9 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${
-                activeTab === "nearby" ? "pb-1 border-b-2 border-b-lily" : ""
+                activeTab === "nearby"
+                  ? "pb-1 border-b-2 border-b-lily"
+                  : ""
               }`}
             >
               Nearby
@@ -138,7 +76,9 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${
-                activeTab === "forYou" ? "pb-1 border-b-2 border-b-lily" : ""
+                activeTab === "forYou"
+                  ? "pb-1 border-b-2 border-b-lily"
+                  : ""
               }`}
             >
               For you
@@ -150,13 +90,11 @@ const TopNav = ({ activeTab, setActiveTab }) => {
         <div className="flex items-center gap-1 md:gap-3">
           {/* Search Icon / Button */}
           <div className="pr-2">
+            {/* --- 7. Update onClick to open the modal --- */}
             <button
               className="cursor-pointer"
-              onClick={() => {
-                setSearchOpen(!searchOpen);
-                if (!searchOpen) setSearchTerm("");
-              }}
-              ref={searchButtonRef}
+              onClick={() => setIsSearchModalOpen(true)}
+              // ref={searchButtonRef} // (No longer needed)
             >
               <img src="/icons/search-icon.svg" alt="" />
             </button>
@@ -184,86 +122,25 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div
-          ref={searchRef}
-          className={`absolute flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
-            searchOpen
-              ? "opacity-100 scale-y-100 origin-top"
-              : "opacity-0 scale-y-0 pointer-events-none"
-          }`}
-        >
-          <form
-            onSubmit={handleSearchSubmit}
-            className="relative w-full flex items-center"
-          >
-            <input
-              className="bg-white py-2 text-black px-3 sm:py-1 sm:px-2 w-full rounded-lg border border-gray-300"
-              type="text"
-              placeholder="Search by keyword"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              autoFocus={searchOpen}
-            />
-            <button type="submit" className="absolute right-3">
-              <img src="/search-icon.svg" alt="search-icon" />
-            </button>
-          </form>
-
-          {/* Search Results Dropdown */}
-          {searchResults.length > 0 && (
-            <div className="absolute mt-10 w-full bg-white rounded-lg shadow-lg max-h-72 overflow-y-auto overflow-x-clip z-10">
-              <ul>
-                {searchResults.map((shop) => (
-                  <li
-                    key={shop.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0"
-                    onClick={() => navigate(`/shop/${shop.id}`)}
-                  >
-                    <div className="flex items-center">
-                      {shop.image_url && (
-                        <img
-                          src={shop.image_url}
-                          alt={shop.name}
-                          className="w-8 h-8 object-cover mr-2"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium">{shop.name}</p>
-                        <p className="text-xs text-gray-600 truncate">
-                          {shop.category && (
-                            <span className="text-lily">• {shop.category}</span>
-                          )}
-                          {shop.address && (
-                            <span className="text-lily">• {shop.address}</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-                <li
-                  className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer"
-                  onClick={() =>
-                    navigate(
-                      `/searchResults?q=${encodeURIComponent(searchTerm)}`
-                    )
-                  }
-                >
-                  View all results
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
+        {/* --- 8. Remove the old in-place Search Bar and Dropdown --- */}
+        {/* <div ref={searchRef} ... > ... </div> */}
+        
       </div>
-      {/* RENDER THE CART MODAL */}
+
+      {/* RENDER THE MODALS */}
       <AnimatePresence>
         {showCartModal && (
           <CartModal
             isOpen={showCartModal}
             onClose={() => setShowCartModal(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* --- 9. Add the new SearchModal to be rendered --- */}
+      <AnimatePresence>
+        {isSearchModalOpen && (
+          <SearchModal onClose={() => setIsSearchModalOpen(false)} />
         )}
       </AnimatePresence>
     </div>
