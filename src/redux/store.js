@@ -7,6 +7,7 @@ import addProductReducer from "./addProductSlice";
 import deleteShopReducer from "./deleteShopSlice";
 import adsReducer from "./adsSlice";
 import passwordReducer from "./passwordSlice";
+import cartReducer from "./cartSlice";
 import contentReducer from "./contentSlice";
 import createUserReducer from "./createUserSlice";
 import verifyEmailReducer from "./verifyEmailSlice";
@@ -24,6 +25,7 @@ export const store = configureStore({
     deleteShop: deleteShopReducer,
     ads: adsReducer,
     password: passwordReducer,
+    cart: cartReducer,
     content: contentReducer,
     createUser: createUserReducer,
     verifyEmail: verifyEmailReducer,
