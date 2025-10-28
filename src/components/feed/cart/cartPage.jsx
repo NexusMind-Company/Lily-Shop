@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,7 +16,23 @@ const fetchUserProfile = async () => {
   return {
     deliveryAddress: "15, Adeola Odeku Street, VI, Lagos",
     pickupAddress: "Shop C5, Ikeja City Mall, Lagos",
+    // You would also fetch saved card details here
+    // savedCard: {
+    //   last4: "1145",
+    //   expiry: "09/28",
+    //   isDefault: true
+    // }
   };
+};
+
+const formatDate = (date) => {
+  if (!date || isNaN(new Date(date).getTime())) {
+    return "";
+  }
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const CartPage = () => {
@@ -64,6 +80,48 @@ const CartPage = () => {
     [itemsToCheckout]
   );
 
+  const estimatedDeliveryTime = useMemo(() => {
+    if (!itemsToCheckout || itemsToCheckout.length === 0) {
+      return "Calculating...";
+    }
+
+    // --- ASSUMPTION ---
+    // This logic assumes your item data from the "feed api" (in Redux)
+    // provides fields like:
+    // item.estimatedDeliveryMinDate = "2025-10-28" (string)
+    // item.estimatedDeliveryMaxDate = "2025-10-30" (string)
+
+    try {
+      // Get all min/max dates and convert them to numeric timestamps
+      const allMinTimestamps = itemsToCheckout.map((item) =>
+        new Date(item.estimatedDeliveryMinDate || Date.now()).getTime()
+      );
+      const allMaxTimestamps = itemsToCheckout.map((item) =>
+        new Date(item.estimatedDeliveryMaxDate || Date.now()).getTime()
+      );
+
+      // Find the earliest min date and latest max date
+      const earliestMinDate = new Date(Math.min(...allMinTimestamps));
+      const latestMaxDate = new Date(Math.max(...allMaxTimestamps));
+
+      const formattedMin = formatDate(earliestMinDate);
+      const formattedMax = formatDate(latestMaxDate);
+
+      // Handle case where dates are the same or invalid
+      if (!formattedMin || !formattedMax) {
+        return "N/A";
+      }
+      if (formattedMin === formattedMax) {
+        return formattedMax;
+      }
+
+      return `${formattedMin} - ${formattedMax}`;
+    } catch (error) {
+      console.error("Error parsing delivery dates:", error);
+      return "N/A"; // Fallback
+    }
+  }, [itemsToCheckout]); // Now depends on the items
+
   // State
   const [deliveryAddress, setDeliveryAddress] = useState("Loading address..."); // Initial state while fetching
   const [pickupAddressDisplay, setPickupAddressDisplay] =
@@ -81,6 +139,7 @@ const CartPage = () => {
       setPickupAddressDisplay(
         userProfile.pickupAddress || "No preferred pickup set"
       );
+      // TODO: Set saved card details here from userProfile
     } else if (profileError) {
       setDeliveryAddress("Error loading address");
       setPickupAddressDisplay("Error loading pickup");
@@ -131,6 +190,13 @@ const CartPage = () => {
     navigate("/order-confirmation"); // Navigate to next step
   };
 
+  // Helper object for payment method labels
+  const paymentLabels = {
+    card: "Card (Default)",
+    bank: "Bank Transfer",
+    wallet: "Lily Wallet",
+  };
+
   // Handle loading state for profile
   if (isLoadingProfile) {
     return (
@@ -168,32 +234,32 @@ const CartPage = () => {
             <div className="space-y-3">
               {itemsToCheckout.map((item) => (
                 <div key={item.id} className="flex items-center space-x-3">
-                  <img
-                    src={item.mediaSrc}
-                    alt={item.productName}
-                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                  />
+                  <div className="flex flex-col gap-2 items-start">
+                    <p className="text-sm text-gray-500">{item.username}</p>
+                    <img
+                      src={item.mediaSrc}
+                      alt={item.productName}
+                      className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                    />
+                  </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">
                       {item.productName}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Sold by: {item.username}
+                    <p className="text-sm font-semibold text-pink">
+                      N{formatPrice(item.price * item.quantity)}
                     </p>
                     <p className="text-sm text-gray-600">
                       Qty: {item.quantity}
                     </p>
                     {item.color && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm text-gray-500">
                         Color: {item.color}
                       </p>
                     )}
                     {item.size && (
                       <p className="text-xs text-gray-500">Size: {item.size}</p>
                     )}
-                    <p className="text-sm font-semibold text-green-700">
-                      N{formatPrice(item.price * item.quantity)}
-                    </p>
                   </div>
                 </div>
               ))}
@@ -205,11 +271,17 @@ const CartPage = () => {
             <h3 className="font-semibold text-md text-gray-800 mb-3">
               Delivery address
             </h3>
-            <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-2">
+            <div className="p-3 rounded-lg text-sm space-y-2">
               <p className="font-medium">{deliveryAddress}</p>
-              <button className="text-lily text-sm hover:underline">
-                + Add/Change address{" "}
-                {/* TODO: Implement address change logic */}
+              <button
+                onClick={() =>
+                  navigate("/select-address", {
+                    state: { from: location.pathname },
+                  })
+                }
+                className="text-pink text-sm hover:underline"
+              >
+                + Add/Change address
               </button>
             </div>
           </div>
@@ -217,11 +289,17 @@ const CartPage = () => {
           {/* Pickup Option */}
           <div>
             <h3 className="font-semibold text-md text-gray-800 mb-3">Pickup</h3>
-            <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-2">
+            <div className="p-3 rounded-lg text-sm space-y-2">
               <p className="font-medium">{pickupAddressDisplay}</p>
-              <button className="text-lily text-sm hover:underline">
-                Change preferred pickup{" "}
-                {/* TODO: Implement pickup change logic */}
+              <button
+                onClick={() =>
+                  navigate("/select-pickup", {
+                    state: { from: location.pathname },
+                  })
+                }
+                className="text-pink text-sm hover:underline"
+              >
+                Change preferred pickup
               </button>
             </div>
           </div>
@@ -231,21 +309,46 @@ const CartPage = () => {
             <h3 className="font-semibold text-md text-gray-800 mb-3">
               Payment Method
             </h3>
+            {/* --- UI AND LOGIC IMPLEMENTED As Per Figma Design --- */}
             <div className="space-y-3">
-              <label className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="card"
-                  checked={paymentMethod === "card"}
-                  onChange={() => setPaymentMethod("card")}
-                  className="form-radio text-lily focus:ring-lily"
-                />
-                <span className="text-gray-700 font-medium">
-                  Card (Default)
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg cursor-pointer">
+              {/* Card Option */}
+              <div className="flex flex-col items-start justify-between p-3 rounded-lg">
+                <label
+                  htmlFor="payment-card"
+                  className="flex items-center space-x-3 cursor-pointer"
+                >
+                  <input
+                    id="payment-card"
+                    type="radio"
+                    name="payment"
+                    value="card"
+                    checked={paymentMethod === "card"}
+                    onChange={() => setPaymentMethod("card")}
+                    className="form-radio text-lily focus:ring-lily"
+                  />
+                  <div>
+                    <span className="text-gray-700 font-medium">Card</span>
+                    {/* Placeholder text based on the design. Replace with dynamic data. */}
+                    <p className="text-xs text-gray-500">
+                      S**** **********45 (Default)
+                    </p>
+                    <p className="text-xs text-gray-500">Exp: 09/28</p>
+                  </div>
+                </label>
+                <button
+                  onClick={() =>
+                    navigate("/select-payment", {
+                      state: { from: location.pathname },
+                    })
+                  }
+                  className="text-pink text-sm hover:underline"
+                >
+                  Add new card
+                </button>
+              </div>
+
+              {/* Bank Transfer Option */}
+              <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer">
                 <input
                   type="radio"
                   name="payment"
@@ -256,7 +359,9 @@ const CartPage = () => {
                 />
                 <span className="text-gray-700 font-medium">Bank Transfer</span>
               </label>
-              <label className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg cursor-pointer">
+
+              {/* Lily Wallet Option */}
+              <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer">
                 <input
                   type="radio"
                   name="payment"
@@ -285,7 +390,7 @@ const CartPage = () => {
               />
               <button
                 onClick={handleApplyVoucher}
-                className="bg-lily w-[50%] text-white px-5 py-3 rounded-lg font-medium hover:bg-darklily transition-colors disabled:opacity-50"
+                className="bg-lily w-[50%] text-white px-5 py-3 rounded-lg font-medium hover:bg-darklily transition-colors disabled:bg-ash"
                 disabled={!voucherCode} // Disable if no code entered
               >
                 Apply
@@ -298,7 +403,7 @@ const CartPage = () => {
             <h3 className="font-semibold text-md text-gray-800 mb-3">
               Order summary
             </h3>
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+            <div className="p-4 rounded-lg space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Items total ({itemCount})</span>
                 <span>N{formatPrice(subtotal)}</span>
@@ -313,11 +418,9 @@ const CartPage = () => {
                 <span>Delivery fee</span>
                 <span>N{formatPrice(totalDeliveryCharge)}</span>
               </div>
-              <div className="flex justify-between font-bold text-md border-t border-gray-200 pt-2 mt-2">
-                <span>Total Payment</span>
-                <span className="text-lily">
-                  N{formatPrice(estimatedTotal)}
-                </span>
+              <div className="flex justify-between">
+                <span>Delivery time</span>
+                <span>{estimatedDeliveryTime}</span>
               </div>
             </div>
             {/* Legal Text */}
@@ -350,10 +453,15 @@ const CartPage = () => {
         </div>
       )}
       {itemsToCheckout.length > 0 && (
-        <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="flex w-full justify-between p-4 border-t border-gray-200 bg-white flex-shrink-0">
+          <div className="flex flex-col w-[40%] justify-between font-bold text-md pt-2 mt-2">
+            <span>Total Payment</span>
+            <span className="text-xl">N{formatPrice(estimatedTotal)}</span>
+          </div>
+
           <button
             onClick={handleProceedToPayment}
-            className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
+            className="w-[60%] bg-lily text-white py-3 rounded-full text-lg font-semibold hover:bg-darklily transition-colors"
           >
             Proceed
           </button>
