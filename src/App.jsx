@@ -65,6 +65,8 @@ import FollowingPage from "./pages/following";
 import FollowersPage from "./pages/followers";
 import FeedProductDetails from "./pages/feedProductDetails";
 import Cart from "./pages/cart";
+import ReceiptPage from "./pages/reciept";
+import WalletCallbackPage from "./pages/wallet-callback";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -167,6 +169,11 @@ export default function App() {
           <Route path="/editProfile" element={<EditProfilePage />} />
           <Route path="/followers" element={<FollowersPage />} />
           <Route path="/following" element={<FollowingPage />} />
+          <Route path="/editProfile" element={<EditProfilePage />} />
+          <Route path="/followers" element={<FollowersPage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/reciept" element={<ReceiptPage />} />
+          <Route path="/walletCallback" element={<WalletCallbackPage />} />
         </Routes>
       </FeedProvider>
 

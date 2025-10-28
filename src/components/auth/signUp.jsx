@@ -1,93 +1,54 @@
-/* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createUser, resetCreateUserState } from "../../redux/createUserSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useMutation } from "@tanstack/react-query";
-
-// API call
-const signupApi = async ({ phone_or_email, password }) => {
-  const body = {
-    email_or_phonenumber: phone_or_email, // <-- Renamed this key
-    password: password,
-  };
-  const res = await fetch(
-    "https://lily-shop-backend.onrender.com/auth/users/",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    throw await res.json();
-  }
-  return res.json();
-};
-
-// Helpers
-
-const detectInputType = (value) => {
-  if (!value) return null;
-  const emailPattern = /^\S+@\S+\.\S+$/;
-  const phonePattern = /^\+?\d{9,15}$/;
-  if (emailPattern.test(value)) return "email";
-  if (phonePattern.test(value)) return "phone";
-  return "unknown";
-};
 
 const SignUp = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [values, setValues] = useState({ phone_or_email: "", password: "" });
+  const { loading, success, error } = useSelector((state) => state.createUser);
+
+  const [values, setValues] = useState({
+    email_or_phonenumber: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const mutation = useMutation({
-    mutationFn: signupApi,
-    onSuccess: (_, vars) => {
-      navigate(
-        `/verify-email?contact=${encodeURIComponent(vars.phone_or_email)}`
-      );
-    },
-    onError: (err) => {
-      console.error("Signup Error:", err);
-      setErrors({
-        phone_or_email: err.email_or_phonenumber?.[0],
-        password: err.password?.[0],
-        form: err.detail || "Registration failed",
-      });
-    },
-  });
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
 
+  const validate = () => {
+    const { email_or_phonenumber, password } = values;
+    const newErrors = {};
+
+    if (!email_or_phonenumber)
+      newErrors.email_or_phonenumber = "Phone number or email is required";
+
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+
+    return newErrors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setErrors({});
-    const { phone_or_email, password } = values;
-
-    if (!phone_or_email) {
-      setErrors({ phone_or_email: "Phone or email is required" });
-      return;
+    const newErrors = validate();
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      dispatch(createUser(values));
     }
-    if (detectInputType(phone_or_email) === "unknown") {
-      setErrors({
-        phone_or_email: "Enter a valid phone number or email",
-      });
-      return;
-    }
-    if (!password) {
-      setErrors({ password: "Password is required" });
-      return;
-    }
-    if (password.length < 8) {
-      setErrors({ password: "Password must be at least 8 characters" });
-      return;
-    }
-
-    mutation.mutate(values);
   };
+
+  useEffect(() => {
+    if (success) {
+      dispatch(resetCreateUserState());
+      navigate("/verify-email?contact=" + encodeURIComponent(values.email_or_phonenumber));
+    }
+  }, [success, navigate, values.email_or_phonenumber, dispatch]);
 
   return (
     <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
@@ -106,27 +67,25 @@ const SignUp = () => {
         ter
       </h2>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        {/* General errors */}
-        {errors.form && (
-          <p className="text-red-500 text-sm -mb-4">{errors.form}</p>
-        )}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         {/* Phone or Email */}
         <div>
           <input
             type="text"
-            name="phone_or_email"
-            value={values.phone_or_email}
+            name="email_or_phonenumber"
+            value={values.email_or_phonenumber}
             onChange={handleChange}
-            placeholder="Phone or email"
-            className={`input rounded-[7px] h-[46px] mt-3 w-full ${
-              errors.phone_or_email ? "border-red-500" : ""
+            placeholder="Phone number or email"
+            className={`input rounded-[7px] h-[46px] w-full ${
+              errors.email_or_phonenumber ? "border-red-500" : ""
             }`}
           />
-          {errors.phone_or_email && (
-            <p className="text-red-500 text-xs mt-1">{errors.phone_or_email}</p>
+          {errors.email_or_phonenumber && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.email_or_phonenumber}
+            </p>
           )}
         </div>
 
@@ -138,7 +97,7 @@ const SignUp = () => {
             value={values.password}
             onChange={handleChange}
             placeholder="Password"
-            className={`input rounded-[7px] h-[46px] w-full pr-10 mt-3 ${
+            className={`input rounded-[7px] h-[46px] w-full pr-10 ${
               errors.password ? "border-red-500" : ""
             }`}
           />
@@ -157,14 +116,14 @@ const SignUp = () => {
         {/* Submit */}
         <button
           type="submit"
-          disabled={mutation.isLoading}
+          disabled={loading}
           className={`h-[46px] rounded-full font-bold text-white ${
-            mutation.isLoading
+            loading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-lily hover:bg-darklily"
           }`}
         >
-          {mutation.isLoading ? "Registering..." : "REGISTER"}
+          {loading ? "Registering..." : "REGISTER"}
         </button>
       </form>
 
@@ -180,3 +139,4 @@ const SignUp = () => {
 };
 
 export default SignUp;
+
