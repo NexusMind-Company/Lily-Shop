@@ -1,5 +1,11 @@
 import Receipt from "../components/wallet/receipt";
+import PageSEO from "../components/common/PageSEO";
 
 export default function ReceiptPage() {
-  return <Receipt />;
+  return (
+    <>
+      <PageSEO />
+      <Receipt />;
+    </>
+  );
 }
