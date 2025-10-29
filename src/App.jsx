@@ -1,4 +1,4 @@
-import { FeedProvider } from "./context/feedContext"; // ✅ import provider
+import { FeedProvider } from "./context/feedContext";
 import MyShop from "./pages/myShop";
 import Ratings from "./components/shop/ratings";
 import CreateShop from "./pages/createShop";
@@ -32,7 +32,6 @@ import VerifyCode from "./components/auth/verifyCode";
 import CreateUsername from "./components/auth/createUsername";
 import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfilePic";
 import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
-import ProductDetails from "./components/feed/product/productDetails";
 import FeedLayout from "./layouts/feedLayouts";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
@@ -54,7 +53,6 @@ import InboxPage from "./pages/inbox";
 import Messages from "./pages/messages";
 import Shops from "./pages/shops";
 import Home from "./pages/home";
-import CartPage from "./components/feed/cart/cartPage";
 import NotificationPage from "./pages/notifications";
 import ChangeDOBPage from "./pages/ChangeDOB";
 import ChangePhonePage from "./pages/ChangePhone";
@@ -65,9 +63,20 @@ import ConfirmPhonePage from "./pages/ConfirmPhone";
 import EditProfilePage from "./pages/editProfile";
 import FollowingPage from "./pages/following";
 import FollowersPage from "./pages/followers";
+import FeedProductDetails from "./pages/feedProductDetails";
+import Cart from "./pages/cart";
 import ReceiptPage from "./pages/reciept";
-import WalletCallbackPage from "./pages/wallet-callback"
-
+import WalletCallbackPage from "./pages/wallet-callback";
+import ChooseAddressPage from "./pages/chooseAddressPage";
+import AddAddressPage from "./pages/AddAddressPage";
+import ChoosePickupPage from "./pages/choosePickupPage";
+import ChooseCardPage from "./pages/ChooseCardPage";
+import AddCardPage from "./pages/AddCardPage";
+import PasswordModalPage from "./pages/PasswordModalPage";
+import PaymentLoadingPage from "./pages/paymentLoading";
+import BankTransferPage from "./pages/BankTransferPage";
+import PaymentSuccessPage from "./pages/paymentsSucessPage";
+import PaymentFailedPage from "./pages/paymentFailedPage";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -98,13 +107,15 @@ export default function App() {
       <SEO />
       <ScrollToTop />
 
-      {/* ✅ Wrap all routes in FeedProvider */}
       <FeedProvider>
         <Routes>
           <Route element={<FeedLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/product-details/:id" element={<ProductDetails />} />
-            <Route path="/checkout" element={<CartPage />} />
+            <Route
+              path="/product-details/:id"
+              element={<FeedProductDetails />}
+            />
+            <Route path="/checkout" element={<Cart />} />
           </Route>
           <Route path="/myShop" element={<MyShop />} />
           <Route path="/rating" element={<Ratings />} />
@@ -165,13 +176,25 @@ export default function App() {
           <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
           <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
           <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
-        <Route path="/editProfile" element={<EditProfilePage />} />
-        <Route path="/followers" element={<FollowersPage />} />
-        <Route path="/following" element={<FollowingPage />} />
-        <Route path="/reciept" element={<ReceiptPage />} />
-        <Route path="/walletCallback" element={<WalletCallbackPage />} />
-        
-
+          <Route path="/editProfile" element={<EditProfilePage />} />
+          <Route path="/followers" element={<FollowersPage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/editProfile" element={<EditProfilePage />} />
+          <Route path="/followers" element={<FollowersPage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/reciept" element={<ReceiptPage />} />
+          <Route path="/walletCallback" element={<WalletCallbackPage />} />
+          <Route path="/choose-address" element={<ChooseAddressPage />} />
+          <Route path="/add-address" element={<AddAddressPage />} />
+          <Route path="/choose-pickup" element={<ChoosePickupPage />} />
+          <Route path="/choose-payment" element={<ChooseCardPage />} />
+          <Route path="/add-card" element={<AddCardPage />} />
+          <Route path="/password" element={<PasswordModalPage />} />
+          <Route path="/bank-transfer" element={<BankTransferPage />} />
+          <Route path="/payment-loading" element={<PaymentLoadingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>
 
