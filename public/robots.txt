@@ -1,21 +1,41 @@
+# Lily Shop Robots.txt
+# Purpose: Control how search engines crawl and index Lily Shop pages
+
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://lilyshop.com/sitemap.xml
+#  Allow key public routes for indexing
+Allow: /feed
+Allow: /about
+Allow: /signup
+Allow: /login
 
-# Crawl-delay
-Crawl-delay: 1
 
-# Disallow admin and private areas
+#  Block sensitive, duplicate, or irrelevant paths
 Disallow: /admin/
 Disallow: /api/
 Disallow: /private/
+Disallow: /settings
+Disallow: /orders
+Disallow: /messages
+Disallow: /inbox
+Disallow: /receipt
+Disallow: /deposit
+Disallow: /shops
+Disallow: /products
+Disallow: /withdraw
+Disallow: /transaction-history
+Disallow: /create-shop
+Disallow: /cart
+Disallow: /wallet
+Disallow: /profile
 Disallow: /*.json$
+Disallow: /*.env$
+Disallow: /*?*    # avoid duplicate URLs with query params
 
-# Allow important pages
-Allow: /shops
-Allow: /createShop
-Allow: /about
-Allow: /login
-Allow: /signup
+# 🕷️ Crawl-delay for server safety (1 second)
+Crawl-delay: 1
+
+# 🗺️ Sitemap (make sure this URL exists)
+Sitemap: https://lilyshop.com/sitemap.xml
+
