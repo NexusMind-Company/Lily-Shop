@@ -108,7 +108,7 @@ const ProductItem = ({ product }) => {
       pickupAddress: product.pickupAddress,
       deliveryAddress: product.deliveryAddress,
       deliveryCharge: product.deliveryCharge,
-      serviceCharge: product.serviceCharge,
+      deliveryTime: product.deliveryTime,
     };
     setIsAddedToCart(true);
     // setTimeout(() => setIsAddedToCart(false), 3000); // You can re-enable this
