@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { initiateBankTransfer } from "../api/checkoutApi";
-import { usePayment } from "../context/PaymentContext";
+import { usePayment } from "../context/paymentContext.js";
 import { ChevronLeft, Loader2, Shield } from "lucide-react";
 
 // Helper function
