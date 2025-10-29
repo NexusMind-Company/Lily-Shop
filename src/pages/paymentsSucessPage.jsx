@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { usePayment } from "../context/PaymentContext";
+import { usePayment } from "../context/paymentContext";
 import { ChevronLeft, CheckCircle, Shield } from "lucide-react";
 
 // Helper function
