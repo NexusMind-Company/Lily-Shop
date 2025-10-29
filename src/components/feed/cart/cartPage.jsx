@@ -4,9 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Loader2 } from "lucide-react";
-// Assuming 'pages' and 'redux' are siblings under 'src' or root
-import { selectCartItems } from "../../../redux/cartSlice.js"; // Adjusted relative path
+import { Loader2 } from "lucide-react";
 
 // --- IMPORTED FROM SEPARATE FILES ---
 // Use relative paths from the current file's location (pages/)
