@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useState, useMemo, useEffect } from "react";
+import { useSelector, } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import { selectCartItems } from "../../../redux/cartSlice";
+import { selectCartItems } from "../../../redux/cartSlice"; 
 import { useQuery } from "@tanstack/react-query";
 
 // Placeholder - replace with your actual API call and auth logic
