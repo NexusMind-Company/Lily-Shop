@@ -1,15 +1,10 @@
 import Settings from "../components/settings/settings";
-import SEO from "../components/common/SEO";
+import PageSEO from "../components/common/PageSEO";
 
 const settings = () => {
   return (
     <>
-      <SEO
-        title="Account Settings - Lily Shops"
-        description="Manage your Lily Shops account settings. Update your profile, preferences, and account information."
-        keywords="account settings, profile settings, preferences, Lily Shops, account management"
-        type="website"
-      />
+      <PageSEO />
       <section>
         <Settings />
       </section>
