@@ -82,7 +82,7 @@ const FeedContainer = () => {
   if (error) return <p>Error loading feed.</p>;
 
   return (
-    <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
+    <main className="relative w-full h-screen bg-white flex justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
         {/* --- MODIFICATION 1: Make TopNav an overlay --- */}
         <div className="absolute top-0 left-0 right-0">
