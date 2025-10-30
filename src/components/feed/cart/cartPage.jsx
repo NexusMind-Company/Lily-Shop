@@ -1,9 +1,16 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useSelector } from "react-redux";
+
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice.js";
+import { Loader2 } from "lucide-react";
+
+// --- IMPORTED FROM SEPARATE FILES ---
+// Use relative paths from the current file's location (pages/)
 import { fetchUserProfile } from "../../../api/checkoutApi";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";

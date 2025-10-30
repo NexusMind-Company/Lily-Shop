@@ -4,7 +4,7 @@ import PageSEO from "../components/common/PageSEO";
 const Home = () => {
   return (
     <>
-      <PageSEO page="home" />
+      <PageSEO/>
       <FeedContainer />
     </>
   );
