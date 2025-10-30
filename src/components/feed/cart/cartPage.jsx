@@ -1,48 +1,50 @@
 import React, { useState, useMemo, useEffect } from "react";
-
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Loader2 } from "lucide-react";
-import { selectCartItems } from "../../../redux/cartSlice.js";
 import { Loader2 } from "lucide-react";
 
 // --- IMPORTED FROM SEPARATE FILES ---
 // Use relative paths from the current file's location (pages/)
 import { fetchUserProfile } from "../../../api/checkoutApi";
-import { usePayment } from "../../../context/paymentContext";
-import { formatPrice, formatDate } from "../../../utils/formatters";
+import { usePayment } from "../../../context/paymentContext"; // Using .jsx as you mentioned
+import { formatPrice, formatDate } from "../../../utils/formatters"; // Import helpers
 
 const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setPaymentData } = usePayment();
+  const { setPaymentData } = usePayment(); // Get context setter
 
-  const allCartItems = useSelector(selectCartItems);
-  // Get item IDs passed from the previous page (e.g., the cart)
-  const selectedItemIds = location.state?.selectedItemIds;
+  // --- USE YOUR REDUX SETUP ---
+  const allCartItems = useSelector(selectCartItems); // Use Redux selector
+  const selectedItemIds = location.state?.selectedItemIds; // Keep using location state
+  // --- END REDUX ---
 
+  // Fetch User Profile Data using the imported function
   const {
     data: userProfile,
     isLoading: isLoadingProfile,
     error: profileError,
   } = useQuery({
     queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
+    queryFn: fetchUserProfile, // Use the imported function
   });
 
   const itemsToCheckout = useMemo(() => {
-    // Filter items: either the specific ones selected or all items in the cart.
+    // If selectedItemIds are passed, use them; otherwise, use all items from Redux
     if (selectedItemIds && Array.isArray(selectedItemIds)) {
+      // Handle cases where allCartItems might not be ready yet
       if (!allCartItems) return [];
       return allCartItems.filter((item) => selectedItemIds.includes(item.id));
     }
-    return allCartItems || []; // Fallback to all items
+    return allCartItems || []; // Fallback to all items or empty array if none selected/available
   }, [allCartItems, selectedItemIds]);
 
+  // Calculate total fees
   const totalDeliveryCharge = useMemo(() => {
+    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (sum, item) => sum + (item.deliveryCharge || 0),
@@ -51,11 +53,13 @@ const CartPage = () => {
   }, [itemsToCheckout]);
 
   const itemCount = useMemo(() => {
+    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce((count, item) => count + item.quantity, 0);
   }, [itemsToCheckout]);
 
   const subtotal = useMemo(() => {
+    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (total, item) => total + item.price * item.quantity,
@@ -63,19 +67,20 @@ const CartPage = () => {
     );
   }, [itemsToCheckout]);
 
+  // this calculate estimated delivery time using imported helper
   const estimatedDeliveryTime = useMemo(() => {
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       return "Calculating...";
     }
     try {
+      // this is to ensure your items from Redux have these date fields
       const allMinTimestamps = itemsToCheckout.map((item) =>
         new Date(item.estimatedDeliveryMinDate || Date.now()).getTime()
       );
       const allMaxTimestamps = itemsToCheckout.map((item) =>
         new Date(item.estimatedDeliveryMaxDate || Date.now()).getTime()
       );
-
-      // Filter out any invalid dates to prevent NaN issues
+      // this is to filter out potential NaN values if dates are invalid
       const validMinTimestamps = allMinTimestamps.filter((ts) => !isNaN(ts));
       const validMaxTimestamps = allMaxTimestamps.filter((ts) => !isNaN(ts));
 
@@ -85,12 +90,10 @@ const CartPage = () => {
 
       const earliestMinDate = new Date(Math.min(...validMinTimestamps));
       const latestMaxDate = new Date(Math.max(...validMaxTimestamps));
-      const formattedMin = formatDate(earliestMinDate);
-      const formattedMax = formatDate(latestMaxDate);
-
+      const formattedMin = formatDate(earliestMinDate); // Use imported helper
+      const formattedMax = formatDate(latestMaxDate); // Use imported helper
       if (!formattedMin || !formattedMax) return "N/A";
       if (formattedMin === formattedMax) return formattedMax;
-
       return `${formattedMin} - ${formattedMax}`;
     } catch (error) {
       console.error("Error parsing delivery dates:", error);
@@ -98,6 +101,7 @@ const CartPage = () => {
     }
   }, [itemsToCheckout]);
 
+  // State
   const [deliveryAddress, setDeliveryAddress] = useState("Loading address...");
   const [pickupAddressDisplay, setPickupAddressDisplay] =
     useState("Loading pickup...");
@@ -105,6 +109,7 @@ const CartPage = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
+  // Update state when profile data loads
   useEffect(() => {
     if (userProfile) {
       setDeliveryAddress(
@@ -120,28 +125,29 @@ const CartPage = () => {
     }
   }, [userProfile, profileError]);
 
-  // If there are no items to check out (after everything has loaded), send the user back home.
+  // Redirect if no items (Keep your logic)
   useEffect(() => {
+    // Check after profile loading AND items are determined
     if (
       !isLoadingProfile &&
       (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
     ) {
-      // This small delay can prevent a race condition if Redux state updates just a fraction slower
+      // Small delay to prevent race conditions if Redux state updates slightly slower
       const timer = setTimeout(() => {
-        // Double-check after the delay
+        // Double check after delay
         if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
           console.log("No items to checkout, redirecting...");
-          navigate("/");
+          navigate("/"); // Redirect to home
         }
       }, 100);
-      return () => clearTimeout(timer); // Always clean up your timers
+      return () => clearTimeout(timer); // Cleanup timer on unmount or re-run
     }
   }, [itemsToCheckout, isLoadingProfile, navigate]);
 
   const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
 
   const handleApplyVoucher = () => {
-    // TODO: Replace this mock logic with an API call to validate the voucher
+    // TODO: Replace with API call to validate voucher
     if (voucherCode === "SAVE10") {
       setAppliedDiscount(subtotal * 0.1);
       console.log("Voucher applied");
@@ -151,16 +157,19 @@ const CartPage = () => {
     }
   };
 
+  // --- UPDATED: Use Payment Context ---
   const handleProceedToPayment = () => {
+    // Ensure items exist before proceeding
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       console.error("Cannot proceed, no items to checkout.");
+      // Optionally show a user message
       return;
     }
 
+    // Set payment data in context
     setPaymentData({
       amount: estimatedTotal,
-      // Grabbing vendor name from the first item as an example
-      vendorName: itemsToCheckout[0]?.username || "Lily Vendor",
+      vendorName: itemsToCheckout[0]?.username || "Lily Vendor", // Example: Get vendor from first item
       orderId: null,
       amountPaid: 0,
     });
@@ -172,6 +181,7 @@ const CartPage = () => {
       estimatedTotal,
     });
 
+    // Navigate based on payment method
     if (paymentMethod === "card") {
       navigate("/password");
     } else if (paymentMethod === "bank") {
@@ -182,7 +192,9 @@ const CartPage = () => {
       console.warn("Unhandled payment method:", paymentMethod);
     }
   };
+  // --- END UPDATE ---
 
+  // Handle loading state
   if (isLoadingProfile) {
     return (
       <div className="flex flex-col items-center justify-center h-screen max-w-xl mx-auto bg-white">
@@ -192,13 +204,15 @@ const CartPage = () => {
     );
   }
 
-  // Show an "empty" message if the cart is empty after loading
+  // Handle case where items might still be loading or empty after profile loads
+  // Added check for Array.isArray as well
   if (
     !isLoadingProfile &&
     (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
   ) {
     return (
       <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white shadow-md">
+        {/* Header */}
         <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
           <button
             onClick={() => navigate(-1)}
@@ -220,7 +234,7 @@ const CartPage = () => {
       {/* Header */}
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(-1)} // Keep your back navigation
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
@@ -230,7 +244,7 @@ const CartPage = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Items in Cart Summary */}
+        {/* Items in Cart Summary (Keep your detailed JSX) */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Items ({itemCount})
@@ -244,6 +258,7 @@ const CartPage = () => {
                     src={item.mediaSrc}
                     alt={item.productName}
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                    // Add error handling for images
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src =
@@ -279,14 +294,15 @@ const CartPage = () => {
           <div className="p-3 rounded-lg text-sm space-y-2">
             <p className="font-medium">{deliveryAddress}</p>
             <button
-              onClick={() =>
-                navigate("/add-address", {
-                  state: { from: location.pathname },
-                })
+              onClick={
+                () =>
+                  navigate("/choose-address", {
+                    state: { from: location.pathname },
+                  }) // Keep your state passing
               }
               className="text-pink text-sm hover:underline"
             >
-              + Add address
+              + Add/Change address
             </button>
           </div>
         </div>
@@ -309,10 +325,11 @@ const CartPage = () => {
           <div className="p-3 rounded-lg text-sm space-y-2">
             <p className="font-medium">{pickupAddressDisplay}</p>
             <button
-              onClick={() =>
-                navigate("/choose-pickup", {
-                  state: { from: location.pathname },
-                })
+              onClick={
+                () =>
+                  navigate("/choose-pickup", {
+                    state: { from: location.pathname },
+                  }) // Keep your state passing
               }
               className="text-pink text-sm hover:underline"
             >
@@ -321,7 +338,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Payment Method */}
+        {/* Payment Method (Keep your JSX structure) */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Payment Method
@@ -352,14 +369,13 @@ const CartPage = () => {
               </label>
               <button
                 onClick={() =>
-                  navigate("/add-card", {
+                  navigate("/choose-card", {
                     state: { from: location.pathname },
                   })
-                }
-                // Added padding to align this link with the text above
-                className="text-pink text-sm hover:underline pl-8 pt-1"
+                } // Keep state passing
+                className="text-pink text-sm hover:underline pl-8 pt-1" // Added padding for alignment
               >
-                + Add new card
+                + Add new card / Change
               </button>
             </div>
             <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer">
@@ -387,7 +403,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Voucher Code */}
+        {/* Voucher Code (Keep your JSX structure) */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Voucher code
@@ -410,7 +426,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Order Summary */}
+        {/* Order Summary (Keep your JSX structure) */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Order summary
@@ -435,16 +451,18 @@ const CartPage = () => {
               <span>{estimatedDeliveryTime}</span>
             </div>
           </div>
-          {/* Legal Text */}
+          {/* Legal Text (Keep your JSX structure) */}
           <div className="flex space-x-2 items-center text-gray-500 mt-2">
-            {/* Remember to replace this with a real icon component */}
+            {/* // Use an actual icon component or path */}
+            {/* <img src="/icons/shield-tick.svg" alt="" className="size-5" /> */}
             <p className="text-sm">
               Your payment is held in escrow till order has been confirmed as
               delivered
             </p>
           </div>
           <div className="flex space-x-2 items-center text-gray-500">
-            {/* Remember to replace this with a real icon component */}
+            {/* // Use an actual icon component or path */}
+            {/* <img src="/icons/undo.svg" alt="" className="size-5" /> */}
             <p className="text-sm break-words">
               Orders may be returned within 7 days of purchase. Learn more about
               our {"  "}
@@ -464,7 +482,7 @@ const CartPage = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer (Keep your specific layout) */}
       <div className="flex w-full justify-between p-4 border-t border-gray-200 bg-white flex-shrink-0">
         <div className="flex flex-col w-[40%] justify-between font-bold text-md pt-2 mt-2">
           <span>Total Payment</span>
@@ -475,7 +493,7 @@ const CartPage = () => {
         <button
           onClick={handleProceedToPayment}
           className="w-[60%] bg-lily text-white py-3 rounded-full text-lg font-semibold hover:bg-darklily transition-colors"
-          disabled={!itemsToCheckout || itemsToCheckout.length === 0}
+          disabled={!itemsToCheckout || itemsToCheckout.length === 0} // Disable if no items
         >
           Proceed
         </button>
