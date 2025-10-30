@@ -109,34 +109,34 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
             {/* Content */}
             <div className="p-5 space-y-6">
               {/* Social Media Shortcuts */}
-              <div className="grid grid-cols-4 gap-1 py-4 border-b border-gray-200">
+              <div className="grid grid-cols-4 gap-1 pt-4 border-t border-gray-200">
                 {shareOptions.map((option) => (
                   <a
                     key={option.name}
                     href={option.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center size-17 p-5 bg-lily hover:bg-ash rounded-full gap-1"
+                    className="flex flex-col items-center justify-center py-4 bg-lily hover:bg-ash rounded-full gap-1"
                   >
                     {getSocialIcon(option.name)}
-                    <span className="text-xs text-gray-800">{option.name}</span>
+                    <span className="text-xs text-gray-600">{option.name}</span>
                   </a>
                 ))}
               </div>
               {/* Primary Actions */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-6">
                 <button
                   onClick={handleNativeShare}
-                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors"
+                  className="flex flex-col items-center justify-center size-22 bg-lily hover:bg-ash rounded-full transition-colors"
                 >
                   <Share2 size={24} className="text-gray-700" />
-                  <span className="text-xs font-semibold text-gray-800">
+                  <span className="text-sm font-semibold text-gray-800">
                     Share via...
                   </span>
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors"
+                  className="flex flex-col items-center justify-center size-22 bg-lily hover:bg-ash rounded-full transition-colors"
                 >
                   <Copy
                     size={24}
@@ -145,7 +145,7 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
                     }`}
                   />
                   <span
-                    className={`text-xs font-semibold transition-colors ${
+                    className={`text-sm font-semibold transition-colors ${
                       isCopied ? "text-darklily" : "text-gray-800"
                     }`}
                   >
