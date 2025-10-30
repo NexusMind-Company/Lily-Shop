@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/jpeg" href="public/lilly-logo.jpg" />
-    <link rel="apple-touch-icon" href="public/lilly-logo.jpg" />
-    <link rel="shortcut icon" href="public/lilly-logo.jpg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="/favicon.png" />
 
-    <!-- Viewport and Mobile Optimization -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
@@ -18,7 +16,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-    <!-- SEO Meta Tags -->
     <meta
       name="robots"
       content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
@@ -26,53 +23,84 @@
     <meta name="googlebot" content="index, follow" />
     <meta name="author" content="Lily Shop" />
     <meta name="generator" content="Vite + React" />
+    <meta
+      name="description"
+      content="Turn every scroll into a purchase. Discover creators, shop real products from real people, and support small businesses in Nigeria. Lily Shop is the easiest way for creators and vendors to sell online and earn money through social commerce."
+    />
+    <meta
+      name="keywords"
+      content="social commerce, buy from real people, marketplace, sell online, creator, vendors, online shopping, earn money as a creator in Nigeria, where to sell handmade products in Nigeria, Nigerian vendors online store, how to make money in Nigeria, social media app Nigeria, shop products from creators, small businesses in Nigeria, support local vendors, how to sell online, real products from real people, best app for Nigerian creators, how to make money online, best websites for creators"
+    />
 
-    <!-- Performance Optimization -->
+    
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Lily Shop - Turn Every Scroll into a Purchase | Social Commerce for Nigerian Creators"
+    />
+    <meta
+      property="og:description"
+      content="Discover creators, shop authentic products, and sell online easily. Lily Shop connects Nigerian creators and vendors with buyers through a social commerce experience."
+    />
+    <meta property="og:url" content="https://lilyshop.com/" />
+    <meta property="og:image" content="https://lilyshop.com/lily-logo.jpg" />
+    <meta property="og:image:alt" content="Lily Shop - Social Commerce Platform" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Lily Shop" />
+    <meta property="og:locale" content="en_NG" />
+
+    
+    <!--  Preconnects for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 
-    <!-- Optimized Font Loading -->
+    
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <!-- PWA Manifest -->
+
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Structured Data -->
+  
+    <link rel="canonical" href="https://lilyshop.com/" />
+
+  
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
+        "@type": "WebSite",
         "name": "Lily Shop",
-        "description": "Create your own virtual store and sell products online with AI-powered chatbot support",
         "url": "https://lilyshop.com",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
+        "description": "Discover creators, shop authentic products, and sell online easily. Lily Shop connects Nigerian creators and vendors with buyers through a social commerce experience.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://lilyshop.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
         },
-        "author": {
+        "publisher": {
           "@type": "Organization",
-          "name": "Lily Shop"
+          "name": "Lily Shop",
+          "url": "https://lilyshop.com"
         },
         "aggregateRating": {
           "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "reviewCount": "1250"
+          "ratingValue": "4.9",
+          "reviewCount": "1340"
         }
       }
     </script>
 
+  
     <title>
-      Lily Shop - Create Your Online Store | AI-Powered E-commerce Platform
+      Lily Shop - Turn Every Scroll into a Purchase | Social Commerce for Nigerian Creators
     </title>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

@@ -5,7 +5,7 @@ import { BsBroadcast } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import CartModal from "./cart/cartModal";
-import SearchModal from "./SearchModal"; // <-- 1. Import the new modal
+import SearchModal from "./searchModal"; 
 
 const TopNav = ({ activeTab, setActiveTab }) => {
   // --- 2. Remove all search-related states ---
