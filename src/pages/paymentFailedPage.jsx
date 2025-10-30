@@ -29,7 +29,7 @@ const PaymentFailedPage = () => {
 
         <div className="w-full space-y-4">
           <button
-            onClick={() => navigate("/cart")} // Go back to cart
+            onClick={() => navigate("/checkout")} // Go back to cart
             className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
           >
             Try Again
@@ -46,4 +46,3 @@ const PaymentFailedPage = () => {
 };
 
 export default PaymentFailedPage;
-
