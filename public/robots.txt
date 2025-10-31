@@ -5,10 +5,10 @@ User-agent: *
 Allow: /
 
 #  Allow key public routes for indexing
-Allow: /feed
 Allow: /about
 Allow: /signup
 Allow: /login
+Allow: /shops
 
 
 #  Block sensitive, duplicate, or irrelevant paths

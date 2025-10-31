@@ -46,7 +46,7 @@ const verifyEmailSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.message =
-          action.payload?.message || "Email verified successfully!";
+          action.payload?.message || action.payload?.detail || "Email verified successfully!";
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false;
@@ -58,4 +58,3 @@ const verifyEmailSlice = createSlice({
 
 export const { resetVerifyEmailState } = verifyEmailSlice.actions;
 export default verifyEmailSlice.reducer;
-

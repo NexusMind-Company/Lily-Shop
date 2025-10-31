@@ -1,55 +1,88 @@
-
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+// ---- Base URL ----
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://lily-shop.up.railway.app";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-//Function to set the token dynamically from Redux or localStorage
-export const setAuthToken = (token) => {
-  if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    localStorage.setItem("auth_token", token);
-  } else {
-    delete api.defaults.headers.common["Authorization"];
-    localStorage.removeItem("auth_token");
+// ---- Token Helpers ----
+
+export const setAuthTokens = ({ access, refresh }) => {
+  if (access) {
+    localStorage.setItem("access_token", access);
+    api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
+  }
+  if (refresh) {
+    localStorage.setItem("refresh_token", refresh);
   }
 };
 
-// Initialize token on app load
-const storedToken = localStorage.getItem("auth_token");
-if (storedToken) {
-  setAuthToken(storedToken);
+export const clearAuthTokens = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  delete api.defaults.headers.common["Authorization"];
+};
+
+// Load stored token on app start
+const storedAccess = localStorage.getItem("access_token");
+if (storedAccess) {
+  api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
 
-// Intercept responses and handle 401 errors
+// ---- Response Interceptor (Logout when token expires) ----
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("user_data");
-      localStorage.removeItem("auth_token");
+      // Token expired or invalid -> logout user
+      clearAuthTokens();
 
-      // Prevent infinite redirect loops
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
+
+      return Promise.reject("Session expired. Please login again.");
     }
+
     return Promise.reject(error);
   }
 );
 
-//Get authenticated user profile
+/**
+ * ✅ Get the authenticated user's profile (requires JWT)
+ */
 export const getAuthProfile = async () => {
-  const token = localStorage.getItem("auth_token");
-  if (!token) throw new Error("No authentication token found");
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
 
-  const response = await api.get("/auth/profile", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await api.get("/auth/profile/");
   return response.data;
 };
+
+/**
+ *  Get another user's public profile using token
+ */
+export const getUserProfile = async () => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  const response = await api.get("/auth/profile/");
+  return response.data;
+};
+
 
 export default api;
