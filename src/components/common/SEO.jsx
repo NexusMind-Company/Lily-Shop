@@ -81,7 +81,7 @@ const SEO = ({
       <link rel="canonical" href={currentUrl} />
 
       {/* Favicon */}
-      <link rel="icon" type="image/ico" href="/favicon.png" />
+      <link rel="icon" type="image/png" href="/favicon.png" />
       <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
       {/* Preload */}

@@ -1,38 +1,47 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useMutation } from "@tanstack/react-query";
-
-// API call
-const resetPasswordApi = async ({ password }) => {
-  const res = await fetch("/api/reset-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+import { useDispatch, useSelector } from "react-redux";
+import {
+  confirmResetPassword,
+  clearResetState,
+} from "../../../redux/passwordResetSlice";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  const [values, setValues] = useState({ password: "", confirmPassword: "" });
+  const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token"); 
+
+  const [values, setValues] = useState({
+    new_password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [verified, setVerified] = useState(true);
   const [errors, setErrors] = useState({});
 
-  const mutation = useMutation({
-    mutationFn: resetPasswordApi,
-    onSuccess: () => setVerified(true),
-    onError: (err) => {
-      setErrors({
-        form: err.detail || "Password reset failed",
-        password: err.password?.[0],
-      });
-    },
-  });
+  const { loading, error, success } = useSelector(
+    (state) => state.passwordReset.confirm
+  );
+
+  // Handle cleanup when unmounting
+  useEffect(() => {
+    return () => {
+      dispatch(clearResetState());
+    };
+  }, [dispatch]);
+
+  // Redirect on success
+  useEffect(() => {
+    if (success) {
+      const timeout = setTimeout(() => {
+        navigate("/login");
+      }, 2500);
+      return () => clearTimeout(timeout);
+    }
+  }, [success, navigate]);
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
@@ -41,66 +50,47 @@ const ResetPasswordPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrors({});
-    const { password, confirmPassword } = values;
 
-    if (!password) {
-      setErrors({ password: "New password is required" });
-      return;
-    }
-    if (password.length < 6) {
-      setErrors({ password: "Password must be at least 6 characters" });
-      return;
-    }
-    if (!confirmPassword) {
-      setErrors({ confirmPassword: "Please confirm your password" });
-      return;
-    }
-    if (password !== confirmPassword) {
-      setErrors({ confirmPassword: "Passwords do not match" });
-      return;
-    }
+    const { new_password, confirmPassword } = values;
 
-    mutation.mutate({ password });
+    if (!new_password) return setErrors({ new_password: "New password is required" });
+    if (new_password.length < 6)
+      return setErrors({ new_password: "Password must be at least 6 characters" });
+    if (!confirmPassword)
+      return setErrors({ confirmPassword: "Please confirm your password" });
+    if (new_password !== confirmPassword)
+      return setErrors({ confirmPassword: "Passwords do not match" });
+    if (!token)
+      return setErrors({
+        form: "Invalid or missing token. Please retry your reset link.",
+      });
+
+    dispatch(confirmResetPassword({ token, new_password }));
   };
 
-  // --- SUCCESS UI ---
-  if (verified) {
+  //  SUCCESS STATE
+  if (success) {
     return (
       <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
-        {/* Header */}
         <div className="flex items-center bg-white w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
           <Link to="/">
-            <h1 className="font-bold text-2xl text-lily uppercase">
-              Lily Shops
-            </h1>
+            <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
           </Link>
         </div>
 
-        {/* Title + subtitle */}
         <div className="grid place-items-center gap-3">
           <h2 className="font-poppins font-bold text-black text-center text-[25px]/[20px]">
             Password Changed
           </h2>
           <p className="font-poppins font-bold text-center text-ash text-xs p-2">
-            Your password has been changed successfully please login with your
-            new password
+            Your password has been successfully changed. Redirecting to login...
           </p>
         </div>
-
-        {/* Back to log in btn */}
-        <button className="self-start">
-          <Link to={"/login"} className="flex items-center gap-2">
-            <img src="./arrowleft.png" alt="arrow" className="size-3" />
-            <p className="font-medium text-black font-poppins text-sm">
-              Back to Log in
-            </p>
-          </Link>
-        </button>
       </section>
     );
   }
 
-  // --- RESET PASSWORD UI ---
+  // RESET PASSWORD FORM
   return (
     <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
       {/* Header */}
@@ -115,28 +105,26 @@ const ResetPasswordPage = () => {
         <h2 className="font-poppins font-bold text-black text-center text-[25px]/[20px]">
           Reset Your Password
         </h2>
-        <p className="font-poppins font-bold text-center text-ash text-xs p-">
-          The password must be different from the previouse one
+        <p className="font-poppins font-bold text-center text-ash text-xs p-2">
+          Your new password must be different from the previous one.
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-5">
-        {/* General errors */}
-        {errors.form && (
-          <p className="text-red-500 text-sm -mb-4">{errors.form}</p>
-        )}
+        {errors.form && <p className="text-red-500 text-sm -mb-4">{errors.form}</p>}
+        {error && <p className="text-red-500 text-sm -mb-4">{error}</p>}
 
-        {/* Password */}
+        {/* New Password */}
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
-            name="password"
-            value={values.password}
+            name="new_password"
+            value={values.new_password}
             onChange={handleChange}
             placeholder="New Password"
             className={`input rounded-[7px] h-[46px] w-full pr-10 ${
-              errors.password ? "border-red-500" : ""
+              errors.new_password ? "border-red-500" : ""
             }`}
           />
           <button
@@ -146,8 +134,8 @@ const ResetPasswordPage = () => {
           >
             {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
           </button>
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          {errors.new_password && (
+            <p className="text-red-500 text-xs mt-1">{errors.new_password}</p>
           )}
         </div>
 
@@ -171,23 +159,21 @@ const ResetPasswordPage = () => {
             {showConfirm ? <FiEyeOff size={20} /> : <FiEye size={20} />}
           </button>
           {errors.confirmPassword && (
-            <p className="text-red-500 text-xs mt-1">
-              {errors.confirmPassword}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
           )}
         </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           type="submit"
-          disabled={mutation.isLoading}
+          disabled={loading}
           className="pt-0 h-[46px] bg-lily border-none rounded-full font-inter font-bold text-[15px]/[18.51px] text-white cursor-pointer hover:bg-darklily disabled:opacity-50"
         >
-          {mutation.isLoading ? "Resetting..." : "RESET PASSWORD"}
+          {loading ? "Resetting..." : "RESET PASSWORD"}
         </button>
       </form>
 
-      {/* Back to log in btn */}
+      {/* Back to login */}
       <button className="self-start">
         <Link to={"/login"} className="flex items-center gap-2">
           <img src="./arrowleft.png" alt="arrow" className="size-3" />
