@@ -46,7 +46,9 @@ const SignUp = () => {
   useEffect(() => {
     if (success) {
       dispatch(resetCreateUserState());
-      navigate("/verify-email?contact=" + encodeURIComponent(values.email_or_phonenumber));
+      //uncomment when email verification starts working well
+      // navigate("/verify-email?contact=" + encodeURIComponent(values.email_or_phonenumber));
+      navigate("/")
     }
   }, [success, navigate, values.email_or_phonenumber, dispatch]);
 

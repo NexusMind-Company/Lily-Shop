@@ -11,6 +11,7 @@ const Login = () => {
 
   const [values, setValues] = useState({ login: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState("");
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
@@ -24,7 +25,11 @@ const Login = () => {
 
     // If login successful
     if (loginUser.fulfilled.match(resultAction)) {
-      navigate("/home");
+       // Show success message
+       setShowSuccess("Login successful .");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     }
   };
 
@@ -44,6 +49,12 @@ const Login = () => {
         </span>{" "}
         in
       </h2>
+
+      {showSuccess && (
+        <p className="text-green-500 py-4 bg-green-100 text-lg text-center my-2 rounded-lg">
+          {showSuccess}
+        </p>
+      )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">

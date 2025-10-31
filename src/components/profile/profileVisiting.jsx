@@ -51,8 +51,8 @@ const ProfileVisiting = () => {
 
   const { user = {}, products = [] } = data;
   const posts = products || [];
-  const announcements = []; // You can hook to backend later
-  const favorites = []; // Optional future feature
+  const announcements = [];
+  const favorites = [];
 
   // --- Tabs Components ---
   const PostsGrid = () => {
@@ -157,13 +157,15 @@ const ProfileVisiting = () => {
       <div className="mt-6 px-4">
         <div className="flex gap-2 items-center">
           <img
-            src={user.avatar || "/avatar.png"}
+            src={user.profile_pic || "/avatar.png"}
             alt="Profile"
             className="w-20 h-20 rounded-full mb-2 object-cover"
           />
           <div>
             <h3 className="font-semibold">{user.full_name || "Unnamed User"}</h3>
-            <p className="text-gray-500 text-sm">@{user.username}</p>
+            <p className="text-gray-500 text-sm">
+              @{user.username || user.email?.split("@")[0] || "unknown"}
+            </p>
           </div>
         </div>
 
@@ -179,13 +181,13 @@ const ProfileVisiting = () => {
               <span className="font-bold text-2xl">{posts.length}</span>
               <p>Posts</p>
             </div>
-            <Link to={`/followers/${user.username}`}>
+            <Link to={`/followers/${user.username || "unknown"}`}>
               <div className="flex flex-col items-center">
                 <p className="font-bold text-2xl">{user.followers_count || 0}</p>
                 <p>Followers</p>
               </div>
             </Link>
-            <Link to={`/following/${user.username}`}>
+            <Link to={`/following/${user.username || "unknown"}`}>
               <div className="flex flex-col items-center">
                 <span className="font-bold text-2xl">{user.following_count || 0}</span>
                 <p>Following</p>

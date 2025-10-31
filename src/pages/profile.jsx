@@ -1,10 +1,10 @@
-import Profiles from "../components/profile/profiles";
+import ProfileOwner from "../components/profile/profileOwner";
 import PageSEO from "../components/common/PageSEO";
 const Profile = () => {
   return (
     <>
-    <PageSEO />
-      <Profiles />
+      <PageSEO />
+      <ProfileOwner />
     </>
   );
 };
