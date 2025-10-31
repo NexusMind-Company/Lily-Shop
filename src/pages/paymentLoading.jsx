@@ -1,15 +1,12 @@
-import React, { useEffect, useContext } from "react";
+import { useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Shield, X } from "lucide-react";
-
-// Assuming context and API files are in root folders and this file is in components/checkout/
-import { PaymentProvider, usePayment } from "../context/paymentContext"; // Corrected path assumption
-import { checkPaymentStatus } from "../api/checkoutApi"; // Corrected path assumption
+import { PaymentProvider, usePayment } from "../context/paymentContext";
+import { checkPaymentStatus } from "../api/checkoutApi";
 
 const PaymentLoadingPage = () => {
   const navigate = useNavigate();
-  // Use usePayment hook to access context data and setters
   const { paymentData, setPaymentData } = usePayment();
 
   // Use paymentData.orderId from context
@@ -18,7 +15,6 @@ const PaymentLoadingPage = () => {
     queryFn: () => {
       // Ensure orderId exists before fetching
       if (!paymentData?.orderId) {
-        // Handle case where orderId might be missing (e.g., navigated here directly)
         console.error("Order ID missing in payment context");
         throw new Error("Order ID missing");
       }
@@ -31,34 +27,31 @@ const PaymentLoadingPage = () => {
         // Update context with final payment details
         setPaymentData((prev) => ({
           ...prev,
-          amountPaid: data.amountPaid, // Assuming API returns this
-          vendorName: data.vendorName, // Assuming API returns this
+          amountPaid: data.amountPaid,
+          vendorName: data.vendorName,
         }));
         navigate("/payment-success");
       } else if (data?.status === "failed" || data?.status === "cancelled") {
         navigate("/payment-failed");
       }
-      // If status is still 'pending', the refetchInterval will handle it
     },
     onError: (err) => {
       console.error("Payment status check failed:", err);
       navigate("/payment-failed");
     },
-    // Refetch every 3 seconds ONLY if the status is still 'pending'
     refetchInterval: (query) =>
       query.state.data?.status === "pending" ? 3000 : false,
-    refetchOnWindowFocus: false, // Don't refetch just because the tab got focus
-    retry: 2, // Retry failed requests twice before navigating to failed page
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 
   const handleCancel = () => {
     // TODO: Add logic to attempt to cancel the payment on the backend if possible
     console.log("User cancelled payment check");
-    navigate("/cart"); // Go back to cart or another appropriate page
+    navigate("/checkout");
   };
 
-  // Handle case where orderId is missing from context (e.g., page refresh)
-  // You might want a more robust way to handle this, maybe storing orderId temporarily
+  // Handle case where orderId is missing from context
   if (!paymentData?.orderId && !isLoading) {
     return (
       <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
@@ -73,7 +66,7 @@ const PaymentLoadingPage = () => {
             Could not find order details.
           </p>
           <button
-            onClick={() => navigate("/cart")}
+            onClick={() => navigate("/checkout")}
             className="mt-4 text-lily underline"
           >
             Return to Cart

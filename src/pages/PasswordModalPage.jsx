@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { verifyPaymentPassword } from "../api/checkoutApi";
@@ -32,7 +32,6 @@ const PasswordModalPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen justify-center items-center p-6 bg-white max-w-xl mx-auto">
-      {/* This is a modal in Figma, but we'll make it a page */}
       <div className="w-full max-w-sm mx-auto bg-white p-6 rounded-lg shadow-xl">
         <h3 className="text-center text-lg font-semibold mb-4">
           Enter password to complete process
@@ -78,4 +77,3 @@ const PasswordModalPage = () => {
 };
 
 export default PasswordModalPage;
-
