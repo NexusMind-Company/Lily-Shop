@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { initiateBankTransfer } from "../api/checkoutApi";
 import { usePayment } from "../context/paymentContext";
 import { ChevronLeft, Loader2, Shield } from "lucide-react";
 
-// Helper function
 const formatPrice = (price) =>
   new Number(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 const BankTransferPage = () => {
   const navigate = useNavigate();
-  // Get data from our context
   const { paymentData, setPaymentData } = usePayment();
   const [timeLeft, setTimeLeft] = useState(null);
 
@@ -31,7 +29,7 @@ const BankTransferPage = () => {
       amount: paymentData.amount,
       vendorName: paymentData.vendorName,
     });
-  }, []); // Empty array ensures this runs once
+  }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -53,13 +51,12 @@ const BankTransferPage = () => {
   };
 
   const handlePaid = () => {
-    // Navigate to loading page to check status
     navigate("/payment-loading");
   };
 
   const handleCancel = () => {
     // TODO: Add logic to cancel the transaction via API if needed
-    navigate("/cart");
+    navigate("/checkout");
   };
 
   if (mutation.isPending) {
@@ -71,13 +68,13 @@ const BankTransferPage = () => {
     );
   }
 
-  const data = mutation.data; // The successful data from the mutation
+  const data = mutation.data;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate("/cart")}
+          onClick={() => navigate("/checkout")}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
@@ -89,7 +86,8 @@ const BankTransferPage = () => {
         <div className="flex-1 flex flex-col p-6 text-center">
           <p className="text-gray-500">{data.orderId}</p>
           <p className="text-lg text-gray-700">
-            Pay <span className="font-bold">NGN {formatPrice(data.amount)}</span>
+            Pay{" "}
+            <span className="font-bold">NGN {formatPrice(data.amount)}</span>
           </p>
           <p className="mt-2 text-lg">
             Transfer{" "}
@@ -108,7 +106,9 @@ const BankTransferPage = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">AMOUNT</p>
-              <p className="text-xl font-bold">NGN {formatPrice(data.amount)}</p>
+              <p className="text-xl font-bold">
+                NGN {formatPrice(data.amount)}
+              </p>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ const BankTransferPage = () => {
             onClick={handlePaid}
             className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
           >
-            I've sent the money
+            I&apos;ve sent the money
           </button>
           <button onClick={handleCancel} className="mt-4 text-gray-500">
             x Cancel Payment
@@ -142,4 +142,3 @@ const BankTransferPage = () => {
 };
 
 export default BankTransferPage;
-

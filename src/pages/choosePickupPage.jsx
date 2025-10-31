@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-// --- Fixed Import Path ---
-import { fetchPickupLocations } from "../api/checkoutApi.js"; // Added .js extension
+import { fetchPickupLocations } from "../api/checkoutApi.js";
 import { ChevronLeft, Circle, CheckCircle2, Loader2, X } from "lucide-react";
 
 const ChoosePickupPage = () => {
@@ -12,24 +11,23 @@ const ChoosePickupPage = () => {
     queryFn: fetchPickupLocations,
   });
 
-  const [selectedPickupId, setSelectedPickupId] = useState(null); // Initialize to null
+  const [selectedPickupId, setSelectedPickupId] = useState(null);
 
-  // --- Effect to set default selection once data loads ---
+  // Effect to set default selection once data loads
   useEffect(() => {
     if (data && data.length > 0 && selectedPickupId === null) {
-      const defaultLocation = data.find(loc => loc.isDefault);
+      const defaultLocation = data.find((loc) => loc.isDefault);
       const firstLocation = data[0];
       setSelectedPickupId(defaultLocation?.id || firstLocation?.id || null);
     }
   }, [data, selectedPickupId]); // Rerun when data loads or selection changes unnecessarily
-
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
       {/* Header */}
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate("/cart")} // Assuming '/cart' is the correct path
+          onClick={() => navigate("/checkout")}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
@@ -52,7 +50,7 @@ const ChoosePickupPage = () => {
         <div className="flex flex-col items-center justify-center flex-1 p-8">
           <X size={32} className="text-red-500" />
           <p className="text-gray-500 mt-3">Failed to load locations.</p>
-          {/* Optionally add a retry button */}
+          {/* TODO add a retry button */}
         </div>
       )}
 
@@ -60,38 +58,44 @@ const ChoosePickupPage = () => {
       {data && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {data.length === 0 ? (
-             <p className="text-center text-gray-500 mt-8">No pickup locations found.</p>
+            <p className="text-center text-gray-500 mt-8">
+              No pickup locations found.
+            </p>
           ) : (
-             data.map((loc) => (
-                <div
+            data.map((loc) => (
+              <div
                 key={loc.id}
                 onClick={() => setSelectedPickupId(loc.id)}
-                className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer ${selectedPickupId === loc.id ? 'border-lily ring-1 ring-lily' : 'border-gray-200'}`} // Highlight selected
-                >
+                className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer ${
+                  selectedPickupId === loc.id
+                    ? "border-lily ring-1 ring-lily"
+                    : "border-gray-200"
+                }`}
+              >
                 {selectedPickupId === loc.id ? (
-                    <CheckCircle2
+                  <CheckCircle2
                     size={24}
                     className="text-lily flex-shrink-0 mt-0.5"
-                    />
+                  />
                 ) : (
-                    <Circle
+                  <Circle
                     size={24}
                     className="text-gray-300 flex-shrink-0 mt-0.5"
-                    />
+                  />
                 )}
                 <div>
-                    <p className="font-semibold">
+                  <p className="font-semibold">
                     {loc.name}{" "}
                     {loc.isDefault && (
-                        <span className="text-xs text-lily font-medium ml-2">
+                      <span className="text-xs text-lily font-medium ml-2">
                         (Default)
-                        </span>
+                      </span>
                     )}
-                    </p>
-                    <p className="text-sm text-gray-600">{loc.address}</p>
+                  </p>
+                  <p className="text-sm text-gray-600">{loc.address}</p>
                 </div>
-                </div>
-             ))
+              </div>
+            ))
           )}
         </div>
       )}
@@ -99,19 +103,19 @@ const ChoosePickupPage = () => {
       {/* Footer Button */}
       {/* Only show button if data exists */}
       {data && data.length > 0 && (
-          <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
-            <button
+        <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+          <button
             onClick={() => {
-                // TODO: Add logic here to save the selected pickup location
-                // e.g., using a mutation or updating global state
-                console.log("Selected Pickup ID:", selectedPickupId);
-                navigate("/cart"); // Go back to cart
+              // TODO: Add logic here to save the selected pickup location
+              // e.g., using a mutation or updating global state
+              console.log("Selected Pickup ID:", selectedPickupId);
+              navigate("/checkout");
             }}
-            disabled={!selectedPickupId} // Disable if nothing is selected
+            disabled={!selectedPickupId}
             className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+          >
             Use this location
-            </button>
+          </button>
         </div>
       )}
     </div>
@@ -119,4 +123,3 @@ const ChoosePickupPage = () => {
 };
 
 export default ChoosePickupPage;
-
