@@ -8,12 +8,10 @@ import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
+// import { useDispatch } from "react-redux";
+// import { addItemToCart } from "../../redux/cartSlice";
 
-// Redux imports
-import { useDispatch } from "react-redux";
-import { addItemToCart } from "../../redux/cartSlice";
-
-const DESCRIPTION_CHAR_LIMIT = 100;
+const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
@@ -88,7 +86,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
-            containerClassName="media-container-cover w-full h-full"
+            containerClassName="media-container-cover w-full aspect-square"
           />
         ) : isVideo ? (
           <VideoPlayer ref={mediaRef} src={post.media[0].src} />
@@ -262,7 +260,7 @@ const FeedItem = ({ post, onVideoInit }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshop.com/post/${post.id}`} // Example URL structure
+            postUrl={`https://lilyshops.com/${post.id}`} // Example URL structure
             postCaption={post.caption}
           />
         )}
