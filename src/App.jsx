@@ -187,7 +187,7 @@ export default function App() {
           <Route path="/choose-address" element={<ChooseAddressPage />} />
           <Route path="/add-address" element={<AddAddressPage />} />
           <Route path="/choose-pickup" element={<ChoosePickupPage />} />
-          <Route path="/choose-payment" element={<ChooseCardPage />} />
+          <Route path="/choose-card" element={<ChooseCardPage />} />
           <Route path="/add-card" element={<AddCardPage />} />
           <Route path="/password" element={<PasswordModalPage />} />
           <Route path="/bank-transfer" element={<BankTransferPage />} />

@@ -296,13 +296,13 @@ const CartPage = () => {
             <button
               onClick={
                 () =>
-                  navigate("/choose-address", {
+                  navigate("/add-address", {
                     state: { from: location.pathname },
                   }) // Keep your state passing
               }
               className="text-pink text-sm hover:underline"
             >
-              + Add/Change address
+              + Add address
             </button>
           </div>
         </div>
@@ -369,13 +369,13 @@ const CartPage = () => {
               </label>
               <button
                 onClick={() =>
-                  navigate("/choose-card", {
+                  navigate("/add-card", {
                     state: { from: location.pathname },
                   })
                 } // Keep state passing
                 className="text-pink text-sm hover:underline pl-8 pt-1" // Added padding for alignment
               >
-                + Add new card / Change
+                + Add new card
               </button>
             </div>
             <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer">
