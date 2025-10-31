@@ -9,7 +9,7 @@ const PaymentFailedPage = () => {
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate("/cart")} // Go back to cart
+          onClick={() => navigate("/checkout")} // Go back to cart
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
@@ -46,4 +46,3 @@ const PaymentFailedPage = () => {
 };
 
 export default PaymentFailedPage;
-
