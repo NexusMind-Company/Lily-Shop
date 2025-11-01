@@ -8,13 +8,13 @@ import deleteShopReducer from "./deleteShopSlice";
 import adsReducer from "./adsSlice";
 import passwordResetReducer from "./passwordResetSlice";
 import cartReducer from "./cartSlice";
-import contentReducer from "./contentSlice";
 import createUserReducer from "./createUserSlice";
 import verifyEmailReducer from "./verifyEmailSlice";
 import walletReducer from "./walletSlice";
 import messageReducer from "./messageConversationSlice";
 import orderReducer from "./orderSlice"
 import activitiesReducer from "./activitySlice";
+import contentReducer from "./contentSlice";
 
 import { setAuthTokens } from "../services/api";
 
