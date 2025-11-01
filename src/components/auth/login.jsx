@@ -51,10 +51,16 @@ const Login = () => {
       </h2>
 
       {showSuccess && (
-        <p className="text-green-500 py-4 bg-green-100 text-lg text-center my-2 rounded-lg">
+        <p className="text-green-700 py-3 border border-green-300 bg-green-100 text-center my-2 rounded-lg">
           {showSuccess}
         </p>
       )}
+
+      {error && (
+          <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
+            {error}
+          </p>
+        )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -87,12 +93,7 @@ const Login = () => {
           </button>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <p className="text-red-500 text-xs text-center mt-[-10px]">
-            {error}
-          </p>
-        )}
+        
 
         {/* Login Button */}
         <button

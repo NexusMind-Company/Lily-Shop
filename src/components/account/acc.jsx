@@ -6,11 +6,11 @@ const Acc = () => {
   const navigate = useNavigate();
 
   const items = [
-    { icon: <Phone size={30} />, text: "Phone number", sub: "+234 808080808", to: "/ChangePhone" },
-    { icon: <Mail size={30} />, text: "Email", sub: "johndoe@gmail.com", },
-    { icon: <User size={30} />, text: "Username", sub: "JohnDoe", to: "/ChangeUsername" },
+    { icon: <Phone size={30} />, text: "Phone number", sub: "", to: "/ChangePhone" },
+    { icon: <Mail size={30} />, text: "Email", sub: "", },
+    { icon: <User size={30} />, text: "Username", sub: "", to: "/ChangeUsername" },
     { icon: <Key size={30} />, text: "Change password", sub: "Change your password", to: "/ChangePassword" },
-    { icon: <Calendar size={30} />, text: "Date of birth", sub: "02/10/2000", to: "/ChangeDOB" },
+    { icon: <Calendar size={30} />, text: "Date of birth", sub: "", to: "/ChangeDOB" },
     { icon: <Trash2 size={30} />, text: "Delete account", sub: "Delete your account", to: "/DeleteAccount" },
   ];
 
