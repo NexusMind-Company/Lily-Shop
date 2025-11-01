@@ -17,13 +17,15 @@ export default function Wallet() {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  // Get token and wallet state
-  const token = useSelector((state) => state.auth?.user_data?.token?.access);
+  // Get wallet state
   const { balance_naira, recent_transactions, loading, error } = useSelector(
     (state) => state.wallet || {}
   );
 
-  // Fetch wallet after login
+  // Get token from Redux or localStorage
+  const reduxToken = useSelector((state) => state.auth?.user_data?.token?.access);
+  const token = reduxToken || localStorage.getItem("access_token");
+
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -68,15 +70,11 @@ export default function Wallet() {
         {loading ? (
           <p className="text-center text-gray-500">Loading wallet...</p>
         ) : error ? (
-          <p className="text-center text-red-500">
-            {error || "Failed to load wallet."}
-          </p>
+          <p className="text-center text-red-500">{error || "Failed to load wallet."}</p>
         ) : (
           <div>
             <p className="text-sm font-semibold pb-2">Available Balance</p>
-            <h2 className="text-3xl font-semibold pb-2">
-              ₦{balance_naira?.toLocaleString() || 0}
-            </h2>
+            <h2 className="text-3xl font-semibold pb-2">₦{balance_naira?.toLocaleString() || 0}</h2>
             <p className="text-sm font-semibold pb-2 text-gray-600">
               Pending: ₦
               {recent_transactions
@@ -115,7 +113,7 @@ export default function Wallet() {
           <p className="text-center text-gray-500">Fetching transactions...</p>
         ) : recent_transactions?.length > 0 ? (
           <ul className="space-y-3">
-            {recent_transactions.slice(0, 5).map((tx, index) => {
+            {recent_transactions.slice(0, 10).map((tx, index) => {
               const isCredit = tx.type === "credit" || tx.amount > 0;
               const iconMap = {
                 deposit: Plus,
@@ -129,8 +127,7 @@ export default function Wallet() {
               return (
                 <li
                   key={index}
-                  className="flex justify-between bg-white p-3 w-full border rounded-lg"
-                >
+                  className="flex justify-between bg-white p-3 w-full rounded-lg">
                   <div className="flex gap-2 items-center w-3/4">
                     <Icon className="w-7 h-7" />
                     <div className="flex flex-col items-start">
@@ -144,20 +141,13 @@ export default function Wallet() {
                   </div>
                   <div className="flex flex-col w-1/4 items-end">
                     <span
-                      className={`font-semibold ${
-                        isCredit ? "text-green-500" : "text-red-500"
-                      }`}
-                    >
-                      {isCredit ? "+" : "-"}₦
-                      {Math.abs(tx.amount || 0).toLocaleString()}
+                      className={`font-semibold ${isCredit ? "text-green-500" : "text-red-500"}`}>
+                      {isCredit ? "+" : "-"}₦{Math.abs(tx.amount || 0).toLocaleString()}
                     </span>
                     <p
                       className={`text-xs ${
-                        tx.status === "Pending"
-                          ? "text-red-600"
-                          : "text-gray-600"
-                      }`}
-                    >
+                        tx.status === "Pending" ? "text-red-600" : "text-gray-600"
+                      }`}>
                       {tx.status?.toLowerCase() || "completed"}
                     </p>
                   </div>

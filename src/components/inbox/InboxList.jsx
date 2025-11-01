@@ -9,44 +9,25 @@ const InboxList = () => {
     {
       icon: "🟢",
       title: "Activity",
-      message: "Precious liked your post",
+      message: "See Activity on your account",
       link: "/activity",
       ChevronRight,
     },
     {
       icon: "💬",
       title: "Your Messages",
-      message: "You recieved a new message",
+      message: "Check for new messages",
       link: "/messages",
       ChevronRight,
     },
     {
       icon: "📦",
       title: "Your orders",
-      message: "iPhone 17 #LS-YYYYMMDD-XXXXX",
+      message: "Check your orders",
       link: "/orders",
       ChevronRight,
     },
-    {
-      icon: "🌸",
-      title: "Bloom Threads",
-      message: "Order no: #LS-YYYYMMDD-XXXXX",
-      time: "12:24PM",
-    },
-    {
-      icon: "🌸",
-      title: "Bloom Threads",
-      message: "Order no: #LS-YYYYMMDD-XXXXX",
-      time: "10:24PM",
-    },
-    {
-      icon: "🛍️",
-      title: "Jayo Accessories",
-      message: "You can come for pickup between 8...",
-      time: "09:36PM",
-      unread: 2,
-    },
-    { icon: "🌸", title: "Bloom Threads", message: "Shared a post", time: "yesterday" },
+    
   ];
 
   return (

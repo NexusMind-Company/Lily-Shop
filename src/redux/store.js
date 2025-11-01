@@ -12,7 +12,9 @@ import contentReducer from "./contentSlice";
 import createUserReducer from "./createUserSlice";
 import verifyEmailReducer from "./verifyEmailSlice";
 import walletReducer from "./walletSlice";
-import messagesReducer from "./messageSlice";
+import messageReducer from "./messageConversationSlice";
+import orderReducer from "./orderSlice"
+import activitiesReducer from "./activitySlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -26,13 +28,15 @@ export const store = configureStore({
     addProduct: addProductReducer,
     deleteShop: deleteShopReducer,
     ads: adsReducer,
+    messages: messageReducer,
     passwordReset: passwordResetReducer,
     cart: cartReducer,
     content: contentReducer,
     createUser: createUserReducer,
     verifyEmail: verifyEmailReducer,
     wallet: walletReducer,
-    messages: messagesReducer,
+    orders: orderReducer,
+    activities: activitiesReducer,
   },
 });
 
