@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
+import { Link } from "react-router-dom";
+import LoaderSd from "../loaders/loaderSd"
 import {
   Grid,
   Megaphone,
   Heart,
-  EllipsisVertical,
   ChevronLeft,
-  PlusCircle,
   Play,
   Eye,
   Settings,
-  Edit3,
+  Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProfileOwner = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -40,8 +39,8 @@ const ProfileOwner = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Loading your profile...</p>
+      <div className="flex items-center justify-center min-h-screen w-full">
+        <LoaderSd />
       </div>
     );
 
@@ -69,14 +68,8 @@ const ProfileOwner = () => {
   const PostsGrid = () => {
     if (!posts.length) {
       return (
-        <div className="flex flex-col items-center my-8 text-gray-400">
+        <div className="w-full flex flex-col items-center my-8 text-gray-400">
           <p>No posts yet</p>
-          <button
-            onClick={() => navigate("/create-post")}
-            className="mt-4 flex items-center gap-2 bg-lily text-white px-5 py-2 rounded-full font-semibold hover:bg-lily/90 transition-all"
-          >
-            <PlusCircle size={20} /> Create your first post
-          </button>
         </div>
       );
     }
@@ -105,55 +98,32 @@ const ProfileOwner = () => {
   };
 
   const AnnouncementsGrid = () => (
-    <div className="text-center text-gray-400 my-8">
-      No announcements yet
-    </div>
+    <div className="text-center text-gray-400 my-8">No Promotions yet</div>
   );
 
   const FavoritesGrid = () => (
-    <div className="text-center text-gray-400 my-8">
-      No favorites saved yet
-    </div>
+    <div className="text-center text-gray-400 my-8">No favorites saved yet</div>
   );
 
   return (
-    <div className="bg-white min-h-screen text-gray-800">
+    <div className="bg-white min-h-screen w-full ">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
         </button>
         <h2 className="font-semibold text-lg">My Profile</h2>
-        <div className="relative">
-          <EllipsisVertical
-            size={25}
-            className="cursor-pointer"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          />
-          {dropdownOpen && (
-            <div className="absolute right-0 top-full bg-white border rounded-lg shadow-md z-10 w-36">
-              <button
-                onClick={() => navigate("/edit-profile")}
-                className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                <Edit3 size={15} className="mr-2" /> Edit Profile
-              </button>
-              <button
-                onClick={() => navigate("/settings")}
-                className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                <Settings size={15} className="mr-2" /> Settings
-              </button>
-            </div>
-          )}
+        <div className="flex gap-4">
+          <Link to="/settings"><Settings size={25} className="cursor-pointer" /></Link>
+          <IconLink size={25} className="cursor-pointer" />
         </div>
       </div>
 
       {/* Profile Info */}
-      <div className="mt-6 px-4">
+      <div className="mt-2 px-4">
         <div className="flex gap-2 items-center">
           <img
-            src={user.avatar || "/avatar.png"}
+            src={user.avatar || "/profile-icon.svg"}
             alt="Profile"
             className="w-20 h-20 rounded-full mb-2 object-cover"
           />
@@ -161,42 +131,40 @@ const ProfileOwner = () => {
             <h3 className="font-semibold">
               {user.username || user.email?.split("@")[0] || "Unnamed User"}
             </h3>
-            <p className="text-gray-500 text-sm">
-              @{user.username || "unknown"}
-            </p>
+            <p className="text-gray-500 text-sm">@{user.username || "unknown"}</p>
           </div>
         </div>
 
         <p className="mt-1 text-sm">
-          {user.bio ||
-            "Add a bio to let people know more about you and your products!"}
+          {user.bio || "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
-        <div className="flex mt-4 space-x-5 text-sm items-center justify-between">
+        <div className="flex mt-4 text-sm items-center justify-between">
           <div className="flex gap-5">
             <div className="flex flex-col items-center">
               <span className="font-bold text-2xl">{posts.length}</span>
               <p>Posts</p>
             </div>
-            <div className="flex flex-col items-center">
-              <p className="font-bold text-2xl">{user.follower_count || 0}</p>
-              <p>Followers</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-bold text-2xl">
-                {user.following_count || 0}
-              </span>
-              <p>Following</p>
-            </div>
+            <Link to="/followers">
+              <div className="flex flex-col items-center">
+                <p className="font-bold text-2xl">{user.follower_count || 0}</p>
+                <p>Followers</p>
+              </div>
+            </Link>
+            <Link to="/following">
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-2xl">{user.following_count || 0}</span>
+                <p>Following</p>
+              </div>
+            </Link>
           </div>
 
-          <button
-            onClick={() => navigate("/create-post")}
-            className="flex items-center gap-2 border-2 font-bold text-sm bg-lily text-white px-4 py-2 rounded-full"
-          >
-            <PlusCircle size={18} /> New Post
+          <Link to="/editProfile">
+          <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
+            Edit Profile
           </button>
+          </Link>
         </div>
       </div>
 
@@ -206,24 +174,21 @@ const ProfileOwner = () => {
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 0 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(0)}
-        >
+          onClick={() => setActiveTab(0)}>
           <Grid size={30} />
         </button>
         <button
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 1 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(1)}
-        >
+          onClick={() => setActiveTab(1)}>
           <Megaphone size={30} />
         </button>
         <button
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 2 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(2)}
-        >
+          onClick={() => setActiveTab(2)}>
           <Heart size={30} />
         </button>
       </div>

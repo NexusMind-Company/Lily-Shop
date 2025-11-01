@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Camera,
   User,
   AtSign,
@@ -7,8 +6,10 @@ import {
   MapPin,
   Venus,
   ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 
 const GenderSelect = ({ value, onChange }) => {
@@ -51,9 +52,9 @@ const GenderSelect = ({ value, onChange }) => {
 
 const EditProfile = () => {
   const [form, setForm] = useState({
-    name: "Faith Owolewa",
-    username: "Faithzy",
-    bio: "Fashion girly",
+    name: "",
+    username: "",
+    bio: "",
     birthday: "",
     location: "",
     gender: "",
@@ -68,11 +69,13 @@ const EditProfile = () => {
     alert("Profile saved!");
   };
 
+  const navigate = useNavigate()
+
   return (
     <div className="bg-white min-h-screen text-gray-800 flex flex-col w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b w-full">
-        <ArrowLeft size={22} className="shrink-0" />
+      <div className="flex items-center justify-between px-4 py-3 w-full">
+        <ChevronLeft size={25} onClick={() => navigate(-1)} />
         <h2 className="font-semibold text-lg truncate">Edit Profile</h2>
         <button onClick={handleSave} className="text-lily font-semibold shrink-0">
           Save

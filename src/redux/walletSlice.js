@@ -2,18 +2,26 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 
+/** Helper to attach token */
+const setAuthHeader = () => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+};
+
 /**
  * Fetch wallet data for the logged-in user
- * Endpoint: GET /wallet/me/
  */
 export const fetchWallet = createAsyncThunk(
   "wallet/fetchWallet",
   async (_, { rejectWithValue }) => {
     try {
+      setAuthHeader();
       const response = await api.get("/wallet/me/");
-      return response.data; // Expected: { balance_naira, recent_transactions }
+      return response.data;
     } catch (error) {
-      console.error("❌ Wallet fetch failed:", error.response?.data || error.message);
+      console.error("Wallet fetch failed:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data || { detail: "Failed to load wallet data." }
       );
@@ -23,18 +31,16 @@ export const fetchWallet = createAsyncThunk(
 
 /**
  * Start Paystack top-up process
- * Endpoint: POST /wallet/topup/
- * Body: { "amount_naira": number }
- * Response: { authorization_url, reference }
  */
 export const topUpWallet = createAsyncThunk(
   "wallet/topUpWallet",
   async (amount_naira, { rejectWithValue }) => {
     try {
+      setAuthHeader();
       const response = await api.post("/wallet/topup/", { amount_naira });
-      return response.data; // { authorization_url, reference }
+      return response.data;
     } catch (error) {
-      console.error("❌ Top-up failed:", error.response?.data || error.message);
+      console.error("Top-up failed:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data || { detail: "Unable to start top-up process." }
       );
@@ -43,18 +49,17 @@ export const topUpWallet = createAsyncThunk(
 );
 
 /**
- * Handle Paystack redirect callback
- * Endpoint: GET /wallet/paystack/callback/?reference=REF123
- * Verifies and credits wallet if successful
+ * Verify Paystack callback
  */
 export const verifyPaystackCallback = createAsyncThunk(
   "wallet/verifyPaystackCallback",
   async (reference, { rejectWithValue }) => {
     try {
+      setAuthHeader();
       const response = await api.get(`/wallet/paystack/callback/?reference=${reference}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Paystack verification failed:", error.response?.data || error.message);
+      console.error("Paystack verification failed:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data || { detail: "Verification failed." }
       );
@@ -64,21 +69,36 @@ export const verifyPaystackCallback = createAsyncThunk(
 
 /**
  * Release promotion earnings
- * Endpoint: POST /wallet/release-promotion-earnings/
  */
 export const releasePromotionEarnings = createAsyncThunk(
   "wallet/releasePromotionEarnings",
   async (_, { rejectWithValue }) => {
     try {
+      setAuthHeader();
       const response = await api.post("/wallet/release-promotion-earnings/");
       return response.data;
     } catch (error) {
-      console.error(
-        "❌ Promotion earnings release failed:",
-        error.response?.data || error.message
-      );
+      console.error("Promotion earnings release failed:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data || { detail: "Unable to release earnings." }
+      );
+    }
+  }
+);
+
+/**
+ * Create virtual account
+ */
+export const createVirtualAccount = createAsyncThunk(
+  "wallet/createVirtualAccount",
+  async (_, { rejectWithValue }) => {
+    try {
+      setAuthHeader();
+      const response = await api.post("/wallet/create-virtual-account/");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { detail: "Failed to generate virtual account." }
       );
     }
   }
@@ -96,6 +116,7 @@ const walletSlice = createSlice({
     authorization_url: null,
     verifying: false,
     promotion_releasing: false,
+    virtual_account: null,
   },
   reducers: {
     resetWalletState: (state) => {
@@ -104,6 +125,7 @@ const walletSlice = createSlice({
       state.balance_naira = 0;
       state.recent_transactions = [];
       state.authorization_url = null;
+      state.virtual_account = null;
     },
   },
   extraReducers: (builder) => {
@@ -164,6 +186,20 @@ const walletSlice = createSlice({
         state.promotion_releasing = false;
         state.error =
           action.payload?.detail || "Failed to release promotion earnings.";
+      })
+
+      //  Create virtual account 
+      .addCase(createVirtualAccount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createVirtualAccount.fulfilled, (state, action) => {
+        state.loading = false;
+        state.virtual_account = action.payload;
+      })
+      .addCase(createVirtualAccount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.detail || "Failed to create virtual account.";
       });
   },
 });

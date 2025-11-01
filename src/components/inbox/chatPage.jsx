@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Camera,
   SendHorizontal,
@@ -8,48 +8,68 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchConversation, sendMessage } from "../../redux/messageSlice";
+
+import {
+  fetchConversationMessages,
+  sendMessageToUser,
+  clearConversation
+} from "../../redux/messageConversationSlice";
 
 const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const chatBoxRef = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { recipientId } = useParams();
+  const { user_id: recipientId } = useParams();
 
-  const { conversation, loading, sending } = useSelector((state) => state.messages);
+  const { messages: conversation, loading, sending, currentPage, nextPage } =
+    useSelector((state) => state.messageConversation);
   const { user_data } = useSelector((state) => state.auth);
 
-  //  Fetch conversation on load
+  //  On mount & user change
   useEffect(() => {
+    dispatch(clearConversation());
+
     if (recipientId) {
-      dispatch(fetchConversation(recipientId));
+      dispatch(fetchConversationMessages({ userId: recipientId, page: 1 }));
     }
-  }, [dispatch, recipientId]);
+  }, [recipientId]);
 
-  //  Auto-refresh conversation every 5 seconds
-  useEffect(() => {
-    if (!recipientId) return;
-
-    const interval = setInterval(() => {
-      dispatch(fetchConversation(recipientId));
-    }, 5000); // refresh every 5 seconds
-
-    return () => clearInterval(interval); // cleanup on unmount
-  }, [dispatch, recipientId]);
-
-  //  Auto-scroll to latest message
+  //  Auto scroll bottom when new messages come in
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
 
-  //  Send message to recipient
+  //  Load more messages on scroll top
+  const handleScroll = () => {
+    const top = chatBoxRef.current.scrollTop;
+    if (top === 0 && nextPage && !isFetchingMore) {
+      setIsFetchingMore(true);
+
+      dispatch(fetchConversationMessages({ userId: recipientId, page: currentPage + 1 }))
+        .then(() => {
+          setTimeout(() => {
+            chatBoxRef.current.scrollTop = 10; 
+            setIsFetchingMore(false);
+          }, 100);
+        });
+    }
+  };
+
+  //  Send Message
   const handleSend = () => {
     if (!newMessage.trim()) return;
-    dispatch(sendMessage({ recipient: recipientId, content: newMessage }));
-    setNewMessage("");
+
+    dispatch(sendMessageToUser({ userId: recipientId, content: newMessage }))
+      .then(() => {
+        setNewMessage("");
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      });
   };
 
   const handleFileSelect = (e) => {
@@ -61,15 +81,19 @@ const ChatPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
-          <Link onClick={() => navigate(-1)}>
+          <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
-          </Link>
+          </button>
+
           <div className="w-8 h-8 bg-pink-200 rounded-full flex items-center justify-center text-sm font-bold">
             💬
           </div>
+
           <div>
             <h2 className="font-semibold text-gray-800">
-              {conversation[0]?.recipient_username || "Chat"}
+              {conversation[0]?.recipient_username ||
+              conversation[0]?.sender_username ||
+              "Chat"}
             </h2>
             <p className="text-xs text-green-600">Online</p>
           </div>
@@ -81,8 +105,12 @@ const ChatPage = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {loading ? (
+      <div
+        ref={chatBoxRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
+        {loading && conversation.length === 0 ? (
           <p className="text-center text-gray-500">Loading messages...</p>
         ) : conversation.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
@@ -91,7 +119,9 @@ const ChatPage = () => {
             <div
               key={msg.id}
               className={`flex ${
-                msg.sender === user_data?.user?.id ? "justify-end" : "justify-start"
+                msg.sender === user_data?.user?.id
+                  ? "justify-end"
+                  : "justify-start"
               }`}
             >
               <div
@@ -112,11 +142,12 @@ const ChatPage = () => {
             </div>
           ))
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="relative bg-white p-3 flex items-center space-x-2">
+      <div className="relative bg-white p-3 flex items-center space-x-2 border-t">
         <input
           type="file"
           ref={fileInputRef}
@@ -132,12 +163,14 @@ const ChatPage = () => {
           onChange={(e) => setNewMessage(e.target.value)}
           className="flex-1 bg-gray-200 rounded-full px-4 py-2 focus:outline-none"
         />
+
         <button
           className="absolute right-[15%] text-gray-500"
           onClick={() => fileInputRef.current.click()}
         >
           <Camera className="h-8 w-8" />
         </button>
+
         <button onClick={handleSend} disabled={sending}>
           <SendHorizontal
             className={`h-8 w-8 ${

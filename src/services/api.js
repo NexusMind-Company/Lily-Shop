@@ -56,7 +56,7 @@ api.interceptors.response.use(
 );
 
 /**
- * ✅ Get the authenticated user's profile (requires JWT)
+ * Get the authenticated user's profile (requires JWT)
  */
 export const getAuthProfile = async () => {
   const token = localStorage.getItem("access_token");

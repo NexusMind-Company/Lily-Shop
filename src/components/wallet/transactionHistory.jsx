@@ -55,7 +55,7 @@ export default function TransactHistory() {
       </header>
 
       <section className="flex-1 p-4">
-        {/* 🌀 Loading State */}
+        {/*  Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <Loader2 className="w-8 h-8 animate-spin mb-2" />
@@ -63,7 +63,7 @@ export default function TransactHistory() {
           </div>
         )}
 
-        {/* ❌ Error State */}
+        {/*  Error State */}
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <AlertCircle className="w-8 h-8 mb-2 text-red-500" />
@@ -71,7 +71,7 @@ export default function TransactHistory() {
           </div>
         )}
 
-        {/* 📜 Transaction List */}
+        {/*  Transaction List */}
         {!loading && !error && recent_transactions?.length > 0 && (
           <ul className="space-y-3">
             {recent_transactions.map((tx, index) => {
@@ -86,7 +86,7 @@ export default function TransactHistory() {
               return (
                 <li
                   key={index}
-                  className="flex justify-between bg-white p-3 w-full border rounded-xl shadow-sm"
+                  className="flex justify-between bg-white p-3 w-full rounded-xl"
                 >
                   <div className="flex gap-3 items-center w-3/4">
                     <Icon className="w-6 h-6" />
@@ -115,7 +115,7 @@ export default function TransactHistory() {
           </ul>
         )}
 
-        {/* 🪶 Empty State */}
+        {/*  Empty State */}
         {!loading && !error && recent_transactions?.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <ShoppingCart className="w-10 h-10 mb-2 opacity-70" />
