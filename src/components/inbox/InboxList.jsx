@@ -1,9 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BottomNav from "./bottomNav";
 import { Link } from "react-router";
 import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 const InboxList = () => {
   const [activePage, setActivePage] = useState("inbox");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token"); 
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const inboxItems = [
     {
