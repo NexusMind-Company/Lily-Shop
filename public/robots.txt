@@ -37,5 +37,5 @@ Disallow: /*?*    # avoid duplicate URLs with query params
 Crawl-delay: 1
 
 # 🗺️ Sitemap (make sure this URL exists)
-Sitemap: https://lilyshop.com/sitemap.xml
+Sitemap: https://lilyshops.com/sitemap.xml
 
