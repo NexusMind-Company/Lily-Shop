@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPickupLocations } from "../api/checkoutApi.js";
+import { fetchPickupLocations } from "../services/api";
 import { ChevronLeft, Circle, CheckCircle2, Loader2, X } from "lucide-react";
 
 const ChoosePickupPage = () => {
