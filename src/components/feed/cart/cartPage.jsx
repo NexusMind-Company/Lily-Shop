@@ -5,22 +5,19 @@ import { ChevronLeft } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-
-// --- IMPORTED FROM SEPARATE FILES ---
-// Use relative paths from the current file's location (pages/)
-import { fetchUserProfile } from "../../../api/checkoutApi";
-import { usePayment } from "../../../context/paymentContext"; // Using .jsx as you mentioned
-import { formatPrice, formatDate } from "../../../utils/formatters"; // Import helpers
+import { fetchUserProfile } from "../../../services/api";
+import { usePayment } from "../../../context/paymentContext";
+import { formatPrice, formatDate } from "../../../utils/formatters";
 
 const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setPaymentData } = usePayment(); // Get context setter
 
-  // --- USE YOUR REDUX SETUP ---
-  const allCartItems = useSelector(selectCartItems); // Use Redux selector
+  // use redux setup
+  const allCartItems = useSelector(selectCartItems); // redux selector
   const selectedItemIds = location.state?.selectedItemIds; // Keep using location state
-  // --- END REDUX ---
+  //end of redux
 
   // Fetch User Profile Data using the imported function
   const {
@@ -73,7 +70,7 @@ const CartPage = () => {
       return "Calculating...";
     }
     try {
-      // this is to ensure your items from Redux have these date fields
+      // this is to ensure items from Redux have these date fields
       const allMinTimestamps = itemsToCheckout.map((item) =>
         new Date(item.estimatedDeliveryMinDate || Date.now()).getTime()
       );
@@ -101,7 +98,6 @@ const CartPage = () => {
     }
   }, [itemsToCheckout]);
 
-  // State
   const [deliveryAddress, setDeliveryAddress] = useState("Loading address...");
   const [pickupAddressDisplay, setPickupAddressDisplay] =
     useState("Loading pickup...");
@@ -109,7 +105,6 @@ const CartPage = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
-  // Update state when profile data loads
   useEffect(() => {
     if (userProfile) {
       setDeliveryAddress(
@@ -125,7 +120,7 @@ const CartPage = () => {
     }
   }, [userProfile, profileError]);
 
-  // Redirect if no items (Keep your logic)
+  // Redirect if no items
   useEffect(() => {
     // Check after profile loading AND items are determined
     if (
@@ -157,7 +152,7 @@ const CartPage = () => {
     }
   };
 
-  // --- UPDATED: Use Payment Context ---
+  //use Payment Context
   const handleProceedToPayment = () => {
     // Ensure items exist before proceeding
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
@@ -169,17 +164,17 @@ const CartPage = () => {
     // Set payment data in context
     setPaymentData({
       amount: estimatedTotal,
-      vendorName: itemsToCheckout[0]?.username || "Lily Vendor", // Example: Get vendor from first item
+      vendorName: itemsToCheckout[0]?.username || "Lily Vendor", // get vendor from first item
       orderId: null,
       amountPaid: 0,
     });
 
-    console.log("Proceeding to payment with:", {
-      itemsToCheckout,
-      deliveryAddress,
-      paymentMethod,
-      estimatedTotal,
-    });
+    // console.log("Proceeding to payment with:", {
+    //   itemsToCheckout,
+    //   deliveryAddress,
+    //   paymentMethod,
+    //   estimatedTotal,
+    // });
 
     // Navigate based on payment method
     if (paymentMethod === "card") {
@@ -189,10 +184,9 @@ const CartPage = () => {
     } else if (paymentMethod === "wallet") {
       navigate("/password");
     } else {
-      console.warn("Unhandled payment method:", paymentMethod);
+      console.warn && alert("Unhandled payment method:", paymentMethod);
     }
   };
-  // --- END UPDATE ---
 
   // Handle loading state
   if (isLoadingProfile) {

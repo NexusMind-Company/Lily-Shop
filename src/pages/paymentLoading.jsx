@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Shield, X } from "lucide-react";
 import { PaymentProvider, usePayment } from "../context/paymentContext";
-import { checkPaymentStatus } from "../api/checkoutApi";
+import { checkPaymentStatus } from "../services/api";
 
 const PaymentLoadingPage = () => {
   const navigate = useNavigate();

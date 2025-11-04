@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { verifyPaymentPassword } from "../api/checkoutApi";
+import { verifyPaymentPassword } from "../services/api";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const PasswordModalPage = () => {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSavedCards } from "../api/checkoutApi.js";
+import { fetchSavedCards } from "../services/api";
 import {
   ChevronLeft,
   Circle,
