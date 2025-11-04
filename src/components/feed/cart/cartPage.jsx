@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { fetchUserProfile } from "../../../api/checkoutApi";
+import { fetchUserProfile } from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 

@@ -68,7 +68,7 @@ export const getAuthProfile = async () => {
 };
 
 /**
- * Get another user's public profile using token (This was the missing function).
+ * Get another user's public profile using token.
  */
 export const getUserProfile = async () => {
   const token = localStorage.getItem("access_token");
