@@ -4,10 +4,12 @@ import { createUser, resetCreateUserState } from "../../redux/createUserSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
+
 const SignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, success, error } = useSelector((state) => state.createUser);
+   const [showSuccess, setShowSuccess] = useState("");
 
   const [values, setValues] = useState({
     email_or_phonenumber: "",
@@ -46,9 +48,10 @@ const SignUp = () => {
   useEffect(() => {
     if (success) {
       dispatch(resetCreateUserState());
-      //uncomment when email verification starts working well
-      // navigate("/verify-email?contact=" + encodeURIComponent(values.email_or_phonenumber));
-      navigate("/")
+      setShowSuccess("Registeration successful. Please Login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     }
   }, [success, navigate, values.email_or_phonenumber, dispatch]);
 
@@ -69,8 +72,21 @@ const SignUp = () => {
         ter
       </h2>
 
+
+      {showSuccess && (
+        <p className="text-green-700 py-3 border border-green-300 bg-green-100 text-center my-2 rounded-lg">
+          {showSuccess}
+        </p>
+      )}
+
+            {error && (
+          <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
+            {error}
+          </p>
+        )}
+
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         {/* Phone or Email */}
         <div>
@@ -79,7 +95,7 @@ const SignUp = () => {
             name="email_or_phonenumber"
             value={values.email_or_phonenumber}
             onChange={handleChange}
-            placeholder="Phone number or email"
+            placeholder="Enter email"
             className={`input rounded-[7px] h-[46px] w-full ${
               errors.email_or_phonenumber ? "border-red-500" : ""
             }`}
@@ -98,7 +114,7 @@ const SignUp = () => {
             name="password"
             value={values.password}
             onChange={handleChange}
-            placeholder="Password"
+            placeholder="Enter Password"
             className={`input rounded-[7px] h-[46px] w-full pr-10 ${
               errors.password ? "border-red-500" : ""
             }`}
