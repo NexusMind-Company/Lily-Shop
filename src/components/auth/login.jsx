@@ -69,7 +69,7 @@ const Login = () => {
           name="login"
           value={values.login}
           onChange={handleChange}
-          placeholder="Email, phone, or username"
+          placeholder="Email"
           className="input rounded-[7px] h-[46px]"
           required
         />
