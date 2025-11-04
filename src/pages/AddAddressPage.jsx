@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addNewAddress } from "../api/checkoutApi";
+import { addNewAddress } from "../services/api";
 import { ChevronLeft, Loader2 } from "lucide-react";
 
 const AddAddressPage = () => {
