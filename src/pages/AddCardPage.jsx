@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addNewCard } from "../api/checkoutApi";
+import { addNewCard } from "../services/api";
 import { ChevronLeft, Loader2, Lock } from "lucide-react";
 
 const AddCardPage = () => {
