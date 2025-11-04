@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchDeliveryAddresses } from "../api/checkoutApi";
+import { fetchDeliveryAddresses } from "../services/api";
 import { ChevronLeft, Circle, CheckCircle2, Loader2, X } from "lucide-react";
 
 const ChooseAddressPage = () => {
