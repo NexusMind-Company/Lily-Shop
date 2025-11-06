@@ -28,18 +28,18 @@ const Login = () => {
        // Show success message
        setShowSuccess("Login successful .");
       setTimeout(() => {
-        navigate("/");
+        navigate("/feed");
       }, 2000);
     }
   };
 
   return (
-    <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+    <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center bg-white absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
-        <Link to="/">
+        
           <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-        </Link>
+        
       </div>
 
       {/* Page Title */}
@@ -109,7 +109,7 @@ const Login = () => {
         </button>
 
         {/* Forgot Password */}
-        <div className="text-xs font-medium self-end">
+        <div className="text-sm font-medium self-end">
           <Link to="/forgotPassword" className="underline">
             Forgot Password?
           </Link>
@@ -118,7 +118,7 @@ const Login = () => {
         {/* Sign Up Prompt */}
         <div className="self-start">
           <Link to={"/signUp"}>
-            <p className="text-xs font-semibold">
+            <p className="text-sm font-semibold">
               Not a member yet?{" "}
               <span className="text-lily underline">Create an Account</span>
             </p>

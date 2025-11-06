@@ -1,7 +1,7 @@
 import FeedContainer from "../components/feed/feedContainer";
 import PageSEO from "../components/common/PageSEO";
 
-const Home = () => {
+const Feed = () => {
   return (
     <>
       <PageSEO/>
@@ -10,4 +10,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Feed;
