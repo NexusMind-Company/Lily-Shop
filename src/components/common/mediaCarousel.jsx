@@ -88,10 +88,10 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
 };
 
 const MediaCarousel = forwardRef(function MediaCarousel(
-  { media, isFeedCarousel = false, containerClassName },
+  { media, isFeedCarousel = false, containerClassName, onDoubleClick },
   ref
 ) {
-  const containerRef = useRef(null); // Ref for the new outer container
+  const containerRef = useRef(null);
   const videoRefs = useRef({});
 
   useImperativeHandle(ref, () => ({
@@ -114,7 +114,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       }
     },
     getDOMNode: () => {
-      return containerRef.current; // Observer that watches the container
+      return containerRef.current;
     },
   }));
 
@@ -138,9 +138,11 @@ const MediaCarousel = forwardRef(function MediaCarousel(
   }`;
 
   return (
-    // This is the outer container that controls the size and shape (e.g., aspect-square).
-    <div ref={containerRef} className={finalContainerClass}>
-      {/* The Swiper component is now inside, and will always fill this container. */}
+    <div
+      ref={containerRef}
+      className={finalContainerClass}
+      onDoubleClick={onDoubleClick}
+    >
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         slidesPerView={1}
@@ -153,7 +155,6 @@ const MediaCarousel = forwardRef(function MediaCarousel(
         }}
         onSlideChange={handleSlideChange}
         onInit={(swiper) => {
-          // Link the swiper instance to the container's ref for the imperative handle
           if (containerRef.current) {
             containerRef.current.swiper = swiper;
           }

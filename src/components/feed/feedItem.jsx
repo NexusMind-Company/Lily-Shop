@@ -26,7 +26,6 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   // const dispatch = useDispatch();
 
-  // When the component mounts, pass the media ref's value up to the parent.
   useEffect(() => {
     if (mediaRef.current && onVideoInit) {
       onVideoInit(mediaRef.current);
@@ -48,21 +47,7 @@ const FeedItem = ({ post, onVideoInit }) => {
   };
 
   // const handleAddToCart = () => {
-  //   const itemToAdd = {
-  //     id: post.id,
-  //     productName: post.productName || post.caption.slice(0, 30),
-  //     price: post.price,
-  //     username: post.username,
-  //     quantity: 1,
-  //     mediaSrc: post.media?.[0]?.src,
-  // pickupAddress: post.pickupAddress,
-  // deliveryAddress: post.deliveryAddress,
-  // deliveryCharge: post.deliveryCharge,
-  // deliveryTime: post.deliveryTime,
-  //   };
-
-  //   // Dispatch the action using the action creator from cartSlice
-  //   dispatch(addItemToCart(itemToAdd));
+  //   ...
   // };
 
   const handleOpenComments = () => {
@@ -84,6 +69,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
+            onDoubleClick={handleDoubleTap}
             containerClassName="media-container-cover w-full aspect-square"
           />
         ) : isVideo ? (
@@ -118,7 +104,6 @@ const FeedItem = ({ post, onVideoInit }) => {
       <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
-            {/* Profile Pic and follow button */}
             <div className="relative gap-3 flex items-center">
               <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                 <img
@@ -138,7 +123,6 @@ const FeedItem = ({ post, onVideoInit }) => {
                   alt={`Follow ${post.username}`}
                 />
               </button>
-              {/* Username */}
               <button className="flex items-center space-x-2">
                 <h1 className="font-bold">{post.username}</h1>
               </button>
@@ -161,7 +145,6 @@ const FeedItem = ({ post, onVideoInit }) => {
               )}
             </motion.p>
 
-            {/* music Track */}
             <p className="font-light flex items-center gap-1">
               <span>
                 <img src="/icons/music.svg" alt="" />
@@ -169,14 +152,7 @@ const FeedItem = ({ post, onVideoInit }) => {
               {post.musicTrack}
             </p>
 
-            {/* Add to cart and buy now */}
             <div className="flex items-center space-x-2 pt-2">
-              {/* <button
-                onClick={handleAddToCart} // THIS CONNECTS TO THE REDUX LOGIC
-                className="flex items-center bg-white rounded-full p-2"
-              >
-                <img src="/icons/cart-add.svg" alt="Add to cart" />
-              </button> */}
               <Link
                 to={`/product-details/${post.id}`}
                 className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
@@ -189,7 +165,6 @@ const FeedItem = ({ post, onVideoInit }) => {
             </div>
           </div>
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
-            {/* Like Icon */}
             <button onClick={handleLike} className="flex flex-col items-center">
               <img
                 src={`${isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}`}
@@ -200,7 +175,6 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(likeCount)}
               </span>
             </button>
-            {/* Comments Icon - MODIFIED to open modal */}
             <button
               onClick={handleOpenComments}
               className="flex flex-col items-center"
@@ -210,7 +184,6 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(post.comments)}
               </span>
             </button>
-            {/* Share Icon */}
             <button
               onClick={handleOpenShare}
               className="flex flex-col items-center"
@@ -220,19 +193,10 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(post.shares)}
               </span>
             </button>
-            {/* Promote Icon
-            <button className="flex flex-col items-center">
-              <img src="/icons/loudspeaker.svg" alt="" />
-              <span className="text-xs text-white font-semibold">
-                {`Promote`}
-              </span>
-            </button> */}
-            {/* Message Trader Icon */}
             <button className="flex flex-col items-center">
               <img src="/icons/send-alt.svg" alt="" />
               <span className="text-xs font-semibold">{`Message`}</span>
             </button>
-            {/* Views Icon */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
@@ -243,14 +207,14 @@ const FeedItem = ({ post, onVideoInit }) => {
         </div>
       </div>
 
-      {/* RENDER THE COMMENTS MODAL */}
       <AnimatePresence>
         {showCommentsModal && (
           <CommentsModal
             isOpen={showCommentsModal}
             onClose={() => setShowCommentsModal(false)}
-            postId={post.id} // Pass the unique ID of the post
-            totalComments={post.comments} // Pass the total count for the header
+            postId={post.id}
+            itemType={post.type}
+            totalComments={post.comments}
           />
         )}
 
@@ -258,7 +222,7 @@ const FeedItem = ({ post, onVideoInit }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshops.com/${post.id}`} // Example URL structure
+            postUrl={`https://lilyshops.com/${post.id}`}
             postCaption={post.caption}
           />
         )}
