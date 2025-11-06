@@ -110,7 +110,7 @@ const FeedContainer = () => {
 
     if (!posts || posts.length === 0) {
       return (
-        <div className="h-full flex flex-col items-center justify-center p-4 text-center text-white">
+        <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
           <svg
             className="w-16 h-16 mb-4 opacity-50"
             fill="none"
