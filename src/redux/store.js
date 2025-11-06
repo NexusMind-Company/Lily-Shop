@@ -12,9 +12,10 @@ import createUserReducer from "./createUserSlice";
 import verifyEmailReducer from "./verifyEmailSlice";
 import walletReducer from "./walletSlice";
 import messageReducer from "./messageConversationSlice";
-import orderReducer from "./orderSlice"
+import orderReducer from "./orderSlice";
 import activitiesReducer from "./activitySlice";
 import contentReducer from "./contentSlice";
+import feedReducer from "./feedCommentSlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -27,6 +28,7 @@ export const store = configureStore({
     profile: profileReducer,
     addProduct: addProductReducer,
     deleteShop: deleteShopReducer,
+    feedComments: feedReducer,
     ads: adsReducer,
     messages: messageReducer,
     passwordReset: passwordResetReducer,
