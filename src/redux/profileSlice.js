@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserProfile } from "../services/api"; 
+import { fetchUserProfile } from "../services/api";
 
 const profileSlice = createSlice({
   name: "profile",
@@ -46,7 +46,7 @@ export const fetchProfile = () => async (dispatch) => {
   try {
     dispatch(fetchProfileStart());
 
-    const data = await getUserProfile(); // token-based call
+    const data = await fetchUserProfile(); // token-based call
 
     const normalized = {
       user: {

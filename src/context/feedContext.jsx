@@ -7,36 +7,44 @@ import React, {
   useCallback,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-
-// You can move your mock data import here or keep it where it is
+import { fetchFeed, fetchNearbyFeed } from "../services/api";
 import { mockPosts } from "../components/feed/mockData";
 
-const USE_MOCK = true;
-
-const fetchFeed = async () => {
-  const res = await fetch("https://lily-shop-backend.onrender.com/shops/products/{id}/");//https://lily-shop-backend.onrender.com/shops/products/{id}/
-  if (!res.ok) throw new Error("Failed to fetch feed");
-  return res.json();
-};
+const USE_MOCK = false;
 
 const FeedContext = createContext(null);
 
 export const FeedProvider = ({ children }) => {
   const [isMuted, setIsMuted] = useState(true);
   const scrollPositionRef = useRef(0);
+  const [activeTab, setActiveTab] = useState("forYou");
 
-  // Data fetching is now managed by the context provider
-  const {
-    data: postsFromApi = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["feed"],
-    queryFn: fetchFeed,
+  const queryResult = useQuery({
+    queryKey: ["feed", activeTab],
+    queryFn: () => {
+      if (activeTab === "nearby") {
+        return fetchNearbyFeed();
+      }
+      return fetchFeed();
+    },
+    select: (data) => data?.results || [],
     enabled: !USE_MOCK,
   });
 
-  const posts = USE_MOCK ? mockPosts : postsFromApi;
+  const posts = useMemo(
+    () => (USE_MOCK ? mockPosts : queryResult.data || []),
+    [queryResult.data]
+  );
+
+  const isLoading = useMemo(
+    () => (USE_MOCK ? false : queryResult.isLoading),
+    [queryResult.isLoading]
+  );
+
+  const error = useMemo(
+    () => (USE_MOCK ? null : queryResult.error),
+    [queryResult.error]
+  );
 
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
@@ -50,8 +58,10 @@ export const FeedProvider = ({ children }) => {
       isMuted,
       toggleMute,
       scrollPositionRef,
+      activeTab,
+      setActiveTab,
     }),
-    [posts, isLoading, error, isMuted, toggleMute]
+    [posts, isLoading, error, isMuted, toggleMute, activeTab]
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
