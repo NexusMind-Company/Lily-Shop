@@ -22,25 +22,6 @@ const BottomNav = ({ activePage, setActivePage }) => {
         </button>
         <span className="text-xs font-poppins mt-6">Home</span>
       </Link>
-      {/* Shops */}
-      <Link
-        to="/shops"
-        className={`flex flex-col items-center relative ${
-          activePage === "shops" ? "text-lily" : "text-ash"
-        }`}
-      >
-        <button
-          onClick={() => setActivePage("shops")}
-          className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
-        >
-          {activePage === "shops" ? (
-            <img src="/icons/shop-active.svg" className="h-7 w-7" />
-          ) : (
-            <img src="/icons/shop.svg" className="h-7 w-7" />
-          )}
-        </button>
-        <span className="text-xs font-poppins mt-6">Shops</span>
-      </Link>
       {/* Create */}
       <Link
         to="/createContent"
