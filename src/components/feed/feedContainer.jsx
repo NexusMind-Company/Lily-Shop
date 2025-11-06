@@ -6,11 +6,20 @@ import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 
 const FeedContainer = () => {
-  const { posts, isLoading, error, scrollPositionRef } = useFeed();
+  const {
+    posts,
+    isLoading,
+    error,
+    scrollPositionRef,
+    activeTab,
+    setActiveTab,
+  } = useFeed();
+
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
-  const [activeTab, setActiveTab] = useState("forYou");
-  const [activePage, setActivePage] = useState("home");
+
+  const [activePage, setActivePage] = useState("home"); // This one is still local
+
   const observer = useRef(
     new IntersectionObserver(
       (entries) => {
@@ -115,10 +124,13 @@ const FeedContainer = () => {
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4z"
             />
           </svg>
-          <h2 className="text-xl font-bold mb-2">Feed is Empty</h2>
+          <h2 className="text-xl font-bold mb-2">
+            {activeTab === "nearby" ? "No Posts Nearby" : "Feed is Empty"}
+          </h2>
           <p className="text-sm opacity-70">
-            Be the first to post something or follow other users to see their
-            posts here.
+            {activeTab === "nearby"
+              ? "Try expanding your area or check back later."
+              : "Be the first to post or follow other users to see their posts."}
           </p>
         </div>
       );

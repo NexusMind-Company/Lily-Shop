@@ -64,6 +64,12 @@ export const fetchFeed = async () => {
   return response.data;
 };
 
+// Fetch the nearby feed
+export const fetchNearbyFeed = async () => {
+  const response = await api.get("/shops/products/nearby/");
+  return response.data;
+};
+
 // PRODUCT COMMENTS
 
 // Fetch comments for a specific product

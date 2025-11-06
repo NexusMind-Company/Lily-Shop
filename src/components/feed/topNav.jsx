@@ -1,21 +1,12 @@
-// TopNav.js
 import { AnimatePresence } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BsBroadcast } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import CartModal from "./cart/cartModal";
-import SearchModal from "./searchModal"; 
+import SearchModal from "./searchModal";
 
 const TopNav = ({ activeTab, setActiveTab }) => {
-  // --- 2. Remove all search-related states ---
-  // const [searchOpen, setSearchOpen] = useState(false);
-  // const [searchTerm, setSearchTerm] = useState("");
-  // const [searchResults, setSearchResults] = useState([]);
-  // const searchRef = useRef(null);
-  // const searchButtonRef = useRef(null);
-  
-  // --- 3. Add state for the new search modal ---
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
 
@@ -30,21 +21,13 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // --- 4. Close the modal on navigation ---
     setIsSearchModalOpen(false);
   }, [location.pathname]);
-
-  // --- 5. Remove the old useEffect for handleClickOutside ---
-  // (No longer needed as the modal is full-screen)
-
-  // --- 6. Remove all search handler functions ---
-  // const handleSearchChange = (e) => { ... };
-  // const handleSearchSubmit = (e) => { ... };
 
   const handleOpenCart = () => {
     setShowCartModal(true);
   };
-  
+
   return (
     <div className="flex items-center w-full h-16 px-4 bg-transparent fixed top-0 left-0 z-50">
       <div className="flex items-center justify-between w-lg mx-auto md:w-4xl">
@@ -90,11 +73,9 @@ const TopNav = ({ activeTab, setActiveTab }) => {
         <div className="flex items-center gap-1 md:gap-3">
           {/* Search Icon / Button */}
           <div className="pr-2">
-            {/* --- 7. Update onClick to open the modal --- */}
             <button
               className="cursor-pointer"
               onClick={() => setIsSearchModalOpen(true)}
-              // ref={searchButtonRef} // (No longer needed)
             >
               <img src="/icons/search-icon.svg" alt="" />
             </button>
@@ -121,10 +102,6 @@ const TopNav = ({ activeTab, setActiveTab }) => {
             </button>
           </div>
         </div>
-
-        {/* --- 8. Remove the old in-place Search Bar and Dropdown --- */}
-        {/* <div ref={searchRef} ... > ... </div> */}
-        
       </div>
 
       {/* RENDER THE MODALS */}
@@ -137,7 +114,6 @@ const TopNav = ({ activeTab, setActiveTab }) => {
         )}
       </AnimatePresence>
 
-      {/* --- 9. Add the new SearchModal to be rendered --- */}
       <AnimatePresence>
         {isSearchModalOpen && (
           <SearchModal onClose={() => setIsSearchModalOpen(false)} />
