@@ -69,6 +69,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
+            onDoubleClick={handleDoubleTap}
             containerClassName="media-container-cover w-full aspect-square"
           />
         ) : isVideo ? (
