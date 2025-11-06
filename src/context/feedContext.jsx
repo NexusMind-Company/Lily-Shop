@@ -7,10 +7,9 @@ import React, {
   useCallback,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchFeed } from "../services/api";
+import { fetchFeed, fetchNearbyFeed } from "../services/api";
 import { mockPosts } from "../components/feed/mockData";
 
-// Set this to true to see your mock data
 const USE_MOCK = false;
 
 const FeedContext = createContext(null);
@@ -18,21 +17,34 @@ const FeedContext = createContext(null);
 export const FeedProvider = ({ children }) => {
   const [isMuted, setIsMuted] = useState(true);
   const scrollPositionRef = useRef(0);
+  const [activeTab, setActiveTab] = useState("forYou");
 
-  const {
-    data: apiResponse,
-    isLoading: apiIsLoading,
-    error: apiError,
-  } = useQuery({
-    queryKey: ["feed"],
-    queryFn: fetchFeed,
+  const queryResult = useQuery({
+    queryKey: ["feed", activeTab],
+    queryFn: () => {
+      if (activeTab === "nearby") {
+        return fetchNearbyFeed();
+      }
+      return fetchFeed();
+    },
+    select: (data) => data?.results || [],
     enabled: !USE_MOCK,
   });
 
-  const apiPosts = apiResponse?.results || [];
-  const posts = USE_MOCK ? mockPosts : apiPosts;
-  const isLoading = USE_MOCK ? false : apiIsLoading;
-  const error = USE_MOCK ? null : apiError;
+  const posts = useMemo(
+    () => (USE_MOCK ? mockPosts : queryResult.data || []),
+    [queryResult.data]
+  );
+
+  const isLoading = useMemo(
+    () => (USE_MOCK ? false : queryResult.isLoading),
+    [queryResult.isLoading]
+  );
+
+  const error = useMemo(
+    () => (USE_MOCK ? null : queryResult.error),
+    [queryResult.error]
+  );
 
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
@@ -46,8 +58,10 @@ export const FeedProvider = ({ children }) => {
       isMuted,
       toggleMute,
       scrollPositionRef,
+      activeTab,
+      setActiveTab,
     }),
-    [posts, isLoading, error, isMuted, toggleMute]
+    [posts, isLoading, error, isMuted, toggleMute, activeTab]
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
