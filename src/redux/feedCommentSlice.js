@@ -1,11 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-// Assuming you have an API service and mock data configured
-// import api from "../services/api";
+import {
+  fetchProductComments,
+  fetchContentComments,
+  addProductComment,
+  addContentComment,
+} from "../services/api";
 import { mockPosts } from "../components/feed/mockData";
 
-const USE_MOCK_DATA = true;
+//  set to true to use mockdata
+const USE_MOCK_DATA = false;
 
-// Helper to recursively find a parent comment and add a reply
 const findCommentAndAddReply = (comments, newComment) => {
   for (const comment of comments) {
     if (comment.id === newComment.parentId) {
@@ -24,19 +28,42 @@ const findCommentAndAddReply = (comments, newComment) => {
   }
   return false;
 };
+const findCommentAndReplace = (comments, localId, serverComment) => {
+  for (let i = 0; i < comments.length; i++) {
+    const comment = comments[i];
+    if (comment.id === localId) {
+      comments[i] = { ...serverComment, replies: comment.replies || [] };
+      return true;
+    }
+    if (
+      comment.replies &&
+      findCommentAndReplace(comment.replies, localId, serverComment)
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
 
 // Async thunk to fetch comments
 export const fetchComments = createAsyncThunk(
   "feed/fetchComments",
-  async (postId, { rejectWithValue }) => {
+  async ({ postId, itemType }, { rejectWithValue }) => {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
+      const post = mockPosts.find((p) => p.id === postId);
+      return post?.commentsData || [];
+    }
+
+    // This is the live API logic
     try {
-      if (USE_MOCK_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-        const post = mockPosts.find((p) => p.id === postId);
-        return post?.commentsData || [];
+      if (itemType === "product") {
+        const data = await fetchProductComments(postId);
+        return data.results || data;
+      } else {
+        const data = await fetchContentComments(postId);
+        return data.results || data;
       }
-      // const response = await api.get(`/posts/${postId}/comments`);
-      // return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -47,14 +74,21 @@ export const fetchComments = createAsyncThunk(
 export const postComment = createAsyncThunk(
   "feed/postComment",
   async (commentData, { rejectWithValue }) => {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate delay
+      return { ...commentData, id: `server_${Date.now()}` };
+    }
+
+    // This is the live API logic
+    const { postId, itemType, text } = commentData;
     try {
-      if (USE_MOCK_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate network delay
-        // In a real API, the backend would return the complete, saved comment object
-        return { ...commentData, id: `server_${Date.now()}` }; // Return a "server-confirmed" ID
+      if (itemType === "product") {
+        const data = await addProductComment(postId, text);
+        return data;
+      } else {
+        const data = await addContentComment(postId, text);
+        return data;
       }
-      // const response = await api.post(`/posts/${commentData.postId}/comments`, commentData);
-      // return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -65,7 +99,7 @@ const feedSlice = createSlice({
   name: "feed",
   initialState: {
     comments: [],
-    commentsStatus: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
+    commentsStatus: "idle",
     commentsError: null,
   },
   reducers: {
@@ -74,7 +108,7 @@ const feedSlice = createSlice({
       if (newComment.parentId) {
         findCommentAndAddReply(state.comments, newComment);
       } else {
-        state.comments.unshift(newComment); // Add top-level comments to the top
+        state.comments.unshift(newComment);
       }
     },
     clearComments: (state) => {
@@ -85,7 +119,6 @@ const feedSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Comments
       .addCase(fetchComments.pending, (state) => {
         state.commentsStatus = "loading";
         state.commentsError = null;
@@ -98,16 +131,13 @@ const feedSlice = createSlice({
         state.commentsStatus = "failed";
         state.commentsError = action.payload;
       })
-      // Post Comment
       .addCase(postComment.fulfilled, (state, action) => {
-        // The optimistic update is already done by `addLocalComment`.
-        // You could optionally replace the local comment with the server-returned one if IDs differ.
-        console.log("Comment posted successfully:", action.payload);
+        const serverComment = action.payload;
+        const localId = action.meta.arg.id;
+        findCommentAndReplace(state.comments, localId, serverComment);
       })
       .addCase(postComment.rejected, (state, action) => {
         console.error("Failed to post comment:", action.payload);
-        // Here you would add logic to handle the UI feedback for the failure.
-        // For example, finding the optimistic comment and marking it as "failed to send".
       });
   },
 });
