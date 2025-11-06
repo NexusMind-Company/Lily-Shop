@@ -51,8 +51,6 @@ import OrdersPage from "./pages/orders";
 import ActivityPage from "./pages/activity";
 import InboxPage from "./pages/inbox";
 import Messages from "./pages/messages";
-import Shops from "./pages/shops";
-import Home from "./pages/home";
 import NotificationPage from "./pages/notifications";
 import ChangeDOBPage from "./pages/ChangeDOB";
 import ChangePhonePage from "./pages/ChangePhone";
@@ -77,6 +75,7 @@ import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
 import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
+import Feed from "./pages/feed";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -110,7 +109,8 @@ export default function App() {
       <FeedProvider>
         <Routes>
           <Route element={<FeedLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Login />} />
+            <Route path="/feed" element={<Feed/>} />
             <Route
               path="/product-details/:id"
               element={<FeedProductDetails />}
@@ -168,7 +168,6 @@ export default function App() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/messages" element={<Messages />} />
-          <Route path="/shops" element={<Shops />} />
           <Route path="/notifications" element={<NotificationPage />} />
           <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
           <Route path="/ChangePhone" element={<ChangePhonePage />} />
