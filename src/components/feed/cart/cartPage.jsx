@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { selectCartItems } from "../../../redux/cartSlice";
+import { createOrder } from "../../../redux/orderSlice";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { fetchUserProfile } from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
@@ -12,36 +12,33 @@ import { formatPrice, formatDate } from "../../../utils/formatters";
 const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setPaymentData } = usePayment(); // Get context setter
+  const dispatch = useDispatch();
+  const { setPaymentData } = usePayment();
+  const allCartItems = useSelector(selectCartItems);
+  const selectedItemIds = location.state?.selectedItemIds;
 
-  // use redux setup
-  const allCartItems = useSelector(selectCartItems); // redux selector
-  const selectedItemIds = location.state?.selectedItemIds; // Keep using location state
-  //end of redux
+  const { creating: isCreatingOrder, createError } = useSelector(
+    (state) => state.orders
+  );
 
-  // Fetch User Profile Data using the imported function
   const {
     data: userProfile,
     isLoading: isLoadingProfile,
     error: profileError,
   } = useQuery({
     queryKey: ["userProfile"],
-    queryFn: fetchUserProfile, // Use the imported function
+    queryFn: fetchUserProfile,
   });
 
   const itemsToCheckout = useMemo(() => {
-    // If selectedItemIds are passed, use them; otherwise, use all items from Redux
     if (selectedItemIds && Array.isArray(selectedItemIds)) {
-      // Handle cases where allCartItems might not be ready yet
       if (!allCartItems) return [];
       return allCartItems.filter((item) => selectedItemIds.includes(item.id));
     }
-    return allCartItems || []; // Fallback to all items or empty array if none selected/available
+    return allCartItems || [];
   }, [allCartItems, selectedItemIds]);
 
-  // Calculate total fees
   const totalDeliveryCharge = useMemo(() => {
-    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (sum, item) => sum + (item.deliveryCharge || 0),
@@ -50,13 +47,11 @@ const CartPage = () => {
   }, [itemsToCheckout]);
 
   const itemCount = useMemo(() => {
-    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce((count, item) => count + item.quantity, 0);
   }, [itemsToCheckout]);
 
   const subtotal = useMemo(() => {
-    // Ensure itemsToCheckout is an array before reducing
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (total, item) => total + item.price * item.quantity,
@@ -64,20 +59,17 @@ const CartPage = () => {
     );
   }, [itemsToCheckout]);
 
-  // this calculate estimated delivery time using imported helper
   const estimatedDeliveryTime = useMemo(() => {
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       return "Calculating...";
     }
     try {
-      // this is to ensure items from Redux have these date fields
       const allMinTimestamps = itemsToCheckout.map((item) =>
         new Date(item.estimatedDeliveryMinDate || Date.now()).getTime()
       );
       const allMaxTimestamps = itemsToCheckout.map((item) =>
         new Date(item.estimatedDeliveryMaxDate || Date.now()).getTime()
       );
-      // this is to filter out potential NaN values if dates are invalid
       const validMinTimestamps = allMinTimestamps.filter((ts) => !isNaN(ts));
       const validMaxTimestamps = allMaxTimestamps.filter((ts) => !isNaN(ts));
 
@@ -87,8 +79,8 @@ const CartPage = () => {
 
       const earliestMinDate = new Date(Math.min(...validMinTimestamps));
       const latestMaxDate = new Date(Math.max(...validMaxTimestamps));
-      const formattedMin = formatDate(earliestMinDate); // Use imported helper
-      const formattedMax = formatDate(latestMaxDate); // Use imported helper
+      const formattedMin = formatDate(earliestMinDate);
+      const formattedMax = formatDate(latestMaxDate);
       if (!formattedMin || !formattedMax) return "N/A";
       if (formattedMin === formattedMax) return formattedMax;
       return `${formattedMin} - ${formattedMax}`;
@@ -120,29 +112,25 @@ const CartPage = () => {
     }
   }, [userProfile, profileError]);
 
-  // Redirect if no items
   useEffect(() => {
-    // Check after profile loading AND items are determined
     if (
       !isLoadingProfile &&
       (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
     ) {
-      // Small delay to prevent race conditions if Redux state updates slightly slower
       const timer = setTimeout(() => {
-        // Double check after delay
         if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
           console.log("No items to checkout, redirecting...");
-          navigate("/"); // Redirect to home
+          navigate("/");
         }
       }, 100);
-      return () => clearTimeout(timer); // Cleanup timer on unmount or re-run
+      return () => clearTimeout(timer);
     }
   }, [itemsToCheckout, isLoadingProfile, navigate]);
 
   const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
+  const estimatedTotalKobo = Math.round(estimatedTotal * 100);
 
   const handleApplyVoucher = () => {
-    // TODO: Replace with API call to validate voucher
     if (voucherCode === "SAVE10") {
       setAppliedDiscount(subtotal * 0.1);
       console.log("Voucher applied");
@@ -152,43 +140,51 @@ const CartPage = () => {
     }
   };
 
-  //use Payment Context
-  const handleProceedToPayment = () => {
-    // Ensure items exist before proceeding
+  const handleProceedToPayment = async () => {
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       console.error("Cannot proceed, no items to checkout.");
-      // Optionally show a user message
       return;
     }
 
-    // Set payment data in context
-    setPaymentData({
-      amount: estimatedTotal,
-      vendorName: itemsToCheckout[0]?.username || "Lily Vendor", // get vendor from first item
-      orderId: null,
-      amountPaid: 0,
-    });
+    const orderItems = itemsToCheckout.map((item) => ({
+      product_id: item.id,
+      quantity: item.quantity,
+      // Add any other fields the API order item requires
+      // e.g., price: item.price
+    }));
 
-    // console.log("Proceeding to payment with:", {
-    //   itemsToCheckout,
-    //   deliveryAddress,
-    //   paymentMethod,
-    //   estimatedTotal,
-    // });
+    const orderData = {
+      items: orderItems,
+      total_amount_kobo: estimatedTotalKobo,
+      payment_method: paymentMethod,
+    };
 
-    // Navigate based on payment method
-    if (paymentMethod === "card") {
-      navigate("/password");
-    } else if (paymentMethod === "bank") {
-      navigate("/bank-transfer");
-    } else if (paymentMethod === "wallet") {
-      navigate("/password");
-    } else {
-      console.warn && alert("Unhandled payment method:", paymentMethod);
+    try {
+      const actionResult = await dispatch(createOrder(orderData)).unwrap();
+      const newOrder = actionResult;
+
+      setPaymentData({
+        amount: estimatedTotal,
+        vendorName: itemsToCheckout[0]?.username || "Lily Vendor",
+        orderId: newOrder.id,
+        amountPaid: 0,
+      });
+
+      if (paymentMethod === "card") {
+        navigate("/password");
+      } else if (paymentMethod === "bank") {
+        navigate("/bank-transfer");
+      } else if (paymentMethod === "wallet") {
+        navigate("/password");
+      } else {
+        console.warn && alert("Unhandled payment method:", paymentMethod);
+      }
+    } catch (err) {
+      console.error("Failed to create order:", err);
+      alert(`Error: ${createError || "Could not create your order."}`);
     }
   };
 
-  // Handle loading state
   if (isLoadingProfile) {
     return (
       <div className="flex flex-col items-center justify-center h-screen max-w-xl mx-auto bg-white">
@@ -198,15 +194,12 @@ const CartPage = () => {
     );
   }
 
-  // Handle case where items might still be loading or empty after profile loads
-  // Added check for Array.isArray as well
   if (
     !isLoadingProfile &&
     (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
   ) {
     return (
       <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white shadow-md">
-        {/* Header */}
         <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
           <button
             onClick={() => navigate(-1)}
@@ -228,7 +221,7 @@ const CartPage = () => {
       {/* Header */}
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate(-1)} // Keep your back navigation
+          onClick={() => navigate(-1)}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
@@ -238,7 +231,7 @@ const CartPage = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Items in Cart Summary (Keep your detailed JSX) */}
+        {/* Items in Cart Summary */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Items ({itemCount})
@@ -252,7 +245,6 @@ const CartPage = () => {
                     src={item.mediaSrc}
                     alt={item.productName}
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                    // Add error handling for images
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src =
@@ -288,11 +280,10 @@ const CartPage = () => {
           <div className="p-3 rounded-lg text-sm space-y-2">
             <p className="font-medium">{deliveryAddress}</p>
             <button
-              onClick={
-                () =>
-                  navigate("/add-address", {
-                    state: { from: location.pathname },
-                  }) // Keep your state passing
+              onClick={() =>
+                navigate("/add-address", {
+                  state: { from: location.pathname },
+                })
               }
               className="text-pink text-sm hover:underline"
             >
@@ -319,11 +310,10 @@ const CartPage = () => {
           <div className="p-3 rounded-lg text-sm space-y-2">
             <p className="font-medium">{pickupAddressDisplay}</p>
             <button
-              onClick={
-                () =>
-                  navigate("/choose-pickup", {
-                    state: { from: location.pathname },
-                  }) // Keep your state passing
+              onClick={() =>
+                navigate("/choose-pickup", {
+                  state: { from: location.pathname },
+                })
               }
               className="text-pink text-sm hover:underline"
             >
@@ -332,7 +322,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Payment Method (Keep your JSX structure) */}
+        {/* Payment Method */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Payment Method
@@ -354,7 +344,6 @@ const CartPage = () => {
                 />
                 <div>
                   <span className="text-gray-700 font-medium">Card</span>
-                  {/* TODO: Fetch and display actual saved card details */}
                   <p className="text-xs text-gray-500">
                     S**** **********45 (Default)
                   </p>
@@ -366,8 +355,8 @@ const CartPage = () => {
                   navigate("/add-card", {
                     state: { from: location.pathname },
                   })
-                } // Keep state passing
-                className="text-pink text-sm hover:underline pl-8 pt-1" // Added padding for alignment
+                }
+                className="text-pink text-sm hover:underline pl-8 pt-1"
               >
                 + Add new card
               </button>
@@ -397,7 +386,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Voucher Code (Keep your JSX structure) */}
+        {/* Voucher Code */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Voucher code
@@ -420,7 +409,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Order Summary (Keep your JSX structure) */}
+        {/* Order Summary */}
         <div>
           <h3 className="font-semibold text-md text-gray-800 mb-3">
             Order summary
@@ -445,18 +434,14 @@ const CartPage = () => {
               <span>{estimatedDeliveryTime}</span>
             </div>
           </div>
-          {/* Legal Text (Keep your JSX structure) */}
+          {/* Legal Text */}
           <div className="flex space-x-2 items-center text-gray-500 mt-2">
-            {/* // Use an actual icon component or path */}
-            {/* <img src="/icons/shield-tick.svg" alt="" className="size-5" /> */}
             <p className="text-sm">
               Your payment is held in escrow till order has been confirmed as
               delivered
             </p>
           </div>
           <div className="flex space-x-2 items-center text-gray-500">
-            {/* // Use an actual icon component or path */}
-            {/* <img src="/icons/undo.svg" alt="" className="size-5" /> */}
             <p className="text-sm break-words">
               Orders may be returned within 7 days of purchase. Learn more about
               our {"  "}
@@ -476,7 +461,7 @@ const CartPage = () => {
         </div>
       </div>
 
-      {/* Footer (Keep your specific layout) */}
+      {/* Footer */}
       <div className="flex w-full justify-between p-4 border-t border-gray-200 bg-white flex-shrink-0">
         <div className="flex flex-col w-[40%] justify-between font-bold text-md pt-2 mt-2">
           <span>Total Payment</span>
@@ -486,10 +471,16 @@ const CartPage = () => {
         </div>
         <button
           onClick={handleProceedToPayment}
-          className="w-[60%] bg-lily text-white py-3 rounded-full text-lg font-semibold hover:bg-darklily transition-colors"
-          disabled={!itemsToCheckout || itemsToCheckout.length === 0} // Disable if no items
+          className="w-[60%] bg-lily text-white py-3 rounded-full text-lg font-semibold hover:bg-darklily transition-colors flex items-center justify-center"
+          disabled={
+            !itemsToCheckout || itemsToCheckout.length === 0 || isCreatingOrder
+          }
         >
-          Proceed
+          {isCreatingOrder ? (
+            <Loader2 size={24} className="animate-spin" />
+          ) : (
+            "Proceed"
+          )}
         </button>
       </div>
     </div>
