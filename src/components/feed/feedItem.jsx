@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
-// import { useDispatch } from "react-redux";
-// import { addItemToCart } from "../../redux/cartSlice";
+import { likeProduct, likeContent, followUser } from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
@@ -23,8 +23,49 @@ const FeedItem = ({ post, onVideoInit }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const navigate = useNavigate();
 
-  // const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+
+  const { mutate: toggleLike } = useMutation({
+    mutationFn: () => {
+      if (post.type === "product") {
+        return likeProduct(post.id);
+      } else {
+        return likeContent(post.id);
+      }
+    },
+    onMutate: async () => {
+      const previousIsLiked = isLiked;
+      const previousLikeCount = likeCount;
+
+      setIsLiked(!previousIsLiked);
+      setLikeCount(
+        !previousIsLiked ? previousLikeCount + 1 : previousLikeCount - 1
+      );
+
+      return { previousIsLiked, previousLikeCount };
+    },
+    onError: (err, newTodo, context) => {
+      setIsLiked(context.previousIsLiked);
+      setLikeCount(context.previousLikeCount);
+      console.error("Failed to like post", err);
+    },
+  });
+
+  const { mutate: toggleFollow } = useMutation({
+    mutationFn: () => followUser(post.username),
+    onMutate: async () => {
+      const previousIsFollowed = isFollowed;
+      setIsFollowed(!previousIsFollowed);
+      return { previousIsFollowed };
+    },
+    onError: (err, newTodo, context) => {
+      setIsFollowed(context.previousIsFollowed);
+      console.error("Failed to follow user", err);
+    },
+  });
 
   useEffect(() => {
     if (mediaRef.current && onVideoInit) {
@@ -33,22 +74,19 @@ const FeedItem = ({ post, onVideoInit }) => {
   }, [onVideoInit]);
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    toggleLike();
   };
 
   const handleFollow = () => {
-    setIsFollowed(!isFollowed);
+    toggleFollow();
   };
 
   const handleDoubleTap = () => {
-    if (!isLiked) handleLike();
+    if (!isLiked) {
+      toggleLike();
+    }
     setShowLikeAnimation(true);
   };
-
-  // const handleAddToCart = () => {
-  //   ...
-  // };
 
   const handleOpenComments = () => {
     setShowCommentsModal(true);
@@ -56,6 +94,10 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleOpenShare = () => {
     setShowShareModal(true);
+  };
+
+  const handleOpenMessage = () => {
+    navigate(`/chat/${post.userId}`);
   };
 
   return (
@@ -69,8 +111,8 @@ const FeedItem = ({ post, onVideoInit }) => {
             ref={mediaRef}
             media={post.media}
             isFeedCarousel={true}
-            onDoubleClick={handleDoubleTap}
             containerClassName="media-container-cover w-full aspect-square"
+            onDoubleClick={handleDoubleTap}
           />
         ) : isVideo ? (
           <VideoPlayer ref={mediaRef} src={post.media[0].src} />
@@ -193,7 +235,10 @@ const FeedItem = ({ post, onVideoInit }) => {
                 {formatCount(post.shares)}
               </span>
             </button>
-            <button className="flex flex-col items-center">
+            <button
+              onClick={handleOpenMessage}
+              className="flex flex-col items-center"
+            >
               <img src="/icons/send-alt.svg" alt="" />
               <span className="text-xs font-semibold">{`Message`}</span>
             </button>
@@ -224,6 +269,15 @@ const FeedItem = ({ post, onVideoInit }) => {
             onClose={() => setShowShareModal(false)}
             postUrl={`https://lilyshops.com/${post.id}`}
             postCaption={post.caption}
+          />
+        )}
+
+        {showMessageModal && (
+          <MessageModal
+            isOpen={showMessageModal}
+            onClose={() => setShowMessageModal(false)}
+            recipientId={post.userId}
+            recipientUsername={post.username}
           />
         )}
       </AnimatePresence>
