@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BottomNav from "./bottomNav";
 import { fetchInboxMessages } from "../../redux/messageSlice";
-import propTypes from "prop-types";
 
-export default function MessagesList({ openChat }) {
+export default function MessagesList() {
   const [activePage, setActivePage] = useState("inbox");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ export default function MessagesList({ openChat }) {
     dispatch(fetchInboxMessages());
   }, [dispatch]);
 
-  // support both [] and { results: [] }
   const rawMessages = Array.isArray(inbox)
     ? inbox
     : Array.isArray(inbox?.results)
@@ -26,7 +24,7 @@ export default function MessagesList({ openChat }) {
     : [];
 
   const formattedMessages = rawMessages.map((msg) => ({
-    id: msg.id,
+    id: msg.other_user_id,
     name: msg.sender_name || msg.sender?.username || "Unknown",
     lastMessage: msg.content || msg.message || "",
     time: msg.timestamp
@@ -44,11 +42,7 @@ export default function MessagesList({ openChat }) {
       chat.lastMessage.toLowerCase().includes(search.toLowerCase())
   );
 
-  //  Correct empty-inbox detection
-  const noMessages =
-    !loading &&
-    !error &&
-    (rawMessages.length === 0);
+  const noMessages = !loading && !error && rawMessages.length === 0;
 
   const noSearchResults =
     !loading &&
@@ -58,7 +52,6 @@ export default function MessagesList({ openChat }) {
 
   return (
     <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto">
-      {/* Header */}
       <header className="relative p-4">
         <RouterLink onClick={() => navigate(-1)}>
           <ChevronLeft className="absolute w-8 h-8" />
@@ -82,7 +75,11 @@ export default function MessagesList({ openChat }) {
         </div>
       )}
 
-      {!loading && error && <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-5 rounded-lg">{error}</p>}
+      {!loading && error && (
+        <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-5 rounded-lg">
+          {error}
+        </p>
+      )}
 
       {!loading && !error && noMessages && (
         <p className="text-center text-ash mt-5 text-lg">No messages</p>
@@ -99,7 +96,8 @@ export default function MessagesList({ openChat }) {
               <div
                 key={chat.id}
                 className="flex items-center justify-between cursor-pointer w-full"
-                onClick={() => openChat(chat)}
+                // Navigate to the chat page with the user's ID
+                onClick={() => navigate(`/chat/${chat.id}`)}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-400"></div>
@@ -112,7 +110,9 @@ export default function MessagesList({ openChat }) {
                 </div>
                 <div className="text-right">
                   <p className="text-ash text-sm">{chat.time || "--"}</p>
-                  {chat.unread && <span className="text-red-500 text-xs">🔴</span>}
+                  {chat.unread && (
+                    <span className="text-red-500 text-xs">🔴</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -124,7 +124,3 @@ export default function MessagesList({ openChat }) {
     </div>
   );
 }
-
-MessagesList.propTypes = {
-  openChat: propTypes.func.isRequired,
-};

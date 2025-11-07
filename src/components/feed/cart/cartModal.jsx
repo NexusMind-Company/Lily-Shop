@@ -109,7 +109,7 @@ const CartModal = ({ isOpen, onClose }) => {
             animate={{ y: "0%" }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[90vh] mb-15"
+            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
