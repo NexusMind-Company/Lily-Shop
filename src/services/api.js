@@ -48,15 +48,11 @@ api.interceptors.response.use(
   }
 );
 
-// AUTH & USER PROFILE
-
 // Get the authenticated user's profile
 export const fetchUserProfile = async () => {
   const response = await api.get("/auth/profile/");
   return response.data;
 };
-
-// FEED
 
 // Fetch the personalized 'For You' feed
 export const fetchFeed = async () => {
@@ -70,7 +66,15 @@ export const fetchNearbyFeed = async () => {
   return response.data;
 };
 
-// PRODUCT COMMENTS
+//Search functon
+export const searchShops = async (searchTerm) => {
+  const response = await api.get("/shops/", {
+    params: {
+      search: searchTerm,
+    },
+  });
+  return response.data;
+};
 
 // Fetch comments for a specific product
 export const fetchProductComments = async (productId) => {
@@ -78,7 +82,34 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-// Add a comment to a specific product
+// Toggle (like/unlike) a PRODUCT
+export const likeProduct = async (productId) => {
+  const response = await api.post(`/shops/products/${productId}/like/`);
+  return response.data;
+};
+
+// Toggle (like/unlike) a CONTENT post
+export const likeContent = async (contentId) => {
+  const response = await api.post(`/shops/contents/${contentId}/like/`);
+  return response.data;
+};
+
+// Toggle (follow/unfollow) a USER
+export const followUser = async (username) => {
+  const response = await api.post(`/auth/follow/${username}/`);
+  return response.data;
+};
+
+// Send a new message
+export const sendMessage = async ({ recipientId, content }) => {
+  const response = await api.post("/messages/", {
+    recipient: recipientId,
+    content: content,
+  });
+  return response.data;
+};
+
+// PRODUCT COMMENTS
 export const addProductComment = async (productId, commentText) => {
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
@@ -96,8 +127,6 @@ export const deleteProductComment = async (commentId) => {
   );
   return response.data;
 };
-
-// CONTENT (SOCIAL POST) COMMENTS
 
 // Fetch comments for a specific content post
 export const fetchContentComments = async (contentId) => {
