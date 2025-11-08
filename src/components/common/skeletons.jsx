@@ -1,7 +1,7 @@
 import React from "react";
 
 export const PostCardSkeleton = () => (
-  <div className="relative w-full h-full bg-black snap-start flex-shrink-0">
+  <div className="relative w-full h-[85vh] bg-black snap-start flex-shrink-0">
     <div className="skeleton-post-media"></div>
     <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-20">
       <div className="flex justify-between items-end">
@@ -56,6 +56,36 @@ export const CommentSkeleton = () => (
           style={{ width: "100%" }}
         ></div>
       </div>
+    </div>
+  </div>
+);
+
+// Skeleton for a single suggestion item in the list
+export const SearchSuggestionSkeleton = () => (
+  <div className="flex items-center space-x-3 p-2">
+    <div className="skeleton skeleton-avatar-small"></div>
+    <div className="flex-1 space-y-2">
+      <div className="skeleton skeleton-line" style={{ width: "40%" }}></div>
+      <div className="skeleton skeleton-line" style={{ width: "60%" }}></div>
+    </div>
+  </div>
+);
+
+// Skeleton for a single item in the "Top" content grid
+export const SearchGridItemSkeleton = () => (
+  <div className="w-full">
+    <div className="skeleton w-full h-48 rounded-lg"></div>
+    <div className="skeleton skeleton-line mt-2" style={{ width: "70%" }}></div>
+  </div>
+);
+
+// Skeleton for a single user item in the "Users" tab
+export const SearchUserSkeleton = () => (
+  <div className="flex items-center space-x-3 p-2">
+    <div className="skeleton skeleton-avatar"></div>
+    <div className="flex-1 space-y-2">
+      <div className="skeleton skeleton-line" style={{ width: "40%" }}></div>
+      <div className="skeleton skeleton-line" style={{ width: "60%" }}></div>
     </div>
   </div>
 );
