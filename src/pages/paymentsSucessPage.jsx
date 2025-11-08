@@ -8,7 +8,6 @@ const formatPrice = (price) =>
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
-  // Get the final payment details from the context
   const { paymentData } = usePayment();
   const { amountPaid, vendorName } = paymentData;
 
@@ -40,13 +39,14 @@ const PaymentSuccessPage = () => {
 
         <div className="w-full space-y-4">
           <button
-            onClick={() => navigate("/")} // Go to home
+            onClick={() => navigate("/")}
             className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
           >
             Continue shopping
           </button>
           <button
-            onClick={() => navigate("/order-details")} // You'd need an /order-details route
+            // --- THIS IS THE FIX ---
+            onClick={() => navigate("/orders")} // Navigate to the orders list
             className="w-full bg-white text-lily py-3 rounded-lg text-lg font-semibold border border-lily hover:bg-lily/10 transition-colors"
           >
             View order
@@ -63,4 +63,3 @@ const PaymentSuccessPage = () => {
 };
 
 export default PaymentSuccessPage;
-
