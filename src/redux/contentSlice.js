@@ -1,43 +1,58 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 
-// ✅ Fetch all user-created content (posts/products)
-export const fetchUserContent = createAsyncThunk(
-  "content/fetchUserContent",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await api.get("/shops/products/create/");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Failed to fetch user content."
-      );
-    }
-  }
-);
-
-// ✅ Create new content (post or product)
+/**
+ * ✅ Create new product/post (multipart/form-data)
+ * Matches EXACT API schema:
+ * name, caption, price, media, in_stock, quantity_available,
+ * delivery_info, promotable, hashtags
+ */
 export const createContent = createAsyncThunk(
   "content/createContent",
-  async (formData, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("access_token");
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
+      const formData = new FormData();
+
+      // ✅ Required
+      formData.append("name", payload.name);
+
+      // ✅ Optional (only append if value is not empty)
+      if (payload.caption?.trim())
+        formData.append("caption", payload.caption);
+
+      if (payload.price !== undefined && payload.price !== "")
+        formData.append("price", Number(payload.price));
+
+      // ✅ media (File OR URL string)
+      if (payload.media) formData.append("media", payload.media);
+
+      if (payload.in_stock !== undefined)
+        formData.append("in_stock", payload.in_stock === true || payload.in_stock === "true");
+
+      if (payload.quantity_available !== undefined && payload.quantity_available !== "")
+        formData.append("quantity_available", Number(payload.quantity_available));
+
+      if (payload.delivery_info?.trim())
+        formData.append("delivery_info", payload.delivery_info);
+
+      if (payload.promotable !== undefined)
+        formData.append("promotable", payload.promotable === true || payload.promotable === "true");
+
+      if (payload.hashtags?.trim())
+        formData.append("hashtags", payload.hashtags);
+
+
       const response = await api.post("/shops/products/create/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       return response.data;
+
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to create content."
@@ -49,48 +64,36 @@ export const createContent = createAsyncThunk(
 const contentSlice = createSlice({
   name: "content",
   initialState: {
-    items: [],
     loading: false,
     error: null,
     success: false,
+    createdItem: null,
   },
   reducers: {
     resetContentState: (state) => {
       state.loading = false;
       state.error = null;
       state.success = false;
+      state.createdItem = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // --- Fetch user content ---
-      .addCase(fetchUserContent.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchUserContent.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload || [];
-      })
-      .addCase(fetchUserContent.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // --- Create new content ---
       .addCase(createContent.pending, (state) => {
         state.loading = true;
         state.error = null;
         state.success = false;
+        state.createdItem = null;
       })
       .addCase(createContent.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.items.unshift(action.payload);
+        state.createdItem = action.payload;
       })
       .addCase(createContent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.success = false;
       });
   },
 });

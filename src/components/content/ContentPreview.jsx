@@ -1,40 +1,92 @@
-
 import PropTypes from "prop-types";
 import { useState, useRef } from "react";
-import { Upload, Hash } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Upload, Hash, X } from "lucide-react";
 
 const ContentPreview = ({ formData, onPublish, setFormData }) => {
-  const { media = [], caption, postType, productDetails } = formData;
+  const { media = [], caption } = formData;
+
   const [charCount, setCharCount] = useState(caption?.length || 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Hashtag input
+  const [showHashtagInput, setShowHashtagInput] = useState(false);
+  const [hashtagInput, setHashtagInput] = useState("");
+
   const scrollRef = useRef(null);
-  const navigate = useNavigate(); 
+
+  // ✅ Disable all input if loading
+  const disabled = loading;
 
   const handleCaptionChange = (e) => {
+    if (disabled) return;
+
     const text = e.target.value;
     setCharCount(text.length);
-    setFormData((prev) => ({ ...prev, caption: text }));
+
+    setFormData((prev) => ({
+      ...prev,
+      caption: text,
+    }));
   };
 
-  // Track scroll position to show active media dot
   const handleScroll = () => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || disabled) return;
+
     const scrollLeft = scrollRef.current.scrollLeft;
     const itemWidth = scrollRef.current.firstChild?.offsetWidth || 1;
     const index = Math.round(scrollLeft / itemWidth);
+
     setCurrentIndex(index);
   };
 
-  // Handle publish and redirect
+  // ✅ Add hashtag
+  const addHashtag = () => {
+    if (!hashtagInput.trim() || disabled) return;
+
+    let tag = hashtagInput.trim();
+    if (!tag.startsWith("#")) tag = `#${tag}`;
+
+    const existing =
+      formData.hashtags?.split(",").map((h) => h.trim()).filter(Boolean) || [];
+
+    if (existing.includes(tag)) {
+      setHashtagInput("");
+      setShowHashtagInput(false);
+      return;
+    }
+
+    const updated = [...existing, tag];
+
+    setFormData((prev) => ({
+      ...prev,
+      hashtags: updated.join(","),
+    }));
+
+    setHashtagInput("");
+    setShowHashtagInput(false);
+  };
+
+  // ✅ Remove hashtag
+  const removeHashtag = (tag) => {
+    if (disabled) return;
+
+    const current =
+      formData.hashtags?.split(",").map((h) => h.trim()).filter(Boolean) || [];
+
+    const filtered = current.filter((t) => t !== tag);
+
+    setFormData((prev) => ({
+      ...prev,
+      hashtags: filtered.join(","),
+    }));
+  };
+
   const handlePublish = async () => {
     try {
       setLoading(true);
-      await onPublish(); // perform your post upload logic
-      setLoading(false);
-      //  Redirect after successful post
-      navigate("/");
+      await onPublish(); // API call handled outside
+      // ❗ Do NOT setLoading(false). Parent handles redirect
     } catch (err) {
       console.error("Publish failed:", err);
       setLoading(false);
@@ -42,11 +94,23 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
     }
   };
 
+  const hashtagList =
+    formData.hashtags
+      ?.split(",")
+      .map((h) => h.trim())
+      .filter(Boolean) || [];
+
   return (
     <div className="w-full h-screen bg-white text-gray-800 flex flex-col relative">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 mb-24">
-        {/*  Media Carousel */}
+
+      {/* ✅ Scrollable Content */}
+      <div
+        className={`flex-1 overflow-y-auto px-4 py-3 space-y-4 mb-24 ${
+          disabled ? "pointer-events-none opacity-70" : ""
+        }`}
+      >
+
+        {/* ✅ Media Preview */}
         {media.length > 0 ? (
           <div className="relative">
             <div
@@ -60,23 +124,15 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
                   className="relative min-w-[10rem] h-40 bg-gray-200 rounded-md overflow-hidden flex-shrink-0 snap-center"
                 >
                   {item.type === "video" ? (
-                    <video
-                      src={item.url}
-                      className="w-full h-full object-cover"
-                      controls
-                    />
+                    <video src={item.url} className="w-full h-full object-cover" controls />
                   ) : (
-                    <img
-                      src={item.url}
-                      alt={`media-${index}`}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={item.url} alt={`media-${index}`} className="w-full h-full object-cover" />
                   )}
                 </div>
               ))}
             </div>
 
-            {/*  Pagination Dots */}
+            {/* ✅ Carousel Dots */}
             {media.length > 1 && (
               <div className="flex justify-center mt-2 space-x-1">
                 {media.map((_, index) => (
@@ -98,41 +154,75 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
           </div>
         )}
 
-        {/* Caption Input */}
+        {/* ✅ Caption */}
         <textarea
-          className="w-full border border-gray-400 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-lime-500"
+          disabled={disabled}
+          className="w-full border border-gray-400 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-lime-500 disabled:bg-gray-100"
           rows="5"
-          placeholder="Describe your post in less than 500 characters..."
+          placeholder="Describe your post..."
           maxLength={500}
           value={caption || ""}
           onChange={handleCaptionChange}
         />
-        <p className="text-xs text-gray-400 text-right">
-          {charCount}/500 characters
-        </p>
 
-        {/*  Hashtags */}
-        <div>
-          <button className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-            <Hash className="w-4 h-4" /> Hashtags
+        <p className="text-xs text-gray-400 text-right">{charCount}/500 characters</p>
+
+        {/* ✅ Hashtags */}
+        <div className="space-y-2">
+
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setShowHashtagInput(true)}
+            className={`flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium 
+              ${disabled ? "bg-gray-200 cursor-not-allowed" : "hover:bg-gray-50"}
+            `}
+          >
+            <Hash className="w-4 h-4" /> Add Hashtags
           </button>
+
+          {hashtagList.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {hashtagList.map((tag, i) => (
+                <span
+                  key={i}
+                  className="flex items-center gap-1 bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm"
+                >
+                  {tag}
+                  {!disabled && (
+                    <X
+                      className="w-4 h-4 cursor-pointer text-gray-600 hover:text-red-500"
+                      onClick={() => removeHashtag(tag)}
+                    />
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {showHashtagInput && !disabled && (
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="text"
+                autoFocus
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                placeholder="Enter hashtag"
+                className="flex-1 border border-gray-300 rounded-lg p-2 text-sm"
+              />
+              <button
+                onClick={addHashtag}
+                className="px-3 py-2 bg-lime-500 text-black rounded-lg text-sm font-semibold"
+              >
+                Add
+              </button>
+            </div>
+          )}
         </div>
 
-        {/*  Product Info */}
-        {postType === "product" && (
-          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 mt-3">
-            <p className="font-semibold text-sm text-gray-800">
-              {productDetails?.productName || "Product Name"}
-            </p>
-            <p className="text-sm text-gray-600 mt-1">
-              ₦{productDetails?.price || "0"} — {productDetails?.stock || 0} in
-              stock
-            </p>
-          </div>
-        )}
       </div>
 
-      {/*  Fixed Footer Button */}
+      {/* ✅ Publish Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-sm">
         <button
           onClick={handlePublish}
@@ -143,36 +233,16 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
               : "bg-lime-500 hover:bg-lime-600"
           } text-black py-3 rounded-full font-semibold transition`}
         >
-          {loading ? (
-            <span>Posting...</span>
-          ) : (
-            <>
-              <Upload className="w-4 h-4 inline-block mr-1" />
-              Post
-            </>
-          )}
+          {loading ? <span>Posting...</span> : (<><Upload className="w-4 h-4 mr-1" /> Post</>)}
         </button>
       </div>
+
     </div>
   );
 };
 
 ContentPreview.propTypes = {
-  formData: PropTypes.shape({
-    media: PropTypes.arrayOf(
-      PropTypes.shape({
-        type: PropTypes.string,
-        url: PropTypes.string,
-      })
-    ),
-    caption: PropTypes.string,
-    song: PropTypes.shape({
-      name: PropTypes.string,
-      artist: PropTypes.string,
-    }),
-    postType: PropTypes.string,
-    productDetails: PropTypes.object,
-  }).isRequired,
+  formData: PropTypes.object.isRequired,
   onPublish: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
 };
