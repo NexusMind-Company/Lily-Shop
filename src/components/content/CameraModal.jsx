@@ -233,10 +233,10 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     }, 1000);
   };
 
-  const handlePickMusic = async () => {
-    const selected = await mockPickMusic();
-    if (selected) setMusic(selected);
-  };
+  // const handlePickMusic = async () => {
+  //   const selected = await mockPickMusic();
+  //   if (selected) setMusic(selected);
+  // };
 
   // Drag text overlay
   const handleDragStart = (e) => {
@@ -392,10 +392,9 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
           </button>
 
           <button
-            onClick={handlePickMusic}
             className="bg-gray-800/80 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1"
           >
-            🎵 {music ? music.name : "Add Sound"}
+            🎵 coming soon
           </button>
 
           <button onClick={handleFlip}>
