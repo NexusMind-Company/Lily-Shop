@@ -86,7 +86,6 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.removeItem("user_data");
       clearAuthTokens();
-      console.log("🚪 User logged out");
     },
   },
 
