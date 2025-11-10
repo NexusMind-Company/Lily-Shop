@@ -109,8 +109,8 @@ export default function App() {
       <FeedProvider>
         <Routes>
           <Route element={<FeedLayout />}>
-            <Route path="/" element={<Login />} />
-            <Route path="/feed" element={<Feed/>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Feed />} />
             <Route
               path="/product-details/:id"
               element={<FeedProductDetails />}

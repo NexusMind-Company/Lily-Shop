@@ -25,10 +25,10 @@ const Login = () => {
 
     // If login successful
     if (loginUser.fulfilled.match(resultAction)) {
-       // Show success message
-       setShowSuccess("Login successful .");
+      // Show success message
+      setShowSuccess("Login successful .");
       setTimeout(() => {
-        navigate("/feed");
+        navigate("/");
       }, 2000);
     }
   };
@@ -37,9 +37,9 @@ const Login = () => {
     <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center bg-white absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
-        
+        <Link to="/">
           <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-        
+        </Link>
       </div>
 
       {/* Page Title */}
@@ -57,10 +57,10 @@ const Login = () => {
       )}
 
       {error && (
-          <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
-            {error}
-          </p>
-        )}
+        <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
+          {error}
+        </p>
+      )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -92,8 +92,6 @@ const Login = () => {
             {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
           </button>
         </div>
-
-        
 
         {/* Login Button */}
         <button
