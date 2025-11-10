@@ -18,17 +18,17 @@ export const createContent = createAsyncThunk(
 
       const formData = new FormData();
 
-      // ✅ Required
+      //  Required
       formData.append("name", payload.name);
 
-      // ✅ Optional (only append if value is not empty)
+      //  Optional (only append if value is not empty)
       if (payload.caption?.trim())
         formData.append("caption", payload.caption);
 
       if (payload.price !== undefined && payload.price !== "")
         formData.append("price", Number(payload.price));
 
-      // ✅ media (File OR URL string)
+      //  media (File OR URL string)
       if (payload.media) formData.append("media", payload.media);
 
       if (payload.in_stock !== undefined)
@@ -45,6 +45,9 @@ export const createContent = createAsyncThunk(
 
       if (payload.hashtags?.trim())
         formData.append("hashtags", payload.hashtags);
+
+      if (payload.shop_id) formData.append("shop_id", payload.shop_id);
+
 
 
       const response = await api.post("/shops/products/create/", formData, {
