@@ -27,7 +27,7 @@ const CreatePost = () => {
     media: [],
     name: "",
     price: "",
-    shop_id: "0", // ✅ Mock shop ID
+    shop_id: "",
     inStock: null,
     quantity_available: "",
     delivery_info: "",
