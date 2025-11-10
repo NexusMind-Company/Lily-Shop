@@ -33,24 +33,101 @@ if (storedAccess) {
   api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Interceptor to handle 401 (Unauthorized) errors by logging out
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      clearAuthTokens();
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = "Bearer " + token;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
-      return Promise.reject("Session expired. Please login again.");
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken) {
+        clearAuthTokens();
+        window.location.href = "/login";
+        return Promise.reject("No refresh token, logging out.");
+      }
+
+      try {
+        // Request a new token
+        const rs = await api.post("/auth/token/refresh/", {
+          refresh: refreshToken,
+        });
+
+        const { access } = rs.data;
+        setAuthTokens({ access: access });
+        originalRequest.headers["Authorization"] = `Bearer ${access}`;
+        processQueue(null, access);
+        return api(originalRequest);
+      } catch (refreshError) {
+        // If the refresh token itself is bad, log everyone out
+        processQueue(refreshError, null);
+        clearAuthTokens();
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );
 
 // Get the authenticated user's profile
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/");
+  const response = await api.get("/auth/profile/me");
+  return response.data;
+};
+
+// Update username
+export const updateUsername = async (username) => {
+  const response = await api.put("/auth/username/set/", { username });
+  return response.data;
+};
+
+// Update profile picture
+export const updateProfilePic = async (imageFile) => {
+  const formData = new FormData();
+  formData.append("profile_pic", imageFile); //TODO Check if the backend expects "profile_pic"
+
+  const response = await api.put(
+    "/auth/profile/update-profile-pic/",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return response.data;
 };
 
