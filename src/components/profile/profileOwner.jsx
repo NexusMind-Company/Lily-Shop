@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { Link } from "react-router-dom";
-import LoaderSd from "../loaders/loaderSd"
+import LoaderSd from "../loaders/loaderSd";
 import {
   Grid,
   Megaphone,
@@ -14,6 +14,8 @@ import {
   Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
 const ProfileOwner = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -37,6 +39,19 @@ const ProfileOwner = () => {
     }
   }, [auth?.isAuthenticated, data, dispatch]);
 
+  // a memoized variable for the full image URL
+  const { user = {}, products = [] } = data || {};
+  const profileImageUrl = useMemo(() => {
+    if (!user.profile_pic) {
+      return "/profile-icon.svg";
+    }
+    if (user.profile_pic.startsWith("http")) {
+      return user.profile_pic;
+    }
+
+    return `${API_BASE_URL}${user.profile_pic}`;
+  }, [user.profile_pic]);
+
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen w-full">
@@ -59,7 +74,6 @@ const ProfileOwner = () => {
       </div>
     );
 
-  const { user = {}, products = [] } = data || {};
   const posts = products || [];
   const announcements = [];
   const favorites = [];
@@ -114,7 +128,9 @@ const ProfileOwner = () => {
         </button>
         <h2 className="font-semibold text-lg">My Profile</h2>
         <div className="flex gap-4">
-          <Link to="/settings"><Settings size={25} className="cursor-pointer" /></Link>
+          <Link to="/settings">
+            <Settings size={25} className="cursor-pointer" />
+          </Link>
           <IconLink size={25} className="cursor-pointer" />
         </div>
       </div>
@@ -123,7 +139,7 @@ const ProfileOwner = () => {
       <div className="mt-2 px-4">
         <div className="flex gap-2 items-center">
           <img
-            src={user.avatar || "/profile-icon.svg"}
+            src={profileImageUrl}
             alt="Profile"
             className="w-20 h-20 rounded-full mb-2 object-cover"
           />
@@ -131,12 +147,15 @@ const ProfileOwner = () => {
             <h3 className="font-semibold">
               {user.username || user.email?.split("@")[0] || "Unnamed User"}
             </h3>
-            <p className="text-gray-500 text-sm">@{user.username || "unknown"}</p>
+            <p className="text-gray-500 text-sm">
+              @{user.username || "unknown"}
+            </p>
           </div>
         </div>
 
         <p className="mt-1 text-sm">
-          {user.bio || "Add a bio to let people know more about you and your products!"}
+          {user.bio ||
+            "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
@@ -154,16 +173,18 @@ const ProfileOwner = () => {
             </Link>
             <Link to="/following">
               <div className="flex flex-col items-center">
-                <span className="font-bold text-2xl">{user.following_count || 0}</span>
+                <span className="font-bold text-2xl">
+                  {user.following_count || 0}
+                </span>
                 <p>Following</p>
               </div>
             </Link>
           </div>
 
           <Link to="/editProfile">
-          <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
-            Edit Profile
-          </button>
+            <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
+              Edit Profile
+            </button>
           </Link>
         </div>
       </div>
@@ -174,21 +195,24 @@ const ProfileOwner = () => {
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 0 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(0)}>
+          onClick={() => setActiveTab(0)}
+        >
           <Grid size={30} />
         </button>
         <button
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 1 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(1)}>
+          onClick={() => setActiveTab(1)}
+        >
           <Megaphone size={30} />
         </button>
         <button
           className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
             activeTab === 2 ? "border-lily text-lily" : "border-transparent"
           }`}
-          onClick={() => setActiveTab(2)}>
+          onClick={() => setActiveTab(2)}
+        >
           <Heart size={30} />
         </button>
       </div>
