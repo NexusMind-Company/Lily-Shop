@@ -59,9 +59,9 @@ const SignUp = () => {
     <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center bg-white w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
-        
+        <Link to="/">
           <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-      
+      </Link>
       </div>
 
       {/* Page Title */}
