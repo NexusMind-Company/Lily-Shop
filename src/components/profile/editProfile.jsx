@@ -15,10 +15,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchUserProfile,
   updateUsername,
+  updateProfile,
   updateProfilePic,
-} from "../../services/api"; // Adjust this path as needed
+} from "../../services/api";
+import { toast } from "sonner";
 
-// GenderSelect component (no changes)
 const GenderSelect = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
   const genders = ["Female", "Male", "Other"];
@@ -43,7 +44,7 @@ const GenderSelect = ({ value, onChange }) => {
             <li
               key={gender}
               onClick={() => {
-                onChange(gender.toLowerCase());
+                onChange(gender);
                 setOpen(false);
               }}
               className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
@@ -57,7 +58,6 @@ const GenderSelect = ({ value, onChange }) => {
   );
 };
 
-// Main EditProfile component
 const EditProfile = () => {
   const [form, setForm] = useState({
     name: "",
@@ -75,57 +75,81 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetching the user's current profile data
   const { data: user, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
     queryFn: fetchUserProfile,
-    staleTime: 1000 * 60 * 5, // Cache profile for 5 mins
+    staleTime: 1000 * 60 * 5,
   });
 
-  // populate form when data loads
   useEffect(() => {
     if (user) {
       setForm({
-        name: user.name || "", //TODO (Field might not exist in API)
+        name: user.name || "",
         username: user.username || "",
-        bio: user.bio || "", //TODO (Field might not exist in API)
-        birthday: user.birthday || "", //TODO (Field might not exist in API)
-        location: user.location || "", //TODO (Field might not exist in API)
-        gender: user.gender || "", // TODO (Field might not exist in API)
+        bio: user.bio || "",
+        birthday: user.birthdate || "",
+        location: user.location || "",
+        gender: user.gender || "",
       });
+
       if (user.profile_pic) {
-        setProfileImagePreview(user.profile_pic);
+        const picUrl = user.profile_pic.startsWith("http")
+          ? user.profile_pic
+          : `https://lily-shop.up.railway.app${user.profile_pic}`;
+        setProfileImagePreview(picUrl);
       }
     }
   }, [user]);
 
   const { mutate: saveProfile, isPending: isSaving } = useMutation({
     mutationFn: async () => {
-      let usernameUpdated = false;
-      let picUpdated = false;
+      let apiGender = null;
+      // Ensure gender matches API enum exactly ("F", "M", "NA")
+      if (form.gender === "Female") apiGender = "F";
+      else if (form.gender === "Male") apiGender = "M";
+      else if (form.gender === "Other") apiGender = "NA";
 
-      if (form.username !== user.username) {
-        await updateUsername(form.username);
-        usernameUpdated = true;
+      // Construct payload ONLY with fields the API supports
+      const profilePayload = {};
+
+      // Only add if not empty
+      if (form.bio && form.bio.trim() !== "") profilePayload.bio = form.bio;
+      if (apiGender) profilePayload.gender = apiGender;
+      // Only send birthdate if it's a valid string, not empty
+      if (form.birthday && form.birthday.trim() !== "")
+        profilePayload.birthdate = form.birthday;
+
+      // Update Text Data
+      // Only call update if we actually have data to send
+      if (Object.keys(profilePayload).length > 0) {
+        await updateProfile(profilePayload);
       }
 
+      // Update Username
+      if (form.username && form.username !== user.username) {
+        await updateUsername(form.username);
+      }
+
+      // Update Profile Picture
       if (profileImageFile) {
         await updateProfilePic(profileImageFile);
-        picUpdated = true;
       }
 
-      return { usernameUpdated, picUpdated };
+      return true;
     },
     onSuccess: (data) => {
-      // Invalidate queries to refetch fresh data
       queryClient.invalidateQueries(["userProfile"]);
-
-      alert("Profile saved successfully!");
+      toast.success("Profile updated successfully!");
       navigate(-1);
     },
     onError: (error) => {
       console.error("Failed to save profile:", error);
-      alert(`Error saving profile: ${error.message || "Please try again."}`);
+      // Try to get a specific error message from the backend
+      const serverMessage = error.response?.data
+        ? JSON.stringify(error.response.data)
+        : null;
+      const msg = serverMessage || error.message || "Failed to update profile.";
+      toast.error(msg);
     },
   });
 
@@ -155,9 +179,12 @@ const EditProfile = () => {
 
   return (
     <div className="bg-white min-h-screen text-gray-800 flex flex-col w-full overflow-x-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 w-full">
-        <ChevronLeft size={25} onClick={() => navigate(-1)} />
+        <ChevronLeft
+          size={25}
+          onClick={() => navigate(-1)}
+          className="cursor-pointer"
+        />
         <h2 className="font-semibold text-lg truncate">Edit Profile</h2>
         <button
           onClick={handleSave}
@@ -168,21 +195,26 @@ const EditProfile = () => {
         </button>
       </div>
 
-      {/* Profile Image */}
       <div className="flex flex-col items-center mt-6 px-4">
         <div className="relative w-24 h-24">
           <img
-            src={profileImagePreview} // Show API image or local preview
+            src={profileImagePreview}
             alt="Profile"
             className="w-full h-full rounded-full object-cover bg-gray-200"
           />
-          {/* This label triggers the hidden file input */}
+
+          {/* Camera Overlay with Pulse Animation */}
           <label
             htmlFor="profile-pic-upload"
-            className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black rounded-full cursor-pointer"
+            className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full cursor-pointer"
           >
-            <Camera size={30} className="text-white" />
+            {/* If user selects a file, we can hide the camera or keep it. 
+                Here we keep it but maybe subtle. */}
+            <div className="animate-pulse">
+              <Camera size={30} className="text-white opacity-90" />
+            </div>
           </label>
+
           <input
             id="profile-pic-upload"
             type="file"
@@ -194,12 +226,10 @@ const EditProfile = () => {
         </div>
       </div>
 
-      {/* Form */}
       <fieldset
         disabled={isSaving}
         className="mt-6 px-4 space-y-5 pb-10 w-full"
       >
-        {/* Name */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">
             Name
@@ -214,10 +244,8 @@ const EditProfile = () => {
               placeholder="Your full name"
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1 pl-1"> Coming Soon!</p>
         </div>
 
-        {/* Username */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">
             Username
@@ -234,7 +262,6 @@ const EditProfile = () => {
           </div>
         </div>
 
-        {/* Bio */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">Bio</label>
           <input
@@ -244,10 +271,8 @@ const EditProfile = () => {
             className="bg-gray-100 w-full rounded-lg px-3 py-3 mt-1 outline-none text-sm sm:text-base min-w-0"
             placeholder="Tell us about yourself..."
           />
-          <p className="text-xs text-gray-400 mt-1 pl-1"> Coming Soon!</p>
         </div>
 
-        {/* Birthday */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">
             Birthday
@@ -261,10 +286,8 @@ const EditProfile = () => {
               className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0"
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1 pl-1"> Coming Soon!</p>
         </div>
 
-        {/* Location */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">
             Location
@@ -279,10 +302,8 @@ const EditProfile = () => {
               className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0"
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1 pl-1"> Coming Soon!</p>
         </div>
 
-        {/* Gender (Custom Dropdown) */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600 mb-1">
             Gender
@@ -295,7 +316,6 @@ const EditProfile = () => {
             }
             onChange={(val) => handleChange("gender", val)}
           />
-          <p className="text-xs text-gray-400 mt-1 pl-1"> Coming Soon!</p>
         </div>
       </fieldset>
     </div>

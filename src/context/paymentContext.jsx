@@ -1,13 +1,6 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// This context will hold payment details (amount, orderId)
-// that need to be shared across the payment flow pages.
-const PaymentContext = createContext();
-
-// Custom hook to easily access the context
-export const usePayment = () => useContext(PaymentContext);
-
-// Provider component to wrap your app
+const PaymentContext = createContext(null);
 export const PaymentProvider = ({ children }) => {
   const [paymentData, setPaymentData] = useState({
     amount: 0,
@@ -16,13 +9,17 @@ export const PaymentProvider = ({ children }) => {
     amountPaid: 0,
   });
 
-  const value = {
-    paymentData,
-    setPaymentData,
-  };
-
   return (
-    <PaymentContext.Provider value={value}>{children}</PaymentContext.Provider>
+    <PaymentContext.Provider value={{ paymentData, setPaymentData }}>
+      {children}
+    </PaymentContext.Provider>
   );
 };
 
+export const usePayment = () => {
+  const context = useContext(PaymentContext);
+  if (!context) {
+    throw new Error("usePayment must be used within a PaymentProvider");
+  }
+  return context;
+};
