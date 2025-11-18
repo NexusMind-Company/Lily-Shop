@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { Link } from "react-router-dom";
+import { Link, useNavigation } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
   Grid,
@@ -25,32 +25,51 @@ const ProfileOwner = () => {
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
 
-  // Redirect to login if not auth
+  // stricter authentication check to Check localStorage directly to be safe
   useEffect(() => {
-    if (!auth?.isAuthenticated) {
-      navigate("/login");
+    const token = localStorage.getItem("access_token");
+    if (!auth?.isAuthenticated || !token) {
+      // Redirect immediately if no auth state OR no token
+      navigate("/login", { replace: true });
     }
   }, [auth?.isAuthenticated, navigate]);
 
-  // Fetch profile if authenticated
+  // fetch data Only if we are definitely authenticated
   useEffect(() => {
-    if (auth?.isAuthenticated && !data) {
+    // Check token existence again to prevent 404 calls
+    const token = localStorage.getItem("access_token");
+    if (auth?.isAuthenticated && token && !data) {
       dispatch(fetchProfile());
     }
   }, [auth?.isAuthenticated, data, dispatch]);
 
-  // a memoized variable for the full image URL
   const { user = {}, products = [] } = data || {};
+
+  // Create a memoized variable for the full image URL
   const profileImageUrl = useMemo(() => {
-    if (!user.profile_pic) {
-      return "/profile-icon.svg";
-    }
-    if (user.profile_pic.startsWith("http")) {
-      return user.profile_pic;
+    const defaultIcon = "/profile-icon.svg";
+    const picPath = user.profile_pic;
+
+    if (!picPath) {
+      return defaultIcon;
     }
 
-    return `${API_BASE_URL}${user.profile_pic}`;
+    if (picPath.startsWith("http")) {
+      return picPath;
+    }
+
+    const cleanBase = API_BASE_URL.endsWith("/")
+      ? API_BASE_URL.slice(0, -1)
+      : API_BASE_URL;
+    const cleanPath = picPath.startsWith("/") ? picPath.slice(1) : picPath;
+
+    return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
+
+  // If auth is missing, return null (or loader) while the useEffect redirects
+  if (!auth?.isAuthenticated) {
+    return null;
+  }
 
   if (loading)
     return (
@@ -59,14 +78,11 @@ const ProfileOwner = () => {
       </div>
     );
 
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen text-red-500">
-        <p>{error}</p>
-      </div>
-    );
+  // If we get a 404 (or any error), show a message instead of crashing
+  if (error) {
+    navigate("/login");
+  }
 
-  // If user logged in but data failed to load (rare fallback)
   if (auth?.isAuthenticated && !data)
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-500">
@@ -78,7 +94,6 @@ const ProfileOwner = () => {
   const announcements = [];
   const favorites = [];
 
-  // --- Tabs Components ---
   const PostsGrid = () => {
     if (!posts.length) {
       return (
@@ -138,10 +153,16 @@ const ProfileOwner = () => {
       {/* Profile Info */}
       <div className="mt-2 px-4">
         <div className="flex gap-2 items-center">
+          {/* the new profileImageUrl variable */}
           <img
             src={profileImageUrl}
             alt="Profile"
-            className="w-20 h-20 rounded-full mb-2 object-cover"
+            className="w-20 h-20 rounded-full mb-2 object-cover bg-gray-200"
+            // an error fallback
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/profile-icon.svg";
+            }}
           />
           <div>
             <h3 className="font-semibold">
