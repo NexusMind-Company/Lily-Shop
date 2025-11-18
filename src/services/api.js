@@ -106,7 +106,7 @@ api.interceptors.response.use(
 // --- Auth & Profile ---
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/me");
+  const response = await api.get("/auth/profile/me/");
   return response.data;
 };
 
@@ -116,11 +116,11 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  // Ensure we send a clean object. Some backends reject nulls for string fields.
+  // Ensure we send a clean object.
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
-  const response = await api.put("/auth/profile/update", cleanData);
+  const response = await api.patch("/auth/profile/update/", cleanData);
   return response.data;
 };
 
