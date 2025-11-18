@@ -2,20 +2,19 @@ import PropTypes from "prop-types";
 import { useState, useRef } from "react";
 import { Upload, Hash, X } from "lucide-react";
 
-const ContentPreview = ({ formData, onPublish, setFormData }) => {
+const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
   const { media = [], caption } = formData;
 
   const [charCount, setCharCount] = useState(caption?.length || 0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
 
-  // ✅ Hashtag input
+  // Hashtag input
   const [showHashtagInput, setShowHashtagInput] = useState(false);
   const [hashtagInput, setHashtagInput] = useState("");
 
   const scrollRef = useRef(null);
 
-  // ✅ Disable all input if loading
+  // Disable all input if loading
   const disabled = loading;
 
   const handleCaptionChange = (e) => {
@@ -40,7 +39,7 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
     setCurrentIndex(index);
   };
 
-  // ✅ Add hashtag
+  // Add hashtag
   const addHashtag = () => {
     if (!hashtagInput.trim() || disabled) return;
 
@@ -67,7 +66,7 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
     setShowHashtagInput(false);
   };
 
-  // ✅ Remove hashtag
+  //  Remove hashtag
   const removeHashtag = (tag) => {
     if (disabled) return;
 
@@ -82,15 +81,15 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
     }));
   };
 
+
   const handlePublish = async () => {
     try {
-      setLoading(true);
       await onPublish(); // API call handled outside
       // ❗ Do NOT setLoading(false). Parent handles redirect
+      
     } catch (err) {
       console.error("Publish failed:", err);
-      setLoading(false);
-      alert("Failed to publish post. Please try again.");
+      
     }
   };
 
@@ -103,14 +102,14 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
   return (
     <div className="w-full h-screen bg-white text-gray-800 flex flex-col relative">
 
-      {/* ✅ Scrollable Content */}
+      {/* Scrollable Content */}
       <div
         className={`flex-1 overflow-y-auto px-4 py-3 space-y-4 mb-24 ${
           disabled ? "pointer-events-none opacity-70" : ""
         }`}
       >
 
-        {/* ✅ Media Preview */}
+        {/* Media Preview */}
         {media.length > 0 ? (
           <div className="relative">
             <div
@@ -132,7 +131,7 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
               ))}
             </div>
 
-            {/* ✅ Carousel Dots */}
+            {/* Carousel Dots */}
             {media.length > 1 && (
               <div className="flex justify-center mt-2 space-x-1">
                 {media.map((_, index) => (
@@ -154,7 +153,7 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
           </div>
         )}
 
-        {/* ✅ Caption */}
+        {/* Caption */}
         <textarea
           disabled={disabled}
           className="w-full border border-gray-400 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-lime-500 disabled:bg-gray-100"
@@ -167,7 +166,7 @@ const ContentPreview = ({ formData, onPublish, setFormData }) => {
 
         <p className="text-xs text-gray-400 text-right">{charCount}/500 characters</p>
 
-        {/* ✅ Hashtags */}
+        {/* Hashtags */}
         <div className="space-y-2">
 
           <button
@@ -245,6 +244,7 @@ ContentPreview.propTypes = {
   formData: PropTypes.object.isRequired,
   onPublish: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
 };
 
 export default ContentPreview;

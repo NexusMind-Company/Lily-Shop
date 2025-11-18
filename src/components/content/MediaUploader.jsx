@@ -115,7 +115,7 @@ const MediaUploader = ({ media = [], setMedia }) => {
         </div>
 
         <p className="text-xs text-gray-500">
-          You can select multiple files at once (mp4, mov, jpg, png)
+          You can select multiple files of 10mb or less at once (mp4, jpg,)
         </p>
 
         {/* Hidden Inputs */}
