@@ -1,6 +1,7 @@
 // --- unchanged imports ---
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 // TWO SEPARATE SLICES
 import {
@@ -12,8 +13,6 @@ import {
   createFunContent,
   resetContentState as resetFunContent,
 } from "../../redux/funContentSlice";
-
-import { useNavigate } from "react-router-dom";
 
 import MediaUploader from "./MediaUploader";
 import PostTypeSelector from "./PostTypeSelector";
@@ -30,6 +29,7 @@ const CreatePost = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   // Select from both slices
   const productState = useSelector((state) => state.productContent);
@@ -58,6 +58,13 @@ const CreatePost = () => {
 
   const nextStep = () => setStep((p) => p + 1);
   const prevStep = () => setStep((p) => p - 1);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   // -----------------------------------------------------
   // PUBLISH HANDLER — fully corrected
@@ -106,7 +113,7 @@ const CreatePost = () => {
 
       setErrorMessage(detail);
       setErrorMessage(media);
-      setErrorMessage(err)
+      setErrorMessage(err);
     }
 
     setLoading(false);
