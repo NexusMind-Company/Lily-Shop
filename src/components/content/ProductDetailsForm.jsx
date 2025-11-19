@@ -9,47 +9,39 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
   return (
     <div className="bg-white border border-gray-400 rounded-2xl p-5 mt-4">
-      <h3 className="font-semibold text-lg mb-4 text-center text-gray-900">
-        Product Details
-      </h3>
+      <h3 className="font-semibold text-lg mb-4 text-center text-gray-900">Product Details</h3>
 
-      {/* ✅ Product Name (max 50 chars required by backend) */}
+      {/* Product Name */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Name
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1"><span className="text-red-500">* </span> Product Name</label>
         <input
           type="text"
           maxLength={50}
           className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
           placeholder="e.g. Flowery Patterned Sundress"
-          value={formData.productName}
-          onChange={(e) => updateField({ productName: e.target.value })}
+          value={formData.name}
+          onChange={(e) => updateField({ name: e.target.value })}
         />
         <p className="text-xs text-gray-400 mt-1">Max 50 characters</p>
       </div>
 
-      {/* ✅ Price */}
+      {/* Price */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Price (₦)
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1"><span className="text-red-500">* </span>Price (₦)</label>
         <input
           type="number"
           min="0"
           inputMode="numeric"
           className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
-          placeholder="12500"
+          placeholder="0"
           value={formData.price}
           onChange={(e) => updateField({ price: e.target.value })}
         />
       </div>
 
-      {/* ✅ In Stock (boolean) */}
+      {/* In Stock */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          In Stock
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">In Stock</label>
         <div className="flex gap-4">
           <label className="flex items-center">
             <input
@@ -57,7 +49,7 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
               name="inStock"
               checked={formData.inStock === true}
               onChange={() => updateField({ inStock: true })}
-              className="mr-2 accent-lime-500"
+              className="mr-2 bg-lily"
             />
             Yes
           </label>
@@ -68,18 +60,16 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
               name="inStock"
               checked={formData.inStock === false}
               onChange={() => updateField({ inStock: false })}
-              className="mr-2 accent-lime-500"
+              className="mr-2 bg-lily"
             />
             No
           </label>
         </div>
       </div>
 
-      {/* ✅ Quantity Available */}
+      {/* Quantity Available */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Quantity Available
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity Available</label>
         <input
           type="number"
           min="0"
@@ -87,17 +77,14 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
           className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
           placeholder="0"
           value={formData.quantity_available}
-          onChange={(e) =>
-            updateField({ quantity_available: e.target.value })
-          }
+          onChange={(e) => updateField({ quantity_available: e.target.value })}
+          disabled={formData.inStock === false} // <-- Disable if not in stock
         />
       </div>
 
-      {/* ✅ Delivery Info */}
+      {/* Delivery Info */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Delivery Info
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Info</label>
         <textarea
           rows={3}
           className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
@@ -107,12 +94,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
         />
       </div>
 
-      {/* ✅ Promotable (boolean) */}
+      {/* Promotable */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Promotable
-        </label>
-
+        <label className="block text-sm font-medium text-gray-700 mb-1">Promotable</label>
         <div className="flex gap-4">
           <label className="flex items-center">
             <input
@@ -120,7 +104,7 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
               name="promotable"
               checked={formData.promotable === true}
               onChange={() => updateField({ promotable: true })}
-              className="mr-2 accent-lime-500"
+              className="mr-2 bg-lily"
             />
             Yes
           </label>
@@ -131,7 +115,7 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
               name="promotable"
               checked={formData.promotable === false}
               onChange={() => updateField({ promotable: false })}
-              className="mr-2 accent-lime-500"
+              className="mr-2 bg-lily"
             />
             No
           </label>
@@ -143,13 +127,10 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
 ProductDetailsForm.propTypes = {
   formData: PropTypes.shape({
-    productName: PropTypes.string,
+    name: PropTypes.string,
     price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     inStock: PropTypes.bool,
-    quantity_available: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number,
-    ]),
+    quantity_available: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     delivery_info: PropTypes.string,
     promotable: PropTypes.bool,
   }).isRequired,
