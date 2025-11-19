@@ -135,10 +135,15 @@ export const updateProfilePic = async (imageFile) => {
   return response.data;
 };
 
+export const fetchPublicProfile = async (userId) => {
+  const response = await api.get(`/auth/profile/${userId}/`);
+  return response.data;
+};
+
 // --- Feed ---
 
 export const fetchFeed = async () => {
-  const response = await api.get("/shops/home/");
+  const response = await api.get("/shops/products/");
   return response.data;
 };
 
