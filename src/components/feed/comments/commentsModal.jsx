@@ -9,7 +9,7 @@ import {
   clearComments,
 } from "../../../redux/feedCommentSlice";
 import CommentItem from "../comments/commentItem";
-import { CommentSkeleton } from "../../common/Skeletons";
+import { CommentSkeleton } from "../../common/skeletons";
 import { useNavigate } from "react-router-dom";
 
 const CommentsModal = ({
