@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await api.post("/auth/login/", { login, password });
       const data = response.data;
-      console.log(" Login response:", data);
+      // console.log(" Login response:", data);
 
       // ---- Save tokens ----
       if (data.access && data.refresh) {

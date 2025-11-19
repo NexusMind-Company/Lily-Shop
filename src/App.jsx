@@ -36,6 +36,7 @@ import FeedLayout from "./layouts/feedLayouts";
 import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 import Profile from "./pages/profile";
+import ProfileVisiting from "./pages/profileVisiting";
 import Account from "./pages/account";
 import CreateContentPage from "./pages/createContent";
 import About from "./components/about/About";
@@ -149,6 +150,7 @@ export default function App() {
           />
           <Route path="/about" element={<About />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:username" element={<ProfileVisiting />} />
           <Route path="/lilyChat" element={<LilyChat />} />
           <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
           <Route path="/account" element={<Account />} />
