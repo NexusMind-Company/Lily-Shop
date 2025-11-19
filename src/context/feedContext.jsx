@@ -27,7 +27,7 @@ export const FeedProvider = ({ children }) => {
       }
       return fetchFeed();
     },
-    select: (data) => data?.results || [],
+    select: (data) => data?.feed || data?.results || [],
     enabled: !USE_MOCK,
   });
 
@@ -35,6 +35,8 @@ export const FeedProvider = ({ children }) => {
     () => (USE_MOCK ? mockPosts : queryResult.data || []),
     [queryResult.data]
   );
+
+  console.log("FEED DATA FROM API:", posts);
 
   const isLoading = useMemo(
     () => (USE_MOCK ? false : queryResult.isLoading),

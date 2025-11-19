@@ -9,8 +9,8 @@ import {
   clearComments,
 } from "../../../redux/feedCommentSlice";
 import CommentItem from "../comments/commentItem";
-import { CommentSkeleton } from "../../common/skeletons";
-import { Navigate } from "react-router";
+import { CommentSkeleton } from "../../common/Skeletons";
+import { useNavigate } from "react-router-dom";
 
 const CommentsModal = ({
   isOpen,
@@ -21,7 +21,11 @@ const CommentsModal = ({
 }) => {
   const dispatch = useDispatch();
   const textareaRef = useRef(null);
-  const currentUser = useSelector((state) => state.auth.user_data);
+
+  // Get both auth status and user data
+  const { user_data: currentUser, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
 
   const comments = useSelector((state) => state.feedComments.comments);
   const commentsStatus = useSelector(
@@ -32,13 +36,13 @@ const CommentsModal = ({
   const [replyTarget, setReplyTarget] = useState(null);
   const [isPosting, setIsPosting] = useState(false);
   const [inputHeight, setInputHeight] = useState("auto");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen && postId) {
-      // Pass both postId and itemType to the thunk
       dispatch(fetchComments({ postId, itemType }));
     }
-  }, [isOpen, postId, itemType, dispatch]); // Add itemType dependency
+  }, [isOpen, postId, itemType, dispatch]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -75,12 +79,15 @@ const CommentsModal = ({
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     const trimmedText = commentText.trim();
-    if (!trimmedText || isPosting || !currentUser) {
-      if (!currentUser) {
-        // You can replace this with a toast notification
-        alert("Please log in to comment.");
-        Navigate("/login");
-      }
+
+    // Check Authentication First
+    if (!isAuthenticated) {
+      alert("Please log in to comment.");
+      navigate("/login");
+      return;
+    }
+
+    if (!trimmedText || isPosting) {
       return;
     }
 
@@ -93,14 +100,15 @@ const CommentsModal = ({
 
     const newComment = {
       id: `local_${Date.now()}`,
-      user: currentUser.name,
-      userpic: currentUser.userpic,
+      // Safe Fallbacks for User Data
+      user: currentUser?.name || currentUser?.username || "User",
+      userpic: currentUser?.userpic || currentUser?.profile_pic || null,
       text: finalCommentText,
       timeAgo: "Just now",
       likes: 0,
       replies: [],
       postId: postId,
-      itemType: itemType, // Pass itemType to the thunk
+      itemType: itemType,
       parentId: replyTarget ? replyTarget.id : null,
       replyingTo: replyTarget ? replyTarget.user : null,
     };
@@ -111,7 +119,6 @@ const CommentsModal = ({
       await dispatch(postComment(newComment)).unwrap();
     } catch (error) {
       console.error("Failed to post comment:", error);
-      // You can dispatch an action here to remove the local comment or mark it as failed
     }
 
     setCommentText("");
@@ -200,7 +207,14 @@ const CommentsModal = ({
               )}
               <div className="flex items-end space-x-2">
                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                  {/* You can put currentUser.userpic here */}
+                  {/* Display current user's avatar if available */}
+                  {currentUser?.profile_pic && (
+                    <img
+                      src={currentUser.profile_pic}
+                      alt="You"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  )}
                 </div>
                 <textarea
                   ref={textareaRef}
