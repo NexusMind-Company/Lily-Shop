@@ -14,12 +14,12 @@ import walletReducer from "./walletSlice";
 import messageReducer from "./messageConversationSlice";
 import orderReducer from "./orderSlice";
 import activitiesReducer from "./activitySlice";
-import contentReducer from "./contentSlice";
 import feedReducer from "./feedCommentSlice";
+import productContentReducer from "./productContentSlice";
+import funContentReducer from "./funContentSlice";
 
 import { setAuthTokens } from "../services/api";
 
-// --- Configure Redux Store ---
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -33,7 +33,8 @@ export const store = configureStore({
     messages: messageReducer,
     passwordReset: passwordResetReducer,
     cart: cartReducer,
-    content: contentReducer,
+    productContent: productContentReducer,  // <-- FIXED
+    funContent: funContentReducer,          // <-- FIXED
     createUser: createUserReducer,
     verifyEmail: verifyEmailReducer,
     wallet: walletReducer,
@@ -41,6 +42,7 @@ export const store = configureStore({
     activities: activitiesReducer,
   },
 });
+
 
 // --- Initialize Auth Tokens Safely ---
 const initializeTokens = () => {

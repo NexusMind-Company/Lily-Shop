@@ -12,8 +12,7 @@ import {
   Check,
   Crop,
 } from "lucide-react";
-import { mockPickMusic } from "../utils/mockMusicPicker";
-// import Cropper from "react-easy-crop";
+import Cropper from "react-easy-crop";
 
 const createImage = (url) =>
   new Promise((resolve, reject) => {
@@ -35,19 +34,15 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   const [mode, setMode] = useState("photo");
   const [flipped, setFlipped] = useState(false);
   const [duration, setDuration] = useState("15s");
-  const [music, setMusic] = useState(null);
   const [uiVisible, setUiVisible] = useState(true);
 
-  // Text overlay
   const [textMode, setTextMode] = useState(false);
   const [overlayText, setOverlayText] = useState("");
   const [textPosition, setTextPosition] = useState({ x: 210, y: 200 });
 
-  // Timer (photo countdown)
   const [timerActive, setTimerActive] = useState(false);
   const [countdown, setCountdown] = useState(3);
 
-  // Crop
   const [cropMode, setCropMode] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -70,9 +65,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
         video: { facingMode: flipped ? "user" : "environment" },
         audio: mode === "video",
       };
-      const mediaStream = await navigator.mediaDevices.getUserMedia(
-        constraints
-      );
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch (error) {
@@ -94,20 +87,17 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     setTextMode(false);
   };
 
-  //  Capture Photo with accurate text positioning
+  // Capture Photo as File
   const handleCapturePhoto = () => {
     if (!videoRef.current) return;
-
     const canvas = document.createElement("canvas");
     const video = videoRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
 
-    // Draw video frame
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Draw overlay text (accurate position + wrapping)
     if (overlayText.trim()) {
       const maxWidth = canvas.width * 0.8;
       const lineHeight = 60;
@@ -117,7 +107,6 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       ctx.strokeStyle = "black";
       ctx.lineWidth = 3;
 
-      // Scale text position based on video size
       const x = (textPosition.x / video.clientWidth) * canvas.width;
       const y = (textPosition.y / video.clientHeight) * canvas.height;
 
@@ -144,8 +133,8 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     canvas.toBlob(
       (blob) => {
         if (!blob) return console.error("Photo blob is null");
-        const url = URL.createObjectURL(blob);
-        onCapture({ type: "image", url });
+        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: "image/jpeg" });
+        onCapture({ type: "image", file, url: URL.createObjectURL(file) });
         clearOverlay();
         onClose();
       },
@@ -156,16 +145,11 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
   const getDurationMs = () => {
     switch (duration) {
-      case "15s":
-        return 15000;
-      case "30s":
-        return 30000;
-      case "60s":
-        return 60000;
-      case "2m":
-        return 120000;
-      default:
-        return 15000;
+      case "15s": return 15000;
+      case "30s": return 30000;
+      case "60s": return 60000;
+      case "2m": return 120000;
+      default: return 15000;
     }
   };
 
@@ -183,8 +167,8 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       if (chunks.length === 0) return console.error("No video data captured.");
       const blob = new Blob(chunks, { type: "video/mp4" });
-      const url = URL.createObjectURL(blob);
-      onCapture({ type: "video", url });
+      const file = new File([blob], `video-${Date.now()}.mp4`, { type: "video/mp4" });
+      onCapture({ type: "video", file, url: URL.createObjectURL(file) });
       setRecording(false);
       clearOverlay();
       onClose();
@@ -198,9 +182,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     recordIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime;
       setRecordTimer(elapsed);
-      if (elapsed >= durationMs) {
-        handleStopRecording();
-      }
+      if (elapsed >= durationMs) handleStopRecording();
     }, 200);
   };
 
@@ -233,12 +215,6 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     }, 1000);
   };
 
-  // const handlePickMusic = async () => {
-  //   const selected = await mockPickMusic();
-  //   if (selected) setMusic(selected);
-  // };
-
-  // Drag text overlay
   const handleDragStart = (e) => {
     const startX = e.clientX || e.touches?.[0]?.clientX;
     const startY = e.clientY || e.touches?.[0]?.clientY;
@@ -248,10 +224,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     const handleMove = (moveEvent) => {
       const moveX = moveEvent.clientX || moveEvent.touches?.[0]?.clientX;
       const moveY = moveEvent.clientY || moveEvent.touches?.[0]?.clientY;
-      setTextPosition({
-        x: moveX - offsetX,
-        y: moveY - offsetY,
-      });
+      setTextPosition({ x: moveX - offsetX, y: moveY - offsetY });
     };
 
     const handleUp = () => {
@@ -267,17 +240,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     window.addEventListener("touchend", handleUp);
   };
 
-  // Crop only when user clicks Crop button
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
     const type = file.type.startsWith("video") ? "video" : "image";
+
     if (type === "image") {
-      setImageToCrop(url);
+      setImageToCrop(URL.createObjectURL(file));
       setCropMode(true);
     } else {
-      onCapture({ type, url });
+      onCapture({ type, file, url: URL.createObjectURL(file) });
       clearOverlay();
       onClose();
     }
