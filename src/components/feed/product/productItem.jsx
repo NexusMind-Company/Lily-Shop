@@ -10,17 +10,16 @@ import {
   Volume2,
 } from "lucide-react";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addItemToCart } from "../../../redux/cartSlice";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
-
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
@@ -86,21 +85,40 @@ const CarouselVideoPlayer = ({ src, poster }) => {
 
 const ProductItem = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth); // Get auth state
+
+  const mediaArray = Array.isArray(product?.media)
+    ? product.media
+    : product?.media
+    ? [
+        {
+          src: product.media,
+          type:
+            typeof product.media === "string" &&
+            (product.media.endsWith(".mp4") ||
+              product.media.endsWith(".mov") ||
+              product.media.endsWith(".webm"))
+              ? "video"
+              : "image",
+        },
+      ]
+    : [];
 
   const handleAddToCart = () => {
     const payload = {
       id: product.id,
       username: product.username,
-      mediaSrc: product.media[0].src,
-      productName: product.productName || product.title,
+      mediaSrc: mediaArray[0]?.src, // Use the safe array
+      productName: product.productName || product.title || product.name, // Handle various name fields
       price: product.price,
       color: selectedColor,
       size: selectedSize,
@@ -111,18 +129,17 @@ const ProductItem = ({ product }) => {
       deliveryTime: product.deliveryTime,
     };
     setIsAddedToCart(true);
-    // setTimeout(() => setIsAddedToCart(false), 3000); // You can re-enable this
-
     dispatch(addItemToCart(payload));
   };
 
   const handleCheckout = () => {
-    // First, add the item to the cart
+    if (!isAuthenticated) return navigate("/login"); // Protect checkout
+
     const payload = {
       id: product.id,
       username: product.username,
-      mediaSrc: product.media[0].src,
-      productName: product.productName || product.title,
+      mediaSrc: mediaArray[0]?.src,
+      productName: product.productName || product.title || product.name,
       price: product.price,
       color: selectedColor,
       size: selectedSize,
@@ -130,8 +147,6 @@ const ProductItem = ({ product }) => {
     };
     dispatch(addItemToCart(payload));
 
-    // Then, navigate to the cart page, passing this item's ID
-    // so the cart page knows what to display.
     navigate("/checkout", {
       state: { selectedItemIds: [product.id] },
     });
@@ -142,7 +157,7 @@ const ProductItem = ({ product }) => {
   };
 
   const formatPrice = (price) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return Number(price).toLocaleString(); // Simpler formatter
   };
 
   const reviewsArray = product.reviewsData || [];
@@ -150,6 +165,12 @@ const ProductItem = ({ product }) => {
     ? reviewsArray
     : reviewsArray.slice(0, 3);
   const hasMoreReviews = reviewsArray.length > 3;
+
+  // Safe Username Display
+  const displayUsername = product.username || product.user || "Unknown Vendor";
+  const profileLink = product.userId
+    ? `/profile/${product.userId}`
+    : `/profile/${displayUsername}`;
 
   return (
     <div className="relative bg-white w-full md:max-w-xl mx-auto min-h-screen">
@@ -159,7 +180,7 @@ const ProductItem = ({ product }) => {
             modules={[Navigation, Pagination]}
             slidesPerView={1}
             spaceBetween={0}
-            loop={product.media.length > 1}
+            loop={mediaArray.length > 1}
             pagination={{ clickable: true }}
             navigation={{
               nextEl: ".swiper-button-next",
@@ -167,7 +188,7 @@ const ProductItem = ({ product }) => {
             }}
             className="w-full h-full bg-black rounded-lg"
           >
-            {product.media.map((item, index) => (
+            {mediaArray.map((item, index) => (
               <SwiperSlide key={index}>
                 {item.type === "video" ? (
                   <CarouselVideoPlayer src={item.src} poster={item.poster} />
@@ -176,12 +197,15 @@ const ProductItem = ({ product }) => {
                     src={item.src}
                     alt={`Product image ${index + 1}`}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "/placeholder-image.png";
+                    }}
                   />
                 )}
               </SwiperSlide>
             ))}
           </Swiper>
-          {product.media.length > 1 && (
+          {mediaArray.length > 1 && (
             <>
               <div className="swiper-button-prev absolute top-1/2 left-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
                 <ChevronLeft size={28} />
@@ -199,24 +223,27 @@ const ProductItem = ({ product }) => {
           </button>
         </div>
 
-        {/* ... (Rest of your component: Title, Price, Description, etc. - no changes) ... */}
         <div className="flex justify-between items-center pt-2">
           <h2 className="font-semibold text-lg">
-            {product.productName || product.title}
+            {product.productName || product.title || product.name}
           </h2>
           <span className="text-ash flex items-center">
-            <img src="/icons/star2.svg" alt="" /> {product.rating} (
-            {product.reviews})
+            <img src="/icons/star2.svg" alt="" /> {product.rating || 0} (
+            {product.reviews || 0})
           </span>
         </div>
-        <p className="text-green-700 font-semibold">{`N${formatPrice(
-          product.price
-        )}`}</p>
+
+        {product.price != null && (
+          <p className="text-green-700 font-semibold">{`N${formatPrice(
+            product.price
+          )}`}</p>
+        )}
+
         <motion.p layout className="text-sm font-normal">
           {isExpanded
             ? product.caption
-            : `${product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
-          {product.caption.length > DESCRIPTION_CHAR_LIMIT && (
+            : `${product.caption?.substring(0, DESCRIPTION_CHAR_LIMIT) || ""}`}
+          {product.caption?.length > DESCRIPTION_CHAR_LIMIT && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="font-semibold ml-1 opacity-80 text-lily"
@@ -225,14 +252,21 @@ const ProductItem = ({ product }) => {
             </button>
           )}
         </motion.p>
-        <p className="font-semibold">
-          Est delivery:{" "}
-          <span className="font-normal">{product.estDelivery}</span>
-        </p>
-        <p className="font-semibold">
-          Delivery Location:{" "}
-          <span className="font-normal">{product.deliveryLocation}</span>
-        </p>
+
+        {product.estDelivery && (
+          <p className="font-semibold">
+            Est delivery:{" "}
+            <span className="font-normal">{product.estDelivery}</span>
+          </p>
+        )}
+
+        {product.deliveryLocation && (
+          <p className="font-semibold">
+            Delivery Location:{" "}
+            <span className="font-normal">{product.deliveryLocation}</span>
+          </p>
+        )}
+
         <div className="flex items-center gap-2">
           <span>Quantity</span>
           <button
@@ -249,42 +283,49 @@ const ProductItem = ({ product }) => {
             +
           </button>
         </div>
-        <div>
-          <span>Color:</span>
-          <div className="flex gap-2 mt-1">
-            {product.colors.map((color) => (
-              <button
-                key={color}
-                onClick={() => setSelectedColor(color)}
-                className={`px-3 py-1 rounded-full border ${
-                  selectedColor === color ? "bg-green-600 text-white" : ""
-                }`}
-              >
-                {color}
-              </button>
-            ))}
+
+        {product.colors && product.colors.length > 0 && (
+          <div>
+            <span>Color:</span>
+            <div className="flex gap-2 mt-1">
+              {product.colors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => setSelectedColor(color)}
+                  className={`px-3 py-1 rounded-full border ${
+                    selectedColor === color ? "bg-green-600 text-white" : ""
+                  }`}
+                >
+                  {color}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div>
-          <span>Size:</span>
-          <div className="flex gap-2 mt-1">
-            {product.sizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`px-3 py-1 border rounded-full ${
-                  selectedSize === size ? "bg-green-600 text-white" : ""
-                }`}
-              >
-                {size}
-              </button>
-            ))}
+        )}
+
+        {product.sizes && product.sizes.length > 0 && (
+          <div>
+            <span>Size:</span>
+            <div className="flex gap-2 mt-1">
+              {product.sizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-3 py-1 border rounded-full ${
+                    selectedSize === size ? "bg-green-600 text-white" : ""
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
         <div className="space-y-4 pt-4">
           <div className="flex justify-between items-center w-full">
             <h2 className="font-semibold text-lg">
-              Reviews ({product.reviews})
+              Reviews ({product.reviews || 0})
             </h2>
             {hasMoreReviews && (
               <button
@@ -310,7 +351,9 @@ const ProductItem = ({ product }) => {
           <h3 className="font-semibold text-md">Vendor Details</h3>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <p className="font-bold">{product.username}</p>
+              <Link to={profileLink} className="font-bold hover:underline">
+                {displayUsername}
+              </Link>
               <button className="text-lily border border-lily px-2 py-0.5 rounded-full text-xs">
                 Follow
               </button>
@@ -322,13 +365,15 @@ const ProductItem = ({ product }) => {
               <img src="/icons/mail2.svg" alt="Message" className="w-4 h-4" />
               <span>Message</span>
             </button>
-            <a
-              href={`tel:${product.vendorNumber}`}
-              className="flex items-center space-x-1"
-            >
-              <img src="/icons/phone.svg" alt="Call" className="w-4 h-4" />
-              <span>Call +234 80X XXX XXXX</span>
-            </a>
+            {product.vendorNumber && (
+              <a
+                href={`tel:${product.vendorNumber}`}
+                className="flex items-center space-x-1"
+              >
+                <img src="/icons/phone.svg" alt="Call" className="w-4 h-4" />
+                <span>Call Vendor</span>
+              </a>
+            )}
           </div>
         </div>
       </div>
