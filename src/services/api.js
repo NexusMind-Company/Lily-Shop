@@ -143,7 +143,7 @@ export const fetchPublicProfile = async (userId) => {
 // --- Feed ---
 
 export const fetchFeed = async () => {
-  const response = await api.get("/shops/products/");
+  const response = await api.get("/shops/feed/");
   return response.data;
 };
 
