@@ -17,6 +17,7 @@ const formatCount = (num) =>
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
 
+  // Robust Media Handling
   const mediaArray = Array.isArray(post?.media)
     ? post.media
     : post?.media
@@ -40,6 +41,8 @@ const FeedItem = ({ post, onVideoInit }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+
+  // Use backend fields if available, otherwise default
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
   const [likeCount, setLikeCount] = useState(
@@ -54,15 +57,18 @@ const FeedItem = ({ post, onVideoInit }) => {
   const navigate = useNavigate();
 
   const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // Prefer the explicit 'user_id' from backend, fallback to 'user' if missing
   const displayUsername = post.username || post.user || "Unknown User";
-  // TODO Fallback to username if ID is missing (backend needs to fix this)
-  const profileLink = post.userId
-    ? `/profile/${post.userId}`
-    : `/profile/${displayUsername}`;
+  const profileId = post.user_id || post.userId || post.user;
+  const profileLink = `/profile/${profileId}`;
+
+  // Determine type: Use explicit 'type' from backend, or guess based on price
+  const isProduct = post.type === "product" || post.price != null;
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: () => {
-      if (post.type === "product" || post.price != null) {
+      if (isProduct) {
         return likeProduct(post.id);
       } else {
         return likeContent(post.id);
@@ -88,6 +94,7 @@ const FeedItem = ({ post, onVideoInit }) => {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
       }
+      console.error("Failed to like post", err);
     },
   });
 
@@ -138,7 +145,8 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
-    navigate(`/chat/${post.userId || post.user}`);
+    // Use the UUID if available for safer messaging
+    navigate(`/chat/${profileId}`);
   };
 
   return (
@@ -197,6 +205,7 @@ const FeedItem = ({ post, onVideoInit }) => {
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             <div className="relative gap-3 flex items-center">
+              {/* Linked Profile Pic */}
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
@@ -219,6 +228,7 @@ const FeedItem = ({ post, onVideoInit }) => {
                 />
               </button>
 
+              {/* Linked Username */}
               <Link to={profileLink} className="flex items-center space-x-2">
                 <h1 className="font-bold">{displayUsername}</h1>
               </Link>
@@ -319,11 +329,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             isOpen={showCommentsModal}
             onClose={() => setShowCommentsModal(false)}
             postId={post.id}
-            itemType={
-              post.type === "product" || post.price != null
-                ? "product"
-                : "content"
-            }
+            itemType={isProduct ? "product" : "content"}
             totalComments={post.comments || 0}
           />
         )}
