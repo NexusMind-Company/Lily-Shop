@@ -27,7 +27,11 @@ export const FeedProvider = ({ children }) => {
       }
       return fetchFeed();
     },
-    select: (data) => data?.feed || data?.results || [],
+    // Robust selection: Handle 'results' (pagination), 'feed' (unified), or raw array
+    select: (data) => {
+      if (Array.isArray(data)) return data;
+      return data?.results || data?.feed || [];
+    },
     enabled: !USE_MOCK,
   });
 
