@@ -116,7 +116,6 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  // Ensure we send a clean object.
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
@@ -127,18 +126,28 @@ export const updateProfile = async (profileData) => {
 export const updateProfilePic = async (imageFile) => {
   const formData = new FormData();
   formData.append("profile_pic", imageFile);
+
   const response = await api.put(
     "/auth/profile/update-profile-pic/",
     formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    {
+      headers: {
+        "Content-Type": undefined,
+    },
+  }
   );
+  return response.data;
+};
+
+export const fetchPublicProfile = async (userId) => {
+  const response = await api.get(`/auth/profile/${userId}/`);
   return response.data;
 };
 
 // --- Feed ---
 
 export const fetchFeed = async () => {
-  const response = await api.get("/shops/home/");
+  const response = await api.get("/shops/feed/");
   return response.data;
 };
 
@@ -161,10 +170,17 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-export const addProductComment = async (productId, commentText) => {
+// --- FIX: Send 'content' as text to satisfy backend requirement ---
+export const addProductComment = async (productId, commentText, parentId = null) => {
+  const payload = {
+    comment: commentText,
+    content: commentText, // Sending text here too, as backend demands 'content' field
+    parent: parentId
+  };
+  
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
-    { comment: commentText }
+    payload
   );
   return response.data;
 };
@@ -183,10 +199,14 @@ export const fetchContentComments = async (contentId) => {
   return response.data;
 };
 
-export const addContentComment = async (contentId, commentText) => {
+export const addContentComment = async (contentId, commentText, parentId = null) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    { content: contentId, comment: commentText }
+    { 
+      content: contentId, 
+      comment: commentText,
+      parent: parentId 
+    }
   );
   return response.data;
 };
@@ -201,17 +221,18 @@ export const deleteContentComment = async (commentId) => {
 // --- Interactions ---
 
 export const likeProduct = async (productId) => {
-  const response = await api.post(`/shops/products/${productId}/like/`);
+  const response = await api.post(`/shops/products/${productId}/like/`, {});
   return response.data;
 };
 
 export const likeContent = async (contentId) => {
-  const response = await api.post(`/shops/contents/${contentId}/like/`);
+  const response = await api.post(`/shops/contents/${contentId}/like/`, {});
   return response.data;
 };
 
+// --- FIX: Use username endpoint with empty body ---
 export const followUser = async (username) => {
-  const response = await api.post(`/auth/follow/${username}/`);
+  const response = await api.post(`/auth/follow/${encodeURIComponent(username)}/`, {});
   return response.data;
 };
 
