@@ -7,8 +7,35 @@ import {
 } from "../services/api";
 import { mockPosts } from "../components/feed/mockData";
 
-//  set to true to use mockdata
+// Set to true to use mockdata
 const USE_MOCK_DATA = false;
+
+// Helper to transform flat comment list into nested tree
+const nestComments = (comments) => {
+  if (!Array.isArray(comments)) return [];
+  
+  const commentMap = {};
+  const roots = [];
+
+  // 1. Initialize map with all comments and empty replies array
+  comments.forEach((c) => {
+    commentMap[c.id] = { ...c, replies: c.replies || [] };
+  });
+
+  // 2. Build tree by moving children into parents
+  comments.forEach((c) => {
+    // Check if it has a parent and that parent exists in our map
+    if (c.parent && commentMap[c.parent]) {
+      commentMap[c.parent].replies.push(commentMap[c.id]);
+    } else {
+      // If no parent (or parent not found in this batch), it's a root
+      roots.push(commentMap[c.id]);
+    }
+  });
+
+  // Optional: Sort roots/replies by date if needed, though API usually handles basic sort order
+  return roots;
+};
 
 const findCommentAndAddReply = (comments, newComment) => {
   for (const comment of comments) {
@@ -28,10 +55,12 @@ const findCommentAndAddReply = (comments, newComment) => {
   }
   return false;
 };
+
 const findCommentAndReplace = (comments, localId, serverComment) => {
   for (let i = 0; i < comments.length; i++) {
     const comment = comments[i];
     if (comment.id === localId) {
+      // Preserve existing replies when replacing the temporary local comment
       comments[i] = { ...serverComment, replies: comment.replies || [] };
       return true;
     }
@@ -55,15 +84,16 @@ export const fetchComments = createAsyncThunk(
       return post?.commentsData || [];
     }
 
-    // This is the live API logic
+    // Live API logic
     try {
+      let data;
       if (itemType === "product") {
-        const data = await fetchProductComments(postId);
-        return data.results || data;
+        data = await fetchProductComments(postId);
       } else {
-        const data = await fetchContentComments(postId);
-        return data.results || data;
+        data = await fetchContentComments(postId);
       }
+      // Return the results array (typically paginated 'results')
+      return data.results || data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -79,7 +109,7 @@ export const postComment = createAsyncThunk(
       return { ...commentData, id: `server_${Date.now()}` };
     }
 
-    // This is the live API logic
+    // Live API logic
     const { postId, itemType, text } = commentData;
     try {
       if (itemType === "product") {
@@ -125,7 +155,9 @@ const feedSlice = createSlice({
       })
       .addCase(fetchComments.fulfilled, (state, action) => {
         state.commentsStatus = "succeeded";
-        state.comments = action.payload;
+        // Apply nesting logic here before saving to state
+        const rawComments = action.payload;
+        state.comments = nestComments(rawComments);
       })
       .addCase(fetchComments.rejected, (state, action) => {
         state.commentsStatus = "failed";
