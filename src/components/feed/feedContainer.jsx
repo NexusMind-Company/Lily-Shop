@@ -18,7 +18,7 @@ const FeedContainer = () => {
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
 
-  const [activePage, setActivePage] = useState("home"); // This one is still local
+  const [activePage, setActivePage] = useState("home"); 
 
   const observer = useRef(
     new IntersectionObserver(
@@ -153,13 +153,15 @@ const FeedContainer = () => {
   return (
     <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
-        <div className="absolute top-0 left-0 right-0 z-10">
+        {/* RAISED TO Z-40 */}
+        <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
 
         {renderContent()}
 
-        <div className="absolute bottom-0 left-0 right-0 z-10">
+        {/* RAISED TO Z-40 */}
+        <div className="absolute bottom-0 left-0 right-0 z-40">
           <BottomNav activePage={activePage} setActivePage={setActivePage} />
         </div>
       </div>
