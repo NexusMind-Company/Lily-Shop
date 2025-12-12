@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
+import { useSelector } from "react-redux";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
@@ -15,55 +16,115 @@ const formatCount = (num) =>
 
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
-  const isVideo = post?.media?.[0]?.type === "video";
+
+  useEffect(() => {
+    if (!post.user_id && !post.userId) {
+      console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}. Follow feature disabled.`);
+    }
+  }, [post]);
+
+  const mediaArray = Array.isArray(post?.media)
+    ? post.media
+    : post?.media
+    ? [
+        {
+          src: post.media,
+          type:
+            typeof post.media === "string" &&
+            (post.media.endsWith(".mp4") ||
+              post.media.endsWith(".mov") ||
+              post.media.endsWith(".webm"))
+              ? "video"
+              : "image",
+        },
+      ]
+    : [];
+
+  const isVideo =
+    mediaArray[0]?.type === "video" ||
+    (typeof mediaArray[0]?.src === "string" &&
+      mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
+
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isFollowed, setIsFollowed] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
+  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
+  
+  const [likeCount, setLikeCount] = useState(
+    post.like_count || post.likes_count || post.likes || 0
+  );
+  
+  const commentCount = post.comment_count || post.comments_count || post.comments || 0;
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
+
+  const displayUsername = post.username || post.user || "Unknown User";
+  const profileId = post.user_id || post.userId; 
+  const profileLink = profileId ? `/profile/${profileId}` : "#";
+
+  const isOwnPost = user_data?.username === displayUsername;
+  const isProduct = post.type === "product" || post.price != null;
 
   const { mutate: toggleLike } = useMutation({
-    mutationFn: () => {
-      if (post.type === "product") {
+    mutationFn: async () => {
+      if (isProduct) {
         return likeProduct(post.id);
       } else {
         return likeContent(post.id);
       }
     },
     onMutate: async () => {
+      if (!isAuthenticated) return;
       const previousIsLiked = isLiked;
-      const previousLikeCount = likeCount;
+      const previousLikeCount = Number(likeCount);
 
       setIsLiked(!previousIsLiked);
       setLikeCount(
-        !previousIsLiked ? previousLikeCount + 1 : previousLikeCount - 1
+        !previousIsLiked
+          ? previousLikeCount + 1
+          : Math.max(0, previousLikeCount - 1)
       );
 
       return { previousIsLiked, previousLikeCount };
     },
-    onError: (err, newTodo, context) => {
-      setIsLiked(context.previousIsLiked);
-      setLikeCount(context.previousLikeCount);
-      console.error("Failed to like post", err);
+    onSuccess: (data) => {
+      if (data && data.message) {
+        const msg = data.message.toLowerCase();
+        if (msg.includes("unliked")) {
+          setIsLiked(false);
+        } else if (msg.includes("liked")) {
+          setIsLiked(true);
+        }
+      }
+    },
+    onError: (err, variables, context) => {
+      if (context) {
+        setIsLiked(context.previousIsLiked);
+        setLikeCount(context.previousLikeCount);
+      }
     },
   });
 
   const { mutate: toggleFollow } = useMutation({
-    mutationFn: () => followUser(post.username),
+    mutationFn: async () => {
+      if (profileId) {
+         return followUser(displayUsername); 
+      }
+      return followUser(displayUsername);
+    },
     onMutate: async () => {
+      if (!isAuthenticated) return;
       const previousIsFollowed = isFollowed;
       setIsFollowed(!previousIsFollowed);
       return { previousIsFollowed };
     },
-    onError: (err, newTodo, context) => {
-      setIsFollowed(context.previousIsFollowed);
-      console.error("Failed to follow user", err);
+    onError: (err, variables, context) => {
+      if (context) setIsFollowed(context.previousIsFollowed);
+      alert("Follow failed. Please try again later.");
     },
   });
 
@@ -74,14 +135,17 @@ const FeedItem = ({ post, onVideoInit }) => {
   }, [onVideoInit]);
 
   const handleLike = () => {
+    if (!isAuthenticated) return navigate("/login");
     toggleLike();
   };
 
   const handleFollow = () => {
+    if (!isAuthenticated) return navigate("/login");
     toggleFollow();
   };
 
   const handleDoubleTap = () => {
+    if (!isAuthenticated) return;
     if (!isLiked) {
       toggleLike();
     }
@@ -97,7 +161,12 @@ const FeedItem = ({ post, onVideoInit }) => {
   };
 
   const handleOpenMessage = () => {
-    navigate(`/chat/${post.userId}`);
+    if (!isAuthenticated) return navigate("/login");
+    if (profileId) {
+      navigate(`/chat/${profileId}`);
+    } else {
+      alert("Cannot message this user (Missing User ID)");
+    }
   };
 
   return (
@@ -105,25 +174,34 @@ const FeedItem = ({ post, onVideoInit }) => {
       className="relative w-full h-full bg-lily text-white"
       onDoubleClick={handleDoubleTap}
     >
-      <div className="media-container-cover w-full h-full">
-        {post?.media && post.media.length > 1 ? (
+      <div className="media-container-cover w-full h-full bg-black">
+        {mediaArray.length > 1 ? (
           <MediaCarousel
             ref={mediaRef}
-            media={post.media}
+            media={mediaArray}
             isFeedCarousel={true}
             containerClassName="media-container-cover w-full aspect-square"
             onDoubleClick={handleDoubleTap}
           />
         ) : isVideo ? (
-          <VideoPlayer ref={mediaRef} src={post.media[0].src} />
+          <VideoPlayer ref={mediaRef} src={mediaArray[0]?.src} />
         ) : (
           <img
             ref={mediaRef}
-            src={post.media?.[0]?.src}
-            alt={post.productName}
+            src={mediaArray[0]?.src || "/placeholder-image.png"}
+            alt={post.name || post.caption || "Post"}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = "none";
+              if (e.target.nextSibling) {
+                e.target.nextSibling.style.display = "flex";
+              }
+            }}
           />
         )}
+        <div className="hidden absolute inset-0 items-center justify-center bg-gray-900 text-gray-500">
+          <p>Image Unavailable</p>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -143,41 +221,55 @@ const FeedItem = ({ post, onVideoInit }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-20 pointer-events-none">
+      {/* LOWERED Z-INDEX TO 5 HERE */}
+      <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             <div className="relative gap-3 flex items-center">
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
-                <img
-                  src={post.userpic}
-                  alt={post.username}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <button
-                onClick={handleFollow}
-                className="absolute top-[80%] left-3"
-              >
-                <img
-                  src={`${
-                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                  }`}
-                  alt={`Follow ${post.username}`}
-                />
-              </button>
-              <button className="flex items-center space-x-2">
-                <h1 className="font-bold">{post.username}</h1>
-              </button>
+              <Link to={profileLink} className="relative block">
+                <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+                  <img
+                    src={post.userpic || "/profile-icon.svg"}
+                    alt={displayUsername}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </Link>
+
+              {!isOwnPost && (
+                <button
+                  onClick={handleFollow}
+                  className="absolute top-[80%] left-3"
+                >
+                  <img
+                    src={`${
+                      isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                    }`}
+                    alt={`Follow ${displayUsername}`}
+                  />
+                </button>
+              )}
+
+              <Link to={profileLink} className="flex items-center space-x-2">
+                <h1 className="font-bold">{displayUsername}</h1>
+              </Link>
             </div>
+
             <h2 className="font-bold text-lg">
-              {post.productName || post.caption.slice(0, 30)}
+              {post.name || post.caption?.slice(0, 30) || "Untitled"}
             </h2>
-            <p className="font-bold">₦{post.price.toLocaleString()}</p>
+
+            {post.price != null && (
+              <p className="font-bold">
+                ₦{Number(post.price).toLocaleString()}
+              </p>
+            )}
+
             <motion.p layout className="text-sm font-light">
               {isExpanded
                 ? post.caption
-                : `${post.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
-              {post.caption.length > DESCRIPTION_CHAR_LIMIT && (
+                : `${post.caption?.substring(0, DESCRIPTION_CHAR_LIMIT) || ""}`}
+              {post.caption?.length > DESCRIPTION_CHAR_LIMIT && (
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="font-semibold ml-1 opacity-80"
@@ -191,20 +283,22 @@ const FeedItem = ({ post, onVideoInit }) => {
               <span>
                 <img src="/icons/music.svg" alt="" />
               </span>
-              {post.musicTrack}
+              {post.musicTrack || "Original Audio"}
             </p>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Link
-                to={`/product-details/${post.id}`}
-                className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
-              >
-                <span>
-                  <img src="/icons/bag-2.svg" alt="" />
-                </span>
-                Buy Now
-              </Link>
-            </div>
+            {isProduct && (
+              <div className="flex items-center space-x-2 pt-2">
+                <Link
+                  to={`/product-details/${post.id}`}
+                  className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
+                >
+                  <span>
+                    <img src="/icons/bag-2.svg" alt="" />
+                  </span>
+                  Buy Now
+                </Link>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
             <button onClick={handleLike} className="flex flex-col items-center">
@@ -223,7 +317,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             >
               <img src="/icons/message-alt.svg" alt="" />
               <span className="text-xs font-semibold">
-                {formatCount(post.comments)}
+                {formatCount(commentCount)}
               </span>
             </button>
             <button
@@ -232,7 +326,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             >
               <img src="/icons/share.svg" alt="" />
               <span className="text-xs font-semibold">
-                {formatCount(post.shares)}
+                {formatCount(post.shares || 0)}
               </span>
             </button>
             <button
@@ -245,7 +339,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
-                {formatCount(post.views)}
+                {formatCount(post.views || 0)}
               </span>
             </button>
           </div>
@@ -258,8 +352,8 @@ const FeedItem = ({ post, onVideoInit }) => {
             isOpen={showCommentsModal}
             onClose={() => setShowCommentsModal(false)}
             postId={post.id}
-            itemType={post.type}
-            totalComments={post.comments}
+            itemType={isProduct ? "product" : "content"}
+            totalComments={commentCount}
           />
         )}
 
@@ -269,15 +363,6 @@ const FeedItem = ({ post, onVideoInit }) => {
             onClose={() => setShowShareModal(false)}
             postUrl={`https://lilyshops.com/${post.id}`}
             postCaption={post.caption}
-          />
-        )}
-
-        {showMessageModal && (
-          <MessageModal
-            isOpen={showMessageModal}
-            onClose={() => setShowMessageModal(false)}
-            recipientId={post.userId}
-            recipientUsername={post.username}
           />
         )}
       </AnimatePresence>

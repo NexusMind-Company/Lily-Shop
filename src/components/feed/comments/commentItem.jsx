@@ -49,7 +49,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
                 @{comment.replyingTo}
               </span>
             )}
-            {comment.text}
+            {comment.comment}
           </p>
         </div>
 

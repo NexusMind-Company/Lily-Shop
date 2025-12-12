@@ -27,7 +27,11 @@ export const FeedProvider = ({ children }) => {
       }
       return fetchFeed();
     },
-    select: (data) => data?.results || [],
+    // Robust selection: Handle 'results' (pagination), 'feed' (unified), or raw array
+    select: (data) => {
+      if (Array.isArray(data)) return data;
+      return data?.results || data?.feed || [];
+    },
     enabled: !USE_MOCK,
   });
 
@@ -35,6 +39,8 @@ export const FeedProvider = ({ children }) => {
     () => (USE_MOCK ? mockPosts : queryResult.data || []),
     [queryResult.data]
   );
+
+  console.log("FEED DATA FROM API:", posts);
 
   const isLoading = useMemo(
     () => (USE_MOCK ? false : queryResult.isLoading),

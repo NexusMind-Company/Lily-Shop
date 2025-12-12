@@ -1,0 +1,12 @@
+import ProfileVisiting from "../components/profile/profileOwner";
+import PageSEO from "../components/common/PageSEO";
+const Profile = () => {
+  return (
+    <>
+      <PageSEO />
+      <ProfileVisiting />
+    </>
+  );
+};
+
+export default Profile;
