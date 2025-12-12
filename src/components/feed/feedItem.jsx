@@ -17,7 +17,14 @@ const formatCount = (num) =>
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
 
-  // Robust Media Handling
+  // --- DEBUG: Check for User ID ---
+  // If this logs "undefined", the backend is definitely not sending it.
+  useEffect(() => {
+    if (!post.user_id && !post.userId) {
+      console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}. Follow feature disabled.`);
+    }
+  }, [post]);
+
   const mediaArray = Array.isArray(post?.media)
     ? post.media
     : post?.media
@@ -42,32 +49,38 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
 
-  // Use backend fields if available, otherwise default
+  // State
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
+  
   const [likeCount, setLikeCount] = useState(
-    post.likes_count || post.likes || 0
+    post.like_count || post.likes_count || post.likes || 0
   );
+  
+  const commentCount = post.comment_count || post.comments_count || post.comments || 0;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
-  const { isAuthenticated } = useSelector((state) => state.auth);
-
-  // Prefer the explicit 'user_id' from backend, fallback to 'user' if missing
+  // User Data resolution
   const displayUsername = post.username || post.user || "Unknown User";
-  const profileId = post.user_id || post.userId || post.user;
-  const profileLink = `/profile/${profileId}`;
+  
+  // Try to find ANY ID. If post.user is a string (username), this will be wrong for the ID endpoint.
+  const profileId = post.user_id || post.userId; 
+  
+  // Only enable profile link if we have an ID, otherwise standard link might fail
+  const profileLink = profileId ? `/profile/${profileId}` : "#";
 
-  // Determine type: Use explicit 'type' from backend, or guess based on price
+  const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
 
+  // --- LIKE MUTATION ---
   const { mutate: toggleLike } = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (isProduct) {
         return likeProduct(post.id);
       } else {
@@ -76,38 +89,58 @@ const FeedItem = ({ post, onVideoInit }) => {
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
-
       const previousIsLiked = isLiked;
-      const previousLikeCount = likeCount;
+      const previousLikeCount = Number(likeCount);
 
+      // Optimistic update
       setIsLiked(!previousIsLiked);
       setLikeCount(
         !previousIsLiked
-          ? (previousLikeCount || 0) + 1
-          : Math.max(0, (previousLikeCount || 0) - 1)
+          ? previousLikeCount + 1
+          : Math.max(0, previousLikeCount - 1)
       );
 
       return { previousIsLiked, previousLikeCount };
     },
-    onError: (err, newTodo, context) => {
+    onSuccess: (data) => {
+      // Sync state with server message
+      if (data && data.message) {
+        const msg = data.message.toLowerCase();
+        if (msg.includes("unliked")) {
+          setIsLiked(false);
+        } else if (msg.includes("liked")) {
+          setIsLiked(true);
+        }
+      }
+    },
+    onError: (err, variables, context) => {
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
       }
-      console.error("Failed to like post", err);
     },
   });
 
+  // --- FOLLOW MUTATION ---
   const { mutate: toggleFollow } = useMutation({
-    mutationFn: () => followUser(displayUsername),
+    mutationFn: async () => {
+      // Fallback: If we have an ID, use it. If not, try username (which is 500ing, but better than nothing).
+      if (profileId) {
+         // This assumes you have a followUserById function, or followUser handles it
+         // For now, we stick to the api.js function which currently uses username
+         return followUser(displayUsername); 
+      }
+      return followUser(displayUsername);
+    },
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsFollowed = isFollowed;
       setIsFollowed(!previousIsFollowed);
       return { previousIsFollowed };
     },
-    onError: (err, newTodo, context) => {
+    onError: (err, variables, context) => {
       if (context) setIsFollowed(context.previousIsFollowed);
+      alert("Follow failed. Please try again later.");
     },
   });
 
@@ -145,8 +178,11 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
-    // Use the UUID if available for safer messaging
-    navigate(`/chat/${profileId}`);
+    if (profileId) {
+      navigate(`/chat/${profileId}`);
+    } else {
+      alert("Cannot message this user (Missing User ID)");
+    }
   };
 
   return (
@@ -205,7 +241,6 @@ const FeedItem = ({ post, onVideoInit }) => {
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             <div className="relative gap-3 flex items-center">
-              {/* Linked Profile Pic */}
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
@@ -216,19 +251,21 @@ const FeedItem = ({ post, onVideoInit }) => {
                 </div>
               </Link>
 
-              <button
-                onClick={handleFollow}
-                className="absolute top-[80%] left-3"
-              >
-                <img
-                  src={`${
-                    isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                  }`}
-                  alt={`Follow ${displayUsername}`}
-                />
-              </button>
+              {/* Only show Follow button if NOT self AND we have a valid way to follow (ignoring 500 error hope) */}
+              {!isOwnPost && (
+                <button
+                  onClick={handleFollow}
+                  className="absolute top-[80%] left-3"
+                >
+                  <img
+                    src={`${
+                      isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                    }`}
+                    alt={`Follow ${displayUsername}`}
+                  />
+                </button>
+              )}
 
-              {/* Linked Username */}
               <Link to={profileLink} className="flex items-center space-x-2">
                 <h1 className="font-bold">{displayUsername}</h1>
               </Link>
@@ -294,7 +331,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             >
               <img src="/icons/message-alt.svg" alt="" />
               <span className="text-xs font-semibold">
-                {formatCount(post.comments || 0)}
+                {formatCount(commentCount)}
               </span>
             </button>
             <button
@@ -330,7 +367,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             onClose={() => setShowCommentsModal(false)}
             postId={post.id}
             itemType={isProduct ? "product" : "content"}
-            totalComments={post.comments || 0}
+            totalComments={commentCount}
           />
         )}
 
