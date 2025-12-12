@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, Search, X, Loader2 } from "lucide-react";
+import { ChevronLeft, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { searchShops, fetchFeed } from "../../services/api";
 import {
@@ -50,14 +50,15 @@ const SearchModal = ({ onClose }) => {
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const { data: searchResults, isLoading: isSearching } = useQuery({
-    queryKey: ["search", debouncedSearchTerm],
+  // 1. Search Shops via API
+  const { data: shopResults, isLoading: isSearchingShops } = useQuery({
+    queryKey: ["searchShops", debouncedSearchTerm],
     queryFn: () => searchShops(debouncedSearchTerm),
     select: (data) => data.results || [],
     enabled: !!debouncedSearchTerm,
   });
 
-  // API-Driven "Top" Tab
+  // 2. Fetch Feed for "Top" suggestions (fallback content)
   const {
     data: topContent,
     isLoading: isLoadingTop,
@@ -65,41 +66,11 @@ const SearchModal = ({ onClose }) => {
   } = useQuery({
     queryKey: ["feed", "forYou"],
     queryFn: fetchFeed,
-    select: (data) => data.results || [],
+    select: (data) => (Array.isArray(data) ? data : data.results || []),
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });
 
-  // "Users" Tab
-  // !! NOTE: the API documentation does not have an endpoint for searching users.
-  // This uses MOCK DATA until i get the real endpoint from the backend developer.
-  const {
-    data: usersContent,
-    isLoading: isLoadingUsers,
-    error: usersError,
-  } = useQuery({
-    queryKey: ["searchUsersContent"],
-    queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      return [
-        {
-          id: "u1",
-          name: "Layo Gadgets",
-          handle: "@layo",
-          image: "https://via.placeholder.com/150/f9a8d4/8c3c10?text=User",
-        },
-        {
-          id: "u2",
-          name: "GadgetWorld",
-          handle: "@gworld",
-          image: "https://via.placeholder.com/150/cccccc/333333?text=User",
-        },
-      ];
-    },
-    enabled: activeTab === "Users" && !debouncedSearchTerm,
-  });
-
   // Event Handlers
-
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -116,6 +87,7 @@ const SearchModal = ({ onClose }) => {
       setRecentSearches(newSearches);
       saveRecentSearches(newSearches);
 
+      // Navigate to the full search results page
       navigate(`/searchResults?q=${encodeURIComponent(trimmedTerm)}`);
       onClose();
     }
@@ -131,53 +103,55 @@ const SearchModal = ({ onClose }) => {
     saveRecentSearches(newSearches);
   };
 
-  // Renders skeleton loaders for search suggestions
-  const renderSearchSkeletons = () => (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-gray-800">Searching...</h3>
-      <SearchSuggestionSkeleton />
-      <SearchSuggestionSkeleton />
-      <SearchSuggestionSkeleton />
-    </div>
-  );
+  // --- Renderers ---
 
-  // Renders the API-driven search results
+  // 1. Live Search Results (Shops Only supported by API)
   const renderSearchResults = () => (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-gray-800">Results</h3>
-      {searchResults.length === 0 && (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-gray-800">Shops</h3>
+      {shopResults?.length === 0 && (
         <p className="text-gray-500 text-center">
-          No results found for "{debouncedSearchTerm}"
+          No shops found for "{debouncedSearchTerm}"
         </p>
       )}
-      {searchResults.map((shop) => (
+      {shopResults?.map((shop) => (
         <div
           key={shop.id}
-          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
           onClick={() => {
             navigate(`/shop/${shop.id}`);
             onClose();
           }}
         >
           <img
-            src={
-              shop.image_url || "https://placehold.co/40x40/eee/ccc?text=Shop"
-            }
+            src={shop.image_url || "/shop.png"}
             alt={shop.name}
-            className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+            className="w-12 h-12 rounded-full bg-gray-200 object-cover border border-gray-100"
+            onError={(e) => {
+              e.target.src = "/shop.png";
+            }}
           />
           <div>
-            <span className="font-medium">{shop.name}</span>
-            <p className="text-sm text-gray-500 line-clamp-1">
-              {shop.description || "No description"}
+            <span className="font-medium text-gray-900 block">{shop.name}</span>
+            <p className="text-xs text-gray-500 line-clamp-1">
+              {shop.category || "Shop"} • {shop.address || "Online"}
             </p>
           </div>
         </div>
       ))}
+      
+      {/* Search Button for Products (Redirects to SearchResults page) */}
+      <div 
+        className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
+        onClick={handleSearchSubmit}
+      >
+        <Search size={16} />
+        See product results for "{debouncedSearchTerm}"
+      </div>
     </div>
   );
 
-  // Renders the content for the "Top", "Recent", and "Users" tabs
+  // 2. Tab Content (Default View)
   const renderTabContent = () => {
     switch (activeTab) {
       case "Top":
@@ -186,36 +160,46 @@ const SearchModal = ({ onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <SearchGridItemSkeleton />
               <SearchGridItemSkeleton />
-              <SearchGridItemSkeleton />
-              <SearchGridItemSkeleton />
             </div>
           );
         }
         if (topError)
           return (
-            <p className="text-red-500 text-center">Failed to load content.</p>
+            <p className="text-red-500 text-center py-4">Failed to load content.</p>
           );
         return (
           <div className="grid grid-cols-2 gap-4">
-            {topContent?.map((post) => (
+            {topContent?.slice(0, 6).map((post) => (
               <div
                 key={post.id}
-                className="cursor-pointer"
+                className="cursor-pointer group"
                 onClick={() => {
-                  navigate(`/product/${post.id}`); // Or wherever posts link to
+                  navigate(`/product-details/${post.id}`);
                   onClose();
                 }}
               >
-                <img
-                  src={
-                    post.image_url ||
-                    "https://placehold.co/150/eee/ccc?text=Post"
-                  }
-                  alt={post.caption}
-                  className="w-full h-48 object-cover rounded-lg bg-gray-200"
-                />
-                <p className="mt-1 font-medium truncate">
-                  {post.shop_name || post.username}
+                <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-square">
+                  {post.media || post.image_url ? (
+                     <img
+                     src={
+                       Array.isArray(post.media) 
+                         ? post.media[0]?.src 
+                         : post.media || post.image_url
+                     }
+                     alt={post.name || "Post"}
+                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                   />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-sm font-medium truncate text-gray-800">
+                  {post.name || post.caption || "Untitled"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                   {post.username || "Vendor"}
                 </p>
               </div>
             ))}
@@ -224,7 +208,10 @@ const SearchModal = ({ onClose }) => {
       case "Recent":
         if (recentSearches.length === 0) {
           return (
-            <p className="text-center text-gray-500">No recent searches.</p>
+            <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+              <Search size={40} className="mb-2 opacity-50" />
+              <p>No recent searches</p>
+            </div>
           );
         }
         return (
@@ -232,17 +219,18 @@ const SearchModal = ({ onClose }) => {
             {recentSearches.map((term) => (
               <div
                 key={term}
-                className="flex items-center justify-between py-2 text-gray-700"
+                className="flex items-center justify-between py-3 px-2 hover:bg-gray-50 rounded-lg group"
               >
                 <span
-                  className="cursor-pointer"
+                  className="cursor-pointer flex-1 flex items-center gap-3 text-gray-700"
                   onClick={() => setSearchTerm(term)}
                 >
+                  <Search size={16} className="text-gray-400" />
                   {term}
                 </span>
                 <button
                   onClick={() => removeRecent(term)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X size={16} />
                 </button>
@@ -251,114 +239,16 @@ const SearchModal = ({ onClose }) => {
           </div>
         );
       case "Users":
-        if (isLoadingUsers) {
-          return (
-            <div className="space-y-3">
-              <SearchUserSkeleton />
-              <SearchUserSkeleton />
-            </div>
-          );
-        }
-        if (usersError)
-          return (
-            <p className="text-red-500 text-center">Failed to load users.</p>
-          );
         return (
-          <div className="space-y-3">
-            <p className="text-xs text-center text-blue-500 bg-blue-50 p-2 rounded-lg">
-              Note: User search is using mock data.
-            </p>
-            {usersContent?.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <img
-                  src={user.image}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full bg-gray-200"
-                />
-                <div>
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-gray-500">{user.handle}</p>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
+             <p className="text-sm">User search coming soon.</p>
+             <p className="text-xs mt-1">Try searching for shops instead.</p>
           </div>
         );
       default:
         return null;
     }
   };
-
-  // Renders the default view (Recent Searches + Tabs)
-  const renderDefaultContent = () => (
-    <div className="space-y-6">
-      {recentSearches.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-2">Recent</h3>
-          <div className="flex flex-col">
-            {recentSearches.map((term) => (
-              <div
-                key={term}
-                className="flex items-center justify-between py-2 text-gray-700"
-              >
-                <span
-                  className="cursor-pointer"
-                  onClick={() => setSearchTerm(term)}
-                >
-                  {term}
-                </span>
-                <button
-                  onClick={() => removeRecent(term)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div>
-        <div className="flex space-x-4 border-b border-gray-200 mb-4">
-          <button
-            onClick={() => setActiveTab("Top")}
-            className={`py-2 font-semibold ${
-              activeTab === "Top"
-                ? "text-lily border-b-2 border-lily"
-                : "text-gray-500"
-            }`}
-          >
-            Top
-          </button>
-          <button
-            onClick={() => setActiveTab("Recent")}
-            className={`py-2 font-semibold ${
-              activeTab === "Recent"
-                ? "text-lily border-b-2 border-lily"
-                : "text-gray-500"
-            }`}
-          >
-            Recent
-          </button>
-          <button
-            onClick={() => setActiveTab("Users")}
-            className={`py-2 font-semibold ${
-              activeTab === "Users"
-                ? "text-lily border-b-2 border-lily"
-                : "text-gray-500"
-            }`}
-          >
-            Users
-          </button>
-        </div>
-
-        {renderTabContent()}
-      </div>
-    </div>
-  );
 
   return (
     <motion.div
@@ -368,47 +258,76 @@ const SearchModal = ({ onClose }) => {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
     >
-      {/* Header with Search Bar */}
-      <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200">
-        <button onClick={onClose} className="p-2 -ml-2 text-gray-600">
+      {/* Header */}
+      <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
+        <button onClick={onClose} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
           <ChevronLeft size={24} />
         </button>
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 ml-2">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1">
           <input
             type="text"
-            placeholder="Search products or users"
-            className="w-full pl-10 pr-10 py-2 rounded-lg bg-gray-100 border-gray-100 focus:outline-none focus:border-lily focus:ring-1 focus:ring-lily"
+            placeholder="Search shops & products"
+            className="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-lily/50 text-gray-800 placeholder:text-gray-400 transition-all"
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus
           />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <Search size={20} />
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+            <Search size={18} />
           </span>
           {searchTerm && (
             <button
               type="button"
               onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           )}
         </form>
       </div>
 
-      {/* Main Content Area */}
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* This is the main conditional rendering logic:
-          1. If searching, show search skeletons.
-          2. If a search term is present and we're NOT searching, show results.
-          3. If no search term, show the default Recent + Tabs view.
-        */}
-        {isSearching
-          ? renderSearchSkeletons()
-          : debouncedSearchTerm
-          ? renderSearchResults()
-          : renderDefaultContent()}
+        {isSearchingShops ? (
+           <div className="space-y-3">
+             <SearchSuggestionSkeleton />
+             <SearchSuggestionSkeleton />
+             <SearchSuggestionSkeleton />
+           </div>
+        ) : debouncedSearchTerm ? (
+          renderSearchResults()
+        ) : (
+          <div className="space-y-6">
+            {/* Tabs */}
+            <div className="flex space-x-6 border-b border-gray-200">
+              {["Top", "Recent", "Users"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-3 font-semibold text-sm transition-colors relative ${
+                    activeTab === tab
+                      ? "text-lily"
+                      : "text-gray-500 hover:text-gray-800"
+                  }`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <motion.div 
+                      layoutId="activeTabIndicator"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily" 
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Panels */}
+            <div className="animate-fadeIn">
+              {renderTabContent()}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
