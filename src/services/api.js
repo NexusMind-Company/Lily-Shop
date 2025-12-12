@@ -126,9 +126,15 @@ export const updateProfile = async (profileData) => {
 export const updateProfilePic = async (imageFile) => {
   const formData = new FormData();
   formData.append("profile_pic", imageFile);
+
   const response = await api.put(
     "/auth/profile/update-profile-pic/",
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": undefined,
+    },
+  }
   );
   return response.data;
 };
