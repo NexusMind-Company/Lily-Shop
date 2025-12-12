@@ -1,4 +1,4 @@
-import  {
+import {
   useState,
   useRef,
   useEffect,
@@ -60,7 +60,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
     };
   }, []);
 
-  const handlePlayerClick = () => {
+  const handlePlayerClick = (e) => {
     if (videoRef.current?.paused) {
       videoRef.current.play();
     } else {
@@ -74,13 +74,18 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
   };
 
   const handleSeek = (e) => {
+    e.stopPropagation(); 
     if (videoRef.current) {
       videoRef.current.currentTime = parseFloat(e.target.value);
     }
   };
 
   return (
-    <div className="relative w-full h-full bg-black">
+    // Click handler moved to container
+    <div 
+      className="relative w-full h-full bg-black" 
+      onClick={handlePlayerClick}
+    >
       <video
         ref={videoRef}
         src={src}
@@ -89,12 +94,13 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
         muted
         className="w-full h-full object-cover"
       />
+      
+      {/* Overlay: pointer-events-none lets clicks pass through to 'Buy Now' */}
       <div
-        className="absolute inset-0 z-10 flex items-center justify-center"
-        onClick={handlePlayerClick}
+        className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
       >
         {!isPlaying && (
-          <div className="relative">
+          <div className="relative pointer-events-auto"> 
             <div className="bg-black/50 rounded-full p-4">
               <Play size={60} className="text-white" fill="white" />
             </div>
@@ -103,7 +109,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
                 e.stopPropagation();
                 toggleMute();
               }}
-              className="absolute -top-1 -right-1 bg-white text-black rounded-full p-2 shadow-lg"
+              className="absolute -top-1 -right-1 bg-white text-black rounded-full p-2 shadow-lg pointer-events-auto"
             >
               {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
             </button>
@@ -118,7 +124,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
         }`}
       >
         <div className="flex items-center gap-4 text-white">
-          <button onClick={handlePlayerClick}>
+          <button onClick={(e) => { e.stopPropagation(); handlePlayerClick(e); }}>
             {isPlaying ? <Pause size={24} /> : <Play size={24} />}
           </button>
           <span className="text-xs font-mono">{formatTime(currentTime)}</span>
@@ -138,4 +144,3 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
 });
 
 export default VideoPlayer;
-
