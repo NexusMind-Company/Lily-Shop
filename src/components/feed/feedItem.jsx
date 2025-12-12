@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -10,6 +10,8 @@ import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
 import { likeProduct, likeContent, followUser } from "../../services/api";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://lily-shop.up.railway.app";
+
 const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
@@ -17,12 +19,24 @@ const formatCount = (num) =>
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
 
-  // --- DEBUG: Check for User ID ---
-  // If this logs "undefined", the backend is definitely not sending it.
-  useEffect(() => {
-    if (!post.user_id && !post.userId) {
-      console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}. Follow feature disabled.`);
+  // --- Resolve Profile Picture ---
+  const profilePicUrl = useMemo(() => {
+    // Check possible fields the backend might send
+    const rawPic = 
+      post.userpic || 
+      post.profile_pic || 
+      post.user_profile_pic || 
+      post.owner?.profile_pic;
+
+    if (!rawPic) return "/profile-icon.svg";
+
+    if (rawPic.startsWith("http") || rawPic.startsWith("blob:")) {
+      return rawPic;
     }
+
+    // Handle relative paths
+    const cleanPath = rawPic.startsWith("/") ? rawPic : `/${rawPic}`;
+    return `${API_BASE_URL}${cleanPath}`;
   }, [post]);
 
   const mediaArray = Array.isArray(post?.media)
@@ -48,8 +62,6 @@ const FeedItem = ({ post, onVideoInit }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-
-  // State
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
   
@@ -66,52 +78,29 @@ const FeedItem = ({ post, onVideoInit }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
-  // User Data resolution
   const displayUsername = post.username || post.user || "Unknown User";
-  
-  // Try to find ANY ID. If post.user is a string (username), this will be wrong for the ID endpoint.
   const profileId = post.user_id || post.userId; 
-  
-  // Only enable profile link if we have an ID, otherwise standard link might fail
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
 
-  // --- LIKE MUTATION ---
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
-      if (isProduct) {
-        return likeProduct(post.id);
-      } else {
-        return likeContent(post.id);
-      }
+      if (isProduct) return likeProduct(post.id);
+      return likeContent(post.id);
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsLiked = isLiked;
       const previousLikeCount = Number(likeCount);
-
-      // Optimistic update
       setIsLiked(!previousIsLiked);
-      setLikeCount(
-        !previousIsLiked
-          ? previousLikeCount + 1
-          : Math.max(0, previousLikeCount - 1)
-      );
-
+      setLikeCount(!previousIsLiked ? previousLikeCount + 1 : Math.max(0, previousLikeCount - 1));
       return { previousIsLiked, previousLikeCount };
     },
     onSuccess: (data) => {
-      // Sync state with server message
-      if (data && data.message) {
-        const msg = data.message.toLowerCase();
-        if (msg.includes("unliked")) {
-          setIsLiked(false);
-        } else if (msg.includes("liked")) {
-          setIsLiked(true);
-        }
-      }
+      if (data?.message?.toLowerCase().includes("unliked")) setIsLiked(false);
+      else if (data?.message?.toLowerCase().includes("liked")) setIsLiked(true);
     },
     onError: (err, variables, context) => {
       if (context) {
@@ -121,26 +110,16 @@ const FeedItem = ({ post, onVideoInit }) => {
     },
   });
 
-  // --- FOLLOW MUTATION ---
   const { mutate: toggleFollow } = useMutation({
-    mutationFn: async () => {
-      // Fallback: If we have an ID, use it. If not, try username (which is 500ing, but better than nothing).
-      if (profileId) {
-         // This assumes you have a followUserById function, or followUser handles it
-         // For now, we stick to the api.js function which currently uses username
-         return followUser(displayUsername); 
-      }
-      return followUser(displayUsername);
-    },
+    mutationFn: async () => followUser(displayUsername),
     onMutate: async () => {
       if (!isAuthenticated) return;
-      const previousIsFollowed = isFollowed;
-      setIsFollowed(!previousIsFollowed);
-      return { previousIsFollowed };
+      setIsFollowed(!isFollowed);
+      return { previousIsFollowed: isFollowed };
     },
     onError: (err, variables, context) => {
       if (context) setIsFollowed(context.previousIsFollowed);
-      alert("Follow failed. Please try again later.");
+      alert("Follow failed.");
     },
   });
 
@@ -162,34 +141,18 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleDoubleTap = () => {
     if (!isAuthenticated) return;
-    if (!isLiked) {
-      toggleLike();
-    }
+    if (!isLiked) toggleLike();
     setShowLikeAnimation(true);
-  };
-
-  const handleOpenComments = () => {
-    setShowCommentsModal(true);
-  };
-
-  const handleOpenShare = () => {
-    setShowShareModal(true);
   };
 
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
-    if (profileId) {
-      navigate(`/chat/${profileId}`);
-    } else {
-      alert("Cannot message this user (Missing User ID)");
-    }
+    if (profileId) navigate(`/chat/${profileId}`);
+    else alert("Cannot message this user (Missing User ID)");
   };
 
   return (
-    <div
-      className="relative w-full h-full bg-lily text-white"
-      onDoubleClick={handleDoubleTap}
-    >
+    <div className="relative w-full h-full bg-lily text-white" onDoubleClick={handleDoubleTap}>
       <div className="media-container-cover w-full h-full bg-black">
         {mediaArray.length > 1 ? (
           <MediaCarousel
@@ -205,13 +168,11 @@ const FeedItem = ({ post, onVideoInit }) => {
           <img
             ref={mediaRef}
             src={mediaArray[0]?.src || "/placeholder-image.png"}
-            alt={post.name || post.caption || "Post"}
+            alt={post.name || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
               e.target.style.display = "none";
-              if (e.target.nextSibling) {
-                e.target.nextSibling.style.display = "flex";
-              }
+              if (e.target.nextSibling) e.target.nextSibling.style.display = "flex";
             }}
           />
         )}
@@ -229,10 +190,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             exit={{ scale: 1, opacity: 0 }}
             onAnimationComplete={() => setShowLikeAnimation(false)}
           >
-            <Heart
-              className="w-24 h-24 text-lily drop-shadow-lg"
-              fill="#4eb75e"
-            />
+            <Heart className="w-24 h-24 text-lily drop-shadow-lg" fill="#4eb75e" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -244,25 +202,17 @@ const FeedItem = ({ post, onVideoInit }) => {
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
-                    src={post.userpic || "/profile-icon.svg"}
+                    src={profilePicUrl}
                     alt={displayUsername}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = "/profile-icon.svg"; }}
                   />
                 </div>
               </Link>
 
-              {/* Only show Follow button if NOT self AND we have a valid way to follow (ignoring 500 error hope) */}
               {!isOwnPost && (
-                <button
-                  onClick={handleFollow}
-                  className="absolute top-[80%] left-3"
-                >
-                  <img
-                    src={`${
-                      isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                    }`}
-                    alt={`Follow ${displayUsername}`}
-                  />
+                <button onClick={handleFollow} className="absolute top-[80%] left-3">
+                  <img src={isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"} alt="Follow" />
                 </button>
               )}
 
@@ -271,90 +221,54 @@ const FeedItem = ({ post, onVideoInit }) => {
               </Link>
             </div>
 
-            <h2 className="font-bold text-lg">
-              {post.name || post.caption?.slice(0, 30) || "Untitled"}
-            </h2>
-
-            {post.price != null && (
-              <p className="font-bold">
-                ₦{Number(post.price).toLocaleString()}
-              </p>
-            )}
+            <h2 className="font-bold text-lg">{post.name || post.caption?.slice(0, 30) || "Untitled"}</h2>
+            {post.price != null && <p className="font-bold">₦{Number(post.price).toLocaleString()}</p>}
 
             <motion.p layout className="text-sm font-light">
-              {isExpanded
-                ? post.caption
-                : `${post.caption?.substring(0, DESCRIPTION_CHAR_LIMIT) || ""}`}
+              {isExpanded ? post.caption : `${post.caption?.substring(0, DESCRIPTION_CHAR_LIMIT) || ""}`}
               {post.caption?.length > DESCRIPTION_CHAR_LIMIT && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="font-semibold ml-1 opacity-80"
-                >
+                <button onClick={() => setIsExpanded(!isExpanded)} className="font-semibold ml-1 opacity-80">
                   {isExpanded ? "...less" : "...see more"}
                 </button>
               )}
             </motion.p>
 
             <p className="font-light flex items-center gap-1">
-              <span>
-                <img src="/icons/music.svg" alt="" />
-              </span>
+              <span><img src="/icons/music.svg" alt="" /></span>
               {post.musicTrack || "Original Audio"}
             </p>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Link
-                to={`/product-details/${post.id}`}
-                className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
-              >
-                <span>
-                  <img src="/icons/bag-2.svg" alt="" />
-                </span>
-                Buy Now
-              </Link>
-            </div>
+            {/* Conditionally render Buy Now button */}
+            {isProduct && (
+              <div className="flex items-center space-x-2 pt-2">
+                <Link to={`/product-details/${post.id}`} className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm">
+                  <span><img src="/icons/bag-2.svg" alt="" /></span>
+                  Buy Now
+                </Link>
+              </div>
+            )}
           </div>
+
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
             <button onClick={handleLike} className="flex flex-col items-center">
-              <img
-                src={`${isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}`}
-                alt=""
-                className={`${isLiked ? "size-9" : ""}`}
-              />
-              <span className="text-xs font-semibold">
-                {formatCount(likeCount)}
-              </span>
+              <img src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"} alt="" className={isLiked ? "size-9" : ""} />
+              <span className="text-xs font-semibold">{formatCount(likeCount)}</span>
             </button>
-            <button
-              onClick={handleOpenComments}
-              className="flex flex-col items-center"
-            >
+            <button onClick={() => setShowCommentsModal(true)} className="flex flex-col items-center">
               <img src="/icons/message-alt.svg" alt="" />
-              <span className="text-xs font-semibold">
-                {formatCount(commentCount)}
-              </span>
+              <span className="text-xs font-semibold">{formatCount(commentCount)}</span>
             </button>
-            <button
-              onClick={handleOpenShare}
-              className="flex flex-col items-center"
-            >
+            <button onClick={() => setShowShareModal(true)} className="flex flex-col items-center">
               <img src="/icons/share.svg" alt="" />
-              <span className="text-xs font-semibold">
-                {formatCount(post.shares || 0)}
-              </span>
+              <span className="text-xs font-semibold">{formatCount(post.shares || 0)}</span>
             </button>
-            <button
-              onClick={handleOpenMessage}
-              className="flex flex-col items-center"
-            >
+            <button onClick={handleOpenMessage} className="flex flex-col items-center">
               <img src="/icons/send-alt.svg" alt="" />
-              <span className="text-xs font-semibold">{`Message`}</span>
+              <span className="text-xs font-semibold">Message</span>
             </button>
             <button className="flex flex-col items-center">
-              <img src="/icons/eye.svg" alt="View" />
-              <span className="text-xs font-semibold">
-                {formatCount(post.views || 0)}
-              </span>
+              <img src="/icons/eye.svg" alt="" />
+              <span className="text-xs font-semibold">{formatCount(post.views || 0)}</span>
             </button>
           </div>
         </div>
@@ -370,7 +284,6 @@ const FeedItem = ({ post, onVideoInit }) => {
             totalComments={commentCount}
           />
         )}
-
         {showShareModal && (
           <ShareModal
             isOpen={showShareModal}
