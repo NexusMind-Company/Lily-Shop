@@ -125,7 +125,7 @@ const CreatePost = () => {
       setSuccessMessage("Content published successfully!");
 
       setTimeout(() => {
-        navigate("/feed");
+        navigate("/");
         dispatch(resetProductContent());
         dispatch(resetFunContent());
         setLoading(false);
