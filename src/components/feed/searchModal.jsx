@@ -58,7 +58,7 @@ const SearchModal = ({ onClose }) => {
     enabled: !!debouncedSearchTerm,
   });
 
-  // 2. Fetch Feed for "Top" suggestions (fallback content)
+  // 2. Fetch Feed for "Top" suggestions
   const {
     data: topContent,
     isLoading: isLoadingTop,
@@ -70,7 +70,6 @@ const SearchModal = ({ onClose }) => {
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });
 
-  // Event Handlers
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -87,7 +86,6 @@ const SearchModal = ({ onClose }) => {
       setRecentSearches(newSearches);
       saveRecentSearches(newSearches);
 
-      // Navigate to the full search results page
       navigate(`/searchResults?q=${encodeURIComponent(trimmedTerm)}`);
       onClose();
     }
@@ -105,7 +103,6 @@ const SearchModal = ({ onClose }) => {
 
   // --- Renderers ---
 
-  // 1. Live Search Results (Shops Only supported by API)
   const renderSearchResults = () => (
     <div className="space-y-4">
       <h3 className="font-semibold text-gray-800">Shops</h3>
@@ -140,7 +137,6 @@ const SearchModal = ({ onClose }) => {
         </div>
       ))}
       
-      {/* Search Button for Products (Redirects to SearchResults page) */}
       <div 
         className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
         onClick={handleSearchSubmit}
@@ -151,7 +147,6 @@ const SearchModal = ({ onClose }) => {
     </div>
   );
 
-  // 2. Tab Content (Default View)
   const renderTabContent = () => {
     switch (activeTab) {
       case "Top":
@@ -258,7 +253,6 @@ const SearchModal = ({ onClose }) => {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
     >
-      {/* Header */}
       <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
         <button onClick={onClose} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
           <ChevronLeft size={24} />
@@ -287,7 +281,6 @@ const SearchModal = ({ onClose }) => {
         </form>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {isSearchingShops ? (
            <div className="space-y-3">
@@ -299,7 +292,6 @@ const SearchModal = ({ onClose }) => {
           renderSearchResults()
         ) : (
           <div className="space-y-6">
-            {/* Tabs */}
             <div className="flex space-x-6 border-b border-gray-200">
               {["Top", "Recent", "Users"].map((tab) => (
                 <button
@@ -322,7 +314,6 @@ const SearchModal = ({ onClose }) => {
               ))}
             </div>
 
-            {/* Tab Panels */}
             <div className="animate-fadeIn">
               {renderTabContent()}
             </div>
