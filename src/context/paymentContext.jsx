@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useState } from "react";
 
 const PaymentContext = createContext(null);
+
 export const PaymentProvider = ({ children }) => {
   const [paymentData, setPaymentData] = useState({
     amount: 0,
     vendorName: "",
     orderId: null,
     amountPaid: 0,
+    // New fields for checkout flow
+    selectedAddress: null,
+    selectedPaymentMethod: null, // 'paystack' or 'wallet'
   });
 
   return (
