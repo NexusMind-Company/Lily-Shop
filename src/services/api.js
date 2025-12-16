@@ -116,6 +116,7 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
+  // Filter out null values
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
@@ -133,8 +134,8 @@ export const updateProfilePic = async (imageFile) => {
     {
       headers: {
         "Content-Type": undefined,
-    },
-  }
+      },
+    }
   );
   return response.data;
 };
@@ -163,6 +164,13 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
+// --- Shop Details (Added for Pickup) ---
+
+export const fetchShopDetails = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/`);
+  return response.data;
+};
+
 // --- Product Comments ---
 
 export const fetchProductComments = async (productId) => {
@@ -170,11 +178,10 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-// --- FIX: Send 'content' as text to satisfy backend requirement ---
 export const addProductComment = async (productId, commentText, parentId = null) => {
   const payload = {
     comment: commentText,
-    content: commentText, // Sending text here too, as backend demands 'content' field
+    content: commentText, // Send as content too if required by backend quirks
     parent: parentId
   };
   
@@ -230,7 +237,6 @@ export const likeContent = async (contentId) => {
   return response.data;
 };
 
-// --- FIX: Use username endpoint with empty body ---
 export const followUser = async (username) => {
   const response = await api.post(`/auth/follow/${encodeURIComponent(username)}/`, {});
   return response.data;
@@ -246,31 +252,53 @@ export const sendMessage = async ({ recipientId, content }) => {
   return response.data;
 };
 
-// --- Checkout Data ---
+// --- Checkout Data: Addresses ---
 
 export const fetchDeliveryAddresses = async () => {
-  const response = await api.get("/user/addresses");
-  return response.data;
+  // Mapping the single profile location to a list for the UI
+  try {
+    const user = await fetchUserProfile();
+    if (user.location) {
+      return [
+        {
+          id: "profile-location-id", // Static ID since there is only one
+          name: user.name || "My Address",
+          phone: user.phone_number,
+          address: user.location,
+          isDefault: true,
+        },
+      ];
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching addresses from profile:", error);
+    return [];
+  }
 };
 
 export const addNewAddress = async (addressData) => {
-  const response = await api.post("/user/addresses", addressData);
-  return response.data;
-};
+  // Combine fields into one string for the API's 'location' field
+  // addressData = { address, city, state, zip, name, phone }
+  
+  const locationParts = [
+    addressData.address,
+    addressData.landmark,
+    addressData.city,
+    addressData.state,
+    addressData.zip
+  ].filter(Boolean); // Remove empty strings
+  
+  const locationString = locationParts.join(", ");
 
-export const fetchPickupLocations = async () => {
-  const response = await api.get("/pickup-locations");
-  return response.data;
-};
+  const payload = {
+    location: locationString,
+  };
 
-export const fetchSavedCards = async () => {
-  const response = await api.get("/user/cards");
-  return response.data;
-};
+  if (addressData.name) payload.name = addressData.name;
+  if (addressData.phone) payload.phone_number = addressData.phone;
 
-export const addNewCard = async (cardData) => {
-  const response = await api.post("/user/cards", cardData);
-  return response.data;
+  // We reuse the updateProfile function
+  return updateProfile(payload);
 };
 
 // --- Payment & Orders ---
