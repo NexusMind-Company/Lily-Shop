@@ -1,107 +1,79 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { fetchDeliveryAddresses } from "../../services/api";
 import { usePayment } from "../../context/paymentContext";
-import { ChevronLeft, Plus, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchUserProfile } from "../../services/api";
+import { ChevronLeft, CreditCard, Wallet, CheckCircle2 } from "lucide-react";
 
-const ChooseAddress = () => {
+const ChooseCardPage = () => {
   const navigate = useNavigate();
-  const { setPaymentData } = usePayment();
-  const [selectedId, setSelectedId] = useState(null);
+  const { paymentData, setPaymentData } = usePayment();
+  const { selectedPaymentMethod } = paymentData;
 
-  const { data: addresses, isLoading } = useQuery({
-    queryKey: ["deliveryAddresses"],
-    queryFn: fetchDeliveryAddresses,
+  const { data: user } = useQuery({ 
+    queryKey: ["userProfile"], 
+    queryFn: fetchUserProfile 
   });
 
-  const handleContinue = () => {
-    const selectedAddress = addresses?.find((addr) => addr.id === selectedId);
-    if (!selectedAddress) {
-      alert("Please select a delivery address");
-      return;
-    }
-
-    // Save choice to context
-    setPaymentData((prev) => ({ ...prev, selectedAddress }));
-    
-    // Navigate to Payment Method selection (formerly ChooseCardPage)
-    navigate("/choose-card");
+  const handleSelect = (method) => {
+    setPaymentData((prev) => ({ ...prev, selectedPaymentMethod: method }));
+    navigate("/checkout"); // Navigate back to the checkout/cart page
   };
 
-  // Auto-select default if available
-  React.useEffect(() => {
-    if (addresses?.length > 0 && !selectedId) {
-      setSelectedId(addresses[0].id);
-    }
-  }, [addresses]);
+  const formatMoney = (amount) => 
+    new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(amount);
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center">
-        <button
-          onClick={() => navigate("/cart")}
-          className="absolute left-4 text-gray-600 hover:text-gray-800"
-        >
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="sticky top-0 bg-white z-10 px-4 py-4 flex items-center border-b border-gray-100">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
           <ChevronLeft size={24} />
         </button>
-        <h2 className="font-bold text-lg text-gray-800">Select Address</h2>
+        <h2 className="flex-1 text-center font-bold text-lg text-gray-800 mr-8">Payment Method</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <button
-          onClick={() => navigate("/add-address")}
-          className="w-full flex items-center p-4 bg-gray-50 border border-dashed border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
-        >
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-lily mr-3">
-            <Plus size={20} />
-          </div>
-          <span className="font-medium text-gray-700">Add New Address</span>
-        </button>
+      <div className="p-4 space-y-4">
+        <p className="text-sm text-gray-500 mb-2">Select how you want to pay</p>
 
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="animate-spin text-lily" size={32} />
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {addresses?.map((addr) => (
-              <div
-                key={addr.id}
-                onClick={() => setSelectedId(addr.id)}
-                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  selectedId === addr.id
-                    ? "border-lily bg-pink-50"
-                    : "border-gray-100 bg-white hover:border-gray-200"
-                }`}
-              >
-                <div className="flex items-start space-x-3">
-                  <MapPin className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                  <div>
-                    <h3 className="font-bold text-gray-800">{addr.name}</h3>
-                    <p className="text-gray-600 text-sm mt-1">{addr.address}</p>
-                    <p className="text-gray-500 text-xs mt-1">{addr.phone}</p>
-                  </div>
-                </div>
-                {selectedId === addr.id && (
-                  <CheckCircle2 className="absolute top-4 right-4 text-lily" size={24} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 border-t border-gray-200 bg-white">
-        <button
-          onClick={handleContinue}
-          className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
+        {/* Option 1: Lily Wallet */}
+        <div 
+          onClick={() => handleSelect('wallet')}
+          className={`p-4 rounded-xl border-2 flex items-center gap-4 cursor-pointer transition-all ${
+            selectedPaymentMethod === 'wallet' ? "border-pink-600 bg-pink-50" : "border-gray-100 bg-white hover:border-gray-200"
+          }`}
         >
-          Continue to Payment
-        </button>
+          <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+            <Wallet size={24} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900">Lily Wallet</h3>
+            <p className="text-sm text-gray-500">
+              Balance: <span className="font-medium text-green-600">{formatMoney(user?.wallet_balance || 0)}</span>
+            </p>
+          </div>
+          {selectedPaymentMethod === 'wallet' && <CheckCircle2 className="text-pink-600" size={24} />}
+        </div>
+
+        {/* Option 2: Paystack */}
+        <div 
+          onClick={() => handleSelect('paystack')}
+          className={`p-4 rounded-xl border-2 flex items-center gap-4 cursor-pointer transition-all ${
+            selectedPaymentMethod === 'paystack' ? "border-pink-600 bg-pink-50" : "border-gray-100 bg-white hover:border-gray-200"
+          }`}
+        >
+          <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+            <CreditCard size={24} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900">Paystack</h3>
+            <p className="text-sm text-gray-500">Pay with Card, Bank Transfer, or USSD</p>
+          </div>
+          {selectedPaymentMethod === 'paystack' && <CheckCircle2 className="text-pink-600" size={24} />}
+        </div>
       </div>
     </div>
   );
 };
 
-export default ChooseAddress;
+export default ChooseCardPage;

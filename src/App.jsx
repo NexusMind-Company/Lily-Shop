@@ -70,7 +70,7 @@ import ChooseAddressPage from "./pages/ChooseAddressPage";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
-import AddCardPage from "./pages/AddCardPage";
+// import AddCardPage from "./pages/AddCardPage";
 import PasswordModalPage from "./pages/PasswordModalPage";
 import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
@@ -191,7 +191,7 @@ export default function App() {
           <Route path="/choose-pickup" element={<PickupAddressPage />} />
           <Route path="/choose-card" element={<ChooseCardPage />} />
           <Route path="/order-summary" element={<OrderSummaryPage/>}/>
-          <Route path="/add-card" element={<AddCardPage />} />
+          {/* <Route path="/add-card" element={<AddCardPage />} /> */}
           <Route path="/password" element={<PasswordModalPage />} />
           <Route path="/bank-transfer" element={<BankTransferPage />} />
           <Route path="/payment-loading" element={<PaymentLoadingPage />} />
