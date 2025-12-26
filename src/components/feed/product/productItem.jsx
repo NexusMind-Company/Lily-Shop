@@ -8,10 +8,13 @@ import {
   Play,
   VolumeX,
   Volume2,
+  Heart,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
+import { useMutation } from "@tanstack/react-query";
 import { addItemToCart } from "../../../redux/cartSlice";
+import { likeProduct, followUser } from "../../../services/api";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -20,6 +23,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
+
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
@@ -92,9 +96,17 @@ const ProductItem = ({ product }) => {
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
+  // Interaction States
+  const [isLiked, setIsLiked] = useState(
+    product.is_liked === true || product.is_liked === "true"
+  );
+  const [isFollowed, setIsFollowed] = useState(
+    product.is_followed === true || product.is_followed === "true"
+  );
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth); // Get auth state
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const mediaArray = Array.isArray(product?.media)
     ? product.media
@@ -113,12 +125,45 @@ const ProductItem = ({ product }) => {
       ]
     : [];
 
+  // --- Like Mutation ---
+  const { mutate: toggleLike } = useMutation({
+    mutationFn: () => likeProduct(product.id),
+    onMutate: () => {
+      if (!isAuthenticated) return;
+      setIsLiked((prev) => !prev);
+    },
+    onError: () => setIsLiked((prev) => !prev),
+  });
+
+  // --- Follow Mutation ---
+  const { mutate: toggleFollow } = useMutation({
+    mutationFn: () =>
+      followUser(
+        product.username || product.vendorName || product.user || "unknown"
+      ),
+    onMutate: () => {
+      if (!isAuthenticated) return;
+      setIsFollowed((prev) => !prev);
+    },
+    onError: () => setIsFollowed((prev) => !prev),
+  });
+
+  const handleLike = () => {
+    if (!isAuthenticated) return navigate("/login");
+    toggleLike();
+  };
+
+  const handleFollow = () => {
+    if (!isAuthenticated) return navigate("/login");
+    toggleFollow();
+  };
+
   const handleAddToCart = () => {
     const payload = {
       id: product.id,
       username: product.username,
-      mediaSrc: mediaArray[0]?.src, // Use the safe array
-      productName: product.productName || product.title || product.name, // Handle various name fields
+      mediaSrc: mediaArray[0]?.src,
+      productName: product.productName || product.title || product.name,
       price: product.price,
       color: selectedColor,
       size: selectedSize,
@@ -133,7 +178,7 @@ const ProductItem = ({ product }) => {
   };
 
   const handleCheckout = () => {
-    if (!isAuthenticated) return navigate("/login"); // Protect checkout
+    if (!isAuthenticated) return navigate("/login");
 
     const payload = {
       id: product.id,
@@ -157,7 +202,7 @@ const ProductItem = ({ product }) => {
   };
 
   const formatPrice = (price) => {
-    return Number(price).toLocaleString(); // Simpler formatter
+    return Number(price).toLocaleString();
   };
 
   const reviewsArray = product.reviewsData || [];
@@ -166,11 +211,12 @@ const ProductItem = ({ product }) => {
     : reviewsArray.slice(0, 3);
   const hasMoreReviews = reviewsArray.length > 3;
 
-  // Safe Username Display
-  const displayUsername = product.username || product.user || "Unknown Vendor";
-  const profileLink = product.userId
-    ? `/profile/${product.userId}`
-    : `/profile/${displayUsername}`;
+  // Safe Username Display & Navigation
+  const displayUsername =
+    product.shop_name || product.username || product.user || "Unknown Vendor";
+  const profileLink = product.shop
+    ? `/shop/${product.shop}`
+    : `/profile/${product.user_id || product.userId}`;
 
   return (
     <div className="relative bg-white w-full md:max-w-xl mx-auto min-h-screen">
@@ -223,14 +269,24 @@ const ProductItem = ({ product }) => {
           </button>
         </div>
 
-        <div className="flex justify-between items-center pt-2">
-          <h2 className="font-semibold text-lg">
-            {product.productName || product.title || product.name}
-          </h2>
-          <span className="text-ash flex items-center">
-            <img src="/icons/star2.svg" alt="" /> {product.rating || 0} (
-            {product.reviews || 0})
-          </span>
+        <div className="flex justify-between items-start pt-2">
+          <div>
+            <h2 className="font-semibold text-lg">
+              {product.productName || product.title || product.name}
+            </h2>
+            <span className="text-ash flex items-center">
+              <img src="/icons/star2.svg" alt="" /> {product.rating || 0} (
+              {product.reviews || 0})
+            </span>
+          </div>
+
+          <button onClick={handleLike} className="p-2">
+            <Heart
+              size={28}
+              fill={isLiked ? "red" : "none"}
+              color={isLiked ? "red" : "black"}
+            />
+          </button>
         </div>
 
         {product.price != null && (
@@ -354,8 +410,15 @@ const ProductItem = ({ product }) => {
               <Link to={profileLink} className="font-bold hover:underline">
                 {displayUsername}
               </Link>
-              <button className="text-lily border border-lily px-2 py-0.5 rounded-full text-xs">
-                Follow
+              <button
+                onClick={handleFollow}
+                className={`${
+                  isFollowed
+                    ? "bg-lily text-white"
+                    : "text-lily border border-lily"
+                } px-2 py-0.5 rounded-full text-xs transition-colors`}
+              >
+                {isFollowed ? "Following" : "Follow"}
               </button>
             </div>
           </div>
@@ -378,7 +441,6 @@ const ProductItem = ({ product }) => {
         </div>
       </div>
 
-      {/* Fixed Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-200 shadow-t-lg">
         <div className="max-w-xl mx-auto p-4">
           <div className="flex gap-3">

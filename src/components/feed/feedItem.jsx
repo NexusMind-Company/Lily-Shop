@@ -11,15 +11,21 @@ import ShareModal from "./share/shareModal";
 import { likeProduct, likeContent, followUser } from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
-const formatCount = (num) =>
-  num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
+const formatCount = (num) => {
+  const n = Number(num);
+  if (isNaN(n)) return 0;
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+};
 
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
+  const navigate = useNavigate();
+  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!post.user_id && !post.userId) {
-      console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}. Follow feature disabled.`);
+    if (!post.user_id && !post.userId && !post.shop) {
+      // Optional: Log warning if needed, keeping silent for UI cleanliness
+      // console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}`);
     }
   }, [post]);
 
@@ -46,25 +52,36 @@ const FeedItem = ({ post, onVideoInit }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const [isLiked, setIsLiked] = useState(post.is_liked || false);
-  const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
-  
-  const [likeCount, setLikeCount] = useState(
-    post.like_count || post.likes_count || post.likes || 0
+
+  // Parse fields safely as API might return strings ("true"/"false")
+  const [isLiked, setIsLiked] = useState(
+    post.is_liked === "true" || post.is_liked === true
   );
-  
-  const commentCount = post.comment_count || post.comments_count || post.comments || 0;
+  const [isFollowed, setIsFollowed] = useState(
+    post.is_followed === "true" || post.is_followed === true
+  );
+
+  const [likeCount, setLikeCount] = useState(
+    Number(post.like_count || post.likes_count || post.likes || 0)
+  );
+
+  const commentCount = Number(
+    post.comment_count || post.comments_count || post.comments || 0
+  );
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const navigate = useNavigate();
-  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
+  // Logic to determine display name and link
+  const displayUsername =
+    post.shop_name || post.username || post.user || "Unknown";
 
-  const displayUsername = post.username || post.user || "Unknown User";
-  const profileId = post.user_id || post.userId; 
-  const profileLink = profileId ? `/profile/${profileId}` : "#";
+  // Prefer Shop ID if available for navigation, else User ID
+  const navigationId = post.shop || post.user_id || post.userId;
+  const profileLink = post.shop
+    ? `/shop/${post.shop}`
+    : `/profile/${navigationId}`;
 
   const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
@@ -80,7 +97,7 @@ const FeedItem = ({ post, onVideoInit }) => {
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsLiked = isLiked;
-      const previousLikeCount = Number(likeCount);
+      const previousLikeCount = likeCount;
 
       setIsLiked(!previousIsLiked);
       setLikeCount(
@@ -111,8 +128,9 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const { mutate: toggleFollow } = useMutation({
     mutationFn: async () => {
-      if (profileId) {
-         return followUser(displayUsername); 
+      // Default to following by username/identifier
+      if (post.username || post.user_username) {
+        return followUser(post.username || post.user_username);
       }
       return followUser(displayUsername);
     },
@@ -124,7 +142,7 @@ const FeedItem = ({ post, onVideoInit }) => {
     },
     onError: (err, variables, context) => {
       if (context) setIsFollowed(context.previousIsFollowed);
-      alert("Follow failed. Please try again later.");
+      // alert("Follow failed. Please try again later.");
     },
   });
 
@@ -162,10 +180,10 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
-    if (profileId) {
-      navigate(`/chat/${profileId}`);
+    if (navigationId) {
+      navigate(`/chat/${navigationId}`);
     } else {
-      alert("Cannot message this user (Missing User ID)");
+      alert("Cannot message this user (Missing ID)");
     }
   };
 
@@ -221,7 +239,6 @@ const FeedItem = ({ post, onVideoInit }) => {
         )}
       </AnimatePresence>
 
-      {/* LOWERED Z-INDEX TO 5 HERE */}
       <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
@@ -229,7 +246,7 @@ const FeedItem = ({ post, onVideoInit }) => {
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
-                    src={post.userpic || "/profile-icon.svg"}
+                    src={post.userpic || post.image || "/profile-icon.svg"}
                     alt={displayUsername}
                     className="w-full h-full object-contain"
                   />
@@ -339,7 +356,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
-                {formatCount(post.views || 0)}
+                {formatCount(post.visit_count || post.views || 0)}
               </span>
             </button>
           </div>
