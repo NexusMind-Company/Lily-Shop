@@ -106,7 +106,8 @@ api.interceptors.response.use(
 // --- Auth & Profile ---
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/me/");
+  // Matched to documentation: GET /auth/profile/
+  const response = await api.get("/auth/profile/");
   return response.data;
 };
 
@@ -116,7 +117,6 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  // Filter out null values
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
@@ -133,7 +133,7 @@ export const updateProfilePic = async (imageFile) => {
     formData,
     {
       headers: {
-        "Content-Type": undefined,
+        "Content-Type": undefined, // Let browser set multipart/form-data
       },
     }
   );
@@ -145,15 +145,43 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- Feed ---
+// --- Shops (For View Counts & Navigation) ---
 
+// Gets shop details including 'visit_count' and 'active_ads'
+export const fetchShopDetails = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/`);
+  return response.data;
+};
+
+// Gets all products for a specific shop
+export const fetchShopProducts = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/products/`);
+  return response.data;
+};
+
+// --- Feed & Products (For Likes/Comments Counts) ---
+
+// Main Feed ("For You") - Updated to /shops/home/
 export const fetchFeed = async () => {
   const response = await api.get("/shops/feed/");
   return response.data;
 };
 
+// Global Product Search/List
+export const fetchProducts = async (params = {}) => {
+  // params can include: search, ordering, is_post, page
+  const response = await api.get("/shops/products/", { params });
+  return response.data;
+};
+
 export const fetchNearbyFeed = async () => {
   const response = await api.get("/shops/products/nearby/");
+  return response.data;
+};
+
+// Get Single Product (Includes 'like_count', 'comments', 'shop' UUID)
+export const fetchProductDetails = async (productId) => {
+  const response = await api.get(`/shops/products/${productId}/`);
   return response.data;
 };
 
@@ -164,13 +192,6 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
-// --- Shop Details (Added for Pickup) ---
-
-export const fetchShopDetails = async (shopId) => {
-  const response = await api.get(`/shops/${shopId}/`);
-  return response.data;
-};
-
 // --- Product Comments ---
 
 export const fetchProductComments = async (productId) => {
@@ -178,13 +199,18 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-export const addProductComment = async (productId, commentText, parentId = null) => {
+// Added support for parentId to handle nested comments if supported
+export const addProductComment = async (
+  productId,
+  commentText,
+  parentId = null
+) => {
   const payload = {
     comment: commentText,
-    content: commentText, // Send as content too if required by backend quirks
-    parent: parentId
+    content: commentText, // Sending text here too, as backend demands 'content' field sometimes
+    parent: parentId,
   };
-  
+
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
     payload
@@ -199,20 +225,24 @@ export const deleteProductComment = async (commentId) => {
   return response.data;
 };
 
-// --- Content Comments ---
+// --- Content Comments (Legacy support if you separate Content/Products) ---
 
 export const fetchContentComments = async (contentId) => {
   const response = await api.get(`/shops/contents/${contentId}/comments/`);
   return response.data;
 };
 
-export const addContentComment = async (contentId, commentText, parentId = null) => {
+export const addContentComment = async (
+  contentId,
+  commentText,
+  parentId = null
+) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    { 
-      content: contentId, 
+    {
+      content: contentId,
       comment: commentText,
-      parent: parentId 
+      parent: parentId,
     }
   );
   return response.data;
@@ -238,67 +268,66 @@ export const likeContent = async (contentId) => {
 };
 
 export const followUser = async (username) => {
-  const response = await api.post(`/auth/follow/${encodeURIComponent(username)}/`, {});
+  // The API supports following by username
+  const response = await api.post(
+    `/auth/follow/${encodeURIComponent(username)}/`,
+    {}
+  );
+  return response.data;
+};
+
+export const toggleFollowShop = async (shopId) => {
+  const response = await api.post(`/shops/${shopId}/toggle-follow/`, {});
   return response.data;
 };
 
 // --- Messaging ---
 
-export const sendMessage = async ({ recipientId, content }) => {
-  const response = await api.post("/messages/", {
+export const sendMessage = async ({
+  recipientId,
+  content,
+  productId = null,
+}) => {
+  const payload = { recipient: recipientId, content };
+  if (productId) payload.product_id = productId; // Support sharing product via DM
+
+  const response = await api.post("/messages/", payload);
+  return response.data;
+};
+
+export const shareProductToChat = async (productId, recipientId) => {
+  // Dedicated endpoint for sharing, if preferred over generic message
+  const response = await api.post(`/messages/share/${productId}/`, {
     recipient: recipientId,
-    content,
   });
   return response.data;
 };
 
-// --- Checkout Data: Addresses ---
+// --- Checkout Data ---
 
 export const fetchDeliveryAddresses = async () => {
-  // Mapping the single profile location to a list for the UI
-  try {
-    const user = await fetchUserProfile();
-    if (user.location) {
-      return [
-        {
-          id: "profile-location-id", // Static ID since there is only one
-          name: user.name || "My Address",
-          phone: user.phone_number,
-          address: user.location,
-          isDefault: true,
-        },
-      ];
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching addresses from profile:", error);
-    return [];
-  }
+  const response = await api.get("/user/addresses");
+  return response.data;
 };
 
 export const addNewAddress = async (addressData) => {
-  // Combine fields into one string for the API's 'location' field
-  // addressData = { address, city, state, zip, name, phone }
-  
-  const locationParts = [
-    addressData.address,
-    addressData.landmark,
-    addressData.city,
-    addressData.state,
-    addressData.zip
-  ].filter(Boolean); // Remove empty strings
-  
-  const locationString = locationParts.join(", ");
+  const response = await api.post("/user/addresses", addressData);
+  return response.data;
+};
 
-  const payload = {
-    location: locationString,
-  };
+export const fetchPickupLocations = async () => {
+  const response = await api.get("/pickup-locations");
+  return response.data;
+};
 
-  if (addressData.name) payload.name = addressData.name;
-  if (addressData.phone) payload.phone_number = addressData.phone;
+export const fetchSavedCards = async () => {
+  const response = await api.get("/user/cards");
+  return response.data;
+};
 
-  // We reuse the updateProfile function
-  return updateProfile(payload);
+export const addNewCard = async (cardData) => {
+  const response = await api.post("/user/cards", cardData);
+  return response.data;
 };
 
 // --- Payment & Orders ---
@@ -311,7 +340,7 @@ export const createOrder = async ({
   const response = await api.post("/orders/create/", {
     items,
     total_amount_kobo,
-    payment_method,
+    payment_method, // 'wallet' or 'paystack'
   });
   return response.data;
 };
@@ -331,6 +360,20 @@ export const checkPaymentStatus = async (orderId) => {
 
 export const verifyPaymentPassword = async (password) => {
   const response = await api.post("/user/verify-password", { password });
+  return response.data;
+};
+
+// --- Wallet ---
+
+export const fetchWallet = async () => {
+  const response = await api.get("/wallet/me/");
+  return response.data;
+};
+
+export const topUpWallet = async (amountNaira) => {
+  const response = await api.post("/wallet/topup/", {
+    amount_naira: amountNaira,
+  });
   return response.data;
 };
 
