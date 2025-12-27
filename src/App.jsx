@@ -66,17 +66,18 @@ import FeedProductDetails from "./pages/feedProductDetails";
 import Cart from "./pages/cart";
 import ReceiptPage from "./pages/reciept";
 import WalletCallbackPage from "./pages/wallet-callback";
-import ChooseAddressPage from "./pages/chooseAddressPage";
+import ChooseAddressPage from "./pages/chooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
-import ChoosePickupPage from "./pages/choosePickupPage";
+import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
-import AddCardPage from "./pages/AddCardPage";
+// import AddCardPage from "./pages/AddCardPage";
 import PasswordModalPage from "./pages/PasswordModalPage";
 import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
 import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import Feed from "./pages/feed";
+import OrderSummaryPage from "./pages/OrderSummaryPage.jsx";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -187,9 +188,10 @@ export default function App() {
           <Route path="/walletCallback" element={<WalletCallbackPage />} />
           <Route path="/choose-address" element={<ChooseAddressPage />} />
           <Route path="/add-address" element={<AddAddressPage />} />
-          <Route path="/choose-pickup" element={<ChoosePickupPage />} />
+          <Route path="/choose-pickup" element={<PickupAddressPage />} />
           <Route path="/choose-card" element={<ChooseCardPage />} />
-          <Route path="/add-card" element={<AddCardPage />} />
+          <Route path="/order-summary" element={<OrderSummaryPage />} />
+          {/* <Route path="/add-card" element={<AddCardPage />} /> */}
           <Route path="/password" element={<PasswordModalPage />} />
           <Route path="/bank-transfer" element={<BankTransferPage />} />
           <Route path="/payment-loading" element={<PaymentLoadingPage />} />

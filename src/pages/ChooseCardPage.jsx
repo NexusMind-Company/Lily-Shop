@@ -1,135 +1,106 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSavedCards } from "../services/api";
-import {
-  ChevronLeft,
-  Circle,
-  CheckCircle2,
-  Loader2,
-  X,
-  ChevronRight,
-} from "lucide-react";
+import { fetchUserProfile } from "../services/api"; // To check wallet balance
+import { usePayment } from "../context/paymentContext";
+import { ChevronLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from "lucide-react";
 
 const ChooseCardPage = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["savedCards"],
-    queryFn: fetchSavedCards,
+  const { setPaymentData } = usePayment();
+  const [selectedMethod, setSelectedMethod] = useState("paystack"); // Default to Paystack
+
+  // Fetch user profile to get wallet balance
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: fetchUserProfile,
   });
 
-  const [selectedCardId, setSelectedCardId] = useState(null);
+  const walletBalance = user?.wallet_balance || 0;
+  
+  // Format currency helper
+  const formatMoney = (amount) => 
+    new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(amount);
 
-  useEffect(() => {
-    if (data && data.length > 0 && selectedCardId === null) {
-      const defaultCard = data.find((card) => card.isDefault);
-      const firstCard = data[0];
-      setSelectedCardId(defaultCard?.id || firstCard?.id || null);
-    }
-  }, [data, selectedCardId]);
+  const handleContinue = () => {
+    setPaymentData((prev) => ({ ...prev, selectedPaymentMethod: selectedMethod }));
+    navigate("/order-summary");
+  };
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
-      {/* Header */}
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
+      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center">
         <button
-          onClick={() => navigate("/checkout")}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
+          onClick={() => navigate(-1)}
+          className="absolute left-4 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />
         </button>
-        <h2 className="font-bold text-lg text-gray-800">Choose card</h2>
+        <h2 className="font-bold text-lg text-gray-800">Payment Method</h2>
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center flex-1 p-8">
-          <Loader2 size={32} className="text-lily animate-spin" />
-          <p className="text-gray-500 mt-3">Loading cards...</p>
-        </div>
-      )}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <p className="text-gray-500 text-sm mb-2">Select how you want to pay</p>
 
-      {/* Error State */}
-      {error && (
-        <div className="flex flex-col items-center justify-center flex-1 p-8">
-          <X size={32} className="text-red-500" />
-          <p className="text-gray-500 mt-3">Failed to load cards.</p>
-          {/* TODO Optionally add a retry button? */}
-        </div>
-      )}
-
-      {/* Data Loaded State */}
-      {data && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {data.length === 0 ? (
-            <p className="text-center text-gray-500 mt-8">
-              No saved cards found.
+        {/* Option 1: Paystack */}
+        <div
+          onClick={() => setSelectedMethod("paystack")}
+          className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center space-x-4 ${
+            selectedMethod === "paystack"
+              ? "border-lily bg-pink-50"
+              : "border-gray-100 bg-white hover:border-gray-200"
+          }`}
+        >
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+            <CreditCard size={24} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900">Pay with Paystack</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Cards, Bank Transfer (Titan), USSD
             </p>
-          ) : (
-            data.map((card) => (
-              <div
-                key={card.id}
-                onClick={() => setSelectedCardId(card.id)}
-                // Highlight selected card
-                className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer ${
-                  selectedCardId === card.id
-                    ? "border-lily ring-1 ring-lily"
-                    : "border-gray-200"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  {selectedCardId === card.id ? (
-                    <CheckCircle2
-                      size={24}
-                      className="text-lily flex-shrink-0"
-                    />
-                  ) : (
-                    <Circle size={24} className="text-gray-300 flex-shrink-0" />
-                  )}
-                  <div>
-                    <p className="font-semibold">
-                      {card.name}{" "}
-                      {card.isDefault && (
-                        <span className="text-xs text-lily font-medium ml-2">
-                          (Default)
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-600">{card.last4}</p>
-                    <p className="text-sm text-gray-600">Exp: {card.expiry}</p>
-                  </div>
-                </div>
-                <ChevronRight size={20} className="text-gray-400" />
-              </div>
-            ))
+          </div>
+          {selectedMethod === "paystack" && (
+            <CheckCircle2 className="text-lily" size={24} />
           )}
-
-          <button
-            onClick={() => navigate("/add-card")}
-            className="text-lily font-medium mt-4 hover:underline"
-          >
-            + Add new card
-          </button>
         </div>
-      )}
 
-      {/* Footer Button - only shows if there's data */}
-      {data && data.length > 0 && (
-        <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
-          <button
-            onClick={() => {
-              // TODO: Add logic here to save the selected card preference
-              // e.g., using a mutation or updating global state
-              console.log("Selected Card ID:", selectedCardId);
-              navigate("/checkout"); // Go back to checkout
-            }}
-            disabled={!selectedCardId}
-            className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Confirm
-          </button>
+        {/* Option 2: Wallet */}
+        <div
+          onClick={() => setSelectedMethod("wallet")}
+          className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center space-x-4 ${
+            selectedMethod === "wallet"
+              ? "border-lily bg-pink-50"
+              : "border-gray-100 bg-white hover:border-gray-200"
+          }`}
+        >
+          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+            <Wallet size={24} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900">Lily Wallet</h3>
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin mt-1 text-gray-400" />
+            ) : (
+              <p className="text-sm font-medium text-green-700 mt-1">
+                Balance: {formatMoney(walletBalance)}
+              </p>
+            )}
+          </div>
+          {selectedMethod === "wallet" && (
+            <CheckCircle2 className="text-lily" size={24} />
+          )}
         </div>
-      )}
+      </div>
+
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <button
+          onClick={handleContinue}
+          className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
+        >
+          Review Order
+        </button>
+      </div>
     </div>
   );
 };

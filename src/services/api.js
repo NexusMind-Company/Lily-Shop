@@ -106,7 +106,7 @@ api.interceptors.response.use(
 // --- Auth & Profile ---
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/me/");
+  const response = await api.get("/auth/profile/");
   return response.data;
 };
 
@@ -133,8 +133,8 @@ export const updateProfilePic = async (imageFile) => {
     {
       headers: {
         "Content-Type": undefined,
-    },
-  }
+      },
+    }
   );
   return response.data;
 };
@@ -144,15 +144,37 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- Feed ---
+// --- Shops ---
+
+export const fetchShopDetails = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/`);
+  return response.data;
+};
+
+export const fetchShopProducts = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/products/`);
+  return response.data;
+};
+
+// --- Feed & Products ---
 
 export const fetchFeed = async () => {
   const response = await api.get("/shops/feed/");
   return response.data;
 };
 
+export const fetchProducts = async (params = {}) => {
+  const response = await api.get("/shops/products/", { params });
+  return response.data;
+};
+
 export const fetchNearbyFeed = async () => {
   const response = await api.get("/shops/products/nearby/");
+  return response.data;
+};
+
+export const fetchProductDetails = async (productId) => {
+  const response = await api.get(`/shops/products/${productId}/`);
   return response.data;
 };
 
@@ -170,14 +192,16 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-// --- FIX: Send 'content' as text to satisfy backend requirement ---
-export const addProductComment = async (productId, commentText, parentId = null) => {
+export const addProductComment = async (
+  productId,
+  commentText,
+  parentId = null
+) => {
   const payload = {
-    comment: commentText,
-    content: commentText, // Sending text here too, as backend demands 'content' field
-    parent: parentId
+    comment_text: commentText,
+    parent: parentId,
   };
-  
+
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
     payload
@@ -199,13 +223,17 @@ export const fetchContentComments = async (contentId) => {
   return response.data;
 };
 
-export const addContentComment = async (contentId, commentText, parentId = null) => {
+export const addContentComment = async (
+  contentId,
+  commentText,
+  parentId = null
+) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    { 
-      content: contentId, 
-      comment: commentText,
-      parent: parentId 
+    {
+      content: contentId,
+      comment_text: commentText,
+      parent: parentId,
     }
   );
   return response.data;
@@ -230,18 +258,36 @@ export const likeContent = async (contentId) => {
   return response.data;
 };
 
-// --- FIX: Use username endpoint with empty body ---
 export const followUser = async (username) => {
-  const response = await api.post(`/auth/follow/${encodeURIComponent(username)}/`, {});
+  const response = await api.post(
+    `/auth/follow/${encodeURIComponent(username)}/`,
+    {}
+  );
+  return response.data;
+};
+
+export const toggleFollowShop = async (shopId) => {
+  const response = await api.post(`/shops/${shopId}/toggle-follow/`, {});
   return response.data;
 };
 
 // --- Messaging ---
 
-export const sendMessage = async ({ recipientId, content }) => {
-  const response = await api.post("/messages/", {
+export const sendMessage = async ({
+  recipientId,
+  content,
+  productId = null,
+}) => {
+  const payload = { recipient: recipientId, content };
+  if (productId) payload.product_id = productId;
+
+  const response = await api.post("/messages/", payload);
+  return response.data;
+};
+
+export const shareProductToChat = async (productId, recipientId) => {
+  const response = await api.post(`/messages/share/${productId}/`, {
     recipient: recipientId,
-    content,
   });
   return response.data;
 };
@@ -303,6 +349,20 @@ export const checkPaymentStatus = async (orderId) => {
 
 export const verifyPaymentPassword = async (password) => {
   const response = await api.post("/user/verify-password", { password });
+  return response.data;
+};
+
+// --- Wallet ---
+
+export const fetchWallet = async () => {
+  const response = await api.get("/wallet/me/");
+  return response.data;
+};
+
+export const topUpWallet = async (amountNaira) => {
+  const response = await api.post("/wallet/topup/", {
+    amount_naira: amountNaira,
+  });
   return response.data;
 };
 
