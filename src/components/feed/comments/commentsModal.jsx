@@ -12,17 +12,25 @@ import CommentItem from "../comments/commentItem";
 import { CommentSkeleton } from "../../common/skeletons";
 import { useNavigate } from "react-router-dom";
 
+// Helper to count comments and nested replies recursively
+const countNodes = (nodes) => {
+  if (!Array.isArray(nodes)) return 0;
+  return nodes.reduce((acc, node) => {
+    return acc + 1 + countNodes(node.replies);
+  }, 0);
+};
+
 const CommentsModal = ({
   isOpen,
   onClose,
   postId,
   itemType,
   totalComments,
+  onCommentCountUpdate, // NEW: Prop to sync count back to FeedItem
 }) => {
   const dispatch = useDispatch();
   const textareaRef = useRef(null);
 
-  // Get both auth status and user data
   const { user_data: currentUser, isAuthenticated } = useSelector(
     (state) => state.auth
   );
@@ -53,6 +61,17 @@ const CommentsModal = ({
     }
   }, [isOpen, dispatch]);
 
+  // NEW: Sync the real count to the parent component
+  useEffect(() => {
+    if (commentsStatus === "succeeded" || comments.length > 0) {
+      const realCount = countNodes(comments);
+      // Only update if it's different to prevent loops, or blindly update if simple
+      if (onCommentCountUpdate) {
+        onCommentCountUpdate(realCount);
+      }
+    }
+  }, [comments, commentsStatus, onCommentCountUpdate]);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -80,7 +99,6 @@ const CommentsModal = ({
     e.preventDefault();
     const trimmedText = commentText.trim();
 
-    // Check Authentication First
     if (!isAuthenticated) {
       alert("Please log in to comment.");
       navigate("/login");
@@ -100,7 +118,6 @@ const CommentsModal = ({
 
     const newComment = {
       id: `local_${Date.now()}`,
-      // Safe Fallbacks for User Data
       user: currentUser?.name || currentUser?.username || "User",
       userpic: currentUser?.userpic || currentUser?.profile_pic || null,
       text: finalCommentText,
@@ -113,6 +130,7 @@ const CommentsModal = ({
       replyingTo: replyTarget ? replyTarget.user : null,
     };
 
+    // Redux update is synchronous, so the useEffect above will catch the change
     dispatch(addLocalComment(newComment));
 
     try {
@@ -146,7 +164,9 @@ const CommentsModal = ({
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
-                {totalComments} comments
+                {/* Use the dynamically calculated total from comments if available, else fallback */}
+                {comments.length > 0 ? countNodes(comments) : totalComments}{" "}
+                comments
               </h2>
               <button
                 onClick={onClose}
@@ -156,9 +176,8 @@ const CommentsModal = ({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {commentsStatus === "loading" && (
+              {commentsStatus === "loading" && comments.length === 0 && (
                 <>
-                  <CommentSkeleton />
                   <CommentSkeleton />
                   <CommentSkeleton />
                   <CommentSkeleton />
@@ -169,7 +188,7 @@ const CommentsModal = ({
                   Be the first to comment!
                 </p>
               )}
-              {commentsStatus === "succeeded" &&
+              {comments.length > 0 &&
                 comments.map((comment) => (
                   <CommentItem
                     key={comment.id}
@@ -207,7 +226,6 @@ const CommentsModal = ({
               )}
               <div className="flex items-end space-x-2">
                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                  {/* Display current user's avatar if available */}
                   {currentUser?.profile_pic && (
                     <img
                       src={currentUser.profile_pic}

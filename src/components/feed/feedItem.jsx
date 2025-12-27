@@ -8,24 +8,32 @@ import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
-import { likeProduct, likeContent, followUser } from "../../services/api";
+import {
+  likeProduct,
+  likeContent,
+  followUser,
+  fetchProductComments,
+  fetchContentComments,
+} from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
-const formatCount = (num) => {
-  const n = Number(num);
-  if (isNaN(n)) return 0;
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+const formatCount = (num) =>
+  num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
+
+// Helper to count deep nodes (replies)
+const countNodes = (nodes) => {
+  if (!Array.isArray(nodes)) return 0;
+  return nodes.reduce((acc, node) => {
+    return acc + 1 + countNodes(node.replies);
+  }, 0);
 };
 
 const FeedItem = ({ post, onVideoInit }) => {
   const mediaRef = useRef(null);
-  const navigate = useNavigate();
-  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!post.user_id && !post.userId && !post.shop) {
-      // Optional: Log warning if needed, keeping silent for UI cleanliness
-      // console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}`);
+    if (!post.user_id && !post.userId) {
+      // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
   }, [post]);
 
@@ -52,39 +60,63 @@ const FeedItem = ({ post, onVideoInit }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-
-  // Parse fields safely as API might return strings ("true"/"false")
-  const [isLiked, setIsLiked] = useState(
-    post.is_liked === "true" || post.is_liked === true
-  );
-  const [isFollowed, setIsFollowed] = useState(
-    post.is_followed === "true" || post.is_followed === true
-  );
+  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
 
   const [likeCount, setLikeCount] = useState(
     Number(post.like_count || post.likes_count || post.likes || 0)
   );
 
-  const commentCount = Number(
-    post.comment_count || post.comments_count || post.comments || 0
+  const [commentCount, setCommentCount] = useState(
+    Number(post.comment_count || post.comments_count || post.comments || 0)
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  // Logic to determine display name and link
-  const displayUsername =
-    post.shop_name || post.username || post.user || "Unknown";
+  const navigate = useNavigate();
+  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
-  // Prefer Shop ID if available for navigation, else User ID
-  const navigationId = post.shop || post.user_id || post.userId;
-  const profileLink = post.shop
-    ? `/shop/${post.shop}`
-    : `/profile/${navigationId}`;
+  const displayUsername = post.username || post.user || "Unknown User";
+  const profileId = post.user_id || post.userId;
+  const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
+
+  // --- NEW: Fetch real comment count on mount ---
+  useEffect(() => {
+    let isMounted = true;
+    const loadRealCount = async () => {
+      try {
+        let data;
+        if (isProduct) {
+          data = await fetchProductComments(post.id);
+        } else {
+          data = await fetchContentComments(post.id);
+        }
+
+        // Handle different API response structures (array or object with results)
+        const commentsList = Array.isArray(data) ? data : data.results || [];
+
+        if (isMounted) {
+          // Calculate total including nested replies
+          const total = countNodes(commentsList);
+          setCommentCount(total);
+        }
+      } catch (err) {
+        console.error("Failed to fetch comment count silently:", err);
+      }
+    };
+
+    // Only fetch if we suspect the initial count might be stale (or always, to be safe)
+    loadRealCount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [post.id, isProduct]);
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
@@ -97,7 +129,7 @@ const FeedItem = ({ post, onVideoInit }) => {
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsLiked = isLiked;
-      const previousLikeCount = likeCount;
+      const previousLikeCount = Number(likeCount);
 
       setIsLiked(!previousIsLiked);
       setLikeCount(
@@ -128,9 +160,8 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const { mutate: toggleFollow } = useMutation({
     mutationFn: async () => {
-      // Default to following by username/identifier
-      if (post.username || post.user_username) {
-        return followUser(post.username || post.user_username);
+      if (profileId) {
+        return followUser(displayUsername);
       }
       return followUser(displayUsername);
     },
@@ -142,7 +173,7 @@ const FeedItem = ({ post, onVideoInit }) => {
     },
     onError: (err, variables, context) => {
       if (context) setIsFollowed(context.previousIsFollowed);
-      // alert("Follow failed. Please try again later.");
+      alert("Follow failed. Please try again later.");
     },
   });
 
@@ -180,10 +211,10 @@ const FeedItem = ({ post, onVideoInit }) => {
 
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
-    if (navigationId) {
-      navigate(`/chat/${navigationId}`);
+    if (profileId) {
+      navigate(`/chat/${profileId}`);
     } else {
-      alert("Cannot message this user (Missing ID)");
+      alert("Cannot message this user (Missing User ID)");
     }
   };
 
@@ -246,7 +277,7 @@ const FeedItem = ({ post, onVideoInit }) => {
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
-                    src={post.userpic || post.image || "/profile-icon.svg"}
+                    src={post.userpic || "/profile-icon.svg"}
                     alt={displayUsername}
                     className="w-full h-full object-contain"
                   />
@@ -371,6 +402,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             postId={post.id}
             itemType={isProduct ? "product" : "content"}
             totalComments={commentCount}
+            onCommentCountUpdate={(newCount) => setCommentCount(newCount)}
           />
         )}
 
