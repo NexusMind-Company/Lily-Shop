@@ -14,6 +14,14 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
   const initials = getInitials(comment.user);
   const hasReplies = comment.replies && comment.replies.length > 0;
 
+  // Handle various potential API field names for the comment body
+  const commentBody =
+    comment.text ||
+    comment.comment ||
+    comment.comment_text ||
+    comment.content ||
+    "";
+
   const handleReplyClick = (e) => {
     e.stopPropagation();
     onReply({ user: comment.user, id: comment.id });
@@ -49,7 +57,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
                 @{comment.replyingTo}
               </span>
             )}
-            {comment.comment}
+            {commentBody}
           </p>
         </div>
 
@@ -66,7 +74,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
               alt="Likes"
               className="w-3 h-3"
             />
-            <span>{comment.likes}</span>
+            <span>{comment.likes || 0}</span>
           </span>
         </div>
 
@@ -90,9 +98,9 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
             </button>
             {showReplies && (
               <div className="mt-2 space-y-1">
-                {comment.replies.map((reply) => (
+                {comment.replies.map((reply, index) => (
                   <CommentItem
-                    key={reply.id}
+                    key={reply.id ? String(reply.id) : `reply-${index}`}
                     comment={reply}
                     onReply={onReply}
                     isReply={true}

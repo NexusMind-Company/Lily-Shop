@@ -106,7 +106,6 @@ api.interceptors.response.use(
 // --- Auth & Profile ---
 
 export const fetchUserProfile = async () => {
-  // Matched to documentation: GET /auth/profile/
   const response = await api.get("/auth/profile/");
   return response.data;
 };
@@ -133,7 +132,7 @@ export const updateProfilePic = async (imageFile) => {
     formData,
     {
       headers: {
-        "Content-Type": undefined, // Let browser set multipart/form-data
+        "Content-Type": undefined,
       },
     }
   );
@@ -145,31 +144,26 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- Shops (For View Counts & Navigation) ---
+// --- Shops ---
 
-// Gets shop details including 'visit_count' and 'active_ads'
 export const fetchShopDetails = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/`);
   return response.data;
 };
 
-// Gets all products for a specific shop
 export const fetchShopProducts = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/products/`);
   return response.data;
 };
 
-// --- Feed & Products (For Likes/Comments Counts) ---
+// --- Feed & Products ---
 
-// Main Feed ("For You") - Updated to /shops/home/
 export const fetchFeed = async () => {
   const response = await api.get("/shops/feed/");
   return response.data;
 };
 
-// Global Product Search/List
 export const fetchProducts = async (params = {}) => {
-  // params can include: search, ordering, is_post, page
   const response = await api.get("/shops/products/", { params });
   return response.data;
 };
@@ -179,7 +173,6 @@ export const fetchNearbyFeed = async () => {
   return response.data;
 };
 
-// Get Single Product (Includes 'like_count', 'comments', 'shop' UUID)
 export const fetchProductDetails = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/`);
   return response.data;
@@ -199,15 +192,13 @@ export const fetchProductComments = async (productId) => {
   return response.data;
 };
 
-// Added support for parentId to handle nested comments if supported
 export const addProductComment = async (
   productId,
   commentText,
   parentId = null
 ) => {
   const payload = {
-    comment: commentText,
-    content: commentText, // Sending text here too, as backend demands 'content' field sometimes
+    comment_text: commentText,
     parent: parentId,
   };
 
@@ -225,7 +216,7 @@ export const deleteProductComment = async (commentId) => {
   return response.data;
 };
 
-// --- Content Comments (Legacy support if you separate Content/Products) ---
+// --- Content Comments ---
 
 export const fetchContentComments = async (contentId) => {
   const response = await api.get(`/shops/contents/${contentId}/comments/`);
@@ -241,7 +232,7 @@ export const addContentComment = async (
     `/shops/contents/${contentId}/comment-create/`,
     {
       content: contentId,
-      comment: commentText,
+      comment_text: commentText,
       parent: parentId,
     }
   );
@@ -268,7 +259,6 @@ export const likeContent = async (contentId) => {
 };
 
 export const followUser = async (username) => {
-  // The API supports following by username
   const response = await api.post(
     `/auth/follow/${encodeURIComponent(username)}/`,
     {}
@@ -289,14 +279,13 @@ export const sendMessage = async ({
   productId = null,
 }) => {
   const payload = { recipient: recipientId, content };
-  if (productId) payload.product_id = productId; // Support sharing product via DM
+  if (productId) payload.product_id = productId;
 
   const response = await api.post("/messages/", payload);
   return response.data;
 };
 
 export const shareProductToChat = async (productId, recipientId) => {
-  // Dedicated endpoint for sharing, if preferred over generic message
   const response = await api.post(`/messages/share/${productId}/`, {
     recipient: recipientId,
   });
@@ -340,7 +329,7 @@ export const createOrder = async ({
   const response = await api.post("/orders/create/", {
     items,
     total_amount_kobo,
-    payment_method, // 'wallet' or 'paystack'
+    payment_method,
   });
   return response.data;
 };
