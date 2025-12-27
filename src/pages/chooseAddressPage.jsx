@@ -1,9 +1,9 @@
 import ChooseAddress from "../components/address/chooseAddress"
 
-const chooseAddressPage = () => {
+const ChooseAddressPage = () => {
   return (
     <ChooseAddress/>
   )
 }
 
-export default chooseAddressPage
+export default ChooseAddressPage
