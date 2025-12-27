@@ -66,7 +66,7 @@ import FeedProductDetails from "./pages/feedProductDetails";
 import Cart from "./pages/cart";
 import ReceiptPage from "./pages/reciept";
 import WalletCallbackPage from "./pages/wallet-callback";
-import ChooseAddressPage from "./pages/ChooseAddressPage.jsx";
+import ChooseAddressPage from "./pages/chooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
