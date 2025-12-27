@@ -66,7 +66,7 @@ import FeedProductDetails from "./pages/feedProductDetails";
 import Cart from "./pages/cart";
 import ReceiptPage from "./pages/reciept";
 import WalletCallbackPage from "./pages/wallet-callback";
-import ChooseAddressPage from "./pages/ChooseAddressPage";
+import ChooseAddressPage from "./pages/ChooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
@@ -190,7 +190,7 @@ export default function App() {
           <Route path="/add-address" element={<AddAddressPage />} />
           <Route path="/choose-pickup" element={<PickupAddressPage />} />
           <Route path="/choose-card" element={<ChooseCardPage />} />
-          <Route path="/order-summary" element={<OrderSummaryPage/>}/>
+          <Route path="/order-summary" element={<OrderSummaryPage />} />
           {/* <Route path="/add-card" element={<AddCardPage />} /> */}
           <Route path="/password" element={<PasswordModalPage />} />
           <Route path="/bank-transfer" element={<BankTransferPage />} />
