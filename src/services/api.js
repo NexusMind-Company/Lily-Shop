@@ -106,7 +106,7 @@ api.interceptors.response.use(
 // --- Auth & Profile ---
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/");
+  const response = await api.get("/auth/profile/me/");
   return response.data;
 };
 
