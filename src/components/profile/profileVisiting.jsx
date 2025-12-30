@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProfile } from "../../redux/profileSlice";
+import { useSelector } from "react-redux";
+import { fetchPublicProfile, followUser } from "../../services/api";
 import {
   Grid,
   Megaphone,
@@ -18,15 +18,78 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dispatch = useDispatch();
+  const [data, setData] = useState(null); // Replaced Redux state with local state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false); // Local follow state
+
   const navigate = useNavigate();
   const { username } = useParams();
-
-  const { data, loading, error } = useSelector((state) => state.profile);
+  
+  // Access logged-in user to prevent self-visiting
+  const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchProfile(username)); // fetch another user’s profile
-  }, [dispatch, username]);
+    // 1. Redirect if visiting own profile
+    if (user_data) {
+      if (String(user_data.id) === String(username) || user_data.username === username) {
+        navigate("/profile");
+        return;
+      }
+    }
+
+    // 2. Fetch public profile logic
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchPublicProfile(username);
+        
+        // Normalize data to match your design's expected structure
+        // We ensure 'products' is populated so the Grid works
+        const normalizedData = {
+          user: {
+            ...result, // Flatten user details if they are at root
+            ...result.user, // Or merge if nested
+            full_name: result.full_name || result.user?.full_name || result.username || "User",
+            username: result.username || result.user?.username,
+            profile_pic: result.profile_pic || result.user?.profile_pic,
+            bio: result.bio || result.user?.bio,
+            followers_count: result.follower_count || result.followers_count || 0,
+            following_count: result.following_count || 0,
+          },
+          // Map API's posts/products to 'products' for your Grid
+          products: result.products || result.posts || result.user?.products || [], 
+        };
+
+        setData(normalizedData);
+        // Set initial follow status if available in response
+        setIsFollowing(result.is_following || false);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load profile");
+        setLoading(false);
+      }
+    };
+
+    if (username) {
+      loadData();
+    }
+  }, [username, user_data, navigate]);
+
+  const handleFollow = async () => {
+    if (!data?.user?.username) return;
+    
+    // Optimistic UI update
+    setIsFollowing(!isFollowing);
+    
+    try {
+      await followUser(data.user.username);
+    } catch (err) {
+      console.error("Follow failed", err);
+      setIsFollowing(!isFollowing); // Revert on error
+    }
+  };
 
   if (loading)
     return (
@@ -62,18 +125,19 @@ const ProfileVisiting = () => {
     return (
       <div className="grid grid-cols-3 gap-3 my-2 px-4">
         {posts.map((post, i) => (
-          <div key={i} className="relative rounded-lg overflow-hidden">
+          // Added Link wrapper to make posts clickable if needed, or keep div
+          <div key={i} className="relative rounded-lg overflow-hidden aspect-square">
             <img
-              src={post.image || "/placeholder.png"}
+              src={post.image || post.images?.[0]?.image || "/placeholder.png"}
               alt="Post"
-              className="w-full aspect-square object-cover bg-black"
+              className="w-full h-full object-cover bg-black"
             />
-            {post.is_video && (
+            {(post.is_video || post.video) && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                 <Play size={28} className="text-white" />
               </div>
             )}
-            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs shadow-black drop-shadow-md">
               <Eye size={15} className="mr-1" /> {post.views || 0}
             </div>
           </div>
@@ -157,14 +221,14 @@ const ProfileVisiting = () => {
       <div className="mt-6 px-4">
         <div className="flex gap-2 items-center">
           <img
-            src={user.profile_pic || "/avatar.png"}
+            src={user.profile_pic || "/user.png"}
             alt="Profile"
-            className="w-20 h-20 rounded-full mb-2 object-cover"
+            className="w-20 h-20 rounded-full mb-2 object-cover border border-gray-100"
           />
           <div>
-            <h3 className="font-semibold">{user.full_name || "Unnamed User"}</h3>
+            <h3 className="font-semibold">{user.full_name || "User"}</h3>
             <p className="text-gray-500 text-sm">
-              @{user.username || user.email?.split("@")[0] || "unknown"}
+              @{user.username || "unknown"}
             </p>
           </div>
         </div>
@@ -195,9 +259,18 @@ const ProfileVisiting = () => {
             </Link>
           </div>
           <div className="flex gap-4 items-center">
-            <button className="border-2 font-bold text-lg bg-lily text-white px-6 py-2 rounded-full">
-              Follow
+            {/* Logic integrated into your styling */}
+            <button 
+              onClick={handleFollow}
+              className={`border-2 font-bold text-lg px-6 py-2 rounded-full transition-colors ${
+                isFollowing 
+                  ? "bg-white text-lily border-lily" 
+                  : "bg-lily text-white border-transparent"
+              }`}
+            >
+              {isFollowing ? "Following" : "Follow"}
             </button>
+            
             <Link to="/messages">
               <MessageSquareText size={40} className="text-red-500" />
             </Link>
