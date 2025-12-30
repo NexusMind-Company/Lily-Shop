@@ -5,40 +5,53 @@ import { fetchProfile, resetProfile } from "./profileSlice";
 // --- LOGIN USER ---
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ login, password }, { dispatch, rejectWithValue }) => {
+  async (credentials, { dispatch, rejectWithValue }) => {
     try {
-      const response = await api.post("/auth/login/", { login, password });
-      const data = response.data;
-      // console.log(" Login response:", data);
+      // 1. Construct the exact payload the backend expects: "login" and "password"
+      // We accept input from UI as 'login', 'email', or 'username' and map it to 'login'
+      const payload = {
+        login: credentials.login || credentials.email || credentials.username,
+        password: credentials.password,
+      };
 
-      // ---- Save tokens ----
+      // console.log("Logging in with payload:", payload);
+
+      const response = await api.post("/auth/login/", payload);
+      const data = response.data;
+
+      // 2. Save Tokens
       if (data.access && data.refresh) {
         setAuthTokens({ access: data.access, refresh: data.refresh });
       } else if (data.token?.access && data.token?.refresh) {
-        // Some backends nest tokens under "token"
         setAuthTokens({
           access: data.token.access,
           refresh: data.token.refresh,
         });
       } else if (data.token) {
-        // fallback single token (older API)
         setAuthTokens({ access: data.token, refresh: data.token });
       }
 
-      // ---- Save user info (if returned) ----
+      // 3. Save User Data (if provided)
       if (data.user) {
         localStorage.setItem("user_data", JSON.stringify(data.user));
       }
 
-      // Fetch authenticated profile after login
+      // 4. Fetch full profile to ensure Redux state is complete
       await dispatch(fetchProfile());
 
       return data;
     } catch (error) {
+      console.error("Login Error:", error.response?.data);
+
       const errMsg =
         error.response?.data?.detail ||
         error.response?.data?.message ||
+        error.response?.data?.non_field_errors?.[0] ||
+        // If the backend returns field-specific errors, grab the first one
+        error.response?.data?.login?.[0] ||
+        error.response?.data?.password?.[0] ||
         "Login failed. Please check your credentials.";
+
       return rejectWithValue(errMsg);
     }
   }
@@ -116,7 +129,6 @@ const authSlice = createSlice({
   },
 });
 
-// --- HELPER THUNKS ---
 export const handleLogin = (userData) => (dispatch) => {
   dispatch(loginSuccess({ user_data: userData }));
   dispatch(fetchProfile());
@@ -127,6 +139,5 @@ export const handleLogout = () => (dispatch) => {
   dispatch(resetProfile());
 };
 
-// --- EXPORTS ---
 export const { loginSuccess, logout } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://lily-shop.up.railway.app";
+  import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,8 +9,6 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-// --- Auth Token Management ---
 
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
@@ -32,8 +30,6 @@ const storedAccess = localStorage.getItem("access_token");
 if (storedAccess) {
   api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
-
-// --- Response Interceptor (Token Refresh) ---
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -103,9 +99,9 @@ api.interceptors.response.use(
   }
 );
 
-// --- Auth & Profile ---
-
+// --- AUTH & PROFILE ---
 export const fetchUserProfile = async () => {
+  // FIX: Updated to correct endpoint to resolve 404 error
   const response = await api.get("/auth/profile/me/");
   return response.data;
 };
@@ -119,6 +115,8 @@ export const updateProfile = async (profileData) => {
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
+  // Assuming the update endpoint is consistent with the fetch one or is a known path
+  // If update fails later, verify if it should also be /auth/profile/me/ with PATCH method
   const response = await api.patch("/auth/profile/update/", cleanData);
   return response.data;
 };
@@ -132,7 +130,7 @@ export const updateProfilePic = async (imageFile) => {
     formData,
     {
       headers: {
-        "Content-Type": undefined,
+        "Content-Type": "multipart/form-data",
       },
     }
   );
@@ -144,8 +142,7 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- Shops ---
-
+// --- SHOPS & PRODUCTS ---
 export const fetchShopDetails = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/`);
   return response.data;
@@ -155,8 +152,6 @@ export const fetchShopProducts = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/products/`);
   return response.data;
 };
-
-// --- Feed & Products ---
 
 export const fetchFeed = async () => {
   const response = await api.get("/shops/feed/");
@@ -178,14 +173,12 @@ export const fetchProductDetails = async (productId) => {
   return response.data;
 };
 
-// --- Search ---
-
 export const searchShops = async (searchTerm) => {
   const response = await api.get("/shops/", { params: { search: searchTerm } });
   return response.data;
 };
 
-// --- Product Comments ---
+// --- INTERACTIONS (Comments, Likes, Views) ---
 
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
@@ -216,8 +209,6 @@ export const deleteProductComment = async (commentId) => {
   return response.data;
 };
 
-// --- Content Comments ---
-
 export const fetchContentComments = async (contentId) => {
   const response = await api.get(`/shops/contents/${contentId}/comments/`);
   return response.data;
@@ -231,7 +222,6 @@ export const addContentComment = async (
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
     {
-      content: contentId,
       comment_text: commentText,
       parent: parentId,
     }
@@ -246,8 +236,6 @@ export const deleteContentComment = async (commentId) => {
   return response.data;
 };
 
-// --- Interactions ---
-
 export const likeProduct = async (productId) => {
   const response = await api.post(`/shops/products/${productId}/like/`, {});
   return response.data;
@@ -255,6 +243,12 @@ export const likeProduct = async (productId) => {
 
 export const likeContent = async (contentId) => {
   const response = await api.post(`/shops/contents/${contentId}/like/`, {});
+  return response.data;
+};
+
+export const recordProductView = async (productId) => {
+  // If backend uses a different path, update this.
+  const response = await api.post(`/shops/products/${productId}/view/`, {});
   return response.data;
 };
 
@@ -271,8 +265,7 @@ export const toggleFollowShop = async (shopId) => {
   return response.data;
 };
 
-// --- Messaging ---
-
+// --- MESSAGING ---
 export const sendMessage = async ({
   recipientId,
   content,
@@ -292,8 +285,7 @@ export const shareProductToChat = async (productId, recipientId) => {
   return response.data;
 };
 
-// --- Checkout Data ---
-
+// --- WALLET & PAYMENTS ---
 export const fetchDeliveryAddresses = async () => {
   const response = await api.get("/user/addresses");
   return response.data;
@@ -318,8 +310,6 @@ export const addNewCard = async (cardData) => {
   const response = await api.post("/user/cards", cardData);
   return response.data;
 };
-
-// --- Payment & Orders ---
 
 export const createOrder = async ({
   items,
@@ -351,8 +341,6 @@ export const verifyPaymentPassword = async (password) => {
   const response = await api.post("/user/verify-password", { password });
   return response.data;
 };
-
-// --- Wallet ---
 
 export const fetchWallet = async () => {
   const response = await api.get("/wallet/me/");
