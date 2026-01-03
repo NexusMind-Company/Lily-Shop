@@ -101,7 +101,6 @@ api.interceptors.response.use(
 
 // --- AUTH & PROFILE ---
 export const fetchUserProfile = async () => {
-  // FIX: Updated to correct endpoint to resolve 404 error
   const response = await api.get("/auth/profile/me/");
   return response.data;
 };
@@ -115,8 +114,6 @@ export const updateProfile = async (profileData) => {
   const cleanData = Object.fromEntries(
     Object.entries(profileData).filter(([_, v]) => v != null)
   );
-  // Assuming the update endpoint is consistent with the fetch one or is a known path
-  // If update fails later, verify if it should also be /auth/profile/me/ with PATCH method
   const response = await api.patch("/auth/profile/update/", cleanData);
   return response.data;
 };
@@ -125,7 +122,7 @@ export const updateProfilePic = async (imageFile) => {
   const formData = new FormData();
   formData.append("profile_pic", imageFile);
 
-  const response = await api.put(
+  const response = await api.patch(
     "/auth/profile/update-profile-pic/",
     formData,
     {
@@ -163,6 +160,13 @@ export const fetchProducts = async (params = {}) => {
   return response.data;
 };
 
+// --- Fetch Liked Products ---
+export const fetchLikedProducts = async () => {
+  const response = await api.get("/shops/my-liked-products/");
+  return response.data;
+};
+// ------------------------------------------
+
 export const fetchNearbyFeed = async () => {
   const response = await api.get("/shops/products/nearby/");
   return response.data;
@@ -178,8 +182,7 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
-// --- INTERACTIONS (Comments, Likes, Views) ---
-
+// --- INTERACTIONS ---
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
@@ -247,7 +250,6 @@ export const likeContent = async (contentId) => {
 };
 
 export const recordProductView = async (productId) => {
-  // If backend uses a different path, update this.
   const response = await api.post(`/shops/products/${productId}/view/`, {});
   return response.data;
 };
