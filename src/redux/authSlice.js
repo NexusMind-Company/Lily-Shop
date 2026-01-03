@@ -7,19 +7,20 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
-      // 1. Construct the exact payload the backend expects: "login" and "password"
-      // We accept input from UI as 'login', 'email', or 'username' and map it to 'login'
+      // FIX: STRICT PAYLOAD.
+      // The backend ONLY accepts 'login' and 'password'.
+      // Any extra fields (like 'email' or 'username') will cause a 400 Bad Request.
       const payload = {
         login: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
       };
 
-      // console.log("Logging in with payload:", payload);
+      console.log("Sending Login Payload:", payload); // Debugging log
 
       const response = await api.post("/auth/login/", payload);
       const data = response.data;
 
-      // 2. Save Tokens
+      // ---- Save tokens ----
       if (data.access && data.refresh) {
         setAuthTokens({ access: data.access, refresh: data.refresh });
       } else if (data.token?.access && data.token?.refresh) {
@@ -31,23 +32,27 @@ export const loginUser = createAsyncThunk(
         setAuthTokens({ access: data.token, refresh: data.token });
       }
 
-      // 3. Save User Data (if provided)
+      // ---- Save user info ----
       if (data.user) {
         localStorage.setItem("user_data", JSON.stringify(data.user));
       }
 
-      // 4. Fetch full profile to ensure Redux state is complete
-      await dispatch(fetchProfile());
+      // Fetch full profile safely
+      try {
+        await dispatch(fetchProfile());
+      } catch (err) {
+        console.warn("Profile fetch failed after login:", err);
+      }
 
       return data;
     } catch (error) {
-      console.error("Login Error:", error.response?.data);
+      console.error("Login Error Detail:", error.response?.data);
 
       const errMsg =
         error.response?.data?.detail ||
         error.response?.data?.message ||
+        // Capture 'non_field_errors' which is common for "Invalid credentials"
         error.response?.data?.non_field_errors?.[0] ||
-        // If the backend returns field-specific errors, grab the first one
         error.response?.data?.login?.[0] ||
         error.response?.data?.password?.[0] ||
         "Login failed. Please check your credentials.";
@@ -112,7 +117,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.isAuthenticated = true;
-        state.user_data = action.payload.user || null;
+        state.user_data = action.payload.user || state.user_data || null;
 
         if (action.payload.user) {
           localStorage.setItem(
