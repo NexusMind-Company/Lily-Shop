@@ -1,122 +1,48 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchShops } from "../../redux/shopSlice";
+import { searchProducts } from "../../redux/searchSlice";
 import SkeletonLoader from "../loaders/skeletonLoader";
+import { Heart } from "lucide-react";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
-  const [results, setResults] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [imageLoading, setImageLoading] = useState({});
-
-  const { shops, status } = useSelector((state) => state.shops);
   const dispatch = useDispatch();
 
+  // Select results from the new search slice
+  const { results, status } = useSelector((state) => state.search);
+  const [imageLoading, setImageLoading] = useState({});
+
   const searchQuery = searchParams.get("q") || "";
-  const categoryQuery = searchParams.get("category") || "";
 
+  // Dispatch the product search when the query changes
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchShops());
-    }
-  }, [status, dispatch]);
-
-  useEffect(() => {
-    if (categoryQuery) {
-      setSelectedCategory(categoryQuery);
-    } else {
-      setSelectedCategory("");
-    }
-  }, [categoryQuery]);
-
-  useEffect(() => {
-    if (!shops || Object.keys(shops).length === 0) {
-      setResults([]);
-      return;
-    }
-
-    let combinedShops = [];
-
-    if (Array.isArray(shops)) {
-      combinedShops = shops.map((shop) => ({
-        ...shop,
-        isSponsored: false,
-      }));
-    } else if (typeof shops === "object") {
-      const sponsoredShops = Array.isArray(shops.sponsored_shops)
-        ? shops.sponsored_shops.map((shop) => ({ ...shop, isSponsored: true }))
-        : [];
-      const forYouShops = Array.isArray(shops.for_you)
-        ? shops.for_you.map((shop) => ({ ...shop, isSponsored: false }))
-        : [];
-      combinedShops = [...sponsoredShops, ...forYouShops];
-    }
-
-    let filteredResults = [...combinedShops];
-
     if (searchQuery) {
-      filteredResults = filteredResults.filter(
-        (shop) =>
-          shop.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shop.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shop.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shop.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (shop.products &&
-            Array.isArray(shop.products) &&
-            shop.products.some((product) =>
-              product.name?.toLowerCase().includes(searchQuery.toLowerCase())
-            )) ||
-          (shop.tags &&
-            Array.isArray(shop.tags) &&
-            shop.tags.some((tag) =>
-              tag.toLowerCase().includes(searchQuery.toLowerCase())
-            ))
-      );
+      dispatch(searchProducts(searchQuery));
     }
+  }, [searchQuery, dispatch]);
 
-    const categoryFilter = categoryQuery || selectedCategory;
-    if (categoryFilter) {
-      filteredResults = filteredResults.filter(
-        (shop) => shop.category?.toLowerCase() === categoryFilter.toLowerCase()
-      );
-    }
-
-    setResults(filteredResults);
-  }, [searchQuery, categoryQuery, selectedCategory, shops]);
-
-  const handleImageLoad = (shopId) => {
+  const handleImageLoad = (id) => {
     setImageLoading((prev) => ({
       ...prev,
-      [shopId]: false,
+      [id]: false,
     }));
   };
 
   if (status === "loading") {
     return (
-      <section className="mt-28 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
+      <section className="mt-28 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-6xl mx-auto overflow-hidden">
         <div className="flex flex-col items-start gap-1">
           <div className="text-sm">
-            <Link to="/" className="pr-0.5 hover:underline">
+            <Link to="/" className="pr-0.5 hover:underline text-gray-500">
               HOME
             </Link>
-            <span>/</span>
-            <Link
-              to="/searchResults"
-              className="text-lily pl-0.5 hover:underline"
-            >
-              RESULTS
-            </Link>
+            <span className="text-gray-400">/</span>
+            <span className="text-lily pl-0.5 font-medium">SEARCH</span>
           </div>
-          <div>
-            <h1 className="text-xs md:text-base font-medium font-inter text-left text-ash">
-              {searchQuery
-                ? `Search Results for "${searchQuery}"`
-                : categoryQuery
-                ? `Products in "${categoryQuery}"`
-                : "All Products"}
-            </h1>
-          </div>
+          <h1 className="text-lg md:text-xl font-semibold text-gray-800">
+            Searching for "{searchQuery}"...
+          </h1>
         </div>
         <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
           {Array.from({ length: 8 }).map((_, index) => (
@@ -128,91 +54,101 @@ const SearchResults = () => {
   }
 
   return (
-    <section className="mt-10 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
-      {/* Navigation */}
+    <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-6xl mx-auto overflow-hidden">
+      {/* Navigation & Header */}
       <div className="flex flex-col items-start gap-1">
         <div className="text-sm">
-          <Link to="/" className="pr-0.5 hover:underline">
+          <Link to="/" className="pr-0.5 hover:underline text-gray-500">
             HOME
           </Link>
-          <span>/</span>
-          <Link
-            to="/searchResults"
-            className="text-lily pl-0.5 hover:underline"
-          >
-            RESULTS
-          </Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-lily pl-0.5 font-medium">RESULTS</span>
         </div>
-
-        {/* Title */}
         <div>
-          <h1 className="text-xs md:text-base font-medium font-inter text-left text-ash">
-            {searchQuery
-              ? `Search Results for "${searchQuery}"`
-              : categoryQuery
-              ? `Products in "${categoryQuery}"`
-              : "All Products"}
+          <h1 className="text-lg md:text-xl font-semibold text-gray-800">
+            {results.length} results for "{searchQuery}"
           </h1>
         </div>
       </div>
 
+      {/* Results Grid */}
       {results.length === 0 ? (
-        <div className="text-center pb-10">
-          <p className="text-lg mb-4">
-            {searchQuery
-              ? `No products found matching "${searchQuery}"`
-              : categoryQuery
-              ? `No products found in category "${categoryQuery}"`
-              : "No products available"}
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="bg-gray-100 p-6 rounded-full mb-4">
+            <img
+              src="/icons/search.svg"
+              alt="Search"
+              className="w-12 h-12 opacity-40"
+            />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900">
+            No products found
+          </h3>
+          <p className="text-gray-500 max-w-md mt-2">
+            We couldn't find any products matching "{searchQuery}". Try
+            searching for different keywords.
           </p>
-          <Link to="/" className="text-lily hover:underline">
-            Return to homepage
+          <Link
+            to="/"
+            className="mt-6 px-6 py-2.5 bg-lily text-white rounded-full font-medium hover:bg-lily/90 transition-all"
+          >
+            Back to Feed
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 w-full">
-          {results.map((shop) => (
+          {results.map((product) => (
             <Link
-              to={`/shop/${shop.id}`}
-              key={shop.id}
-              className="flex flex-col gap-2 md:gap-3 w-full hover:shadow-lg hover:rounded-2xl hover:pb-3 transition-shadow duration-200"
+              to={`/product-details/${product.id}`}
+              key={product.id}
+              className="group block relative bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="w-full h-40 md:h-48 relative">
-                {imageLoading[shop.id] !== false && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg">
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  </div>
+              <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                {imageLoading[product.id] !== false && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <img
-                  className={`rounded-lg h-full w-full object-cover transition-opacity duration-300 ${
-                    imageLoading[shop.id] !== false
+                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                    imageLoading[product.id] !== false
                       ? "opacity-0"
                       : "opacity-100"
                   }`}
-                  src={shop.image_url}
-                  alt={shop.name}
-                  onLoad={() => handleImageLoad(shop.id)}
+                  src={
+                    Array.isArray(product.media)
+                      ? product.media[0]?.src
+                      : product.image_url || product.media || "/shop.png"
+                  }
+                  alt={product.name}
+                  onLoad={() => handleImageLoad(product.id)}
+                  onError={(e) => {
+                    e.target.src = "/shop.png";
+                  }}
                 />
-                {shop.isSponsored && (
-                  <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
-                    Ad
-                  </span>
+
+                {/* Like Count Overlay */}
+                {product.likes_count > 0 && (
+                  <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <Heart size={10} className="fill-white text-white" />
+                    {product.likes_count}
+                  </div>
                 )}
               </div>
-              <ul className="border-l-[2px] border-solid border-sun pl-2 font-inter">
-                <li className="text-sm text-[#4EB75E] font-bold font-poppins uppercase truncate">
-                  {shop.name}
-                </li>
-                <li className="text-xs text-gray-600 line-clamp-2">
-                  {shop.description}
-                </li>
-                <li className="text-xs font-normal truncate">{shop.address}</li>
-                <button className="text-xs underline text-lily hover:text-black">
-                  View Details
-                </button>
-              </ul>
+
+              <div className="p-3">
+                <h3 className="font-medium text-gray-900 truncate text-sm">
+                  {product.name || "Untitled Product"}
+                </h3>
+                <p className="text-xs text-gray-500 truncate mt-0.5">
+                  {product.description || "No description available"}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="font-bold text-lily text-sm">
+                    {product.price
+                      ? `₦${Number(product.price).toLocaleString()}`
+                      : "Price N/A"}
+                  </span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import ProfileVisiting from "../components/profile/profileOwner";
+import ProfileVisiting from "../components/profile/profileVisiting";
 import PageSEO from "../components/common/PageSEO";
 const Profile = () => {
   return (
