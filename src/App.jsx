@@ -78,6 +78,11 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import Feed from "./pages/feed";
 import OrderSummaryPage from "./pages/OrderSummaryPage.jsx";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
+import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
+import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
+import MealSelectionPage from "./pages/MealSelectionPage";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -197,6 +202,26 @@ export default function App() {
           <Route path="/payment-loading" element={<PaymentLoadingPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          <Route
+            path="/vendor-dashboard"
+            element={<VendorDashboard vendorId="example-vendor-id" />}
+          />
+          <Route
+            path="/subscriptions"
+            element={<VendorSubscriptionsOverview />}
+          />
+          <Route
+            path="/my-subscriptions"
+            element={<CustomerSubscriptionsPage />}
+          />
+          <Route
+            path="/vendor/:vendorId/subscribe"
+            element={<VendorSubscriptionPage />}
+          />
+          <Route
+            path="/meal-selection/:subscriptionId"
+            element={<MealSelectionPage />}
+          />
           {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>
