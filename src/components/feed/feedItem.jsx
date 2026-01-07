@@ -8,18 +8,23 @@ import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
-import { likeProduct, likeContent, followUser } from "../../services/api";
+import {
+  likeProduct,
+  likeContent,
+  followUser,
+  recordProductView, // New import
+} from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
-const FeedItem = ({ post, onVideoInit }) => {
+const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
 
   useEffect(() => {
     if (!post.user_id && !post.userId) {
-      console.warn(`[FeedItem] Warning: No UUID found for post ${post.id}. Follow feature disabled.`);
+      // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
   }, [post]);
 
@@ -48,12 +53,20 @@ const FeedItem = ({ post, onVideoInit }) => {
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
-  
+
   const [likeCount, setLikeCount] = useState(
-    post.like_count || post.likes_count || post.likes || 0
+    Number(post.like_count || post.likes_count || post.likes || 0)
   );
-  
-  const commentCount = post.comment_count || post.comments_count || post.comments || 0;
+
+  // FIX: Directly use the count from backend (No more auto-fetching!)
+  const [commentCount, setCommentCount] = useState(
+    Number(post.comment_count || post.comments_count || post.comments || 0)
+  );
+
+  // Initialize View Count from backend
+  const [viewCount, setViewCount] = useState(
+    Number(post.visit_count || post.views || 0)
+  );
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
@@ -63,11 +76,29 @@ const FeedItem = ({ post, onVideoInit }) => {
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
   const displayUsername = post.username || post.user || "Unknown User";
-  const profileId = post.user_id || post.userId; 
+  const profileId = post.user_id || post.userId;
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
+
+  // --- View Tracking Logic ---
+  useEffect(() => {
+    let timer;
+    if (isActive) {
+      // If user dwells for 2 seconds, count as a view
+      timer = setTimeout(() => {
+        // Optimistically update UI (optional)
+        // setViewCount((prev) => prev + 1);
+        
+        // Send signal to backend
+        recordProductView(post.id).catch((err) => {
+          // console.error("Failed to record view", err);
+        });
+      }, 2000);
+    }
+    return () => clearTimeout(timer);
+  }, [isActive, post.id]);
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
@@ -112,7 +143,7 @@ const FeedItem = ({ post, onVideoInit }) => {
   const { mutate: toggleFollow } = useMutation({
     mutationFn: async () => {
       if (profileId) {
-         return followUser(displayUsername); 
+        return followUser(displayUsername);
       }
       return followUser(displayUsername);
     },
@@ -124,7 +155,6 @@ const FeedItem = ({ post, onVideoInit }) => {
     },
     onError: (err, variables, context) => {
       if (context) setIsFollowed(context.previousIsFollowed);
-      alert("Follow failed. Please try again later.");
     },
   });
 
@@ -221,7 +251,6 @@ const FeedItem = ({ post, onVideoInit }) => {
         )}
       </AnimatePresence>
 
-      {/* LOWERED Z-INDEX TO 5 HERE */}
       <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
@@ -339,7 +368,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
-                {formatCount(post.views || 0)}
+                {formatCount(viewCount)}
               </span>
             </button>
           </div>
@@ -354,6 +383,7 @@ const FeedItem = ({ post, onVideoInit }) => {
             postId={post.id}
             itemType={isProduct ? "product" : "content"}
             totalComments={commentCount}
+            onCommentCountUpdate={(newCount) => setCommentCount(newCount)}
           />
         )}
 

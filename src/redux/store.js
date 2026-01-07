@@ -17,6 +17,7 @@ import activitiesReducer from "./activitySlice";
 import feedReducer from "./feedCommentSlice";
 import productContentReducer from "./productContentSlice";
 import funContentReducer from "./funContentSlice";
+import searchReducer from "./searchSlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -40,6 +41,7 @@ export const store = configureStore({
     wallet: walletReducer,
     orders: orderReducer,
     activities: activitiesReducer,
+    search: searchReducer,
   },
 });
 
