@@ -50,6 +50,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (originalRequest._isRefreshRequest) {
+      isRefreshing = false;
+      processQueue(error, null);
+      clearAuthTokens();
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -67,21 +77,26 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
+        isRefreshing = false;
         clearAuthTokens();
         if (!window.location.pathname.includes("/login")) {
           window.location.href = "/login";
         }
-        return Promise.reject("No refresh token");
+        return Promise.reject(new Error("No refresh token available"));
       }
 
       try {
-        const rs = await api.post("/auth/token/refresh/", {
-          refresh: refreshToken,
-        });
+        const rs = await api.post(
+          "/auth/token/refresh/",
+          { refresh: refreshToken },
+          { _isRefreshRequest: true }
+        );
 
         const { access } = rs.data;
         setAuthTokens({ access });
+
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
+
         processQueue(null, access);
         return api(originalRequest);
       } catch (refreshError) {
