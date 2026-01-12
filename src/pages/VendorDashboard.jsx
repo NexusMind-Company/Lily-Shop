@@ -90,7 +90,7 @@ const VendorDashboard = ({ vendorId }) => {
 
   const handleEditProfile = () => {
     // Navigate to edit profile page
-    navigate("/edit-profile");
+    navigate("/editProfile");
   };
 
   const handleManagePlans = () => {
