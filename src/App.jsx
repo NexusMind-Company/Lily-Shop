@@ -70,7 +70,7 @@ import ChooseAddressPage from "./pages/chooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
-// import AddCardPage from "./pages/AddCardPage";
+// import AddCardPage from "./pages/AddCardPage";a\ zz
 import PasswordModalPage from "./pages/PasswordModalPage";
 import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
@@ -78,6 +78,17 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import Feed from "./pages/feed";
 import OrderSummaryPage from "./pages/OrderSummaryPage.jsx";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
+import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
+import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
+import MealSelectionPage from "./pages/MealSelectionPage";
+import ManageVendorPlansPage from "./pages/ManageVendorPlansPage";
+import CreateSubscriptionPlanPage from "./pages/CreateSubscriptionPlanPage";
+import EditPlanPage from "./pages/EditPlanPage";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
+import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
+import { getCurrentUserId } from "./services/supabase";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -197,6 +208,41 @@ export default function App() {
           <Route path="/payment-loading" element={<PaymentLoadingPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          <Route
+            path="/vendor-dashboard"
+            element={<VendorDashboard vendorId={getCurrentUserId()} />}
+          />
+          <Route
+            path="/subscriptions"
+            element={<VendorSubscriptionsOverview />}
+          />
+          <Route
+            path="/my-subscriptions"
+            element={<CustomerSubscriptionsPage />}
+          />
+          <Route
+            path="/vendor/subscribe"
+            element={<VendorSubscriptionPage />}
+          />
+          <Route
+            path="/meal-selection/:subscriptionId"
+            element={<MealSelectionPage />}
+          />
+          <Route
+            path="/subscription/plans"
+            element={<CustomerSubscriptionsPage />}
+          />
+          <Route
+            path="/subscription/create"
+            element={<CreateSubscriptionPlanPage />}
+          />
+          <Route
+            path="/subscription/manage"
+            element={<ManageVendorPlansPage />}
+          />
+          <Route path="/subscription/edit" element={<EditPlanPage />} />
+          <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+          <Route path="/subscription-callback" element={<SubscriptionCallbackPage />} />
           {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>

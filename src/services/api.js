@@ -127,7 +127,7 @@ export const updateUsername = async (username) => {
 
 export const updateProfile = async (profileData) => {
   const cleanData = Object.fromEntries(
-    Object.entries(profileData).filter(([_, v]) => v != null)
+    Object.entries(profileData).filter(([, v]) => v != null)
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
   return response.data;
@@ -371,4 +371,52 @@ export const topUpWallet = async (amountNaira) => {
   return response.data;
 };
 
+// --- SUBSCRIPTIONS ---
+export const createSubscription = async ({
+  vendor_id,
+  plan_id,
+  payment_method,
+  meal_selections = [],
+  delivery_address_id,
+}) => {
+  const response = await api.post("/subscriptions/create/", {
+    vendor_id,
+    plan_id,
+    payment_method,
+    meal_selections,
+    delivery_address_id,
+  });
+  return response.data;
+};
+
+export const updateSubscriptionMeals = async (
+  subscriptionId,
+  mealSelections
+) => {
+  const response = await api.put(`/subscriptions/${subscriptionId}/meals/`, {
+    meal_selections: mealSelections,
+  });
+  return response.data;
+};
+
+export const cancelSubscription = async (subscriptionId, reason = "") => {
+  const response = await api.post(`/subscriptions/${subscriptionId}/cancel/`, {
+    reason,
+  });
+  return response.data;
+};
+
+export const pauseSubscription = async (subscriptionId, reason = "") => {
+  const response = await api.post(`/subscriptions/${subscriptionId}/pause/`, {
+    reason,
+  });
+  return response.data;
+};
+
+export const resumeSubscription = async (subscriptionId) => {
+  const response = await api.post(`/subscriptions/${subscriptionId}/resume/`);
+  return response.data;
+};
+
 export default api;
+
