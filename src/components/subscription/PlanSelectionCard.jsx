@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 /**
  * PlanSelectionCard component for displaying a selectable plan option.
  * @param {Object} props - The component props.
- * @param {string} props.icon - The material symbol icon name.
+ * @param {React.Component|string} props.icon - The icon component or material symbol icon name.
  * @param {string} props.badge - The badge text.
  * @param {string} props.title - The title of the plan.
  * @param {string} props.description - The description of the plan.
@@ -50,19 +50,19 @@ const PlanSelectionCard = ({
           style={{ backgroundImage: `url("${imageUrl}")` }}
         ></div>
         <div className="absolute bottom-3 right-3 sm:hidden">
-          <ArrowRight/>
+          <ArrowRight />
         </div>
       </div>
       {/* Desktop Hover Arrow */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/60 backdrop-blur rounded-full p-2 hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-         <ArrowRight/>
+        <ArrowRight />
       </div>
     </div>
   );
 };
 
 PlanSelectionCard.propTypes = {
-  icon: PropTypes.string.isRequired,
+  icon: PropTypes.oneOfType([PropTypes.element, PropTypes.string]).isRequired,
   badge: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
