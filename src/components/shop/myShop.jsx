@@ -206,7 +206,7 @@ const MyShop = () => {
           (!shops || shops.length === 0) ? (
           <div className="text-center py-10 w-full">
             <p className="font-inter text-base md:text-lg font-normal text-gray-600 mb-2">
-              You haven&apos;t created any shops yet.
+              You haven'st created any shops yet.
             </p>
             <p className="text-sm text-gray-400">
               Click the &quot;Create Shop&quot; button to get started.
