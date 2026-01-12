@@ -1,3 +1,4 @@
+import { Check, CheckCircle } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -22,13 +23,13 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
       <label
         className={`flex flex-col gap-4 rounded-2xl border-2 p-5 shadow-sm transition-all ${
           isSelected
-            ? "border-primary bg-surface-light dark:bg-surface-dark shadow-[0_4px_20px_-4px_rgba(19,236,73,0.15)]"
-            : "border-transparent bg-surface-light dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-opacity-80"
+            ? "border-[#13ec49] bg-[#ffffff] dark:bg-surface-dark shadow-[0_4px_20px_-4px_rgba(19,236,73,0.15)]"
+            : "border-transparent bg-[#ffffff] dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-opacity-80"
         }`}
         htmlFor={`plan_${plan.id}`}
       >
         {isPopular && (
-          <div className="absolute top-0 right-0 bg-primary text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+          <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
             Most Popular
           </div>
         )}
@@ -44,14 +45,12 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
           <div
             className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${
               isSelected
-                ? "border-primary bg-primary"
+                ? "border-[#13ec49] bg-primary"
                 : "border-slate-300 dark:border-slate-600"
             }`}
           >
             {isSelected ? (
-              <span className="material-symbols-outlined text-green-950 text-[16px] font-bold">
-                check
-              </span>
+              <Check/>
             ) : (
               <div className="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
             )}
@@ -72,9 +71,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
               key={index}
               className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300"
             >
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                check_circle
-              </span>
+               <CheckCircle/>
               {feature}
             </div>
           ))}

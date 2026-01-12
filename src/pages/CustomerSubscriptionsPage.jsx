@@ -69,7 +69,7 @@ const CustomerSubscriptionsPage = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-text-main dark:text-gray-100">Loading...</div>
       </div>
     );
@@ -78,7 +78,7 @@ const CustomerSubscriptionsPage = () => {
   // Error state
   if (error) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-red-500">
           Error loading subscriptions. Please try again.
         </div>
@@ -87,7 +87,7 @@ const CustomerSubscriptionsPage = () => {
   }
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 min-h-screen flex flex-col antialiased">
+    <div className="bg-[#f6f8f6] dark:bg-background-dark font-display text-text-main dark:text-gray-100 min-h-screen flex flex-col antialiased">
       <CustomerSubscriptionHeader onBack={handleBack} />
 
       <main className="flex-1 w-full max-w-md mx-auto flex flex-col pb-24 px-4 pt-4">

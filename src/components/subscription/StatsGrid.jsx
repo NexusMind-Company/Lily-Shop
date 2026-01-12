@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import {  DollarSign, UsersRound } from "lucide-react";
 
 /**
  * StatsGrid component displaying subscription statistics
@@ -10,13 +11,13 @@ const StatsGrid = ({ stats }) => {
 
   const statItems = [
     {
-      icon: "group",
+      icon: UsersRound,
       label: "Active",
       value: stats.activeCount,
       color: "primary",
     },
     {
-      icon: "attach_money",
+      icon: DollarSign,
       label: "Weekly",
       value: `$${stats.weeklyRevenue?.toLocaleString()}`,
       color: "primary",
@@ -26,28 +27,30 @@ const StatsGrid = ({ stats }) => {
   return (
     <section className="px-4 py-6">
       <div className="grid grid-cols-2 gap-3">
-        {statItems.map((stat, index) => (
-          <div
-            key={index}
-            className="flex flex-col gap-1 rounded-xl p-5 bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <div
-                className={`p-1.5 rounded-full bg-${stat.color}/20 text-green-800 dark:text-${stat.color}`}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {stat.icon}
-                </span>
+        {statItems.map((stat, index) => {
+          const Icon = stat.icon;
+
+          return (
+            <div
+              key={index}
+              className="flex flex-col gap-1 rounded-xl p-5 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1.5 rounded-full h-7 w-7 bg-green-500 text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                  <Icon className="w-5 h-5" />
+                </div>
+
+                <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wider">
+                  {stat.label}
+                </p>
               </div>
-              <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wider">
-                {stat.label}
+
+              <p className="text-2xl font-bold text-text-main dark:text-white">
+                {stat.value}
               </p>
             </div>
-            <p className="text-2xl font-bold text-text-main dark:text-white">
-              {stat.value}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

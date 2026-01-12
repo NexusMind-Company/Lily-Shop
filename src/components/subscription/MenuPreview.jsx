@@ -12,7 +12,10 @@ const MenuPreview = ({ menuItems, onViewAll }) => {
     <div className="mt-4 pb-8">
       <div className="flex items-center justify-between px-4 mb-4">
         <h2 className="text-xl font-bold tracking-tight">This Week's Menu</h2>
-        <button onClick={onViewAll} className="text-primary text-sm font-bold">
+        <button
+          onClick={onViewAll}
+          className="text-[#13ec49] text-sm font-bold"
+        >
           See All
         </button>
       </div>

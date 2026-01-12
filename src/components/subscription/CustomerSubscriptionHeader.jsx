@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -14,9 +15,7 @@ const CustomerSubscriptionHeader = ({ onBack }) => {
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-text-main dark:text-white"
           onClick={onBack}
         >
-          <span className="material-symbols-outlined text-[24px]">
-            arrow_back
-          </span>
+         <ArrowLeft/>
         </button>
         <h1 className="text-lg font-bold text-text-main dark:text-white tracking-tight">
           My Subscriptions

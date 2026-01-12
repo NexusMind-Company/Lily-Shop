@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -14,9 +15,7 @@ const MealSelectionHeader = ({ onBack, onFilter }) => {
           onClick={onBack}
           className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-surface-dark transition-colors"
         >
-          <span className="material-symbols-outlined text-text-main dark:text-white">
-            arrow_back
-          </span>
+          <ArrowLeft/>
         </button>
         <h2 className="text-text-main dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">
           Customize Your Plan

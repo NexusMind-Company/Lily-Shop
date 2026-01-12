@@ -1,4 +1,4 @@
-import { supabase, handleSupabaseError, getCurrentUser } from "./supabase";
+import { supabase, handleSupabaseError } from "./supabase";
 
 /**
  * Fetch vendor profile by vendor ID
@@ -209,7 +209,7 @@ export const fetchAvailableMeals = async (vendorId, limit = 20) => {
  * @param {string} vendorId - The vendor's unique ID (would come from auth context)
  * @returns {Promise<Array>} Array of all subscription objects
  */
-export const fetchAllSubscriptions = async (vendorId = "example-vendor-id") => {
+export const fetchAllSubscriptions = async (vendorId) => {
   try {
     const { data, error } = await supabase
       .from("subscriptions")
@@ -247,15 +247,19 @@ export const fetchAllSubscriptions = async (vendorId = "example-vendor-id") => {
  */
 export const fetchCustomerSubscriptions = async (customerId) => {
   try {
-    // If no customerId provided, try to get from current user
+    // If no customerId provided, try to get from localStorage (backend auth system)
     let userId = customerId;
     if (!userId) {
-      const user = await getCurrentUser();
-      userId = user?.id;
+      const userData = localStorage.getItem("user_data");
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user?.id || user?.user_id;
+      }
     }
 
+    // If no userId, return empty array (allow viewing without login)
     if (!userId) {
-      throw new Error("No authenticated user found");
+      return [];
     }
 
     const { data, error } = await supabase
@@ -304,6 +308,84 @@ export const fetchCustomerSubscriptions = async (customerId) => {
     throw error instanceof Error
       ? error
       : new Error("Failed to fetch subscriptions");
+  }
+};
+
+/**
+ * Create a new meal plan for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @param {Object} planData - The plan data object
+ * @param {string} planData.name - Plan name
+ * @param {string} planData.type - Plan type (weekly/monthly)
+ * @param {number} planData.price - Plan price
+ * @param {string} planData.description - Plan description
+ * @param {Array} planData.features - Array of features
+ * @returns {Promise<Object>} Created plan data
+ */
+export const createMealPlan = async (vendorId, planData) => {
+  try {
+    const { data, error } = await supabase
+      .from("meal_plans")
+      .insert({
+        vendor_id: vendorId,
+        name: planData.name,
+        type: planData.type,
+        price: planData.price,
+        description: planData.description,
+        features: planData.features,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error creating meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing meal plan
+ * @param {string} planId - The plan ID
+ * @param {Object} updates - The updates object
+ * @returns {Promise<Object>} Updated plan data
+ */
+export const updateMealPlan = async (planId, updates) => {
+  try {
+    const { data, error } = await supabase
+      .from("meal_plans")
+      .update(updates)
+      .eq("id", planId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error updating meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a meal plan
+ * @param {string} planId - The plan ID
+ * @returns {Promise<Object>} Delete result
+ */
+export const deleteMealPlan = async (planId) => {
+  try {
+    const { error } = await supabase
+      .from("meal_plans")
+      .delete()
+      .eq("id", planId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting meal plan:", error);
+    throw error;
   }
 };
 

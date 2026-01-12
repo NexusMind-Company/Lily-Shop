@@ -1,3 +1,4 @@
+import { Grid, Home, Plus, Receipt, User } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -8,26 +9,26 @@ import PropTypes from "prop-types";
  */
 const BottomNavigation = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: "home", icon: "home", label: "Home" },
-    { id: "orders", icon: "receipt_long", label: "Orders" },
-    { id: "add", icon: "add", label: "", isCenter: true },
-    { id: "dashboard", icon: "grid_view", label: "Dashboard", fill: true },
-    { id: "profile", icon: "person", label: "Profile" },
+    { id: "home", icon: Home, label: "Home" },
+    { id: "orders", icon: Receipt, label: "Orders" },
+    { id: "add", icon: Plus, label: "", isCenter: true },
+    { id: "dashboard", icon: Grid, label: "Dashboard", fill: true },
+    { id: "profile", icon: User, label: "Profile" },
   ];
 
   return (
-    <nav className="bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-20 absolute bottom-0 w-full">
+    <nav className="bg-[#ffffff] dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-20 absolute bottom-0 w-full">
       {tabs.map((tab) => {
         if (tab.isCenter) {
           return (
             <div key={tab.id} className="relative -top-6">
               <button
                 onClick={() => onTabChange(tab.id)}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-text-main-light shadow-lg hover:scale-105 transition-transform border-4 border-background-light dark:border-background-dark"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-[#13ec49] text-[#111813]  shadow-lg hover:scale-105 transition-transform border-4 border-[#f6f8f6] dark:border-background-dark"
               >
-                <span className="material-symbols-outlined text-3xl">
+                <div className=" text-3xl">
                   {tab.icon}
-                </span>
+                </div>
               </button>
             </div>
           );
@@ -38,17 +39,17 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex flex-col items-center gap-1 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary transition-colors ${
-              isActive ? "text-primary dark:text-primary font-bold" : ""
+            className={`flex flex-col items-center gap-1 text-[#61896b] dark:text-text-secondary-dark hover:text-[#13ec49] dark:hover:text-[#13ec49] transition-colors ${
+              isActive ? "text-[#13ec49] dark:text-[#13ec49] font-bold" : ""
             }`}
           >
-            <span
-              className={`material-symbols-outlined text-2xl ${
+            <div
+              className={` text-2xl ${
                 tab.fill && isActive ? "fill-current" : ""
               }`}
             >
               {tab.icon}
-            </span>
+            </div>
             <span className="text-[10px] font-medium">{tab.label}</span>
           </button>
         );

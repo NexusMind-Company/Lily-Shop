@@ -1,3 +1,4 @@
+import { CreditCard, Receipt, User } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -10,19 +11,19 @@ const QuickStats = ({ stats }) => {
 
   const statItems = [
     {
-      icon: "group",
+      IconComponent: User,
       value: stats.activeSubs,
       label: "Active Subs",
       color: "blue",
     },
     {
-      icon: "payments",
+      IconComponent: CreditCard,
       value: `$${stats.revenue}`,
       label: "Revenue",
       color: "green",
     },
     {
-      icon: "receipt_long",
+      IconComponent: Receipt,
       value: stats.pending,
       label: "Pending",
       color: "orange",
@@ -34,19 +35,17 @@ const QuickStats = ({ stats }) => {
       {statItems.map((item, index) => (
         <div
           key={index}
-          className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-soft flex flex-col items-center justify-center gap-1 border border-gray-100 dark:border-gray-800"
+          className="bg-[#ffffff] dark:bg-surface-dark p-4 rounded-2xl shadow-soft flex flex-col items-center justify-center gap-1 border border-gray-100 dark:border-gray-800"
         >
           <div
             className={`p-2 bg-${item.color}-50 dark:bg-${item.color}-900/30 text-${item.color}-600 dark:text-${item.color}-400 rounded-full mb-1`}
           >
-            <span className="material-symbols-outlined text-xl">
-              {item.icon}
-            </span>
+            <item.IconComponent className="text-xl" />
           </div>
-          <span className="text-2xl font-bold text-text-main-light dark:text-text-main-dark">
+          <span className="text-2xl font-bold text-[#111813]  dark:text-text-main-dark">
             {item.value}
           </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#61896b] dark:text-text-secondary-dark">
             {item.label}
           </span>
         </div>

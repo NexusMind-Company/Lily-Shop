@@ -1,3 +1,4 @@
+import { ArrowLeft, FilterIcon } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -13,7 +14,7 @@ const SubscriptionsHeader = ({ onBack, onFilter }) => {
         className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-text-main dark:text-white transition-colors"
         onClick={onBack}
       >
-        <span className="material-symbols-outlined">arrow_back_ios_new</span>
+        <ArrowLeft/>
       </button>
       <h1 className="text-lg font-bold tracking-tight text-center">
         Subscriptions
@@ -22,7 +23,7 @@ const SubscriptionsHeader = ({ onBack, onFilter }) => {
         className="p-2 -mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-text-main dark:text-white transition-colors"
         onClick={onFilter}
       >
-        <span className="material-symbols-outlined">filter_list</span>
+        <FilterIcon/>
       </button>
     </header>
   );
