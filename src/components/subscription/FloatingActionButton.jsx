@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -12,7 +13,7 @@ const FloatingActionButton = ({ onClick }) => {
         onClick={onClick}
         className="flex items-center justify-center w-14 h-14 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-105 transition-transform"
       >
-        <span className="material-symbols-outlined text-[28px]">add</span>
+       <Plus/>
       </button>
     </div>
   );

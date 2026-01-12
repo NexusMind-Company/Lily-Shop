@@ -1,13 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import DashboardHeader from '../components/subscription/DashboardHeader';
-import ProfileSection from '../components/subscription/ProfileSection';
-import QuickStats from '../components/subscription/QuickStats';
-import ManagePlansCard from '../components/subscription/ManagePlansCard';
-import SubscriptionList from '../components/subscription/SubscriptionList';
-import BottomNavigation from '../components/subscription/BottomNavigation';
-import { fetchVendorProfile, fetchSubscriptionStats, fetchRecentSubscriptions } from '../services/subscriptionApi';
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import DashboardHeader from "../components/subscription/DashboardHeader";
+import ProfileSection from "../components/subscription/ProfileSection";
+import QuickStats from "../components/subscription/QuickStats";
+import ManagePlansCard from "../components/subscription/ManagePlansCard";
+import SubscriptionList from "../components/subscription/SubscriptionList";
+import BottomNavigation from "../components/subscription/BottomNavigation";
+import {
+  fetchVendorProfile,
+  fetchSubscriptionStats,
+  fetchRecentSubscriptions,
+} from "../services/subscriptionApi";
+import { getCurrentUserId } from "../services/supabase";
 
 /**
  * VendorDashboard component - Main dashboard for vendors to manage subscriptions
@@ -16,26 +21,61 @@ import { fetchVendorProfile, fetchSubscriptionStats, fetchRecentSubscriptions } 
  */
 const VendorDashboard = ({ vendorId }) => {
   const navigate = useNavigate();
+  const vendorIdToUse = vendorId || getCurrentUserId();
 
-  // Fetch vendor profile
-  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['vendorProfile', vendorId],
-    queryFn: () => fetchVendorProfile(vendorId),
-    enabled: !!vendorId,
+  // Fetch vendor profile (demo data if no vendor)
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useQuery({
+    queryKey: ["vendorProfile", vendorIdToUse || "demo"],
+    queryFn: () =>
+      vendorIdToUse
+        ? fetchVendorProfile(vendorIdToUse)
+        : Promise.resolve({
+            name: "Demo Vendor",
+            image: null,
+            verified: false,
+            cuisine: "Various",
+            location: "Demo Location",
+            rating: 4.5,
+            review_count: 0,
+            description: "This is a demo vendor profile for testing purposes.",
+          }),
+    enabled: true,
   });
 
-  // Fetch subscription stats
-  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
-    queryKey: ['subscriptionStats', vendorId],
-    queryFn: () => fetchSubscriptionStats(vendorId),
-    enabled: !!vendorId,
+  // Fetch subscription stats (demo data if no vendor)
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery({
+    queryKey: ["subscriptionStats", vendorIdToUse || "demo"],
+    queryFn: () =>
+      vendorIdToUse
+        ? fetchSubscriptionStats(vendorIdToUse)
+        : Promise.resolve({
+            activeSubs: 0,
+            revenue: "0.00",
+            pending: 0,
+          }),
+    enabled: true,
   });
 
-  // Fetch recent subscriptions
-  const { data: subscriptions, isLoading: subscriptionsLoading, error: subscriptionsError } = useQuery({
-    queryKey: ['recentSubscriptions', vendorId],
-    queryFn: () => fetchRecentSubscriptions(vendorId),
-    enabled: !!vendorId,
+  // Fetch recent subscriptions (empty array if no vendor)
+  const {
+    data: subscriptions,
+    isLoading: subscriptionsLoading,
+    error: subscriptionsError,
+  } = useQuery({
+    queryKey: ["recentSubscriptions", vendorIdToUse || "demo"],
+    queryFn: () =>
+      vendorIdToUse
+        ? fetchRecentSubscriptions(vendorIdToUse)
+        : Promise.resolve([]),
+    enabled: true,
   });
 
   // Event handlers
@@ -45,42 +85,42 @@ const VendorDashboard = ({ vendorId }) => {
 
   const handleHelp = () => {
     // Implement help functionality
-    console.log('Help clicked');
+    console.log("Help clicked");
   };
 
   const handleEditProfile = () => {
     // Navigate to edit profile page
-    navigate('/edit-profile');
+    navigate("/edit-profile");
   };
 
   const handleManagePlans = () => {
     // Navigate to manage plans page
-    navigate('/manage-plans');
+    navigate("/subscription/manage");
   };
 
   const handleViewAllSubscriptions = () => {
     // Navigate to all subscriptions page
-    navigate('/subscriptions');
+    navigate("/subscriptions");
   };
 
   const handleTabChange = (tabId) => {
     // Handle bottom navigation tab changes
     switch (tabId) {
-      case 'home':
-        navigate('/feed');
+      case "home":
+        navigate("/feed");
         break;
-      case 'orders':
-        navigate('/orders');
+      case "orders":
+        navigate("/orders");
         break;
-      case 'add':
+      case "add":
         // Handle add new item
-        console.log('Add new item');
+        console.log("Add new item");
         break;
-      case 'dashboard':
+      case "dashboard":
         // Already on dashboard
         break;
-      case 'profile':
-        navigate('/profile');
+      case "profile":
+        navigate("/profile");
         break;
       default:
         break;
@@ -90,8 +130,10 @@ const VendorDashboard = ({ vendorId }) => {
   // Loading state
   if (profileLoading || statsLoading || subscriptionsLoading) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
-        <div className="text-text-main-light dark:text-text-main-dark">Loading...</div>
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
+        <div className="text-[#111813]  dark:text-text-main-dark">
+          Loading...
+        </div>
       </div>
     );
   }
@@ -99,7 +141,7 @@ const VendorDashboard = ({ vendorId }) => {
   // Error state
   if (profileError || statsError || subscriptionsError) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-red-500">
           Error loading dashboard data. Please try again.
         </div>
@@ -108,7 +150,7 @@ const VendorDashboard = ({ vendorId }) => {
   }
 
   return (
-    <div className="relative w-full max-w-md bg-background-light dark:bg-background-dark min-h-screen flex flex-col shadow-2xl overflow-hidden">
+    <div className="relative w-full max-w-md bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex flex-col shadow-2xl overflow-hidden">
       <DashboardHeader onBack={handleBack} onHelp={handleHelp} />
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24 space-y-6 px-4 pt-6">
@@ -124,13 +166,13 @@ const VendorDashboard = ({ vendorId }) => {
         />
       </main>
 
-      <BottomNavigation activeTab="dashboard" onTabChange={handleTabChange} />
+      {/* <BottomNavigation activeTab="dashboard" onTabChange={handleTabChange} /> */}
     </div>
   );
 };
 
 VendorDashboard.propTypes = {
-  vendorId: PropTypes.string.isRequired,
+  vendorId: PropTypes.string,
 };
 
 export default VendorDashboard;

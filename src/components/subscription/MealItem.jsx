@@ -12,8 +12,8 @@ const MealItem = ({ meal, isSelected, onToggle }) => {
     <label
       className={`group relative flex items-center gap-4 p-3 rounded-xl cursor-pointer shadow-sm transition-all ${
         isSelected
-          ? "bg-surface-light dark:bg-surface-dark border-2 border-primary"
-          : "bg-surface-light dark:bg-surface-dark border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+          ? "bg-[#ffffff] dark:bg-surface-dark border-2 border-primary"
+          : "bg-[#ffffff] dark:bg-surface-dark border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-700"
       }`}
     >
       <div className="absolute top-3 right-3 z-10">
@@ -21,7 +21,7 @@ const MealItem = ({ meal, isSelected, onToggle }) => {
           type="checkbox"
           checked={isSelected}
           onChange={() => onToggle(meal.id)}
-          className="custom-checkbox h-6 w-6 rounded-full border-gray-300 text-primary focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer"
+          className="custom-checkbox h-6 w-6 rounded-full border-gray-300 text-[#13ec49] focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer"
         />
       </div>
       <div

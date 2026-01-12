@@ -14,7 +14,7 @@ const SubscriptionTabs = ({ activeTab, onTabChange }) => {
         <button
           className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
             activeTab === "active"
-              ? "bg-surface-light dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
+              ? "bg-[#ffffff] dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           }`}
           onClick={() => onTabChange("active")}
@@ -25,7 +25,7 @@ const SubscriptionTabs = ({ activeTab, onTabChange }) => {
         <button
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
             activeTab === "past"
-              ? "bg-surface-light dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
+              ? "bg-[#ffffff] dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           }`}
           onClick={() => onTabChange("past")}

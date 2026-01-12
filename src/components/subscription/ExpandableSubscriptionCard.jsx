@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { ChevronDown } from "lucide-react";
 
 /**
  * ExpandableSubscriptionCard component for customer subscription cards
@@ -82,7 +83,7 @@ const ExpandableSubscriptionCard = ({
 
   return (
     <details
-      className={`group bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-soft overflow-hidden transition-all duration-300 ${
+      className={`group bg-[#ffffff] dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-soft overflow-hidden transition-all duration-300 ${
         isExpanded ? "open:ring-1 open:ring-primary/20" : ""
       } ${isPaused ? "opacity-90 hover:opacity-100" : ""}`}
       open={isExpanded}
@@ -139,9 +140,7 @@ const ExpandableSubscriptionCard = ({
             >
               {statusBadge.text}
             </span>
-            <span className="material-symbols-outlined text-gray-400 group-open:rotate-180 transition-transform duration-300 text-[20px]">
-              expand_more
-            </span>
+           <ChevronDown/>
           </div>
         </div>
       </summary>
@@ -158,7 +157,7 @@ const ExpandableSubscriptionCard = ({
             </p>
             <div className="flex gap-3 mt-2">
               <button
-                className="w-full h-10 rounded-lg bg-primary text-primary-content text-sm font-bold hover:bg-green-400 transition-colors shadow-md hover:shadow-lg"
+                className="w-full h-10 rounded-lg bg-[#13ec49] text-primary-content text-sm font-bold hover:bg-green-400 transition-colors shadow-md hover:shadow-lg"
                 onClick={handleResume}
               >
                 Resume Subscription

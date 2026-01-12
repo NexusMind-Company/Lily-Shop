@@ -23,7 +23,7 @@ const SubscriptionItem = ({ subscription, onClick }) => {
         return {
           text: "Active",
           className:
-            "bg-primary/10 text-green-700 dark:text-primary ring-1 ring-inset ring-primary/20",
+            "bg-primary/10 text-green-700 dark:text-[#13ec49] ring-1 ring-inset ring-primary/20",
         };
       case "paused":
         return {
@@ -58,7 +58,7 @@ const SubscriptionItem = ({ subscription, onClick }) => {
 
   return (
     <div
-      className={`group relative flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform cursor-pointer ${
+      className={`group relative flex items-center justify-between p-4 bg-[#ffffff] dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform cursor-pointer ${
         isPast ? "opacity-70 grayscale-[0.5]" : ""
       }`}
       onClick={() => onClick && onClick(subscription)}

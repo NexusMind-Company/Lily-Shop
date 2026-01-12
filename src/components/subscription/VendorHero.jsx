@@ -1,3 +1,4 @@
+import { BadgeCheck, Star } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -24,10 +25,8 @@ const VendorHero = ({ vendor }) => {
               alt={`${vendor.name} profile`}
             />
             {vendor.verified && (
-              <div className="absolute -bottom-2 -right-2 bg-surface-light dark:bg-surface-dark p-1.5 rounded-full shadow-sm border border-black/5 dark:border-white/5">
-                <span className="material-symbols-outlined text-primary text-[20px] fill-1">
-                  verified
-                </span>
+              <div className="absolute -bottom-2 -right-2 bg-[#ffffff] dark:bg-surface-dark p-1.5 rounded-full shadow-sm border border-black/5 dark:border-white/5">
+                <BadgeCheck className="text-[#13ec49] text-[20px] fill-1" />
               </div>
             )}
           </div>
@@ -39,11 +38,8 @@ const VendorHero = ({ vendor }) => {
               {vendor.cuisine} • {vendor.location}
             </p>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="flex items-center bg-primary text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
-                {vendor.rating}{" "}
-                <span className="material-symbols-outlined text-[12px] ml-0.5">
-                  star
-                </span>
+              <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
+                {vendor.rating} <Star className="text-[12px] ml-0.5" />
               </span>
               <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                 ({vendor.reviewCount} reviews)

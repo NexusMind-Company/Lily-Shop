@@ -1,3 +1,4 @@
+import { MessageCircle, Phone, Utensils, X } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -26,7 +27,7 @@ const SubscriberDetailModal = ({
         onClick={onClose}
       />
       {/* Modal Content */}
-      <div className="w-full max-w-md bg-surface-light dark:bg-[#1a2c1e] rounded-t-2xl p-6 pointer-events-auto shadow-[0_-8px_30px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom duration-300">
+      <div className="w-full max-w-md bg-[#ffffff] dark:bg-[#1a2c1e] rounded-t-2xl p-6 pointer-events-auto shadow-[0_-8px_30px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom duration-300">
         {/* Handle */}
         <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-6"></div>
         {/* Header Info */}
@@ -56,7 +57,7 @@ const SubscriberDetailModal = ({
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
           >
-            <span className="material-symbols-outlined">close</span>
+            <X/>
           </button>
         </div>
         {/* Plan Details Grid */}
@@ -90,9 +91,7 @@ const SubscriberDetailModal = ({
         {subscriber.dietaryNotes && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-gray-400 text-sm">
-                restaurant
-              </span>
+             <Utensils/>
               <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
                 Dietary Notes
               </h3>
@@ -106,16 +105,16 @@ const SubscriberDetailModal = ({
         <div className="flex gap-3">
           <button
             onClick={() => onCall(subscriber)}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-[#0fd640] text-black font-semibold py-3.5 px-4 rounded-xl transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-[#13ec49] hover:bg-[#0fd640] text-black font-semibold py-3.5 px-4 rounded-xl transition-colors"
           >
-            <span className="material-symbols-outlined">call</span>
+           <Phone/>
             Call
           </button>
           <button
             onClick={() => onMessage(subscriber)}
             className="flex-1 flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3.5 px-4 rounded-xl transition-colors"
           >
-            <span className="material-symbols-outlined">chat_bubble</span>
+           <MessageCircle/>
             Message
           </button>
         </div>

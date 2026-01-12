@@ -12,6 +12,9 @@ import {
   fetchAvailableMeals,
   fetchMealPlans,
 } from "../services/subscriptionApi";
+import { updateSubscriptionMeals } from "../services/api";
+import { useMutation } from "@tanstack/react-query";
+import { FilterIcon } from "lucide-react";
 
 /**
  * MealSelectionPage component for customizing meal selection and payment
@@ -24,7 +27,6 @@ const MealSelectionPage = () => {
     new Set(["meal1", "meal2", "meal3"])
   ); // Mock selected meals
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Mock current plan data
   const currentPlan = {
@@ -122,7 +124,7 @@ const MealSelectionPage = () => {
 
   const handleChangePlan = () => {
     // Navigate to plan selection
-    navigate("/vendor/1/subscribe");
+    navigate("/vendor/subscribe");
   };
 
   const handleMealToggle = (mealId) => {
@@ -135,26 +137,34 @@ const MealSelectionPage = () => {
     setSelectedMeals(newSelected);
   };
 
+  const paymentMutation = useMutation({
+    mutationFn: ({ subscriptionId, mealSelections }) =>
+      updateSubscriptionMeals(subscriptionId, mealSelections),
+    onSuccess: () => {
+      // For meal updates, we might not need payment if it's just updating selections
+      // But if there are additional charges, we'd handle payment here
+      setIsSuccessModalOpen(true);
+    },
+    onError: (error) => {
+      console.error("Meal update failed:", error);
+      alert("Failed to update meal selections. Please try again.");
+    },
+  });
+
   const handlePayment = async () => {
     if (selectedCount < totalRequired) {
       alert(`Please select ${totalRequired - selectedCount} more meal(s)`);
       return;
     }
 
-    setIsProcessingPayment(true);
-    try {
-      // Here you would implement the actual payment logic
-      // For now, we'll simulate a delay
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+    // For now, treat this as updating meal selections
+    // In a full implementation, this might involve payment if changing plans
+    const mealSelections = Array.from(selectedMeals);
 
-      // Show success modal
-      setIsSuccessModalOpen(true);
-    } catch (error) {
-      console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
-    } finally {
-      setIsProcessingPayment(false);
-    }
+    paymentMutation.mutate({
+      subscriptionId: subscriptionId || "demo",
+      mealSelections,
+    });
   };
 
   const handleFinalizeDelivery = () => {
@@ -174,8 +184,8 @@ const MealSelectionPage = () => {
   // Loading state
   if (mealsLoading) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
-        <div className="text-text-main-light dark:text-text-main-dark">
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
+        <div className="text-[#111813]  dark:text-text-main-dark">
           Loading meals...
         </div>
       </div>
@@ -185,7 +195,7 @@ const MealSelectionPage = () => {
   // Error state
   if (mealsError) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-red-500">
           Error loading meals. Please try again.
         </div>
@@ -194,7 +204,7 @@ const MealSelectionPage = () => {
   }
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden">
+    <div className="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto bg-[#f6f8f6] dark:bg-background-dark shadow-2xl overflow-hidden">
       <MealSelectionHeader onBack={handleBack} />
 
       <ProgressBar
@@ -212,11 +222,9 @@ const MealSelectionPage = () => {
           <div className="flex gap-2">
             <button
               onClick={handleFilter}
-              className="p-1 rounded text-text-muted hover:text-primary transition-colors"
+              className="p-1 rounded text-text-muted hover:text-[#13ec49] transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                filter_list
-              </span>
+              <FilterIcon />
             </button>
           </div>
         </div>
@@ -242,7 +250,7 @@ const MealSelectionPage = () => {
       <PaymentButton
         amount={total}
         onPayment={handlePayment}
-        disabled={selectedCount < totalRequired || isProcessingPayment}
+        disabled={selectedCount < totalRequired || paymentMutation.isPending}
       />
 
       <SuccessModal
