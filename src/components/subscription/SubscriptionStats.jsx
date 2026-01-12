@@ -1,3 +1,4 @@
+import { DollarSign, User } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -11,12 +12,10 @@ const SubscriptionStats = ({ activeCount, weeklyAmount }) => {
     <section className="px-4 py-6">
       <div className="grid grid-cols-2 gap-3">
         {/* Active Stat Card */}
-        <div className="flex flex-col gap-1 rounded-xl p-5 bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800">
+        <div className="flex flex-col gap-1 rounded-xl p-5 bg-[#ffffff] dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1.5 rounded-full bg-primary/20 text-green-800 dark:text-primary">
-              <span className="material-symbols-outlined text-[20px]">
-                group
-              </span>
+              <User/>
             </div>
             <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wider">
               Active
@@ -27,12 +26,10 @@ const SubscriptionStats = ({ activeCount, weeklyAmount }) => {
           </p>
         </div>
         {/* Weekly Stat Card */}
-        <div className="flex flex-col gap-1 rounded-xl p-5 bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800">
+        <div className="flex flex-col gap-1 rounded-xl p-5 bg-[#ffffff] dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1.5 rounded-full bg-primary/20 text-green-800 dark:text-primary">
-              <span className="material-symbols-outlined text-[20px]">
-                attach_money
-              </span>
+             <DollarSign/>
             </div>
             <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wider">
               Weekly

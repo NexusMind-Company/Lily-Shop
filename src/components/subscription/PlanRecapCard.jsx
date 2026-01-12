@@ -10,7 +10,7 @@ const PlanRecapCard = ({ plan, onChange }) => {
   if (!plan) return null;
 
   return (
-    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="bg-[#ffffff] dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
       <div className="flex items-start gap-4">
         <div
           className="w-20 h-20 bg-gray-100 rounded-lg shrink-0 bg-cover bg-center"
@@ -23,7 +23,7 @@ const PlanRecapCard = ({ plan, onChange }) => {
         <div className="flex flex-col flex-1 gap-1">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-primary text-xs font-bold uppercase tracking-wider">
+              <p className="text-[#13ec49] text-xs font-bold uppercase tracking-wider">
                 Active Plan
               </p>
               <h3 className="text-text-main dark:text-white text-base font-bold">
@@ -32,7 +32,7 @@ const PlanRecapCard = ({ plan, onChange }) => {
             </div>
             <button
               onClick={onChange}
-              className="text-text-muted hover:text-primary text-xs font-medium px-2 py-1 rounded bg-gray-50 dark:bg-gray-800 transition-colors"
+              className="text-text-muted hover:text-[#13ec49] text-xs font-medium px-2 py-1 rounded bg-gray-50 dark:bg-gray-800 transition-colors"
             >
               Change
             </button>

@@ -1,16 +1,16 @@
 // src/components/settings/About.jsx
-import { useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react';
-import { useNavigate } from 'react-router';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Link } from "react-router-dom";
 
 const About = () => {
   const [expandedSections, setExpandedSections] = useState({});
 
   const toggleSection = (title) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [title]: !prev[title]
+      [title]: !prev[title],
     }));
   };
 
@@ -22,7 +22,7 @@ const About = () => {
 
 LilyShops is a social commerce platform letting creators, vendors, and everyday users connect through content and commerce. Our "Shop from Feed" feature allows users to purchase directly from posts as they scroll, bringing convenience, fun, and community together.
 
-Our mission is to make commerce social, fun and open to the world.`
+Our mission is to make commerce social, fun and open to the world.`,
       },
       {
         title: "Privacy Policy",
@@ -52,7 +52,7 @@ Your Rights
 • Object to certain processing
 • Withdraw consent where applicable
 
-Contact: ai.nexusmind@gmail.com`
+Contact: ai.nexusmind@gmail.com`,
       },
       {
         title: "Terms & Conditions",
@@ -77,7 +77,7 @@ Commission & Payments
 
 Content & Intellectual Property
 • You own what you post, but grant LilyShops a license to display it
-• No posting of illegal, infringing, or harmful content`
+• No posting of illegal, infringing, or harmful content`,
       },
       {
         title: "Help Center / Contact Us",
@@ -89,7 +89,7 @@ If you have questions, concerns, or feedback:
 • FAQs in our Help Center
 • Report problems, content issues, or violations
 
-We aim to respond to all inquiries within 48 hours.`
+We aim to respond to all inquiries within 48 hours.`,
       },
       {
         title: "FAQ",
@@ -111,7 +111,7 @@ Q: What if a buyer claims non-receipt?
 A: We hold payment in escrow until confirmation. Disputes are resolved via our support process.
 
 Q: How do referral & affiliate programs work?
-A: You share your referral link. When someone signs up & buys, you earn a reward. Affiliates earn commission when their promoted product sells.`
+A: You share your referral link. When someone signs up & buys, you earn a reward. Affiliates earn commission when their promoted product sells.`,
       },
       {
         title: "Features",
@@ -124,13 +124,13 @@ A: You share your referral link. When someone signs up & buys, you earn a reward
 • Ratings & feedback: trust through reviews
 • Shop: create shops
 
-Upcoming features: chatrooms and live.`
+Upcoming features: chatrooms and live.`,
       },
       {
         title: "News",
         content: `Stay Updated
 
-Here you'll find the latest updates, product launches, feature announcements, partnerships, and press coverage from LilyShops.`
+Here you'll find the latest updates, product launches, feature announcements, partnerships, and press coverage from LilyShops.`,
       },
       {
         title: "Report a Problem / Safety Center",
@@ -142,7 +142,7 @@ If you see anything inappropriate, fraudulent, or harmful:
 • Provide order ID, screenshots, user details
 • We review and take action (warning, suspension)
 
-We are committed to user safety and integrity.`
+We are committed to user safety and integrity.`,
       },
       {
         title: "Referral & Affiliate Program",
@@ -152,7 +152,7 @@ We are committed to user safety and integrity.`
 • When someone signs up and makes a purchase via your link, you earn a reward
 • Affiliates can pick products to promote; when they sell, they earn commission
 
-Terms and thresholds apply; your affiliate balance must meet minimum of ₦1000 before withdrawal.`
+Terms and thresholds apply; your affiliate balance must meet minimum of ₦1000 before withdrawal.`,
       },
       {
         title: "How LilyShops Works",
@@ -165,7 +165,7 @@ Terms and thresholds apply; your affiliate balance must meet minimum of ₦1000 
 5. Vendor fulfills order
 6. Buyer confirms receipt → funds released
 
-It's seamless, entertaining, social, and safe.`
+It's seamless, entertaining, social, and safe.`,
       },
       {
         title: "LilyShops Advertising",
@@ -176,7 +176,7 @@ It's seamless, entertaining, social, and safe.`
 • Pay per impression, click, or conversion
 • We also offer affiliate tie-ins and co-branded campaigns
 
-Contact "ai.nexusmind@gmail.com" for more media kits and rates.`
+Contact "ai.nexusmind@gmail.com" for more media kits and rates.`,
       },
       {
         title: "Monetization",
@@ -187,13 +187,13 @@ Contact "ai.nexusmind@gmail.com" for more media kits and rates.`
 • Featured / sponsored posts
 • Transaction fees and premium features
 
-We aim for fair rates that let vendors and creators thrive.`
+We aim for fair rates that let vendors and creators thrive.`,
       },
       {
         title: "Our Story",
         content: `From Vision to Revolution
 
-LilyShops began as a dream: to break down the line between browsing and buying. We envisioned a future where commerce isn't separate — it's part of life, part of scrolls. With a small team, we built a social-commerce platform where every post could be a shop. We're here to celebrate creators, empower vendors, and make everyday user a joyful and entertaining experience.`
+LilyShops began as a dream: to break down the line between browsing and buying. We envisioned a future where commerce isn't separate — it's part of life, part of scrolls. With a small team, we built a social-commerce platform where every post could be a shop. We're here to celebrate creators, empower vendors, and make everyday user a joyful and entertaining experience.`,
       },
       {
         title: "Refund & Return Policy",
@@ -216,9 +216,9 @@ LilyShops began as a dream: to break down the line between browsing and buying. 
 4. Non-Returnable Items:
    • Opened food items, worn clothes, and services
 
-This protects users while keeping things simple and fair for vendors.`
-      }
-    ]
+This protects users while keeping things simple and fair for vendors.`,
+      },
+    ],
   };
 
   const navigate = useNavigate();
@@ -226,25 +226,34 @@ This protects users while keeping things simple and fair for vendors.`
   return (
     <section className=" min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
       {/* Header - Matching Wallet styling */}
-        <header className="flex items-center justify-center py-4  relative">
-        <Link onClick={() => {navigate(-1)}}  className="absolute left-4 top-4">
+      <header className="flex items-center justify-center py-4  relative">
+        <Link
+          onClick={() => {
+            navigate(-1);
+          }}
+          className="absolute left-4 top-4"
+        >
           <ChevronLeft className="w-8 h-8 text-gray-700" />
         </Link>
         <h1 className="text-lg font-semibold text-gray-800">About Us</h1>
       </header>
 
-
       {/* Main Content */}
       <div className="flex flex-col gap-4">
         {/* All sections have the same consistent styling */}
         {aboutContent.sections.map((section, index) => (
-          <div key={index} className="shadow border cursor-pointer rounded-2xl bg-white">
+          <div
+            key={index}
+            className="shadow border cursor-pointer rounded-2xl bg-white"
+          >
             <button
               onClick={() => toggleSection(section.title)}
               className="w-full flex items-center gap-6 px-5 py-4 text-left"
             >
               <div className="flex-1">
-                <h3 className="font-bold text-base text-gray-800">{section.title}</h3>
+                <h3 className="font-bold text-base text-gray-800">
+                  {section.title}
+                </h3>
               </div>
               <div>
                 {expandedSections[section.title] ? (
@@ -254,7 +263,7 @@ This protects users while keeping things simple and fair for vendors.`
                 )}
               </div>
             </button>
-            
+
             {expandedSections[section.title] && (
               <div className="px-5 pb-4 border-t border-gray-200 mt-2">
                 <div className="text-gray-600 text-sm whitespace-pre-line pt-3 leading-relaxed">
@@ -267,7 +276,9 @@ This protects users while keeping things simple and fair for vendors.`
 
         {/* Contact Info Section - Same styling as others */}
         <div className="shadow border rounded-2xl bg-white px-5 py-4">
-          <h3 className="font-bold text-base text-gray-800 mb-2">Need More Help?</h3>
+          <h3 className="font-bold text-base text-gray-800 mb-2">
+            Need More Help?
+          </h3>
           <p className="text-gray-600 text-sm mb-3">
             Can't find what you're looking for? Reach out to our support team.
           </p>

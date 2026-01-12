@@ -9,12 +9,12 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
-// Create Supabase client with enhanced configuration
+// Create Supabase client WITHOUT auth (using backend auth system instead)
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
+    persistSession: false, // Disable Supabase session persistence
+    autoRefreshToken: false, // Disable auto refresh
+    detectSessionInUrl: false, // Disable URL session detection
   },
   global: {
     headers: {
@@ -40,6 +40,10 @@ export const handleSupabaseError = (error) => {
     return new Error("You do not have permission to perform this action");
   }
 
+  if (error?.code === "PGRST301") {
+    return new Error("Authentication required. Please log in again.");
+  }
+
   // Network errors
   if (!navigator.onLine) {
     return new Error("No internet connection. Please check your network.");
@@ -49,32 +53,31 @@ export const handleSupabaseError = (error) => {
   return error?.message || "An unexpected error occurred. Please try again.";
 };
 
-// Helper function to check if user is authenticated
-export const isAuthenticated = async () => {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-    if (error) throw error;
-    return !!user;
-  } catch (error) {
-    console.error("Auth check failed:", error);
-    return false;
-  }
+// Helper function to check if user is authenticated (using backend auth)
+export const isAuthenticated = () => {
+  const accessToken = localStorage.getItem("access_token");
+  return !!accessToken;
 };
 
-// Helper function to get current user
-export const getCurrentUser = async () => {
+// Helper function to get current user from Redux state
+// This will be called from components that need user info
+export const getCurrentUser = () => {
+  // This function will be implemented in components using Redux state
+  // For now, return null as we bypass Supabase auth
+  return null;
+};
+
+// Helper function to get user ID from Redux state
+export const getCurrentUserId = () => {
   try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
+    const userData = localStorage.getItem("user_data");
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user?.id || user?.user_id || null;
+    }
+    return null;
   } catch (error) {
-    console.error("Failed to get current user:", error);
+    console.error("Error getting user ID from localStorage:", error);
     return null;
   }
 };

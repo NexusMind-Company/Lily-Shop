@@ -11,12 +11,12 @@ const SubscriptionList = ({ subscriptions, onViewAll }) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
+        <h3 className="text-lg font-bold text-[#111813]  dark:text-text-main-dark">
           Recent Subscriptions
         </h3>
         <button
           onClick={onViewAll}
-          className="text-primary-dark dark:text-primary text-sm font-bold hover:underline"
+          className="text-primary-dark dark:text-[#13ec49] text-sm font-bold hover:underline"
         >
           View All
         </button>
@@ -30,7 +30,7 @@ const SubscriptionList = ({ subscriptions, onViewAll }) => {
             />
           ))
         ) : (
-          <p className="text-text-secondary-light dark:text-text-secondary-dark text-center py-8">
+          <p className="text-[#61896b] dark:text-text-secondary-dark text-center py-8">
             No recent subscriptions
           </p>
         )}

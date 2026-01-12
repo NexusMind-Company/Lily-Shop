@@ -1,3 +1,4 @@
+import { ArrowRight, UtensilsCrossed } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -7,7 +8,7 @@ import PropTypes from "prop-types";
  */
 const ManagePlansCard = ({ onManagePlans }) => {
   return (
-    <section className="relative overflow-hidden bg-surface-light dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 group cursor-pointer transition-transform active:scale-[0.98]">
+    <section className="relative overflow-hidden bg-[#ffffff] dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 group cursor-pointer transition-transform active:scale-[0.98]">
       {/* Decorative Image Background */}
       <div
         className="absolute top-0 right-0 w-1/2 h-full opacity-10 dark:opacity-20 pointer-events-none"
@@ -17,29 +18,27 @@ const ManagePlansCard = ({ onManagePlans }) => {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent to-surface-light dark:to-surface-dark"></div>
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#ffffff] dark:to-surface-dark"></div>
       </div>
       <div className="relative z-10 p-6 flex flex-col items-start gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/20 rounded-lg text-primary-dark dark:text-primary">
-            <span className="material-symbols-outlined">restaurant_menu</span>
+            <UtensilsCrossed color="green" />
           </div>
-          <h3 className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
+          <h3 className="text-lg font-bold text-[#111813]  dark:text-text-main-dark">
             Your Meal Plans
           </h3>
         </div>
-        <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm leading-relaxed max-w-[80%]">
+        <p className="text-[#61896b] dark:text-text-secondary-dark text-sm leading-relaxed max-w-[80%]">
           Set up your weekly or monthly menus. Create new offerings or update
           existing ones.
         </p>
         <button
           onClick={onManagePlans}
-          className="w-full mt-2 bg-primary hover:bg-primary-dark text-text-main-light font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
+          className="w-full mt-2 bg-[#13ec49]  hover:bg-primary-dark text-[#111813]  font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
         >
           <span>Manage Plans</span>
-          <span className="material-symbols-outlined text-sm">
-            arrow_forward
-          </span>
+          <ArrowRight />
         </button>
       </div>
     </section>

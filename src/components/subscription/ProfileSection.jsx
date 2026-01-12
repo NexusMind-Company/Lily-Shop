@@ -1,3 +1,4 @@
+import { Check, Pencil } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -13,7 +14,7 @@ const ProfileSection = ({ profile, onEditProfile }) => {
     <section className="flex flex-col items-center text-center space-y-4">
       <div className="relative">
         <div
-          className="w-24 h-24 rounded-full bg-cover bg-center border-4 border-surface-light dark:border-surface-dark shadow-md"
+          className="w-24 h-24 rounded-full bg-cover bg-center border-4 border-[#ffffff] dark:border-surface-dark shadow-md"
           style={{
             backgroundImage: `url("${
               profile.profile_pic || "https://via.placeholder.com/96"
@@ -22,26 +23,24 @@ const ProfileSection = ({ profile, onEditProfile }) => {
           alt={`${profile.name} profile picture`}
         />
         {profile.verified && (
-          <div className="absolute bottom-0 right-0 bg-primary text-text-main-light p-1 rounded-full border-2 border-surface-light dark:border-surface-dark flex items-center justify-center">
-            <span className="material-symbols-outlined text-sm font-bold">
-              check
-            </span>
+          <div className="absolute bottom-0 right-0 bg-[#13ec49] text-[#111813]  p-1 rounded-full border-2 border-[#ffffff] dark:border-surface-dark flex items-center justify-center">
+            <Check/>
           </div>
         )}
       </div>
       <div className="flex flex-col items-center">
-        <h2 className="text-2xl font-bold text-text-main-light dark:text-text-main-dark">
+        <h2 className="text-2xl font-bold text-[#111813]  dark:text-text-main-dark">
           {profile.name}
         </h2>
-        <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm font-medium">
+        <p className="text-[#61896b] dark:text-text-secondary-dark text-sm font-medium">
           {profile.verified ? "Verified Meal Provider" : "Meal Provider"}
         </p>
       </div>
       <button
         onClick={onEditProfile}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 shadow-sm text-text-main-light dark:text-text-main-dark text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-auto"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 shadow-sm text-[#111813]  dark:text-text-main-dark text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-auto"
       >
-        <span className="material-symbols-outlined text-lg">edit</span>
+       <Pencil/>
         <span>Edit Profile</span>
       </button>
     </section>

@@ -10,7 +10,7 @@ const SubscriptionListItem = ({ subscription, onClick }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "bg-primary/10 text-green-700 dark:text-primary ring-primary/20";
+        return "bg-primary/10 text-green-700 dark:text-[#13ec49] ring-primary/20";
       case "paused":
         return "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 ring-yellow-400/20";
       case "past":
@@ -23,7 +23,7 @@ const SubscriptionListItem = ({ subscription, onClick }) => {
   const getPlanBadgeColor = (planType) => {
     switch (planType) {
       case "WK":
-        return "bg-primary text-black";
+        return "bg-[#13ec49] text-black";
       case "MO":
         return "bg-blue-100 text-blue-700";
       default:
@@ -32,7 +32,7 @@ const SubscriptionListItem = ({ subscription, onClick }) => {
   };
 
   const isPast = subscription.status === "past";
-  const itemClasses = `group relative flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform cursor-pointer ${
+  const itemClasses = `group relative flex items-center justify-between p-4 bg-[#ffffff] dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform cursor-pointer ${
     isPast ? "opacity-70 grayscale-[0.5]" : ""
   }`;
 

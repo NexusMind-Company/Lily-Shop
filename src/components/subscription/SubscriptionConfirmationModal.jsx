@@ -1,3 +1,4 @@
+import { ArrowRight, CheckCircle, Info, X } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -22,7 +23,7 @@ const SubscriptionConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#ffffff] dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -32,7 +33,7 @@ const SubscriptionConfirmationModal = ({
             onClick={onClose}
             className="flex size-8 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+           <X/>
           </button>
         </div>
 
@@ -83,9 +84,7 @@ const SubscriptionConfirmationModal = ({
                     key={index}
                     className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                   >
-                    <span className="material-symbols-outlined text-primary text-[16px]">
-                      check_circle
-                    </span>
+                      <CheckCircle/>
                     {feature}
                   </div>
                 ))}
@@ -96,9 +95,7 @@ const SubscriptionConfirmationModal = ({
           {/* Billing Info */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-blue-600 text-[20px]">
-                info
-              </span>
+              <Info/>
               <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
                 Billing Information
               </span>
@@ -135,7 +132,7 @@ const SubscriptionConfirmationModal = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 py-3 px-4 rounded-xl bg-primary text-green-950 font-bold hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 py-3 px-4 rounded-xl bg-[#13ec49] text-green-950 font-bold hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -145,9 +142,7 @@ const SubscriptionConfirmationModal = ({
             ) : (
               <>
                 Subscribe Now
-                <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
-                </span>
+                <ArrowRight />
               </>
             )}
           </button>

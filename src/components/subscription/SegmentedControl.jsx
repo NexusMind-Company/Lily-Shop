@@ -17,7 +17,7 @@ const SegmentedControl = ({ activeTab, tabs, onTabChange }) => {
             onClick={() => onTabChange(tab.id)}
             className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
               activeTab === tab.id
-                ? "bg-surface-light dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
+                ? "bg-[#ffffff] dark:bg-surface-dark shadow-sm text-text-main dark:text-white"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium"
             }`}
           >
