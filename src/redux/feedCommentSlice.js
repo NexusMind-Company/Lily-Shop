@@ -12,9 +12,11 @@ const USE_MOCK_DATA = false;
 // Helper to transform flat comment list into nested tree
 const nestComments = (comments) => {
   if (!Array.isArray(comments)) return [];
-  
+
   // Deduplicate comments based on ID first
-  const uniqueComments = Array.from(new Map(comments.map(item => [item.id, item])).values());
+  const uniqueComments = Array.from(
+    new Map(comments.map((item) => [item.id, item])).values()
+  );
 
   const commentMap = {};
   const roots = [];
@@ -27,9 +29,9 @@ const nestComments = (comments) => {
   // 2. Build tree
   uniqueComments.forEach((c) => {
     if (c.parent && commentMap[c.parent]) {
-      // Prevent adding the same reply multiple times
       const parent = commentMap[c.parent];
-      if (!parent.replies.find(r => r.id === c.id)) {
+      // Prevent adding the same reply multiple times
+      if (!parent.replies.find((r) => r.id === c.id)) {
         parent.replies.push(commentMap[c.id]);
       }
     } else {
@@ -46,7 +48,11 @@ const findCommentAndAddReply = (comments, newComment) => {
       if (!comment.replies) {
         comment.replies = [];
       }
-      comment.replies.push(newComment);
+      // CHECK: Prevent duplicates before pushing
+      const exists = comment.replies.find((r) => r.id === newComment.id);
+      if (!exists) {
+        comment.replies.push(newComment);
+      }
       return true;
     }
     if (
@@ -92,6 +98,7 @@ export const fetchComments = createAsyncThunk(
       } else {
         data = await fetchContentComments(postId);
       }
+      // Backend usually returns { results: [...] } for paginated lists
       return data.results || data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -135,7 +142,11 @@ const feedSlice = createSlice({
       if (newComment.parentId) {
         findCommentAndAddReply(state.comments, newComment);
       } else {
-        state.comments.unshift(newComment);
+        // CHECK: Prevent duplicates at root level
+        const exists = state.comments.find((c) => c.id === newComment.id);
+        if (!exists) {
+          state.comments.unshift(newComment);
+        }
       }
     },
     clearComments: (state) => {

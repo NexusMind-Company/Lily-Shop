@@ -18,6 +18,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0", // This makes the server accessible from outside the container
     port: 5173,
+     historyApiFallback: true,
     headers: {
       "Cache-Control": "public, max-age=31536000",
     },

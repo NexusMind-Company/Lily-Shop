@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://lily-shop.up.railway.app";
+  import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,8 +9,6 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-// --- Auth Token Management ---
 
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
@@ -33,8 +31,6 @@ if (storedAccess) {
   api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
 
-// --- Response Interceptor (Token Refresh) ---
-
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -54,6 +50,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (originalRequest._isRefreshRequest) {
+      isRefreshing = false;
+      processQueue(error, null);
+      clearAuthTokens();
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -71,21 +77,26 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
+        isRefreshing = false;
         clearAuthTokens();
         if (!window.location.pathname.includes("/login")) {
           window.location.href = "/login";
         }
-        return Promise.reject("No refresh token");
+        return Promise.reject(new Error("No refresh token available"));
       }
 
       try {
-        const rs = await api.post("/auth/token/refresh/", {
-          refresh: refreshToken,
-        });
+        const rs = await api.post(
+          "/auth/token/refresh/",
+          { refresh: refreshToken },
+          { _isRefreshRequest: true }
+        );
 
         const { access } = rs.data;
         setAuthTokens({ access });
+
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
+
         processQueue(null, access);
         return api(originalRequest);
       } catch (refreshError) {
@@ -103,8 +114,7 @@ api.interceptors.response.use(
   }
 );
 
-// --- Auth & Profile ---
-
+// --- AUTH & PROFILE ---
 export const fetchUserProfile = async () => {
   const response = await api.get("/auth/profile/me/");
   return response.data;
@@ -126,9 +136,15 @@ export const updateProfile = async (profileData) => {
 export const updateProfilePic = async (imageFile) => {
   const formData = new FormData();
   formData.append("profile_pic", imageFile);
-  const response = await api.put(
+
+  const response = await api.patch(
     "/auth/profile/update-profile-pic/",
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return response.data;
 };
@@ -138,40 +154,71 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- Feed ---
+// --- SHOPS & PRODUCTS ---
+export const fetchShopDetails = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/`);
+  return response.data;
+};
 
-export const fetchFeed = async () => {
+export const fetchShopProducts = async (shopId) => {
+  const response = await api.get(`/shops/${shopId}/products/`);
+  return response.data;
+};
+
+export const fetchAllFeed = async () => {
   const response = await api.get("/shops/feed/");
   return response.data;
 };
+
+export const fetchProducts = async (params = {}) => {
+  const response = await api.get("/shops/products/", { params });
+  return response.data;
+};
+
+// --- Fetch Liked Products ---
+export const fetchLikedProducts = async () => {
+  const response = await api.get("/shops/my-liked-products/");
+  return response.data;
+};
+// ------------------------------------------
+
+export const fetchFeed = async (params = {}) => {
+  const response = await api.get("/shops/home/", { params });
+  return response.data;
+};
+
 
 export const fetchNearbyFeed = async () => {
   const response = await api.get("/shops/products/nearby/");
   return response.data;
 };
 
-// --- Search ---
+export const fetchProductDetails = async (productId) => {
+  const response = await api.get(`/shops/products/${productId}/`);
+  return response.data;
+};
 
 export const searchShops = async (searchTerm) => {
   const response = await api.get("/shops/", { params: { search: searchTerm } });
   return response.data;
 };
 
-// --- Product Comments ---
-
+// --- INTERACTIONS ---
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
 };
 
-// --- FIX: Send 'content' as text to satisfy backend requirement ---
-export const addProductComment = async (productId, commentText, parentId = null) => {
+export const addProductComment = async (
+  productId,
+  commentText,
+  parentId = null
+) => {
   const payload = {
-    comment: commentText,
-    content: commentText, // Sending text here too, as backend demands 'content' field
-    parent: parentId
+    comment_text: commentText,
+    parent: parentId,
   };
-  
+
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
     payload
@@ -186,20 +233,21 @@ export const deleteProductComment = async (commentId) => {
   return response.data;
 };
 
-// --- Content Comments ---
-
 export const fetchContentComments = async (contentId) => {
   const response = await api.get(`/shops/contents/${contentId}/comments/`);
   return response.data;
 };
 
-export const addContentComment = async (contentId, commentText, parentId = null) => {
+export const addContentComment = async (
+  contentId,
+  commentText,
+  parentId = null
+) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    { 
-      content: contentId, 
-      comment: commentText,
-      parent: parentId 
+    {
+      comment_text: commentText,
+      parent: parentId,
     }
   );
   return response.data;
@@ -212,8 +260,6 @@ export const deleteContentComment = async (commentId) => {
   return response.data;
 };
 
-// --- Interactions ---
-
 export const likeProduct = async (productId) => {
   const response = await api.post(`/shops/products/${productId}/like/`, {});
   return response.data;
@@ -224,24 +270,45 @@ export const likeContent = async (contentId) => {
   return response.data;
 };
 
-// --- FIX: Use username endpoint with empty body ---
+// export const recordProductView = async (productId) => {
+//   const response = await api.post(`/shops/products/${productId}/view/`, {});
+//   return response.data;
+// };
+
 export const followUser = async (username) => {
-  const response = await api.post(`/auth/follow/${encodeURIComponent(username)}/`, {});
+  const response = await api.post(
+    `/auth/follow/${encodeURIComponent(username)}/`,
+    {}
+  );
   return response.data;
 };
 
-// --- Messaging ---
+export const toggleFollowShop = async (shopId) => {
+  const response = await api.post(`/shops/${shopId}/toggle-follow/`, {});
+  return response.data;
+};
 
-export const sendMessage = async ({ recipientId, content }) => {
-  const response = await api.post("/messages/", {
+// --- MESSAGING ---
+export const sendMessage = async ({
+  recipientId,
+  content,
+  productId = null,
+}) => {
+  const payload = { recipient: recipientId, content };
+  if (productId) payload.product_id = productId;
+
+  const response = await api.post("/messages/", payload);
+  return response.data;
+};
+
+export const shareProductToChat = async (productId, recipientId) => {
+  const response = await api.post(`/messages/share/${productId}/`, {
     recipient: recipientId,
-    content,
   });
   return response.data;
 };
 
-// --- Checkout Data ---
-
+// --- WALLET & PAYMENTS ---
 export const fetchDeliveryAddresses = async () => {
   const response = await api.get("/user/addresses");
   return response.data;
@@ -266,8 +333,6 @@ export const addNewCard = async (cardData) => {
   const response = await api.post("/user/cards", cardData);
   return response.data;
 };
-
-// --- Payment & Orders ---
 
 export const createOrder = async ({
   items,
@@ -297,6 +362,18 @@ export const checkPaymentStatus = async (orderId) => {
 
 export const verifyPaymentPassword = async (password) => {
   const response = await api.post("/user/verify-password", { password });
+  return response.data;
+};
+
+export const fetchWallet = async () => {
+  const response = await api.get("/wallet/me/");
+  return response.data;
+};
+
+export const topUpWallet = async (amountNaira) => {
+  const response = await api.post("/wallet/topup/", {
+    amount_naira: amountNaira,
+  });
   return response.data;
 };
 
