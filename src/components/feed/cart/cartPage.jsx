@@ -15,7 +15,21 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const { setPaymentData } = usePayment();
   const allCartItems = useSelector(selectCartItems);
-  const selectedItemIds = location.state?.selectedItemIds;
+
+  // --- 1. Fix State Persistence (Handle Refresh) ---
+  const [selectedItemIds, setSelectedItemIds] = useState(() => {
+    // Try location state first, fallback to sessionStorage, default to empty
+    const locStateIds = location.state?.selectedItemIds;
+    if (locStateIds) {
+      sessionStorage.setItem("checkout_ids", JSON.stringify(locStateIds));
+      return locStateIds;
+    }
+    try {
+      return JSON.parse(sessionStorage.getItem("checkout_ids")) || [];
+    } catch {
+      return [];
+    }
+  });
 
   const { creating: isCreatingOrder, createError } = useSelector(
     (state) => state.orders
@@ -35,7 +49,7 @@ const CartPage = () => {
       if (!allCartItems) return [];
       return allCartItems.filter((item) => selectedItemIds.includes(item.id));
     }
-    return allCartItems || [];
+    return [];
   }, [allCartItems, selectedItemIds]);
 
   const totalDeliveryCharge = useMemo(() => {
@@ -85,7 +99,7 @@ const CartPage = () => {
       if (formattedMin === formattedMax) return formattedMax;
       return `${formattedMin} - ${formattedMax}`;
     } catch (error) {
-      console.error("Error parsing delivery dates:", error);
+      // console.error("Error parsing delivery dates:", error);
       return "N/A";
     }
   }, [itemsToCheckout]);
@@ -93,7 +107,7 @@ const CartPage = () => {
   const [deliveryAddress, setDeliveryAddress] = useState("Loading address...");
   const [pickupAddressDisplay, setPickupAddressDisplay] =
     useState("Loading pickup...");
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("card"); // UI State
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
@@ -119,28 +133,43 @@ const CartPage = () => {
     ) {
       const timer = setTimeout(() => {
         if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
-          console.log("No items to checkout, redirecting...");
+          // console.log("No items to checkout, redirecting...");
           navigate("/");
         }
-      }, 100);
+      }, 500); // Increased timeout slightly
       return () => clearTimeout(timer);
     }
   }, [itemsToCheckout, isLoadingProfile, navigate]);
 
+  // --- 5. Fix Voucher Logic (Client-side visual only, don't send to backend) ---
+  // We calculate this for display, but payload sends strict total.
   const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
-  const estimatedTotalKobo = Math.round(estimatedTotal * 100);
+
+  // Strict total for backend (No client-side discount) to avoid 400 errors
+  const backendTotal = subtotal + totalDeliveryCharge;
+  const backendTotalKobo = Math.round(backendTotal * 100);
 
   const handleApplyVoucher = () => {
     if (voucherCode === "SAVE10") {
       setAppliedDiscount(subtotal * 0.1);
-      console.log("Voucher applied");
+      alert("Voucher Applied! (Note: Discount handling depends on backend)");
     } else {
       setAppliedDiscount(0);
-      console.log("Invalid voucher");
+      alert("Invalid voucher code");
     }
   };
 
   const handleProceedToPayment = async () => {
+    // --- 2. Fix Address Validation ---
+    if (
+      !deliveryAddress ||
+      deliveryAddress === "No delivery address set" ||
+      deliveryAddress === "Loading address..."
+    ) {
+      alert("Please add a valid delivery address before proceeding.");
+      return;
+    }
+
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       console.error("Cannot proceed, no items to checkout.");
       return;
@@ -149,14 +178,20 @@ const CartPage = () => {
     const orderItems = itemsToCheckout.map((item) => ({
       product_id: item.id,
       quantity: item.quantity,
-      // Add any other fields the API order item requires
-      // e.g., price: item.price
     }));
+
+    // --- 3. Fix Payment Method Mapping ---
+    // UI "card" or "bank" -> API "paystack"
+    // UI "wallet" -> API "wallet"
+    let apiPaymentMethod = "paystack";
+    if (paymentMethod === "wallet") {
+      apiPaymentMethod = "wallet";
+    }
 
     const orderData = {
       items: orderItems,
-      total_amount_kobo: estimatedTotalKobo,
-      payment_method: paymentMethod,
+      total_amount_kobo: backendTotalKobo, // Sending correct total without client hacks
+      payment_method: apiPaymentMethod,
     };
 
     try {
@@ -170,18 +205,24 @@ const CartPage = () => {
         amountPaid: 0,
       });
 
-      if (paymentMethod === "card") {
-        navigate("/password");
-      } else if (paymentMethod === "bank") {
-        navigate("/bank-transfer");
-      } else if (paymentMethod === "wallet") {
+      // --- 4. Fix Redirection Logic ---
+      if (apiPaymentMethod === "wallet") {
+        // Wallet needs internal PIN verification
         navigate("/password");
       } else {
-        console.warn && alert("Unhandled payment method:", paymentMethod);
+        // Paystack returns an authorization_url
+        if (newOrder.authorization_url) {
+          window.location.href = newOrder.authorization_url;
+        } else {
+          // Fallback if backend config is missing URL
+          console.warn("No authorization URL returned for Paystack payment");
+          // Optionally navigate to a generic loading/success page if handled automatically
+          navigate("/payment-loading");
+        }
       }
     } catch (err) {
       console.error("Failed to create order:", err);
-      alert(`Error: ${createError || "Could not create your order."}`);
+      // alert(`Error: ${createError || "Could not create your order."}`);
     }
   };
 
@@ -247,8 +288,7 @@ const CartPage = () => {
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src =
-                        "https://placehold.co/64x64/eee/ccc?text=Error";
+                      e.target.src = "/placeholder-image.png";
                     }}
                   />
                 </div>
@@ -344,10 +384,7 @@ const CartPage = () => {
                 />
                 <div>
                   <span className="text-gray-700 font-medium">Card</span>
-                  <p className="text-xs text-gray-500">
-                    S**** **********45 (Default)
-                  </p>
-                  <p className="text-xs text-gray-500">Exp: 09/28</p>
+                  <p className="text-xs text-gray-500">Pay with Paystack</p>
                 </div>
               </label>
               <button

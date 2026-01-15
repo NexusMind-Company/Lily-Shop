@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { Link, useNavigation } from "react-router-dom";
+import { fetchProducts, fetchLikedProducts } from "../../services/api"; // Added fetchLikedProducts
+import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
   Grid,
@@ -25,38 +26,84 @@ const ProfileOwner = () => {
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
 
-  // stricter authentication check to Check localStorage directly to be safe
+  // --- STATES FOR POSTS ---
+  const [userPosts, setUserPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]); // Store liked posts
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [likedLoading, setLikedLoading] = useState(false);
+
+  // stricter authentication check
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!auth?.isAuthenticated || !token) {
-      // Redirect immediately if no auth state OR no token
       navigate("/login", { replace: true });
     }
   }, [auth?.isAuthenticated, navigate]);
 
-  // fetch data Only if we are definitely authenticated
+  // fetch profile data
   useEffect(() => {
-    // Check token existence again to prevent 404 calls
     const token = localStorage.getItem("access_token");
     if (auth?.isAuthenticated && token && !data) {
       dispatch(fetchProfile());
     }
   }, [auth?.isAuthenticated, data, dispatch]);
 
-  const { user = {}, products = [] } = data || {};
+  // 1. Fetch User Posts (Tab 0)
+  useEffect(() => {
+    const loadUserPosts = async () => {
+      const userId = data?.user?.id || data?.id;
+      if (userId && activeTab === 0) {
+        setPostsLoading(true);
+        try {
+          const response = await fetchProducts({ user: userId });
+          const postsData = Array.isArray(response)
+            ? response
+            : response.results || [];
+          setUserPosts(postsData);
+        } catch (err) {
+          console.error("Failed to load user posts:", err);
+        } finally {
+          setPostsLoading(false);
+        }
+      }
+    };
 
-  // Create a memoized variable for the full image URL
+    if (data) {
+      loadUserPosts();
+    }
+  }, [data, activeTab]);
+
+  // 2. Fetch Liked Products (Tab 2 - Heart Icon)
+  useEffect(() => {
+    const loadLikedPosts = async () => {
+      // Only fetch if we are on the Heart tab
+      if (activeTab === 2) {
+        setLikedLoading(true);
+        try {
+          const response = await fetchLikedProducts();
+          const likedData = Array.isArray(response)
+            ? response
+            : response.results || [];
+          setLikedPosts(likedData);
+        } catch (err) {
+          console.error("Failed to load liked posts:", err);
+        } finally {
+          setLikedLoading(false);
+        }
+      }
+    };
+
+    loadLikedPosts();
+  }, [activeTab]);
+
+  const { user = {} } = data || {};
+
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
     const picPath = user.profile_pic;
 
-    if (!picPath) {
-      return defaultIcon;
-    }
-
-    if (picPath.startsWith("http")) {
-      return picPath;
-    }
+    if (!picPath) return defaultIcon;
+    if (picPath.startsWith("http")) return picPath;
 
     const cleanBase = API_BASE_URL.endsWith("/")
       ? API_BASE_URL.slice(0, -1)
@@ -66,10 +113,7 @@ const ProfileOwner = () => {
     return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
 
-  // If auth is missing, return null (or loader) while the useEffect redirects
-  if (!auth?.isAuthenticated) {
-    return null;
-  }
+  if (!auth?.isAuthenticated) return null;
 
   if (loading)
     return (
@@ -78,7 +122,6 @@ const ProfileOwner = () => {
       </div>
     );
 
-  // If we get a 404 (or any error), show a message instead of crashing
   if (error) {
     navigate("/login");
   }
@@ -90,48 +133,71 @@ const ProfileOwner = () => {
       </div>
     );
 
-  const posts = products || [];
-  const announcements = [];
-  const favorites = [];
+  // --- REUSABLE GRID RENDERER ---
+  // This ensures the Liked Grid looks IDENTICAL to the Posts Grid
+  const renderGrid = (items, isLoading, emptyMessage) => {
+    if (isLoading) {
+      return (
+        <div className="w-full flex justify-center my-8">
+          <LoaderSd />
+        </div>
+      );
+    }
 
-  const PostsGrid = () => {
-    if (!posts.length) {
+    if (!items || items.length === 0) {
       return (
         <div className="w-full flex flex-col items-center my-8 text-gray-400">
-          <p>No posts yet</p>
+          <p>{emptyMessage}</p>
         </div>
       );
     }
 
     return (
       <div className="grid grid-cols-3 gap-3 my-2 px-4">
-        {posts.map((post, i) => (
-          <div key={i} className="relative rounded-lg overflow-hidden">
-            <img
-              src={post.image || "/placeholder.png"}
-              alt="Post"
-              className="w-full aspect-square object-cover bg-black"
-            />
-            {post.is_video && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <Play size={28} className="text-white" />
+        {items.map((post, i) => {
+          const mediaSrc =
+            post.image || post.media || post.media_url || "/placeholder.png";
+          const isVideo =
+            post.is_video ||
+            (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
+
+          return (
+            <div
+              key={i}
+              className="relative rounded-lg overflow-hidden"
+              onClick={() => navigate(`/product-details/${post.id}`)}
+            >
+              {isVideo ? (
+                <video
+                  src={mediaSrc}
+                  className="w-full aspect-square object-cover bg-black"
+                  muted
+                />
+              ) : (
+                <img
+                  src={mediaSrc}
+                  alt="Post"
+                  className="w-full aspect-square object-cover bg-black"
+                />
+              )}
+
+              {isVideo && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Play size={28} className="text-white" />
+                </div>
+              )}
+              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+                <Eye size={15} className="mr-1" /> {post.views || 0}
               </div>
-            )}
-            <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
-              <Eye size={15} className="mr-1" /> {post.views || 0}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
 
   const AnnouncementsGrid = () => (
     <div className="text-center text-gray-400 my-8">No Promotions yet</div>
-  );
-
-  const FavoritesGrid = () => (
-    <div className="text-center text-gray-400 my-8">No favorites saved yet</div>
   );
 
   return (
@@ -153,12 +219,10 @@ const ProfileOwner = () => {
       {/* Profile Info */}
       <div className="mt-2 px-4">
         <div className="flex gap-2 items-center">
-          {/* the new profileImageUrl variable */}
           <img
             src={profileImageUrl}
             alt="Profile"
             className="w-20 h-20 rounded-full mb-2 object-cover bg-gray-200"
-            // an error fallback
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "/profile-icon.svg";
@@ -183,7 +247,7 @@ const ProfileOwner = () => {
         <div className="flex mt-4 text-sm items-center justify-between">
           <div className="flex gap-5">
             <div className="flex flex-col items-center">
-              <span className="font-bold text-2xl">{posts.length}</span>
+              <span className="font-bold text-2xl">{userPosts.length}</span>
               <p>Posts</p>
             </div>
             <Link to="/followers">
@@ -240,9 +304,10 @@ const ProfileOwner = () => {
 
       {/* Tab Content */}
       <div>
-        {activeTab === 0 && <PostsGrid />}
+        {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
         {activeTab === 1 && <AnnouncementsGrid />}
-        {activeTab === 2 && <FavoritesGrid />}
+        {activeTab === 2 &&
+          renderGrid(likedPosts, likedLoading, "No favorites yet")}
       </div>
     </div>
   );
