@@ -165,7 +165,7 @@ const App = () => {
 
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
-            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/editProfile" element={<EditProfile />} />
             <Route
               path="/profile/:userId"
               element={<ProfileVisiting />}
@@ -180,7 +180,7 @@ const App = () => {
             />
 
             {/* Content Creation */}
-            <Route path="/create" element={<CreateContent />} />
+            <Route path="/createContent" element={<CreateContent />} />
 
             {/* Inbox & Notifications */}
             <Route path="/inbox" element={<Inbox />} />
