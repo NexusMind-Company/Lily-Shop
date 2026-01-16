@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
 
-// --- LOGIN USER ---
+// ==================== LOGIN USER ====================
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { dispatch, rejectWithValue }) => {
@@ -44,7 +44,9 @@ export const loginUser = createAsyncThunk(
         console.warn("Profile fetch failed after login:", err);
       }
 
-      return data;
+      return {
+        message: data.message || "Registration successful! Please login.",
+      };
     } catch (error) {
       console.error("Login Error Detail:", error.response?.data);
 
@@ -62,39 +64,36 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// --- INITIAL STATE ---
-const initialState = {
-  user_data: (() => {
+// ==================== INITIAL STATE ====================
+const getUserDataFromStorage = () => {
+  try {
     const stored = localStorage.getItem("user_data");
-    try {
-      return stored ? JSON.parse(stored) : null;
-    } catch (err) {
-      console.error("Error parsing stored user_data:", err);
-      return null;
-    }
-  })(),
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.error("Error parsing stored user_data:", error);
+    localStorage.removeItem("user_data");
+    return null;
+  }
+};
+
+const initialState = {
+  user_data: getUserDataFromStorage(),
   isAuthenticated: !!localStorage.getItem("access_token"),
   loading: false,
   error: null,
+  registrationSuccess: false,
 };
 
-// --- SLICE ---
+// ==================== SLICE ====================
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
     loginSuccess: (state, action) => {
-      let userData = action.payload.user_data;
-      if (typeof userData === "string") {
-        try {
-          userData = JSON.parse(userData);
-        } catch (err) {
-          console.error("Error parsing userData:", err);
-        }
-      }
-
+      const userData = action.payload.user_data;
       state.user_data = userData;
       state.isAuthenticated = true;
+      state.error = null;
       localStorage.setItem("user_data", JSON.stringify(userData));
     },
 
@@ -102,12 +101,22 @@ const authSlice = createSlice({
       state.user_data = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.registrationSuccess = false;
       localStorage.removeItem("user_data");
       clearAuthTokens();
+    },
+
+    clearError: (state) => {
+      state.error = null;
+    },
+
+    clearRegistrationSuccess: (state) => {
+      state.registrationSuccess = false;
     },
   },
 
   extraReducers: (builder) => {
+    // Login cases
     builder
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -130,6 +139,23 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Login failed.";
         state.isAuthenticated = false;
+      })
+
+      // Register cases
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.registrationSuccess = false;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.registrationSuccess = true;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Registration failed.";
+        state.registrationSuccess = false;
       });
   },
 });

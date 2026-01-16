@@ -70,7 +70,7 @@ import ChooseAddressPage from "./pages/chooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
-// import AddCardPage from "./pages/AddCardPage";
+// import AddCardPage from "./pages/AddCardPage";a\ zz
 import PasswordModalPage from "./pages/PasswordModalPage";
 import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
@@ -78,6 +78,17 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import Feed from "./pages/feed";
 import OrderSummaryPage from "./pages/OrderSummaryPage.jsx";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
+import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
+import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
+import MealSelectionPage from "./pages/MealSelectionPage";
+import ManageVendorPlansPage from "./pages/ManageVendorPlansPage";
+import CreateSubscriptionPlanPage from "./pages/CreateSubscriptionPlanPage";
+import EditPlanPage from "./pages/EditPlanPage";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
+import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
+import { getCurrentUserId } from "./services/supabase";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -110,60 +121,296 @@ export default function App() {
 
       <FeedProvider>
         <Routes>
+          {/* Public Routes - No Authentication Required */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-code" element={<VerifyCode />} />
+          <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/about" element={<About />} />
+
+          {/* Feed Layout Routes - Mixed Access */}
           <Route element={<FeedLayout />}>
-            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Feed />} />
             <Route
               path="/product-details/:id"
               element={<FeedProductDetails />}
             />
-            <Route path="/checkout" element={<Cart />} />
+            <Route path="/shop/:id" element={<ShopDetails />} />
+            <Route path="/profile/:username" element={<ProfileVisiting />} />
           </Route>
-          <Route path="/myShop" element={<MyShop />} />
-          <Route path="/rating" element={<Ratings />} />
-          <Route path="/createShop" element={<CreateShop />} />
-          <Route path="/shop/:id" element={<ShopDetails />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/verify-code" element={<VerifyCode />} />
-          <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/create-username" element={<CreateUsername />} />
-          <Route path="/upload-profile-pic" element={<UploadProfilePic />} />
-          <Route path="/birthday-picker" element={<BirthdayPicker />} />
-          <Route path="/createContent" element={<CreateContentPage />} />
-          <Route path="/purchaseAds" element={<PurchaseAds />} />
-          <Route path="/shop/:shop_id/step1" element={<Step1 />} />
+
+          {/* Protected Routes - Authentication Required */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/paystack/callback" element={<PaystackCallbackPage />} />
+          <Route
+            path="/myShop"
+            element={
+              <ProtectedRoute>
+                <MyShop />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/order-success"
+            element={
+              <ProtectedRoute>
+                <OrderSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rating"
+            element={
+              <ProtectedRoute>
+                <Ratings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/createShop"
+            element={
+              <ProtectedRoute>
+                <CreateShop />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-username"
+            element={
+              <ProtectedRoute>
+                <CreateUsername />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload-profile-pic"
+            element={
+              <ProtectedRoute>
+                <UploadProfilePic />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/birthday-picker"
+            element={
+              <ProtectedRoute>
+                <BirthdayPicker />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/createContent"
+            element={
+              <ProtectedRoute>
+                <CreateContentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/purchaseAds"
+            element={
+              <ProtectedRoute>
+                <PurchaseAds />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shop/:shop_id/step1"
+            element={
+              <ProtectedRoute>
+                <Step1 />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/shop/:shop_id/paymentInitiation"
-            element={<PaymentInitiation />}
+            element={
+              <ProtectedRoute>
+                <PaymentInitiation />
+              </ProtectedRoute>
+            }
           />
-          <Route path="/forgotPassword" element={<ForgotPassword />} />
-          <Route path="/searchResults" element={<SearchResults />} />
-          <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
-          <Route path="/shop/:shop_id/products" element={<Products />} />
-          <Route path="/shop/:shop_id/add-products" element={<AddProducts />} />
+          <Route
+            path="/searchResults"
+            element={
+              <ProtectedRoute>
+                <SearchResults />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/editShop/:shop_id/edit-shop"
+            element={
+              <ProtectedRoute>
+                <EditShop />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shop/:shop_id/products"
+            element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shop/:shop_id/add-products"
+            element={
+              <ProtectedRoute>
+                <AddProducts />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/shop/:product_id/edit-products"
-            element={<EditProducts />}
+            element={
+              <ProtectedRoute>
+                <EditProducts />
+              </ProtectedRoute>
+            }
           />
-          <Route path="/about" element={<About />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:username" element={<ProfileVisiting />} />
-          <Route path="/lilyChat" element={<LilyChat />} />
-          <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/verify-transaction" element={<VerifyTransaction />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/transaction-history" element={<TransactionHistory />} />
-          <Route path="/deposit" element={<DepositPage />} />
-          <Route path="/withdraw" element={<WithdrawPage />} />
-          <Route path="/addBankAccount" element={<AddBankAccountPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lilyChat"
+            element={
+              <ProtectedRoute>
+                <LilyChat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fetchAdDetails"
+            element={
+              <ProtectedRoute>
+                <FetchAdDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/verify-transaction"
+            element={
+              <ProtectedRoute>
+                <VerifyTransaction />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wallet"
+            element={
+              <ProtectedRoute>
+                <WalletPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transaction-history"
+            element={
+              <ProtectedRoute>
+                <TransactionHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deposit"
+            element={
+              <ProtectedRoute>
+                <DepositPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/withdraw"
+            element={
+              <ProtectedRoute>
+                <WithdrawPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addBankAccount"
+            element={
+              <ProtectedRoute>
+                <AddBankAccountPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/bankAccountDetails"
-            element={<BankAccountDetailsPage />}
+            element={
+              <ProtectedRoute>
+                <BankAccountDetailsPage />
+              </ProtectedRoute>
+            }
           />
           <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
           <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
@@ -197,6 +444,47 @@ export default function App() {
           <Route path="/payment-loading" element={<PaymentLoadingPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          <Route
+            path="/vendor-dashboard"
+            element={<VendorDashboard vendorId={getCurrentUserId()} />}
+          />
+          <Route
+            path="/subscriptions"
+            element={<VendorSubscriptionsOverview />}
+          />
+          <Route
+            path="/my-subscriptions"
+            element={<CustomerSubscriptionsPage />}
+          />
+          <Route
+            path="/vendor/subscribe"
+            element={<VendorSubscriptionPage />}
+          />
+          <Route
+            path="/meal-selection/:subscriptionId"
+            element={<MealSelectionPage />}
+          />
+          <Route
+            path="/subscription/plans"
+            element={<CustomerSubscriptionsPage />}
+          />
+          <Route
+            path="/subscription/create"
+            element={<CreateSubscriptionPlanPage />}
+          />
+          <Route
+            path="/subscription/manage"
+            element={<ManageVendorPlansPage />}
+          />
+          <Route path="/subscription/edit" element={<EditPlanPage />} />
+          <Route
+            path="/subscription-success"
+            element={<SubscriptionSuccessPage />}
+          />
+          <Route
+            path="/subscription-callback"
+            element={<SubscriptionCallbackPage />}
+          />
           {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>

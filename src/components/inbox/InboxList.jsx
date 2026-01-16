@@ -36,6 +36,15 @@ const InboxList = () => {
       message: "Check your orders",
       link: "/orders",
       ChevronRight,
+      
+    },
+    {
+      icon: "📦",
+      title: "vendor Dashboard",
+      message: "Check your orders",
+      link: "/vendor-dashboard",
+      ChevronRight,
+      
     },
     
   ];
