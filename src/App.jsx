@@ -1,12 +1,10 @@
 import { useEffect } from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
 } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "react-hot-toast";
 import { fetchProfile } from "./redux/profileSlice";
 
@@ -59,7 +57,7 @@ import TransactionHistory from "./pages/transaction-history";
 import WalletCallback from "./pages/wallet-callback";
 import CheckoutPage from "./pages/CheckoutPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
-import AddCardPage from "./pages/AddCardPage";
+// import AddCardPage from "./pages/AddCardPage";
 import PaystackCallbackPage from "./pages/PaystackCallbackPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import AddAddressPage from "./pages/AddAddressPage";
@@ -101,7 +99,6 @@ import PaymentsSuccessPage from "./pages/paymentsSucessPage";
 
 // --- Contexts ---
 import { FeedProvider } from "./context/feedContext";
-import { PaymentProvider } from "./context/paymentContext";
 import LilyChat from "./components/ai/lilyChat";
 
 // ScrollToTop component
@@ -126,195 +123,189 @@ const App = () => {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <HelmetProvider>
-      <PaymentProvider>
-        <Router>
-          <FeedProvider>
-            <ScrollToTopAuto />
-            <ScrollToTop />
-            <Toaster position="top-center" />
+    <FeedProvider>
+      <ScrollToTopAuto />
+      <ScrollToTop />
+      <Toaster position="top-center" />
 
-            <Routes>
-              {/* --- Public Routes (Auth) --- */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgotPassword" element={<ForgotPassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/create-username" element={<CreateUsername />} />
-              <Route path="/verify-code" element={<VerifyCode />} />
+      <Routes>
+        {/* --- Public Routes (Auth) --- */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/create-username" element={<CreateUsername />} />
+        <Route path="/verify-code" element={<VerifyCode />} />
 
-              {/* --- Protected Routes (Require Login) --- */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<FeedLayout />}>
-                  <Route path="/" element={<Feed />} />
-                  <Route path="/search" element={<SearchResults />} />
-                  <Route path="/searchResults" element={<SearchResults />} />
+        {/* --- Protected Routes (Require Login) --- */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<FeedLayout />}>
+            <Route path="/" element={<Feed />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/searchResults" element={<SearchResults />} />
 
-                  {/* Shop */}
-                  <Route path="/create-shop" element={<CreateShop />} />
-                  <Route path="/my-shop" element={<MyShop />} />
-                  <Route path="/edit-shop/:shopId" element={<EditShop />} />
-                  <Route
-                    path="/shop/add-products/:shopId"
-                    element={<AddProducts />}
-                  />
-                  <Route
-                    path="/shop/edit-products/:shopId"
-                    element={<EditProducts />}
-                  />
-                  <Route path="/shop/products/:shopId" element={<Products />} />
-                  <Route path="/shop/:shopId" element={<ShopDetails />} />
-                  <Route
-                    path="/product-details/:productId"
-                    element={<ProductDetails />}
-                  />
+            {/* Shop */}
+            <Route path="/create-shop" element={<CreateShop />} />
+            <Route path="/my-shop" element={<MyShop />} />
+            <Route path="/edit-shop/:shopId" element={<EditShop />} />
+            <Route
+              path="/shop/add-products/:shopId"
+              element={<AddProducts />}
+            />
+            <Route
+              path="/shop/edit-products/:shopId"
+              element={<EditProducts />}
+            />
+            <Route path="/shop/products/:shopId" element={<Products />} />
+            <Route path="/shop/:shopId" element={<ShopDetails />} />
+            <Route
+              path="/product-details/:productId"
+              element={<ProductDetails />}
+            />
 
-                  {/* Profile */}
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/edit-profile" element={<EditProfile />} />
-                  <Route
-                    path="/profile/:userId"
-                    element={<ProfileVisiting />}
-                  />
-                  <Route
-                    path="/profile/:userId/followers"
-                    element={<Followers />}
-                  />
-                  <Route
-                    path="/profile/:userId/following"
-                    element={<Following />}
-                  />
+            {/* Profile */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route
+              path="/profile/:userId"
+              element={<ProfileVisiting />}
+            />
+            <Route
+              path="/profile/:userId/followers"
+              element={<Followers />}
+            />
+            <Route
+              path="/profile/:userId/following"
+              element={<Following />}
+            />
 
-                  {/* Content Creation */}
-                  <Route path="/create" element={<CreateContent />} />
+            {/* Content Creation */}
+            <Route path="/create" element={<CreateContent />} />
 
-                  {/* Inbox & Notifications */}
-                  <Route path="/inbox" element={<Inbox />} />
-                  <Route path="/chat/:conversationId" element={<ChatPage />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/activity" element={<Activity />} />
+            {/* Inbox & Notifications */}
+            <Route path="/inbox" element={<Inbox />} />
+            <Route path="/chat/:conversationId" element={<ChatPage />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/activity" element={<Activity />} />
 
-                  {/* Wallet & Payments */}
-                  <Route path="/wallet" element={<Wallet />} />
-                  <Route path="/deposit" element={<Deposit />} />
-                  <Route path="/withdraw" element={<Withdraw />} />
-                  <Route
-                    path="/withdraw/confirm"
-                    element={<ConfirmWithdrawal />}
-                  />
-                  <Route
-                    path="/withdraw/success"
-                    element={<WithdrawSuccess />}
-                  />
-                  <Route
-                    path="/add-bank-account"
-                    element={<AddBankAccount />}
-                  />
-                  <Route
-                    path="/bank-account-details"
-                    element={<BankAccountDetails />}
-                  />
-                  <Route
-                    path="/transaction-history"
-                    element={<TransactionHistory />}
-                  />
-                  <Route
-                    path="/payment/callback"
-                    element={<WalletCallback />}
-                  />
+            {/* Wallet & Payments */}
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/deposit" element={<Deposit />} />
+            <Route path="/withdraw" element={<Withdraw />} />
+            <Route
+              path="/withdraw/confirm"
+              element={<ConfirmWithdrawal />}
+            />
+            <Route
+              path="/withdraw/success"
+              element={<WithdrawSuccess />}
+            />
+            <Route
+              path="/add-bank-account"
+              element={<AddBankAccount />}
+            />
+            <Route
+              path="/bank-account-details"
+              element={<BankAccountDetails />}
+            />
+            <Route
+              path="/transaction-history"
+              element={<TransactionHistory />}
+            />
+            <Route
+              path="/payment/callback"
+              element={<WalletCallback />}
+            />
 
-                  {/* Checkout & Orders */}
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/select-card" element={<ChooseCardPage />} />
-                  <Route path="/add-card" element={<AddCardPage />} />
-                  <Route
-                    path="/payment/paystack-callback"
-                    element={<PaystackCallbackPage />}
-                  />
-                  <Route path="/order-success" element={<OrderSuccessPage />} />
-                  <Route path="/add-address" element={<AddAddressPage />} />
-                  <Route
-                    path="/select-address"
-                    element={<ChooseAddressPage />}
-                  />
-                  <Route path="/order-summary" element={<OrderSummaryPage />} />
-                  <Route path="/orders" element={<OrderHistoryPage />} />
-                  <Route path="/order/:orderId" element={<OrderDetailPage />} />
-                  <Route path="/receipt/:transactionId" element={<Receipt />} />
+            {/* Checkout & Orders */}
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/select-card" element={<ChooseCardPage />} />
+            {/* <Route path="/add-card" element={<AddCardPage />} /> */}
+            <Route
+              path="/payment/paystack-callback"
+              element={<PaystackCallbackPage />}
+            />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/add-address" element={<AddAddressPage />} />
+            <Route
+              path="/select-address"
+              element={<ChooseAddressPage />}
+            />
+            <Route path="/order-summary" element={<OrderSummaryPage />} />
+            <Route path="/orders" element={<OrderHistoryPage />} />
+            <Route path="/order/:orderId" element={<OrderDetailPage />} />
+            <Route path="/receipt/:transactionId" element={<Receipt />} />
 
-                  {/* Vendor Subscriptions */}
-                  <Route
-                    path="/vendor/subscribe"
-                    element={<VendorSubscriptionPage />}
-                  />
-                  <Route
-                    path="/vendor/subscriptions"
-                    element={<VendorSubscriptionsOverview />}
-                  />
-                  <Route
-                    path="/vendor/plans"
-                    element={<ManageVendorPlansPage />}
-                  />
-                  <Route
-                    path="/vendor/plans/create"
-                    element={<CreateSubscriptionPlanPage />}
-                  />
-                  <Route
-                    path="/vendor/plans/edit/:planId"
-                    element={<EditPlanPage />}
-                  />
+            {/* Vendor Subscriptions */}
+            <Route
+              path="/vendor/subscribe"
+              element={<VendorSubscriptionPage />}
+            />
+            <Route
+              path="/vendor/subscriptions"
+              element={<VendorSubscriptionsOverview />}
+            />
+            <Route
+              path="/vendor/plans"
+              element={<ManageVendorPlansPage />}
+            />
+            <Route
+              path="/vendor/plans/create"
+              element={<CreateSubscriptionPlanPage />}
+            />
+            <Route
+              path="/vendor/plans/edit/:planId"
+              element={<EditPlanPage />}
+            />
 
-                  {/* Customer Subscriptions */}
-                  <Route
-                    path="/subscriptions"
-                    element={<CustomerSubscriptionsPage />}
-                  />
-                  <Route
-                    path="/subscriptions/:subscriptionId/meals"
-                    element={<MealSelectionPage />}
-                  />
-                  <Route
-                    path="/subscription-success"
-                    element={<SubscriptionSuccessPage />}
-                  />
-                  <Route
-                    path="/subscription/callback"
-                    element={<SubscriptionCallbackPage />}
-                  />
+            {/* Customer Subscriptions */}
+            <Route
+              path="/subscriptions"
+              element={<CustomerSubscriptionsPage />}
+            />
+            <Route
+              path="/subscriptions/:subscriptionId/meals"
+              element={<MealSelectionPage />}
+            />
+            <Route
+              path="/subscription-success"
+              element={<SubscriptionSuccessPage />}
+            />
+            <Route
+              path="/subscription/callback"
+              element={<SubscriptionCallbackPage />}
+            />
 
-                  {/* Settings & Ads */}
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/change-password" element={<ChangePassword />} />
-                  <Route path="/delete-account" element={<DeleteAccount />} />
-                  <Route path="/change-dob" element={<ChangeDOB />} />
-                  <Route path="/change-phone" element={<ChangePhone />} />
-                  <Route path="/confirm-phone" element={<ConfirmPhone />} />
-                  <Route path="/change-username" element={<ChangeUsername />} />
-                  <Route path="/about" element={<About />} />
+            {/* Settings & Ads */}
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/change-password" element={<ChangePassword />} />
+            <Route path="/delete-account" element={<DeleteAccount />} />
+            <Route path="/change-dob" element={<ChangeDOB />} />
+            <Route path="/change-phone" element={<ChangePhone />} />
+            <Route path="/confirm-phone" element={<ConfirmPhone />} />
+            <Route path="/change-username" element={<ChangeUsername />} />
+            <Route path="/about" element={<About />} />
 
-                  <Route path="/ads" element={<PurchaseAds />} />
-                  <Route path="/ads/details" element={<FetchAdDetails />} />
-                  <Route path="/ads/payment" element={<PaymentInitiation />} />
-                  <Route path="/ads/verify" element={<VerifyTransaction />} />
-                  <Route
-                    path="/payment-failed"
-                    element={<PaymentFailedPage />}
-                  />
-                  <Route
-                    path="/payment-success"
-                    element={<PaymentsSuccessPage />}
-                  />
+            <Route path="/ads" element={<PurchaseAds />} />
+            <Route path="/ads/details" element={<FetchAdDetails />} />
+            <Route path="/ads/payment" element={<PaymentInitiation />} />
+            <Route path="/ads/verify" element={<VerifyTransaction />} />
+            <Route
+              path="/payment-failed"
+              element={<PaymentFailedPage />}
+            />
+            <Route
+              path="/payment-success"
+              element={<PaymentsSuccessPage />}
+            />
 
-                  {/* AI Chat */}
-                  <Route path="/lily-chat" element={<LilyChat />} />
-                </Route>
-              </Route>
-            </Routes>
-          </FeedProvider>
-        </Router>
-      </PaymentProvider>
-    </HelmetProvider>
+            {/* AI Chat */}
+            <Route path="/lily-chat" element={<LilyChat />} />
+          </Route>
+        </Route>
+      </Routes>
+    </FeedProvider>
   );
 };
 
