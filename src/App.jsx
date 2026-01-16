@@ -70,6 +70,7 @@ import ChooseAddressPage from "./pages/chooseAddressPage.jsx";
 import AddAddressPage from "./pages/AddAddressPage";
 import PickupAddressPage from "./pages/PickupAddressPage.jsx";
 import ChooseCardPage from "./pages/ChooseCardPage";
+// import AddCardPage from "./pages/AddCardPage";a\ zz
 import PasswordModalPage from "./pages/PasswordModalPage";
 import PaymentLoadingPage from "./pages/paymentLoading";
 import BankTransferPage from "./pages/BankTransferPage";
@@ -77,16 +78,17 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import Feed from "./pages/feed";
 import OrderSummaryPage from "./pages/OrderSummaryPage.jsx";
-import ProtectedRoute from "./components/common/ProtectedRoute";
-import PaystackCallbackPage from './pages/PaystackCallbackPage.jsx';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderSuccessPage from './pages/OrderSuccessPage';
-import OrderHistoryPage from './pages/OrderHistoryPage';
-import OrderDetailPage from './pages/OrderDetailPage';
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
+import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
+import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
+import MealSelectionPage from "./pages/MealSelectionPage";
+import ManageVendorPlansPage from "./pages/ManageVendorPlansPage";
+import CreateSubscriptionPlanPage from "./pages/CreateSubscriptionPlanPage";
+import EditPlanPage from "./pages/EditPlanPage";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
+import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
+import { getCurrentUserId } from "./services/supabase";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -158,35 +160,50 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/cart" element={
-            <ProtectedRoute>
-              <CartPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/checkout" element={
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/order-success" element={
-            <ProtectedRoute>
-              <OrderSuccessPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/orders" element={
-            <ProtectedRoute>
-              <OrderHistoryPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/orders/:orderId" element={
-            <ProtectedRoute>
-              <OrderDetailPage />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/order-success"
+            element={
+              <ProtectedRoute>
+                <OrderSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/rating"
             element={
@@ -395,230 +412,80 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/confirmWithdrawal" element={<ConfirmWithdrawal />} />
+          <Route path="/withdrawSuccess" element={<WithdrawSuccessPage />} />
+          <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/notifications" element={<NotificationPage />} />
+          <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
+          <Route path="/ChangePhone" element={<ChangePhonePage />} />
+          <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+          <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
+          <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+          <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
+          <Route path="/editProfile" element={<EditProfilePage />} />
+          <Route path="/followers" element={<FollowersPage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/editProfile" element={<EditProfilePage />} />
+          <Route path="/followers" element={<FollowersPage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/reciept" element={<ReceiptPage />} />
+          <Route path="/walletCallback" element={<WalletCallbackPage />} />
+          <Route path="/choose-address" element={<ChooseAddressPage />} />
+          <Route path="/add-address" element={<AddAddressPage />} />
+          <Route path="/choose-pickup" element={<PickupAddressPage />} />
+          <Route path="/choose-card" element={<ChooseCardPage />} />
+          <Route path="/order-summary" element={<OrderSummaryPage />} />
+          {/* <Route path="/add-card" element={<AddCardPage />} /> */}
+          <Route path="/password" element={<PasswordModalPage />} />
+          <Route path="/bank-transfer" element={<BankTransferPage />} />
+          <Route path="/payment-loading" element={<PaymentLoadingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/payment-failed" element={<PaymentFailedPage />} />
           <Route
-            path="/confirmWithdrawal"
-            element={
-              <ProtectedRoute>
-                <ConfirmWithdrawal />
-              </ProtectedRoute>
-            }
+            path="/vendor-dashboard"
+            element={<VendorDashboard vendorId={getCurrentUserId()} />}
           />
           <Route
-            path="/withdrawSuccess"
-            element={
-              <ProtectedRoute>
-                <WithdrawSuccessPage />
-              </ProtectedRoute>
-            }
+            path="/subscriptions"
+            element={<VendorSubscriptionsOverview />}
           />
           <Route
-            path="/inbox"
-            element={
-              <ProtectedRoute>
-                <InboxPage />
-              </ProtectedRoute>
-            }
+            path="/my-subscriptions"
+            element={<CustomerSubscriptionsPage />}
           />
           <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <OrdersPage />
-              </ProtectedRoute>
-            }
+            path="/vendor/subscribe"
+            element={<VendorSubscriptionPage />}
           />
           <Route
-            path="/activity"
-            element={
-              <ProtectedRoute>
-                <ActivityPage />
-              </ProtectedRoute>
-            }
+            path="/meal-selection/:subscriptionId"
+            element={<MealSelectionPage />}
           />
           <Route
-            path="/messages"
-            element={
-              <ProtectedRoute>
-                <Messages />
-              </ProtectedRoute>
-            }
+            path="/subscription/plans"
+            element={<CustomerSubscriptionsPage />}
           />
           <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <NotificationPage />
-              </ProtectedRoute>
-            }
+            path="/subscription/create"
+            element={<CreateSubscriptionPlanPage />}
           />
           <Route
-            path="/ChangeDOB"
-            element={
-              <ProtectedRoute>
-                <ChangeDOBPage />
-              </ProtectedRoute>
-            }
+            path="/subscription/manage"
+            element={<ManageVendorPlansPage />}
+          />
+          <Route path="/subscription/edit" element={<EditPlanPage />} />
+          <Route
+            path="/subscription-success"
+            element={<SubscriptionSuccessPage />}
           />
           <Route
-            path="/ChangePhone"
-            element={
-              <ProtectedRoute>
-                <ChangePhonePage />
-              </ProtectedRoute>
-            }
+            path="/subscription-callback"
+            element={<SubscriptionCallbackPage />}
           />
-          <Route
-            path="/ChangePassword"
-            element={
-              <ProtectedRoute>
-                <ChangePasswordPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ChangeUsername"
-            element={
-              <ProtectedRoute>
-                <ChangeUsernamePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/DeleteAccount"
-            element={
-              <ProtectedRoute>
-                <DeleteAccountPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ConfirmPhone"
-            element={
-              <ProtectedRoute>
-                <ConfirmPhonePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/editProfile"
-            element={
-              <ProtectedRoute>
-                <EditProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/followers"
-            element={
-              <ProtectedRoute>
-                <FollowersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/following"
-            element={
-              <ProtectedRoute>
-                <FollowingPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reciept"
-            element={
-              <ProtectedRoute>
-                <ReceiptPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/walletCallback"
-            element={
-              <ProtectedRoute>
-                <WalletCallbackPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/choose-address"
-            element={
-              <ProtectedRoute>
-                <ChooseAddressPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-address"
-            element={
-              <ProtectedRoute>
-                <AddAddressPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/choose-pickup"
-            element={
-              <ProtectedRoute>
-                <PickupAddressPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/choose-card"
-            element={
-              <ProtectedRoute>
-                <ChooseCardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/order-summary"
-            element={
-              <ProtectedRoute>
-                <OrderSummaryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/password"
-            element={
-              <ProtectedRoute>
-                <PasswordModalPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bank-transfer"
-            element={
-              <ProtectedRoute>
-                <BankTransferPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment-loading"
-            element={
-              <ProtectedRoute>
-                <PaymentLoadingPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment-success"
-            element={
-              <ProtectedRoute>
-                <PaymentSuccessPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment-failed"
-            element={
-              <ProtectedRoute>
-                <PaymentFailedPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* <Route path="/order-details" element={<OrderDetailsPage />} /> */}
         </Routes>
       </FeedProvider>
 

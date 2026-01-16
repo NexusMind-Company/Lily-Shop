@@ -7,100 +7,59 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
-      // Backend expects ONLY 'login' and 'password'
+      // FIX: STRICT PAYLOAD.
+      // The backend ONLY accepts 'login' and 'password'.
+      // Any extra fields (like 'email' or 'username') will cause a 400 Bad Request.
       const payload = {
-        login: credentials.login,
+        login: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
       };
 
-      console.log("🔐 Login attempt:", { login: payload.login });
+      console.log("Sending Login Payload:", payload); // Debugging log
 
       const response = await api.post("/auth/login/", payload);
       const data = response.data;
 
-      console.log("✅ Login successful:", data);
-
-      // Extract tokens (backend returns token: { access, refresh })
-      const tokens = data.token || {};
-      const accessToken = tokens.access || data.access;
-      const refreshToken = tokens.refresh || data.refresh;
-
-      if (accessToken && refreshToken) {
-        setAuthTokens({ access: accessToken, refresh: refreshToken });
-      } else {
-        throw new Error("No tokens received from server");
+      // ---- Save tokens ----
+      if (data.access && data.refresh) {
+        setAuthTokens({ access: data.access, refresh: data.refresh });
+      } else if (data.token?.access && data.token?.refresh) {
+        setAuthTokens({
+          access: data.token.access,
+          refresh: data.token.refresh,
+        });
+      } else if (data.token) {
+        setAuthTokens({ access: data.token, refresh: data.token });
       }
 
-      // Store user data
-      const userData = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-      };
+      // ---- Save user info ----
+      if (data.user) {
+        localStorage.setItem("user_data", JSON.stringify(data.user));
+      }
 
-      localStorage.setItem("user_data", JSON.stringify(userData));
-
-      // Fetch full profile after login
+      // Fetch full profile safely
       try {
-        await dispatch(fetchProfile()).unwrap();
-      } catch (profileError) {
-        console.warn("⚠️ Profile fetch failed:", profileError);
+        await dispatch(fetchProfile());
+      } catch (err) {
+        console.warn("Profile fetch failed after login:", err);
       }
-
-      return userData;
-    } catch (error) {
-      console.error("❌ Login failed:", error.response?.data);
-
-      // Extract user-friendly error message
-      const errorData = error.response?.data || {};
-      const errorMsg =
-        errorData.detail ||
-        errorData.non_field_errors?.[0] ||
-        errorData.login?.[0] ||
-        errorData.password?.[0] ||
-        errorData.message ||
-        "Invalid login credentials. Please try again.";
-
-      return rejectWithValue(errorMsg);
-    }
-  }
-);
-
-// ==================== REGISTER USER ====================
-export const registerUser = createAsyncThunk(
-  "auth/registerUser",
-  async (credentials, { rejectWithValue }) => {
-    try {
-      const payload = {
-        email_or_phonenumber: credentials.email_or_phonenumber,
-        password: credentials.password,
-      };
-
-      console.log("📝 Registration attempt:", {
-        contact: payload.email_or_phonenumber,
-      });
-
-      const response = await api.post("/auth/users/", payload);
-      const data = response.data;
-
-      console.log("✅ Registration successful:", data);
 
       return {
         message: data.message || "Registration successful! Please login.",
       };
     } catch (error) {
-      console.error("❌ Registration failed:", error.response?.data);
+      console.error("Login Error Detail:", error.response?.data);
 
-      const errorData = error.response?.data || {};
-      const errorMsg =
-        errorData.detail ||
-        errorData["Invalid registration"] ||
-        errorData.email_or_phonenumber?.[0] ||
-        errorData.password?.[0] ||
-        errorData.message ||
-        "Registration failed. Please try again.";
+      const errMsg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        // Capture 'non_field_errors' which is common for "Invalid credentials"
+        error.response?.data?.non_field_errors?.[0] ||
+        error.response?.data?.login?.[0] ||
+        error.response?.data?.password?.[0] ||
+        "Login failed. Please check your credentials.";
 
-      return rejectWithValue(errorMsg);
+      return rejectWithValue(errMsg);
     }
   }
 );
@@ -167,7 +126,14 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.isAuthenticated = true;
-        state.user_data = action.payload;
+        state.user_data = action.payload.user || state.user_data || null;
+
+        if (action.payload.user) {
+          localStorage.setItem(
+            "user_data",
+            JSON.stringify(action.payload.user)
+          );
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -194,7 +160,6 @@ const authSlice = createSlice({
   },
 });
 
-// ==================== HELPER ACTIONS ====================
 export const handleLogin = (userData) => (dispatch) => {
   dispatch(loginSuccess({ user_data: userData }));
   dispatch(fetchProfile());
@@ -205,7 +170,5 @@ export const handleLogout = () => (dispatch) => {
   dispatch(resetProfile());
 };
 
-export const { loginSuccess, logout, clearError, clearRegistrationSuccess } =
-  authSlice.actions;
-
+export const { loginSuccess, logout } = authSlice.actions;
 export default authSlice.reducer;

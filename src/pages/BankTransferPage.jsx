@@ -125,7 +125,7 @@ const BankTransferPage = () => {
             onClick={handlePaid}
             className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
           >
-            I&apos;ve sent the money
+            I'sve sent the money
           </button>
           <button onClick={handleCancel} className="mt-4 text-gray-500">
             x Cancel Payment
