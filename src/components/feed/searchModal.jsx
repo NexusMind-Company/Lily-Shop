@@ -333,4 +333,7 @@ const SearchModal = ({ onClose }) => {
   );
 };
 
+<<<<<<< HEAD
+export default SearchModal;
+=======
 export default SearchModal;

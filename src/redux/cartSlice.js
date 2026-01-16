@@ -50,6 +50,13 @@ const cartSlice = createSlice({
       const { id, quantity } = action.payload;
       const item = state.items.find((item) => item.id === id);
       if (item) {
+        // Store original quantity for rollback
+        if (!state.pendingUpdates[itemId]) {
+          state.pendingUpdates[itemId] = {
+            originalQuantity: item.quantity,
+          };
+        }
+        
         item.quantity = quantity;
       }
       saveCartToStorage(state.items); // Save after update
@@ -75,6 +82,7 @@ export const {
 export default cartSlice.reducer;
 
 // Selectors
+export const selectCart = (state) => state.cart;
 export const selectCartItems = (state) => state.cart.items;
 export const selectCartTotal = createSelector([selectCartItems], (items) =>
   items.reduce((total, item) => total + item.price * item.quantity, 0)
