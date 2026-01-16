@@ -1,28 +1,16 @@
-<<<<<<< HEAD
-import React, { useEffect, useRef, useState } from "react";
-=======
 import React, { useEffect, useRef, useState, useCallback } from "react";
->>>>>>> origin/master
 import { useFeed } from "../../context/feedContext";
 import TopNav from "./topNav";
 import BottomNav from "./bottomNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
-<<<<<<< HEAD
-=======
 import { FiRefreshCw, FiWifi, FiWifiOff } from "react-icons/fi";
->>>>>>> origin/master
 
 const FeedContainer = () => {
   const {
     posts,
     isLoading,
     error,
-<<<<<<< HEAD
-    scrollPositionRef,
-    activeTab,
-    setActiveTab,
-=======
     loadMore,
     hasNextPage,
     isFetchingNextPage,
@@ -32,38 +20,10 @@ const FeedContainer = () => {
     setActiveTab,
     saveCurrentPost,
     getRestoreIndex,
->>>>>>> origin/master
   } = useFeed();
 
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
-<<<<<<< HEAD
-
-  const [activePage, setActivePage] = useState("home"); // This one is still local
-
-  const observer = useRef(
-    new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const mediaObject = Array.from(mediaRefs.current).find(
-            (item) =>
-              (item.getDOMNode ? item.getDOMNode() : item) === entry.target
-          );
-          if (!mediaObject) return;
-
-          const isPlayable = typeof mediaObject.play === "function";
-          if (!isPlayable) return;
-
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
-            mediaRefs.current.forEach((item) => {
-              if (item !== mediaObject && typeof item.pause === "function") {
-                item.pause();
-              }
-            });
-            mediaObject.play();
-          } else {
-            mediaObject.pause();
-=======
   const observerRef = useRef(null);
   const loadMoreTriggerRef = useRef(null);
 
@@ -99,61 +59,10 @@ const FeedContainer = () => {
             mediaElement.play().catch(() => {});
           } else {
             mediaElement.pause();
->>>>>>> origin/master
           }
         });
       },
       { threshold: 0.75 }
-<<<<<<< HEAD
-    )
-  );
-
-  const handleVideoInit = (mediaObject) => {
-    if (mediaObject) {
-      mediaRefs.current.add(mediaObject);
-      const domNode = mediaObject.getDOMNode
-        ? mediaObject.getDOMNode()
-        : mediaObject;
-      if (domNode) {
-        observer.current.observe(domNode);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.scrollTop = scrollPositionRef.current;
-    }
-  }, []);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    const handleScroll = () => {
-      if (container) {
-        scrollPositionRef.current = container.scrollTop;
-      }
-    };
-    container?.addEventListener("scroll", handleScroll);
-    return () => container?.removeEventListener("scroll", handleScroll);
-  }, [scrollPositionRef]);
-
-  useEffect(() => {
-    const obs = observer.current;
-    return () => {
-      mediaRefs.current.clear();
-      obs.disconnect();
-    };
-  }, []);
-
-  const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-=======
     );
 
     observerRef.current = observer;
@@ -274,19 +183,12 @@ const FeedContainer = () => {
           {[...Array(3)].map((_, i) => (
             <PostCardSkeleton key={i} />
           ))}
->>>>>>> origin/master
         </div>
       );
     }
 
     if (error) {
       return (
-<<<<<<< HEAD
-        <div className="h-full flex items-center justify-center p-4 text-center">
-          <p className="text-red-500">
-            Could not load feed. Please try again later.
-          </p>
-=======
         <div className="h-full flex items-center justify-center p-4 text-center bg-black">
           <div className="text-white">
             <FiWifiOff className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -301,7 +203,6 @@ const FeedContainer = () => {
               Try Again
             </button>
           </div>
->>>>>>> origin/master
         </div>
       );
     }
@@ -338,14 +239,6 @@ const FeedContainer = () => {
       <div
         ref={scrollContainerRef}
         className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-<<<<<<< HEAD
-      >
-        {posts.map((post) => (
-          <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
-            <FeedItem post={post} onVideoInit={handleVideoInit} />
-          </div>
-        ))}
-=======
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -414,7 +307,6 @@ const FeedContainer = () => {
             </div>
           </div>
         )}
->>>>>>> origin/master
       </div>
     );
   };
@@ -422,44 +314,20 @@ const FeedContainer = () => {
   return (
     <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
-<<<<<<< HEAD
-        <div className="absolute top-0 left-0 right-0 z-10">
-          <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-
-        {renderContent()}
-
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          <BottomNav activePage={activePage} setActivePage={setActivePage} />
-        </div>
-=======
-        {/* Top Navigation */}
+        {/* RAISED TO Z-40 */}
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
 
-        {/* Feed Content */}
         {renderContent()}
 
-        {/* Bottom Navigation */}
+        {/* RAISED TO Z-40 */}
         <div className="absolute bottom-0 left-0 right-0 z-40">
           <BottomNav activePage={activePage} setActivePage={setActivePage} />
         </div>
-
-        {/* Post Counter (Optional) */}
-        {posts.length > 0 && (
-          <div className="absolute top-20 right-4 z-30 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
-            {currentPostIndex + 1} / {posts.length}
-          </div>
-        )}
->>>>>>> origin/master
       </div>
     </main>
   );
 };
-
-<<<<<<< HEAD
 export default FeedContainer;
-=======
 export default FeedContainer;
->>>>>>> origin/master

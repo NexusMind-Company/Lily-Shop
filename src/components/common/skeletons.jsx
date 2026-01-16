@@ -3,12 +3,8 @@ import React from "react";
 export const PostCardSkeleton = () => (
   <div className="relative w-full h-[85vh] bg-black snap-start flex-shrink-0">
     <div className="skeleton-post-media"></div>
-<<<<<<< HEAD
-    <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-20">
-=======
     {/* CHANGED: z-20 -> z-[5] to sit below Nav bars */}
     <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-[5]">
->>>>>>> origin/master
       <div className="flex justify-between items-end">
         <div className="flex-1 space-y-2 max-w-[calc(100%-60px)]">
           <div className="flex items-center gap-3">
@@ -93,8 +89,4 @@ export const SearchUserSkeleton = () => (
       <div className="skeleton skeleton-line" style={{ width: "60%" }}></div>
     </div>
   </div>
-<<<<<<< HEAD
 );
-=======
-);
->>>>>>> origin/master
