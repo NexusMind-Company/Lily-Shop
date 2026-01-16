@@ -13,7 +13,7 @@ import {
 
 import { useDispatch, useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
-import { addItemToCart } from "../../../redux/cartSlice";
+import { addToCart } from "../../../redux/cartSlice";
 import { likeProduct, followUser } from "../../../services/api";
 
 import "swiper/css";
@@ -159,38 +159,13 @@ const ProductItem = ({ product }) => {
   };
 
   const handleAddToCart = () => {
-    const payload = {
-      id: product.id,
-      username: product.username,
-      mediaSrc: mediaArray[0]?.src,
-      productName: product.productName || product.title || product.name,
-      price: product.price,
-      color: selectedColor,
-      size: selectedSize,
-      quantity,
-      pickupAddress: product.pickupAddress,
-      deliveryAddress: product.deliveryAddress,
-      deliveryCharge: product.deliveryCharge,
-      deliveryTime: product.deliveryTime,
-    };
     setIsAddedToCart(true);
-    dispatch(addItemToCart(payload));
+    dispatch(addToCart({ product_id: product.id, quantity }));
   };
 
   const handleCheckout = () => {
     if (!isAuthenticated) return navigate("/login");
-
-    const payload = {
-      id: product.id,
-      username: product.username,
-      mediaSrc: mediaArray[0]?.src,
-      productName: product.productName || product.title || product.name,
-      price: product.price,
-      color: selectedColor,
-      size: selectedSize,
-      quantity,
-    };
-    dispatch(addItemToCart(payload));
+    dispatch(addToCart({ product_id: product.id, quantity }));
 
     navigate("/checkout", {
       state: { selectedItemIds: [product.id] },

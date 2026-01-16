@@ -1,121 +1,134 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
-import { clearCart, removeItemFromCart } from "./cartSlice"; // Import cart actions
 
-// Async thunk: Create a new order
+// ==================== THUNKS ====================
+
 export const createOrder = createAsyncThunk(
   "orders/createOrder",
-  async (orderData, { dispatch, rejectWithValue }) => {
+  async (orderData, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } else {
-        throw new Error("No access token found");
-      }
-
       const response = await api.post("/orders/create/", orderData);
-
-      // After successfully creating the order, clear the items from the cart
-      const createdOrder = response.data;
-      const itemIdsInOrder = orderData.items.map((item) => item.product_id);
-
-      // Clear only the items that were just ordered
-      // If you want to clear the whole cart, just use dispatch(clearCart())
-      itemIdsInOrder.forEach((id) => {
-        dispatch(removeItemFromCart(id)); // Assumes your removeItem action uses the product ID
-      });
-
-      return createdOrder; // Return the new order
+      return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || error.message || "Failed to create order"
-      );
+      return rejectWithValue(error.response?.data || "Failed to create order.");
     }
   }
 );
 
-// Async thunk: Fetch *all* orders (auto-fetch all pages)
 export const fetchOrders = createAsyncThunk(
   "orders/fetchOrders",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } else {
-        throw new Error("No access token found");
-      }
-
-      let allOrders = [];
-      let nextUrl = "/orders/";
-
-      while (nextUrl) {
-        const response = await api.get(nextUrl);
-        const data = response.data;
-
-        allOrders = [...allOrders, ...(data.results || [])];
-        nextUrl = data.next
-          ? new URL(data.next).pathname + new URL(data.next).search
-          : null;
-      }
-
-      return allOrders;
+      const response = await api.get("/orders/");
+      // Ensure we return an array or the correct property containing the list
+      return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to load orders"
+        error.response?.data || "Failed to fetch order history."
       );
     }
   }
 );
+
+export const fetchOrderDetail = createAsyncThunk(
+  "orders/fetchOrderDetail",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch order details."
+      );
+    }
+  }
+);
+
+// ==================== SLICE ====================
 
 const orderSlice = createSlice({
   name: "orders",
   initialState: {
     orders: [],
-    loading: false,
+    currentOrder: null,
+    loading: false, // General loading state (fetching lists/details)
+    createOrderLoading: false, // Specific loading state for creation
     error: null,
-    creating: false, // Add state for creating
-    createError: null,
+    createOrderError: null,
   },
   reducers: {
-    clearOrders: (state) => {
-      state.orders = [];
+    clearOrderError: (state) => {
       state.error = null;
+      state.createOrderError = null;
+    },
+    resetCurrentOrder: (state) => {
+      state.currentOrder = null;
     },
   },
   extraReducers: (builder) => {
+    // --- Create Order Cases ---
     builder
-      // Fetch Orders
+      .addCase(createOrder.pending, (state) => {
+        state.createOrderLoading = true;
+        state.createOrderError = null;
+      })
+      .addCase(createOrder.fulfilled, (state) => {
+        state.createOrderLoading = false;
+        // Optionally refresh orders list here if needed
+      })
+      .addCase(createOrder.rejected, (state, action) => {
+        state.createOrderLoading = false;
+        state.createOrderError = action.payload;
+      });
+
+    // --- Fetch Orders Cases ---
+    builder
       .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload || [];
+        // Handle paginated responses (e.g., action.payload.results) or direct arrays
+        state.orders = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload.results || [];
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Something went wrong";
+        state.error = action.payload;
+      });
+
+    // --- Fetch Order Detail Cases ---
+    builder
+      .addCase(fetchOrderDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      // Create Order
-      .addCase(createOrder.pending, (state) => {
-        state.creating = true;
-        state.createError = null;
+      .addCase(fetchOrderDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentOrder = action.payload;
       })
-      .addCase(createOrder.fulfilled, (state, action) => {
-        state.creating = false;
-        // Add the new order to the list so it appears immediately
-        state.orders.unshift(action.payload);
-      })
-      .addCase(createOrder.rejected, (state, action) => {
-        state.creating = false;
-        state.createError = action.payload || "Could not create order";
+      .addCase(fetchOrderDetail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearOrders } = orderSlice.actions;
+// ==================== EXPORTS ====================
+
+export const { clearOrderError, resetCurrentOrder } = orderSlice.actions;
+
+// Selectors
+export const selectOrders = (state) => state.orders.orders;
+export const selectCurrentOrder = (state) => state.orders.currentOrder;
+export const selectOrderLoading = (state) => state.orders.loading;
+export const selectOrderError = (state) => state.orders.error;
+
+// Creation specific selectors
+export const selectCreateOrderLoading = (state) =>
+  state.orders.createOrderLoading;
+export const selectCreateOrderError = (state) => state.orders.createOrderError;
 
 export default orderSlice.reducer;
