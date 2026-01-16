@@ -330,4 +330,3 @@ const FeedContainer = () => {
   );
 };
 export default FeedContainer;
-export default FeedContainer;
