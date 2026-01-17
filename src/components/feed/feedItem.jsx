@@ -28,22 +28,25 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   }, [post]);
 
-  const mediaArray = Array.isArray(post?.media)
-    ? post.media
-    : post?.media
-    ? [
+  // Handle different API key names (media, media_url, image_url)
+  const rawMedia = post.media || post.media_url || post.image_url;
+
+  const mediaArray = Array.isArray(rawMedia)
+    ? rawMedia
+    : rawMedia
+      ? [
         {
-          src: post.media,
+          src: rawMedia,
           type:
-            typeof post.media === "string" &&
-            (post.media.endsWith(".mp4") ||
-              post.media.endsWith(".mov") ||
-              post.media.endsWith(".webm"))
+            typeof rawMedia === "string" &&
+              (rawMedia.endsWith(".mp4") ||
+                rawMedia.endsWith(".mov") ||
+                rawMedia.endsWith(".webm"))
               ? "video"
               : "image",
         },
       ]
-    : [];
+      : [];
 
   const isVideo =
     mediaArray[0]?.type === "video" ||
@@ -218,9 +221,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             alt={post.name || post.caption || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.style.display = "none";
-              if (e.target.nextSibling) {
-                e.target.nextSibling.style.display = "flex";
+              if (!e.target.src.includes("/feed-image.png")) {
+                e.target.src = "/feed-image.png";
               }
             }}
           />
@@ -252,7 +254,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
-            
+
             {/* User Info */}
             <div className="relative gap-3 flex items-center">
               <Link to={profileLink} className="relative block">
@@ -328,9 +330,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2">
                 <Link
-                  to={`/product-details/${
-                    isProduct ? post.id : post.product.id
-                  }`}
+                  to={`/product-details/${isProduct ? post.id : post.product.id
+                    }`}
                   className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
                 >
                   <span>
@@ -410,9 +411,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshops.com/${
-              isProduct ? "product" : "content"
-            }/${post.id}`}
+            postUrl={`https://lilyshops.com/${isProduct ? "product" : "content"
+              }/${post.id}`}
             postCaption={post.caption}
           />
         )}
