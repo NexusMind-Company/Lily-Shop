@@ -24,7 +24,7 @@ const ProfileVisiting = () => {
   const [isFollowing, setIsFollowing] = useState(false); // Local follow state
 
   const navigate = useNavigate();
-  const { userId } = useParams();
+  const { username } = useParams();
 
   // Access logged-in user to prevent self-visiting
   const { user_data } = useSelector((state) => state.auth);
@@ -32,7 +32,7 @@ const ProfileVisiting = () => {
   useEffect(() => {
     // 1. Redirect if visiting own profile
     if (user_data) {
-      if (String(user_data.id) === String(userId)) {
+      if (String(user_data.id) === String(username) || user_data.username === username) {
         navigate("/profile");
         return;
       }
@@ -42,8 +42,7 @@ const ProfileVisiting = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        // Pass userId (UUID), NOT username
-        const result = await fetchPublicProfile(userId);
+        const result = await fetchPublicProfile(username);
 
         // Normalize data to match your design's expected structure
         // We ensure 'products' is populated so the Grid works
@@ -73,10 +72,10 @@ const ProfileVisiting = () => {
       }
     };
 
-    if (userId) {
+    if (username) {
       loadData();
     }
-  }, [userId, user_data, navigate]);
+  }, [username, user_data, navigate]);
 
   const handleFollow = async () => {
     if (!data?.user?.username) return;
