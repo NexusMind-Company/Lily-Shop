@@ -311,7 +311,7 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-screen bg-black flex justify-center overflow-hidden">
+    <main className="relative w-full h-[100dvh] bg-black flex justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] bg-black md:shadow-xl">
         {/* RAISED TO Z-40 */}
         <div className="absolute top-0 left-0 right-0 z-40">
