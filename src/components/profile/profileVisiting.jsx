@@ -24,15 +24,15 @@ const ProfileVisiting = () => {
   const [isFollowing, setIsFollowing] = useState(false); // Local follow state
 
   const navigate = useNavigate();
-  const { userId } = useParams();
-
+  const { username } = useParams();
+  
   // Access logged-in user to prevent self-visiting
   const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
     // 1. Redirect if visiting own profile
     if (user_data) {
-      if (String(user_data.id) === String(userId)) {
+      if (String(user_data.id) === String(username) || user_data.username === username) {
         navigate("/profile");
         return;
       }
@@ -42,9 +42,8 @@ const ProfileVisiting = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        // Pass userId (UUID), NOT username
-        const result = await fetchPublicProfile(userId);
-
+        const result = await fetchPublicProfile(username);
+        
         // Normalize data to match your design's expected structure
         // We ensure 'products' is populated so the Grid works
         const normalizedData = {
@@ -59,7 +58,7 @@ const ProfileVisiting = () => {
             following_count: result.following_count || 0,
           },
           // Map API's posts/products to 'products' for your Grid
-          products: result.products || result.posts || result.user?.products || [],
+          products: result.products || result.posts || result.user?.products || [], 
         };
 
         setData(normalizedData);
@@ -73,17 +72,17 @@ const ProfileVisiting = () => {
       }
     };
 
-    if (userId) {
+    if (username) {
       loadData();
     }
-  }, [userId, user_data, navigate]);
+  }, [username, user_data, navigate]);
 
   const handleFollow = async () => {
     if (!data?.user?.username) return;
-
+    
     // Optimistic UI update
     setIsFollowing(!isFollowing);
-
+    
     try {
       await followUser(data.user.username);
     } catch (err) {
@@ -261,16 +260,17 @@ const ProfileVisiting = () => {
           </div>
           <div className="flex gap-4 items-center">
             {/* Logic integrated into your styling */}
-            <button
+            <button 
               onClick={handleFollow}
-              className={`border-2 font-bold text-lg px-6 py-2 rounded-full transition-colors ${isFollowing
-                  ? "bg-white text-lily border-lily"
+              className={`border-2 font-bold text-lg px-6 py-2 rounded-full transition-colors ${
+                isFollowing 
+                  ? "bg-white text-lily border-lily" 
                   : "bg-lily text-white border-transparent"
-                }`}
+              }`}
             >
               {isFollowing ? "Following" : "Follow"}
             </button>
-
+            
             <Link to="/messages">
               <MessageSquareText size={40} className="text-red-500" />
             </Link>
@@ -281,22 +281,25 @@ const ProfileVisiting = () => {
       {/* Tabs */}
       <div className="flex my-5 w-full justify-evenly">
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 0 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 0 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(0)}
         >
           <Grid size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 1 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 1 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(1)}
         >
           <Megaphone size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 2 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 2 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(2)}
         >
           <Heart size={30} />
