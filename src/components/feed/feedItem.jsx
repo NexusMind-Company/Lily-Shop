@@ -55,7 +55,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isLiked, setIsLiked] = useState(
+    post.is_liked === true || post.is_liked === "true"
+  );
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
 
   const [likeCount, setLikeCount] = useState(
