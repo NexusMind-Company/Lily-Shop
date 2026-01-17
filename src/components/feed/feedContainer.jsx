@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useFeed } from "../../context/feedContext";
 import TopNav from "./topNav";
 import BottomNav from "./bottomNav";
@@ -19,7 +19,6 @@ const FeedContainer = () => {
     activeTab,
     setActiveTab,
     saveCurrentPost,
-    getRestoreIndex,
   } = useFeed();
 
   const scrollContainerRef = useRef(null);
@@ -31,6 +30,40 @@ const FeedContainer = () => {
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+
+  // ========================================
+  // EXTRACT BACKGROUND MEDIA (IMAGE OR VIDEO)
+  // ========================================
+  const backgroundMedia = useMemo(() => {
+    if (!posts || posts.length === 0 || !posts[currentPostIndex]) return null;
+
+    const post = posts[currentPostIndex];
+    const rawMedia = post.media || post.media_url || post.image_url;
+
+    // Normalize to array
+    const mediaArray = Array.isArray(rawMedia)
+      ? rawMedia
+      : rawMedia
+        ? [{ src: rawMedia, type: typeof rawMedia === "string" && rawMedia.match(/\.(mp4|mov|webm)$/i) ? "video" : "image" }]
+        : [];
+
+    // Get the first item (the one visible on the card)
+    const primaryItem = mediaArray[0];
+
+    if (primaryItem) {
+      // Determine type if not explicitly set
+      const isVideo = primaryItem.type === "video" ||
+        (typeof primaryItem.src === "string" && primaryItem.src.match(/\.(mp4|mov|webm)$/i));
+
+      return {
+        src: primaryItem.src || primaryItem,
+        type: isVideo ? "video" : "image"
+      };
+    }
+
+    // Fallback if no media exists
+    return { src: "/placeholder-image.png", type: "image" };
+  }, [posts, currentPostIndex]);
 
   // ========================================
   // VIDEO INTERSECTION OBSERVER
@@ -120,16 +153,17 @@ const FeedContainer = () => {
       const viewportHeight = container.clientHeight;
       const index = Math.round(scrolled / viewportHeight);
 
-      setCurrentPostIndex(index);
-
-      if (posts[index]) {
-        saveCurrentPost(posts[index].id);
+      if (index !== currentPostIndex) {
+        setCurrentPostIndex(index);
+        if (posts[index]) {
+          saveCurrentPost(posts[index].id);
+        }
       }
     };
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [posts, scrollPositionRef, saveCurrentPost]);
+  }, [posts, scrollPositionRef, saveCurrentPost, currentPostIndex]);
 
   // ========================================
   // PULL TO REFRESH
@@ -189,7 +223,7 @@ const FeedContainer = () => {
 
     if (error) {
       return (
-        <div className="h-full flex items-center justify-center p-4 text-center bg-black">
+        <div className="h-full flex items-center justify-center p-4 text-center">
           <div className="text-white">
             <FiWifiOff className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <h2 className="text-xl font-bold mb-2">Connection Error</h2>
@@ -209,7 +243,7 @@ const FeedContainer = () => {
 
     if (!posts || posts.length === 0) {
       return (
-        <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
+        <div className="h-full flex flex-col items-center justify-center p-4 text-center text-white">
           <svg
             className="w-16 h-16 mb-4 opacity-50"
             fill="none"
@@ -274,7 +308,7 @@ const FeedContainer = () => {
 
         {/* Loading More Indicator */}
         {isFetchingNextPage && (
-          <div className="h-full w-full snap-start flex items-center justify-center bg-black">
+          <div className="h-full w-full snap-start flex items-center justify-center">
             <div className="text-white flex flex-col items-center gap-2">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               <p className="text-sm">Loading more posts...</p>
@@ -293,7 +327,7 @@ const FeedContainer = () => {
 
         {/* End of Feed */}
         {!hasNextPage && posts.length > 0 && (
-          <div className="h-full w-full snap-start flex items-center justify-center bg-black">
+          <div className="h-full w-full snap-start flex items-center justify-center">
             <div className="text-white text-center p-8">
               <FiWifi className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-sm opacity-70">You're all caught up!</p>
@@ -311,16 +345,48 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-[100dvh] bg-black flex justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] bg-black md:shadow-xl">
-        {/* RAISED TO Z-40 */}
+    <main className="relative w-full h-[100dvh] bg-transparent flex justify-center overflow-hidden">
+
+      {/* BACKGROUND BLUR EFFECT (IMAGE OR VIDEO) */}
+      {backgroundMedia && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-black/60 z-10" />
+
+          {backgroundMedia.type === "video" ? (
+            <video
+              key={backgroundMedia.src}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-cover blur-3xl opacity-50 scale-110 transition-all duration-700 ease-in-out"
+            >
+              <source src={backgroundMedia.src} />
+            </video>
+          ) : (
+            <img
+              key={backgroundMedia.src}
+              src={backgroundMedia.src}
+              alt="Blur Background"
+              className="w-full h-full object-cover blur-3xl opacity-50 scale-110 transition-all duration-700 ease-in-out"
+              onError={(e) => {
+                if (!e.target.src.includes("/feed-image.png")) {
+                  e.target.src = "/feed-image.png";
+                }
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Main Content Container */}
+      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] bg-transparent md:shadow-xl z-10">
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
 
         {renderContent()}
 
-        {/* RAISED TO Z-40 */}
         <div className="absolute bottom-0 left-0 right-0 z-40">
           <BottomNav activePage={activePage} setActivePage={setActivePage} />
         </div>
