@@ -123,7 +123,7 @@ const App = () => {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <>
+    <FeedProvider>
       <ScrollToTopAuto />
       <ScrollToTop />
       <Toaster position="top-center" />
@@ -308,7 +308,7 @@ const App = () => {
           </Route>
         </Route>
       </Routes>
-    </>
+    </FeedProvider>
   );
 };
 
