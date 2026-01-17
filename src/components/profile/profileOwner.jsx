@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { fetchProducts, fetchLikedProducts } from "../../services/api"; // Added fetchLikedProducts
+import { fetchProducts, fetchLikedProducts } from "../../services/api";
+import { fetchContents } from "../../services/shopApi";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
@@ -55,11 +56,25 @@ const ProfileOwner = () => {
       if (userId && activeTab === 0) {
         setPostsLoading(true);
         try {
-          const response = await fetchProducts({ user: userId });
-          const postsData = Array.isArray(response)
-            ? response
-            : response.results || [];
-          setUserPosts(postsData);
+          const [productsRes, contentsRes] = await Promise.all([
+            fetchProducts({ user: userId }),
+            fetchContents({ user: userId }),
+          ]);
+
+          const products = Array.isArray(productsRes)
+            ? productsRes
+            : productsRes.results || [];
+
+          const contents = Array.isArray(contentsRes)
+            ? contentsRes
+            : contentsRes.results || [];
+
+          // Merge and sort by newest first
+          const allPosts = [...products, ...contents].sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
+
+          setUserPosts(allPosts);
         } catch (err) {
           console.error("Failed to load user posts:", err);
         } finally {
@@ -277,25 +292,22 @@ const ProfileOwner = () => {
       {/* Tabs */}
       <div className="flex my-5 w-full justify-evenly">
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 0 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 0 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(0)}
         >
           <Grid size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 1 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 1 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(1)}
         >
           <Megaphone size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 2 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 2 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(2)}
         >
           <Heart size={30} />
