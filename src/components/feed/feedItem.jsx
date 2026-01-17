@@ -23,6 +23,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
 
   useEffect(() => {
+    console.log("FeedItem Post Data:", post);
     if (!post.user_id && !post.userId) {
       // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
