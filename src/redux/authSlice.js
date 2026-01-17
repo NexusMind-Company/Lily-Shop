@@ -64,6 +64,26 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+
+// Regiser User
+export const registerUser = createAsyncThunk(
+  "auth/registerUser",
+  async (userData, { rejectWithValue }) => {
+    try {
+      // Matches the payload sent from signUp.jsx
+      const response = await api.post("/auth/users/", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Registration Error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.detail || 
+        error.response?.data?.message || 
+        "Registration failed."
+      );
+    }
+  }
+);
+
 // ==================== INITIAL STATE ====================
 const getUserDataFromStorage = () => {
   try {
@@ -170,5 +190,6 @@ export const handleLogout = () => (dispatch) => {
   dispatch(resetProfile());
 };
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout, clearError, clearRegistrationSuccess } =
+  authSlice.actions;
 export default authSlice.reducer;
