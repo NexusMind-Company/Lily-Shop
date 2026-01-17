@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useMemo } from "react"; // Import useMemo
+import React, { useState, useEffect, useMemo } from "react";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectCartItems,
-  updateItemQuantity,
-  removeItemFromCart,
-  selectCartItemCount,
+  updateCartItem,
+  removeFromCart,
 } from "../../../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
 
 const CartModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const cartItems = useSelector(selectCartItems);
-  const cartItemCount = useSelector(selectCartItemCount);
+  const cartItems = useSelector(selectCartItems) || [];
+  const cartItemCount = cartItems.length;
 
   const [selectedItems, setSelectedItems] = useState(new Set());
   const areAllSelected =
@@ -37,14 +36,14 @@ const CartModal = ({ isOpen, onClose }) => {
 
   const handleUpdateQuantity = (id, newQuantity) => {
     if (newQuantity < 1) {
-      dispatch(removeItemFromCart(id));
+      dispatch(removeFromCart(id));
     } else {
-      dispatch(updateItemQuantity({ id, quantity: newQuantity }));
+      dispatch(updateCartItem({ itemId: id, quantity: newQuantity }));
     }
   };
 
   const handleRemoveItem = (id) => {
-    dispatch(removeItemFromCart(id));
+    dispatch(removeFromCart(id));
   };
 
   // Calculate total based on selected items
@@ -57,14 +56,12 @@ const CartModal = ({ isOpen, onClose }) => {
     }, 0);
   }, [cartItems, selectedItems]);
 
-  //  handleCheckoutClick now passes selected IDs
   const handleCheckoutClick = () => {
     if (selectedItems.size === 0) {
       alert("Please select one or more items to checkout.");
       return;
     }
-    onClose(); // Close the modal
-    // Pass the selected IDs as an array in the navigation state
+    onClose();
     navigate("/checkout", {
       state: { selectedItemIds: Array.from(selectedItems) },
     });
@@ -133,7 +130,7 @@ const CartModal = ({ isOpen, onClose }) => {
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full" // Removed form-checkbox and ring
+                  className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full"
                   checked={areAllSelected}
                   onChange={handleToggleAll}
                   disabled={cartItems.length === 0}
@@ -211,7 +208,7 @@ const CartModal = ({ isOpen, onClose }) => {
                     <div className="flex flex-col items-center justify-between h-35">
                       <input
                         type="checkbox"
-                        className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full flex-shrink-0" // Removed form-checkbox and ring
+                        className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full flex-shrink-0"
                         checked={selectedItems.has(item.id)}
                         onChange={() => handleToggleItem(item.id)}
                       />
@@ -235,14 +232,12 @@ const CartModal = ({ isOpen, onClose }) => {
                   <span className="text-lg font-bold text-gray-800">
                     Total Payment:
                   </span>
-                  {/*  Use selectedTotal */}
                   <span className="text-lg font-bold text-gray-800">
                     N{formatPrice(selectedTotal)}
                   </span>
                 </div>
                 <button
                   onClick={handleCheckoutClick}
-                  //  Added disabled state
                   disabled={selectedItems.size === 0}
                   className="w-[60%] bg-lily text-white py-3 rounded-full text-xl font-semibold hover:bg-darklily transition-colors disabled:bg-ash"
                 >
