@@ -29,7 +29,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <div className="flex items-center w-full h-16 px-4 bg-transparent absolute top-0 left-0 z-50">
+    <div className="flex items-center w-full h-16 px-4 bg-transparent z-50">
       <div className="flex items-center justify-between w-lg mx-auto md:w-4xl">
         <div className="pl-2">
           <BsBroadcast className="size-5 md:size-7 text-white hidden" />
@@ -42,8 +42,8 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${activeTab === "nearby"
-                  ? "pb-1 border-b-2 border-b-lily"
-                  : ""
+                ? "pb-1 border-b-2 border-b-lily"
+                : ""
                 }`}
             >
               Nearby
@@ -56,8 +56,8 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${activeTab === "forYou"
-                  ? "pb-1 border-b-2 border-b-lily"
-                  : ""
+                ? "pb-1 border-b-2 border-b-lily"
+                : ""
                 }`}
             >
               For you
