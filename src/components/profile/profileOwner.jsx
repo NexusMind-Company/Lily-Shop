@@ -15,6 +15,7 @@ import {
   Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { fetchContents } from "../../services/shopApi";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -51,14 +52,13 @@ const ProfileOwner = () => {
   // 1. Fetch User Posts (Tab 0)
   useEffect(() => {
     const loadUserPosts = async () => {
-      //const userId = data?.user?.id || data?.id;
-      const userProduct = data?.products
-      console.log(userProduct, data)
-      //console.log("user", userId)
-      {/**if (userId && activeTab === 0) {
+      const userId = data?.user?.id || data?.id;
+      console.log(data, userId)
+
+    if (userId && activeTab === 0) {
         setPostsLoading(true);
         try {
-          const response = await fetchProducts({ user: userId });
+          const response = await fetchContents({ user: userId });
           const postsData = Array.isArray(response)
             ? response
             : response.results || [];
@@ -68,26 +68,6 @@ const ProfileOwner = () => {
         } finally {
           setPostsLoading(false);
         }
-      }
-    };**/}
-
-    if (userProduct && activeTab === 0) {
-        setPostsLoading(true);
-        const post = userProduct.map(post => post)
-        const response = await fetchProducts({user: post});
-        console.log(response)
-        {/**try {
-          const response = await fetchProducts({ user: userProduct });
-          const postsData = Array.isArray(response)
-            ? response
-            : response.results || [];
-            console.log(postsData)
-          setUserPosts(postsData);
-        } catch (err) {
-          console.error("Failed to load user posts:", err);
-        } finally {
-          setPostsLoading(false);
-        }**/}
       }
     };
 
