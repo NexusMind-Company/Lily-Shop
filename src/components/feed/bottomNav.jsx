@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (
-    <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
+    <div className="flex justify-around items-center bg-white h-16 pt-2 pb-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] w-full z-50">
       {/* Home  */}
       <Link
         to="/"
