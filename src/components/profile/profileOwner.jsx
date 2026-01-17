@@ -112,6 +112,7 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
+  console.log("Profile User Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -216,7 +217,7 @@ const ProfileOwner = () => {
   );
 
   return (
-    <div className="bg-white min-h-screen w-full ">
+    <div className="bg-white h-screen w-full overflow-y-auto no-scrollbar">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <button onClick={() => navigate(-1)}>
@@ -262,7 +263,9 @@ const ProfileOwner = () => {
         <div className="flex mt-4 text-sm items-center justify-between">
           <div className="flex gap-5">
             <div className="flex flex-col items-center">
-              <span className="font-bold text-2xl">{userPosts.length}</span>
+              <span className="font-bold text-2xl">
+                {user.post_count || data.post_count || data.product_count || userPosts.length || 0}
+              </span>
               <p>Posts</p>
             </div>
             <Link to="/followers">
