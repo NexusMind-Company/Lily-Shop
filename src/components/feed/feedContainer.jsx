@@ -42,7 +42,7 @@ const FeedContainer = () => {
           const mediaElement = Array.from(mediaRefs.current).find(
             (item) => (item.getDOMNode ? item.getDOMNode() : item) === entry.target
           );
-          
+
           if (!mediaElement) return;
 
           const isPlayable = typeof mediaElement.play === "function";
@@ -56,7 +56,7 @@ const FeedContainer = () => {
               }
             });
             // Play current video
-            mediaElement.play().catch(() => {});
+            mediaElement.play().catch(() => { });
           } else {
             mediaElement.pause();
           }
@@ -115,13 +115,13 @@ const FeedContainer = () => {
 
     const handleScroll = () => {
       scrollPositionRef.current = container.scrollTop;
-      
+
       const scrolled = container.scrollTop;
       const viewportHeight = container.clientHeight;
       const index = Math.round(scrolled / viewportHeight);
-      
+
       setCurrentPostIndex(index);
-      
+
       if (posts[index]) {
         saveCurrentPost(posts[index].id);
       }
@@ -251,9 +251,8 @@ const FeedContainer = () => {
           >
             <div className="bg-white rounded-full p-3 shadow-lg">
               <FiRefreshCw
-                className={`w-6 h-6 text-lily ${
-                  isRefreshing ? "animate-spin" : ""
-                }`}
+                className={`w-6 h-6 text-lily ${isRefreshing ? "animate-spin" : ""
+                  }`}
               />
             </div>
           </div>
@@ -312,8 +311,8 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
+    <main className="relative w-full h-screen bg-black flex justify-center overflow-hidden">
+      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] bg-black md:shadow-xl">
         {/* RAISED TO Z-40 */}
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
