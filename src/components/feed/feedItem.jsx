@@ -146,7 +146,23 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   const { mutate: toggleFollow } = useMutation({
     mutationFn: async () => {
-      return followUser(profileId);
+      let targetUsername = post.username || post.user;
+
+      // Sometimes 'user' is an object
+      if (typeof targetUsername === 'object' && targetUsername?.username) {
+        targetUsername = targetUsername.username;
+      }
+
+      if (!targetUsername && post.shop_name) {
+        // Fallback for shops/vendors if username is not explicit
+        targetUsername = post.shop_name;
+      }
+
+      if (!targetUsername) {
+        console.error("Cannot follow: Username missing on post", post);
+        return;
+      }
+      return followUser(targetUsername);
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
