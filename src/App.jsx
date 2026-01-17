@@ -137,13 +137,16 @@ const App = () => {
         <Route path="/create-username" element={<CreateUsername />} />
         <Route path="/verify-code" element={<VerifyCode />} />
 
+        {/* --- Public Feed & Search --- */}
+        <Route element={<FeedLayout />}>
+          <Route path="/" element={<Feed />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/searchResults" element={<SearchResults />} />
+        </Route>
+
         {/* --- Protected Routes (Require Login) --- */}
         <Route element={<ProtectedRoute />}>
           <Route element={<FeedLayout />}>
-            <Route path="/" element={<Feed />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/searchResults" element={<SearchResults />} />
-
             {/* Shop */}
             <Route path="/create-shop" element={<CreateShop />} />
             <Route path="/my-shop" element={<MyShop />} />
