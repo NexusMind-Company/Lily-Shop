@@ -288,6 +288,7 @@ const ProfileOwner = () => {
              Food Subscription
             </button>
           </Link>
+
           <Link to="/editProfile">
             <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
               Edit Profile

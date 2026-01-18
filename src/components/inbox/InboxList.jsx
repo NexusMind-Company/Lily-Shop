@@ -9,7 +9,11 @@ const InboxList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+<<<<<<< HEAD
     const token = localStorage.getItem("access_token");
+=======
+    const token = localStorage.getItem("access_token"); 
+>>>>>>> aff2813b7c7e68b4fb873a2b35356553f014863a
     if (!token) {
       navigate("/login");
     }
