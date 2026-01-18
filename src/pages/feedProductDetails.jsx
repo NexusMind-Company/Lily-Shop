@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/pages/feedProductDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -71,3 +72,16 @@ const FeedProductDetails = () => {
 };
 
 export default FeedProductDetails;
+=======
+import ProductDetails from "../components/feed/product/productDetails";
+
+const FeedProductDetails = () => {
+  return (
+    <>
+      <ProductDetails />
+    </>
+  );
+};
+
+export default FeedProductDetails;
+>>>>>>> bff0b00e5ad953ffc030491b0a66a9d87c05f366
