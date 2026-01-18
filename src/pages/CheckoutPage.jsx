@@ -24,7 +24,6 @@ import api from "../services/api";
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const cart = useSelector(selectCart);
   const cartItems = useSelector(selectCartItems);
   const cartLoading = useSelector(selectCartIsLoading);
