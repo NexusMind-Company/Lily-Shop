@@ -19,12 +19,12 @@ const EditPlanPage = () => {
 
   const handleWeeklyEdit = () => {
     // Handle weekly plan edit
-    console.log("Edit weekly plan");
+    navigate("/subscription/manage?type=weekly&mode=edit");
   };
 
   const handleMonthlyEdit = () => {
     // Handle monthly plan edit
-    console.log("Edit monthly plan");
+    navigate("/subscription/manage?type=monthly&mode=edit");
   };
 
   return (
@@ -44,7 +44,7 @@ const EditPlanPage = () => {
         {/* Selection Cards Container */}
         <div className="flex flex-col gap-5">
           <PlanSelectionCard
-             icon={<CalendarRange />}
+            icon={<CalendarRange />}
             badge="Short Term"
             title="Weekly Meal Plan"
             description="Edit your 7-day menu plan."

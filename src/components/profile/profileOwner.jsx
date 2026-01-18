@@ -283,12 +283,17 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
+          <div className=""> <Link to="/vendor-dashboard">
+            <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-[16px]">
+             Food Subscription
+            </button>
+          </Link>
 
           <Link to="/editProfile">
             <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
               Edit Profile
             </button>
-          </Link>
+          </Link></div>
         </div>
       </div>
 

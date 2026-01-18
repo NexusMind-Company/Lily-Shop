@@ -18,6 +18,7 @@ import feedReducer from "./feedCommentSlice";
 import productContentReducer from "./productContentSlice";
 import funContentReducer from "./funContentSlice";
 import searchReducer from "./searchSlice";
+import createSubscriptionVendorReducer from "./createSubscriptionVendorSlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -34,17 +35,17 @@ export const store = configureStore({
     messages: messageReducer,
     passwordReset: passwordResetReducer,
     cart: cartReducer,
-    productContent: productContentReducer,  // <-- FIXED
-    funContent: funContentReducer,          // <-- FIXED
+    productContent: productContentReducer, // <-- FIXED
+    funContent: funContentReducer, // <-- FIXED
     createUser: createUserReducer,
     verifyEmail: verifyEmailReducer,
     wallet: walletReducer,
     orders: orderReducer,
     activities: activitiesReducer,
     search: searchReducer,
+    createSubscriptionVendor: createSubscriptionVendorReducer,
   },
 });
-
 
 // --- Initialize Auth Tokens Safely ---
 const initializeTokens = () => {
