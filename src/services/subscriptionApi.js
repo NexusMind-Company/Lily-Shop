@@ -1,4 +1,5 @@
 import { supabase, handleSupabaseError } from "./supabase";
+import { fetchPublicProfile } from "./api";
 
 /**
  * Fetch vendor profile by vendor ID
@@ -7,13 +8,7 @@ import { supabase, handleSupabaseError } from "./supabase";
  */
 export const fetchVendorProfile = async (vendorId) => {
   try {
-    const { data, error } = await supabase
-      .from("vendors")
-      .select("*")
-      .eq("id", vendorId)
-      .single();
-
-    if (error) throw error;
+    const data = await fetchPublicProfile(vendorId);
     return data;
   } catch (error) {
     console.error("Error fetching vendor profile:", error);
@@ -136,7 +131,7 @@ export const fetchMealPlans = async (vendorId) => {
 export const fetchMenuItems = async (vendorId, limit = 10) => {
   try {
     const { data, error } = await supabase
-      .from("menu_items")
+      .from("meals")
       .select("*")
       .eq("vendor_id", vendorId)
       .limit(limit);
@@ -156,25 +151,7 @@ export const fetchMenuItems = async (vendorId, limit = 10) => {
  */
 export const fetchVendorDetails = async (vendorId) => {
   try {
-    const { data, error } = await supabase
-      .from("vendors")
-      .select(
-        `
-        id,
-        name,
-        image,
-        verified,
-        cuisine,
-        location,
-        rating,
-        review_count,
-        description
-      `
-      )
-      .eq("id", vendorId)
-      .single();
-
-    if (error) throw error;
+    const data = await fetchPublicProfile(vendorId);
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
@@ -342,6 +319,41 @@ export const createMealPlan = async (vendorId, planData) => {
     return data;
   } catch (error) {
     console.error("Error creating meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new meal for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @param {Object} mealData - The meal data object
+ * @param {string} mealData.name - Meal name
+ * @param {string} mealData.description - Meal description
+ * @param {string} mealData.image - Meal image URL
+ * @param {number} mealData.calories - Meal calories
+ * @param {Array} mealData.tags - Array of tag objects {label, type}
+ * @returns {Promise<Object>} Created meal data
+ */
+export const createMeal = async (vendorId, mealData) => {
+  try {
+    const { data, error } = await supabase
+      .from("meals")
+      .insert({
+        vendor_id: vendorId,
+        name: mealData.name,
+        description: mealData.description,
+        image: mealData.image,
+        calories: mealData.calories,
+        tags: mealData.tags,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error creating meal:", error);
     throw error;
   }
 };
