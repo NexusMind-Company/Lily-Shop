@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
+import { supabase, handleSupabaseError } from "../services/supabase";
 
 // ==================== LOGIN USER ====================
 export const loginUser = createAsyncThunk(
@@ -14,7 +15,7 @@ export const loginUser = createAsyncThunk(
         login: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
       };
-      
+
       console.log("Sending Login Payload:", payload); // Debugging log
 
       const response = await api.post("/auth/login/", payload);
@@ -35,6 +36,13 @@ export const loginUser = createAsyncThunk(
       // ---- Save user info ----
       if (data.user) {
         localStorage.setItem("user_data", JSON.stringify(data.user));
+      }
+
+      // Send authenticated user data to Supabase
+      try {
+        await supabase.from('profiles').upsert(data.user);
+      } catch (supabaseError) {
+        console.error('Error saving user data to Supabase:', handleSupabaseError(supabaseError));
       }
 
       // Fetch full profile safely

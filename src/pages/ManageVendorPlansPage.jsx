@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import TopAppBar from "../components/manageVendorPlans/TopAppBar";
 import StatsCard from "../components/manageVendorPlans/StatsCard";
 import PlanCard from "../components/manageVendorPlans/PlanCard";
 import InfoBox from "../components/manageVendorPlans/InfoBox";
+import MealPlanForm from "../components/manageVendorPlans/MealPlanForm";
 import {
   fetchMealPlans,
   fetchSubscriptionStats,
@@ -17,6 +18,11 @@ import { CreditCard, Plus, User } from "lucide-react";
  */
 const ManageVendorPlansPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planType = searchParams.get("type");
+  const mode = searchParams.get("mode");
+  const isEdit = mode === "edit";
+
   const [stats, setStats] = useState({
     activeSubs: 0,
     revenue: "0.00",
@@ -34,7 +40,21 @@ const ManageVendorPlansPage = () => {
 
   const handleBackClick = () => {
     // Handle back navigation
-    navigate(-1);
+    if (planType) {
+      navigate("/subscription/manage");
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const handleSuccess = (plan) => {
+    navigate("/subscription/manage", {
+      state: { message: `Meal plan "${plan.name}" created successfully!` },
+    });
+  };
+
+  const handleCancel = () => {
+    navigate("/subscription/manage");
   };
 
   const handleEditPlan = () => {
@@ -43,9 +63,31 @@ const ManageVendorPlansPage = () => {
   };
 
   const handleCreatePlan = () => {
-    // Navigate to create plan page
-    navigate("/subscription/create");
+    // Navigate to create meal plan page
+    navigate("/subscription/create-meal-plan");
   };
+
+  if (planType) {
+    return (
+      <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
+        <TopAppBar
+          title={`${isEdit ? "Edit" : "Create"} ${
+            planType.charAt(0).toUpperCase() + planType.slice(1)
+          } Plan`}
+          onBackClick={handleBackClick}
+        />
+        {/* Scrollable Content */}
+        <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-4xl mx-auto w-full">
+          <MealPlanForm
+            onSuccess={handleSuccess}
+            onCancel={handleCancel}
+            initialType={planType}
+            isEdit={isEdit}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">

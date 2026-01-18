@@ -70,7 +70,7 @@ const ProfileVisiting = () => {
     setFollowLoading(true);
     const previousState = isFollowing;
     setIsFollowing(!isFollowing);
-    
+
     try {
       await followUser(data.user.username);
     } catch (err) {
