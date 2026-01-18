@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchFeed, fetchProducts } from "../../services/api"; // Changed to fetchProducts
+import { fetchAllFeed, fetchProducts } from "../../services/api";
 import {
   SearchSuggestionSkeleton,
   SearchGridItemSkeleton,
@@ -64,7 +64,7 @@ const SearchModal = ({ onClose }) => {
     error: topError,
   } = useQuery({
     queryKey: ["feed", "forYou"],
-    queryFn: fetchFeed,
+    queryFn: fetchAllFeed, 
     select: (data) => (Array.isArray(data) ? data : data.results || []),
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });

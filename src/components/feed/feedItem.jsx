@@ -12,7 +12,7 @@ import {
   likeProduct,
   likeContent,
   followUser,
-  recordProductView, // New import
+  recordProductView,
 } from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
@@ -23,27 +23,31 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
 
   useEffect(() => {
+    // console.log("FeedItem Post Data:", post);
     if (!post.user_id && !post.userId) {
       // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
   }, [post]);
 
-  const mediaArray = Array.isArray(post?.media)
-    ? post.media
-    : post?.media
-    ? [
+  // Handle different API key names (media, media_url, image_url)
+  const rawMedia = post.media || post.media_url || post.image_url;
+
+  const mediaArray = Array.isArray(rawMedia)
+    ? rawMedia
+    : rawMedia
+      ? [
         {
-          src: post.media,
+          src: rawMedia,
           type:
-            typeof post.media === "string" &&
-            (post.media.endsWith(".mp4") ||
-              post.media.endsWith(".mov") ||
-              post.media.endsWith(".webm"))
+            typeof rawMedia === "string" &&
+              (rawMedia.endsWith(".mp4") ||
+                rawMedia.endsWith(".mov") ||
+                rawMedia.endsWith(".webm"))
               ? "video"
               : "image",
         },
       ]
-    : [];
+      : [];
 
   const isVideo =
     mediaArray[0]?.type === "video" ||
@@ -51,14 +55,15 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isLiked, setIsLiked] = useState(
+    post.is_liked === true || post.is_liked === "true"
+  );
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
 
   const [likeCount, setLikeCount] = useState(
     Number(post.like_count || post.likes_count || post.likes || 0)
   );
 
-  // FIX: Directly use the count from backend (No more auto-fetching!)
   const [commentCount, setCommentCount] = useState(
     Number(post.comment_count || post.comments_count || post.comments || 0)
   );
@@ -81,6 +86,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   const isOwnPost = user_data?.username === displayUsername;
   const isProduct = post.type === "product" || post.price != null;
+  // Check if it's content that has a linked product (Selling Content)
+  const hasLinkedProduct = !isProduct && post.product;
 
   // --- View Tracking Logic ---
   useEffect(() => {
@@ -88,10 +95,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     if (isActive) {
       // If user dwells for 2 seconds, count as a view
       timer = setTimeout(() => {
-        // Optimistically update UI (optional)
-        // setViewCount((prev) => prev + 1);
-        
-        // Send signal to backend
         recordProductView(post.id).catch((err) => {
           // console.error("Failed to record view", err);
         });
@@ -111,7 +114,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsLiked = isLiked;
-      const previousLikeCount = Number(likeCount);
+      const previousLikeCount = likeCount;
 
       setIsLiked(!previousIsLiked);
       setLikeCount(
@@ -137,15 +140,13 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
       }
+      console.error("Like error:", err);
     },
   });
 
   const { mutate: toggleFollow } = useMutation({
     mutationFn: async () => {
-      if (profileId) {
-        return followUser(displayUsername);
-      }
-      return followUser(displayUsername);
+      return followUser(profileId);
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
@@ -195,7 +196,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     if (profileId) {
       navigate(`/chat/${profileId}`);
     } else {
-      alert("Cannot message this user (Missing User ID)");
+      alert("Cannot message this user");
     }
   };
 
@@ -204,6 +205,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       className="relative w-full h-full bg-lily text-white"
       onDoubleClick={handleDoubleTap}
     >
+      {/* Media Container */}
       <div className="media-container-cover w-full h-full bg-black">
         {mediaArray.length > 1 ? (
           <MediaCarousel
@@ -222,9 +224,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             alt={post.name || post.caption || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.style.display = "none";
-              if (e.target.nextSibling) {
-                e.target.nextSibling.style.display = "flex";
+              if (!e.target.src.includes("/feed-image.png")) {
+                e.target.src = "/feed-image.png";
               }
             }}
           />
@@ -234,6 +235,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         </div>
       </div>
 
+      {/* Like Animation */}
       <AnimatePresence>
         {showLikeAnimation && (
           <motion.div
@@ -251,16 +253,19 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
+      {/* Content Overlay */}
       <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
+
+            {/* User Info */}
             <div className="relative gap-3 flex items-center">
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
                   <img
                     src={post.userpic || "/profile-icon.svg"}
                     alt={displayUsername}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </Link>
@@ -271,9 +276,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                   className="absolute top-[80%] left-3"
                 >
                   <img
-                    src={`${
+                    src={
                       isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                    }`}
+                    }
                     alt={`Follow ${displayUsername}`}
                   />
                 </button>
@@ -284,30 +289,39 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </Link>
             </div>
 
+            {/* Title/Name */}
             <h2 className="font-bold text-lg">
               {post.name || post.caption?.slice(0, 30) || "Untitled"}
             </h2>
 
-            {post.price != null && (
+            {/* Price - Show for Products OR Content with linked product */}
+            {(isProduct || (hasLinkedProduct && post.product?.price)) && (
               <p className="font-bold">
-                ₦{Number(post.price).toLocaleString()}
+                ₦
+                {Number(
+                  isProduct ? post.price : post.product.price
+                ).toLocaleString()}
               </p>
             )}
 
-            <motion.p layout className="text-sm font-light">
-              {isExpanded
-                ? post.caption
-                : `${post.caption?.substring(0, DESCRIPTION_CHAR_LIMIT) || ""}`}
-              {post.caption?.length > DESCRIPTION_CHAR_LIMIT && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="font-semibold ml-1 opacity-80"
-                >
-                  {isExpanded ? "...less" : "...see more"}
-                </button>
-              )}
-            </motion.p>
+            {/* Caption */}
+            {post.caption && (
+              <motion.p layout className="text-sm font-light">
+                {isExpanded
+                  ? post.caption
+                  : `${post.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
+                {post.caption.length > DESCRIPTION_CHAR_LIMIT && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="font-semibold ml-1 opacity-80"
+                  >
+                    {isExpanded ? "...less" : "...see more"}
+                  </button>
+                )}
+              </motion.p>
+            )}
 
+            {/* Music Track */}
             <p className="font-light flex items-center gap-1">
               <span>
                 <img src="/icons/music.svg" alt="" />
@@ -315,10 +329,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               {post.musicTrack || "Original Audio"}
             </p>
 
-            {isProduct && (
+            {/* Buy Now Button */}
+            {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2">
                 <Link
-                  to={`/product-details/${post.id}`}
+                  to={`/product-details/${isProduct ? post.id : post.product.id
+                    }`}
                   className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
                 >
                   <span>
@@ -329,42 +345,48 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </div>
             )}
           </div>
+
+          {/* Action Buttons (Right Side) */}
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
             <button onClick={handleLike} className="flex flex-col items-center">
               <img
-                src={`${isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}`}
-                alt=""
-                className={`${isLiked ? "size-9" : ""}`}
+                src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
+                alt="Like"
+                className={isLiked ? "size-9" : ""}
               />
               <span className="text-xs font-semibold">
                 {formatCount(likeCount)}
               </span>
             </button>
+
             <button
               onClick={handleOpenComments}
               className="flex flex-col items-center"
             >
-              <img src="/icons/message-alt.svg" alt="" />
+              <img src="/icons/message-alt.svg" alt="Comment" />
               <span className="text-xs font-semibold">
                 {formatCount(commentCount)}
               </span>
             </button>
+
             <button
               onClick={handleOpenShare}
               className="flex flex-col items-center"
             >
-              <img src="/icons/share.svg" alt="" />
+              <img src="/icons/share.svg" alt="Share" />
               <span className="text-xs font-semibold">
                 {formatCount(post.shares || 0)}
               </span>
             </button>
+
             <button
               onClick={handleOpenMessage}
               className="flex flex-col items-center"
             >
-              <img src="/icons/send-alt.svg" alt="" />
-              <span className="text-xs font-semibold">{`Message`}</span>
+              <img src="/icons/send-alt.svg" alt="Message" />
+              <span className="text-xs font-semibold">Message</span>
             </button>
+
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
@@ -375,6 +397,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         </div>
       </div>
 
+      {/* Modals */}
       <AnimatePresence>
         {showCommentsModal && (
           <CommentsModal
@@ -391,7 +414,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshops.com/${post.id}`}
+            postUrl={`https://lilyshops.com/${isProduct ? "product" : "content"
+              }/${post.id}`}
             postCaption={post.caption}
           />
         )}

@@ -1,146 +1,94 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-} from "react";
-import { useFeed } from "../../context/feedContext";
-import { Play, Pause, VolumeX, Volume2 } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
+import { FaPlay, FaPause } from "react-icons/fa";
 
-const formatTime = (time) => {
-  if (isNaN(time)) return "0:00";
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-};
-
-const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
-  const { isMuted, toggleMute } = useFeed();
+const VideoPlayer = ({ src, poster, onVideoInit, isActive }) => {
   const videoRef = useRef(null);
-  const controlsTimeoutRef = useRef(null);
-
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [showControls, setShowControls] = useState(false);
 
-  useImperativeHandle(ref, () => ({
-    play: () => {
-      videoRef.current?.play().catch(() => {});
-    },
-    pause: () => {
-      videoRef.current?.pause();
-    },
-    getDOMNode: () => {
-      return videoRef.current;
-    },
-  }));
-
+  // Pass the video ref back to the parent (FeedContainer)
+  // This allows the feed to auto-play/pause based on scroll position
   useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = isMuted;
-  }, [isMuted]);
+    if (onVideoInit && videoRef.current) {
+      onVideoInit(videoRef.current);
+    }
+  }, [onVideoInit]);
 
+  // Handle Play/Pause Toggle on Tap
+  const togglePlay = (e) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play()
+        .then(() => {
+          setIsPlaying(true);
+          setShowControls(false); // Hide controls immediately on play
+        })
+        .catch((err) => console.error("Play failed:", err));
+    } else {
+      video.pause();
+      setIsPlaying(false);
+      setShowControls(true); // Show play button when paused
+    }
+  };
+
+  // Sync state with actual video events
+  // This handles cases where the FeedContainer (IntersectionObserver) plays/pauses the video
   useEffect(() => {
-    const videoNode = videoRef.current;
-    if (!videoNode) return;
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onTimeUpdate = () => setCurrentTime(videoNode.currentTime);
-    const onLoadedMetadata = () => setDuration(videoNode.duration);
-    videoNode.addEventListener("play", onPlay);
-    videoNode.addEventListener("pause", onPause);
-    videoNode.addEventListener("timeupdate", onTimeUpdate);
-    videoNode.addEventListener("loadedmetadata", onLoadedMetadata);
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onPlay = () => {
+      setIsPlaying(true);
+      setShowControls(false);
+    };
+
+    const onPause = () => {
+      setIsPlaying(false);
+      setShowControls(true);
+    };
+
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+
     return () => {
-      videoNode.removeEventListener("play", onPlay);
-      videoNode.removeEventListener("pause", onPause);
-      videoNode.removeEventListener("timeupdate", onTimeUpdate);
-      videoNode.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
     };
   }, []);
 
-  const handlePlayerClick = (e) => {
-    if (videoRef.current?.paused) {
-      videoRef.current.play();
-    } else {
-      videoRef.current.pause();
-    }
-    setShowControls(true);
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 3000);
-  };
-
-  const handleSeek = (e) => {
-    e.stopPropagation(); 
-    if (videoRef.current) {
-      videoRef.current.currentTime = parseFloat(e.target.value);
-    }
-  };
-
   return (
-    // Click handler moved to container
     <div 
-      className="relative w-full h-full bg-black" 
-      onClick={handlePlayerClick}
+      className="relative w-full h-full bg-black cursor-pointer" 
+      onClick={togglePlay}
     >
       <video
         ref={videoRef}
         src={src}
+        poster={poster}
+        className="w-full h-full object-cover"
         loop
         playsInline
-        muted
-        className="w-full h-full object-cover"
+        muted={false} // Starts with sound ON
       />
-      
-      {/* Overlay: pointer-events-none lets clicks pass through to 'Buy Now' */}
-      <div
-        className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
-      >
-        {!isPlaying && (
-          <div className="relative pointer-events-auto"> 
-            <div className="bg-black/50 rounded-full p-4">
-              <Play size={60} className="text-white" fill="white" />
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleMute();
-              }}
-              className="absolute -top-1 -right-1 bg-white text-black rounded-full p-2 shadow-lg pointer-events-auto"
-            >
-              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-          </div>
-        )}
-      </div>
 
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
-          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="flex items-center gap-4 text-white">
-          <button onClick={(e) => { e.stopPropagation(); handlePlayerClick(e); }}>
-            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-          </button>
-          <span className="text-xs font-mono">{formatTime(currentTime)}</span>
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleSeek}
-            className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
-          />
-          <span className="text-xs font-mono">{formatTime(duration)}</span>
+      {/* Play/Pause Overlay Button */}
+      {/* Only visible when paused or explicitly toggled */}
+      {(!isPlaying || showControls) && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/40 backdrop-blur-sm p-5 rounded-full text-white transition-transform transform scale-100">
+            {isPlaying ? (
+              <FaPause className="w-8 h-8" />
+            ) : (
+              <FaPlay className="w-8 h-8 pl-1" />
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
-});
+};
 
 export default VideoPlayer;

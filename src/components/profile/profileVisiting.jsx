@@ -25,7 +25,7 @@ const ProfileVisiting = () => {
 
   const navigate = useNavigate();
   const { username } = useParams();
-  
+
   // Access logged-in user to prevent self-visiting
   const { user_data } = useSelector((state) => state.auth);
 
@@ -43,7 +43,7 @@ const ProfileVisiting = () => {
       try {
         setLoading(true);
         const result = await fetchPublicProfile(username);
-        
+
         // Normalize data to match your design's expected structure
         // We ensure 'products' is populated so the Grid works
         const normalizedData = {
@@ -58,7 +58,7 @@ const ProfileVisiting = () => {
             following_count: result.following_count || 0,
           },
           // Map API's posts/products to 'products' for your Grid
-          products: result.products || result.posts || result.user?.products || [], 
+          products: result.products || result.posts || result.user?.products || [],
         };
 
         setData(normalizedData);
@@ -79,10 +79,10 @@ const ProfileVisiting = () => {
 
   const handleFollow = async () => {
     if (!data?.user?.username) return;
-    
+
     // Optimistic UI update
     setIsFollowing(!isFollowing);
-    
+
     try {
       await followUser(data.user.username);
     } catch (err) {
@@ -260,17 +260,16 @@ const ProfileVisiting = () => {
           </div>
           <div className="flex gap-4 items-center">
             {/* Logic integrated into your styling */}
-            <button 
+            <button
               onClick={handleFollow}
-              className={`border-2 font-bold text-lg px-6 py-2 rounded-full transition-colors ${
-                isFollowing 
-                  ? "bg-white text-lily border-lily" 
-                  : "bg-lily text-white border-transparent"
-              }`}
+              className={`border-2 font-bold text-lg px-6 py-2 rounded-full transition-colors ${isFollowing
+                ? "bg-white text-lily border-lily"
+                : "bg-lily text-white border-transparent"
+                }`}
             >
               {isFollowing ? "Following" : "Follow"}
             </button>
-            
+
             <Link to="/messages">
               <MessageSquareText size={40} className="text-red-500" />
             </Link>
@@ -281,25 +280,22 @@ const ProfileVisiting = () => {
       {/* Tabs */}
       <div className="flex my-5 w-full justify-evenly">
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 0 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 0 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(0)}
         >
           <Grid size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 1 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 1 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(1)}
         >
           <Megaphone size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 2 ? "border-lily text-lily" : "border-transparent"
-          }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 2 ? "border-lily text-lily" : "border-transparent"
+            }`}
           onClick={() => setActiveTab(2)}
         >
           <Heart size={30} />
