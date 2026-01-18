@@ -112,7 +112,7 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
-  console.log("Profile User Data:", user);
+  console.log("Profile User  Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
