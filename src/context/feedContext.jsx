@@ -15,8 +15,8 @@ const FEED_PAGE_SIZE = 20;
 
 // Feed API functions
 const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
-  const endpoint = activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
-
+  const endpoint = activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/home/";
+  
   const response = await api.get(endpoint, {
     params: {
       page: pageParam,
@@ -28,7 +28,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
   // 1. { feed: [...], total_items: N } - from HomeView
   // 2. { results: [...], count: N, next, previous } - paginated
   // 3. [...] - direct array
-
+  
   if (response.data.feed) {
     return {
       items: response.data.feed,
@@ -36,7 +36,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
       hasMore: response.data.feed.length === FEED_PAGE_SIZE,
     };
   }
-
+  
   if (response.data.results) {
     return {
       items: response.data.results,
@@ -44,7 +44,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
       hasMore: !!response.data.next,
     };
   }
-
+  
   // Direct array
   return {
     items: response.data,
@@ -119,18 +119,18 @@ export const FeedProvider = ({ children }) => {
       isLoading,
       isError,
       error: error?.message,
-
+      
       // Pagination
       loadMore,
       hasNextPage,
       isFetchingNextPage,
-
+      
       // Actions
       refreshFeed,
       toggleMute,
       saveCurrentPost,
       getRestoreIndex,
-
+      
       // State
       isMuted,
       activeTab,

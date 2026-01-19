@@ -36,7 +36,6 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -113,19 +112,16 @@ body {
 }
 
 .skeleton {
-  background-color: #333;
-  /* Dark gray for your theme */
+  background-color: #333; /* Dark gray for your theme */
   border-radius: 4px;
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.6;
   }
@@ -138,17 +134,14 @@ body {
   background-color: #222;
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-
 .skeleton-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
-
 .skeleton-line {
   height: 14px;
 }
-
 .skeleton-icon {
   width: 36px;
   height: 36px;
@@ -162,15 +155,14 @@ body {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
+  min-height: max(884px, 100dvh);
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
