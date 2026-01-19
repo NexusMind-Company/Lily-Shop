@@ -1,9 +1,5 @@
 import { useEffect } from "react";
-import {
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import { fetchProfile } from "./redux/profileSlice";
@@ -20,12 +16,15 @@ import ForgotPassword from "./components/auth/forgotPassword";
 import VerifyEmail from "./components/auth/verifyEmail";
 import CreateUsername from "./components/auth/createUsername";
 import VerifyCode from "./components/auth/verifyCode";
+import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
+import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 
 // --- Pages: Feed & Content ---
 import Feed from "./pages/feed";
 import SearchResults from "./pages/searchResults";
 import ProductDetails from "./components/feed/product/productDetails";
-import CreateContent from "./pages/createContent";
+import FeedProductDetails from "./pages/feedProductDetails";
+import CreateContentPage from "./pages/createContent"; 
 
 // --- Pages: Shop ---
 import CreateShop from "./pages/createShop";
@@ -35,40 +34,50 @@ import AddProducts from "./pages/addProducts";
 import EditProducts from "./pages/editProducts";
 import Products from "./pages/products";
 import ShopDetails from "./pages/shopDetails";
+import Ratings from "./components/shop/ratings";
+import Step1 from "./components/ads/step1";
 
 // --- Pages: Profile & Social ---
 import Profile from "./pages/profile";
-import EditProfile from "./pages/editProfile";
+import EditProfilePage from "./pages/editProfile"; 
 import ProfileVisiting from "./pages/profileVisiting";
-import Followers from "./pages/followers";
-import Following from "./pages/following";
-import Inbox from "./pages/inbox";
+import FollowersPage from "./pages/followers"; 
+import FollowingPage from "./pages/following"; 
+import InboxPage from "./pages/inbox"; 
 import ChatPage from "./components/inbox/chatPage";
-import Notifications from "./pages/notifications";
-import Activity from "./pages/activity";
+import NotificationPage from "./pages/notifications"; 
+import ActivityPage from "./pages/activity"; 
+import UploadProfilePic from "./components/auth/optionalAuthFeats/uploadProfilePic";
+import BirthdayPicker from "./components/auth/optionalAuthFeats/birthdayPicker";
+import Account from "./pages/account";
 
 // --- Pages: Wallet & Payment ---
-import Wallet from "./pages/wallet";
-import Deposit from "./pages/deposit";
-import Withdraw from "./pages/withdraw";
-import AddBankAccount from "./pages/addBankAccount";
-import BankAccountDetails from "./pages/bankAccountDetails";
+import WalletPage from "./pages/wallet"; 
+import DepositPage from "./pages/deposit"; 
+import WithdrawPage from "./pages/withdraw"; 
+import AddBankAccountPage from "./pages/addBankAccount"; 
+import BankAccountDetailsPage from "./pages/bankAccountDetails"; 
 import TransactionHistory from "./pages/transaction-history";
-import WalletCallback from "./pages/wallet-callback";
+import WalletCallbackPage from "./pages/wallet-callback"; 
 import CheckoutPage from "./pages/CheckoutPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
-// import AddCardPage from "./pages/AddCardPage";
 import PaystackCallbackPage from "./pages/PaystackCallbackPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import AddAddressPage from "./pages/AddAddressPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
 import OrderSummaryPage from "./pages/OrderSummaryPage";
 import CartPage from "./pages/CartPage";
+import Cart from "./pages/cart";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
-import Receipt from "./pages/reciept";
+import ReceiptPage from "./pages/reciept"; 
 import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
-import WithdrawSuccess from "./pages/withdrawSuccess";
+import WithdrawSuccessPage from "./pages/withdrawSuccess"; 
+import OrdersPage from "./pages/orders";
+import PickupAddressPage from "./pages/PickupAddressPage.jsx";
+import PasswordModalPage from "./pages/PasswordModalPage";
+import BankTransferPage from "./pages/BankTransferPage";
+import PaymentLoadingPage from "./pages/paymentLoading";
 
 // --- Pages: Vendor Subscription ---
 import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
@@ -82,25 +91,26 @@ import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
 import MealSelectionPage from "./pages/MealSelectionPage";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
+import VendorDashboard from "./pages/VendorDashboard";
 
 // --- Pages: Settings & Ads ---
 import Settings from "./pages/settings";
-import ChangePassword from "./pages/ChangePassword";
-import DeleteAccount from "./pages/DeleteAccount";
-import ChangeDOB from "./pages/ChangeDOB";
-import ChangePhone from "./pages/ChangePhone";
-import ConfirmPhone from "./pages/ConfirmPhone";
-import ChangeUsername from "./pages/ChangeUsername";
+import ChangePasswordPage from "./pages/ChangePassword"; 
+import DeleteAccountPage from "./pages/DeleteAccount"; 
+import ChangeDOBPage from "./pages/ChangeDOB"; 
+import ChangePhonePage from "./pages/ChangePhone"; 
+import ConfirmPhonePage from "./pages/ConfirmPhone"; 
+import ChangeUsernamePage from "./pages/ChangeUsername"; 
 import About from "./components/about/About";
 import PurchaseAds from "./pages/purchaseAds";
 import FetchAdDetails from "./pages/fetchAdDetails";
 import PaymentInitiation from "./components/ads/paymentInitiation";
 import VerifyTransaction from "./components/ads/verifyTransaction";
 import PaymentFailedPage from "./pages/paymentFailedPage";
-import PaymentsSuccessPage from "./pages/paymentsSucessPage";
+import PaymentSuccessPage from "./pages/paymentsSucessPage"; 
 
 import VerificationPage from "./pages/VerificationPage";
-
+import Messages from "./pages/messages";
 
 // --- Contexts ---
 import { FeedProvider } from "./context/feedContext";
@@ -119,7 +129,7 @@ const ScrollToTopAuto = () => {
 
 const App = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -228,7 +238,7 @@ const App = () => {
           <Route path="/payment-failed" element={<PaymentFailedPage />} />
           <Route
             path="/vendor-dashboard"
-            element={<VendorDashboard vendorId={getCurrentUserId()} />}
+            element={<VendorDashboard vendorId={user?.id} />}
           />
           <Route
             path="/subscriptions"
@@ -308,7 +318,7 @@ const App = () => {
 
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
-            <Route path="/editProfile" element={<EditProfile />} />
+            <Route path="/editProfile" element={<EditProfilePage />} />
             
             <Route path="/verify" element={<VerificationPage />} />
             <Route
@@ -317,41 +327,41 @@ const App = () => {
             />
             <Route
               path="/profile/:userId/followers"
-              element={<Followers />}
+              element={<FollowersPage />}
             />
             <Route
               path="/profile/:userId/following"
-              element={<Following />}
+              element={<FollowingPage />}
             />
 
             {/* Content Creation */}
-            <Route path="/createContent" element={<CreateContent />} />
+            <Route path="/createContent" element={<CreateContentPage />} />
 
             {/* Inbox & Notifications */}
-            <Route path="/inbox" element={<Inbox />} />
+            <Route path="/inbox" element={<InboxPage />} />
             <Route path="/chat/:conversationId" element={<ChatPage />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/activity" element={<Activity />} />
+            <Route path="/notifications" element={<NotificationPage />} />
+            <Route path="/activity" element={<ActivityPage />} />
 
             {/* Wallet & Payments */}
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/deposit" element={<Deposit />} />
-            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/deposit" element={<DepositPage />} />
+            <Route path="/withdraw" element={<WithdrawPage />} />
             <Route
               path="/withdraw/confirm"
               element={<ConfirmWithdrawal />}
             />
             <Route
               path="/withdraw/success"
-              element={<WithdrawSuccess />}
+              element={<WithdrawSuccessPage />}
             />
             <Route
               path="/add-bank-account"
-              element={<AddBankAccount />}
+              element={<AddBankAccountPage />}
             />
             <Route
               path="/bank-account-details"
-              element={<BankAccountDetails />}
+              element={<BankAccountDetailsPage />}
             />
             <Route
               path="/transaction-history"
@@ -359,7 +369,7 @@ const App = () => {
             />
             <Route
               path="/payment/callback"
-              element={<WalletCallback />}
+              element={<WalletCallbackPage />}
             />
 
             {/* Checkout & Orders */}
@@ -380,7 +390,7 @@ const App = () => {
             <Route path="/order-summary" element={<OrderSummaryPage />} />
             <Route path="/orders" element={<OrderHistoryPage />} />
             <Route path="/order/:orderId" element={<OrderDetailPage />} />
-            <Route path="/receipt/:transactionId" element={<Receipt />} />
+            <Route path="/receipt/:transactionId" element={<ReceiptPage />} />
 
             {/* Vendor Subscriptions */}
             <Route
@@ -424,12 +434,12 @@ const App = () => {
 
             {/* Settings & Ads */}
             <Route path="/settings" element={<Settings />} />
-            <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="/delete-account" element={<DeleteAccount />} />
-            <Route path="/change-dob" element={<ChangeDOB />} />
-            <Route path="/change-phone" element={<ChangePhone />} />
-            <Route path="/confirm-phone" element={<ConfirmPhone />} />
-            <Route path="/change-username" element={<ChangeUsername />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="/change-dob" element={<ChangeDOBPage />} />
+            <Route path="/change-phone" element={<ChangePhonePage />} />
+            <Route path="/confirm-phone" element={<ConfirmPhonePage />} />
+            <Route path="/change-username" element={<ChangeUsernamePage />} />
             <Route path="/about" element={<About />} />
 
             <Route path="/ads" element={<PurchaseAds />} />
@@ -442,7 +452,7 @@ const App = () => {
             />
             <Route
               path="/payment-success"
-              element={<PaymentsSuccessPage />}
+              element={<PaymentSuccessPage />}
             />
 
             {/* AI Chat */}
