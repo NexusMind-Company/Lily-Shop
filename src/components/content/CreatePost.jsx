@@ -201,7 +201,7 @@ const CreatePost = () => {
               disabled={formData.media.length === 0}
               className={`w-full py-3 rounded-full font-semibold mt-4 transition ${
                 formData.media.length > 0
-                  ? "bg-lime-500 hover:bg-lime-600 text-black"
+                  ? "bg-lily hover:bg-darklily text-black"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
