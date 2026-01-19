@@ -14,16 +14,50 @@ const formatTime = (time) => {
   const seconds = Math.floor(time % 60);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
+import {
+  useState,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { useFeed } from "../../context/feedContext";
+import { Play, Pause, VolumeX, Volume2 } from "lucide-react";
 
+const formatTime = (time) => {
+  if (isNaN(time)) return "0:00";
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
+const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
+  const { isMuted, toggleMute } = useFeed();
 const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
   const { isMuted, toggleMute } = useFeed();
   const videoRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
 
+  const controlsTimeoutRef = useRef(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [showControls, setShowControls] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    play: () => {
+      videoRef.current?.play().catch(() => {});
+    },
+    pause: () => {
+      videoRef.current?.pause();
+    },
+    getDOMNode: () => {
+      return videoRef.current;
+    },
+  }));
 
   useImperativeHandle(ref, () => ({
     play: () => {
@@ -41,6 +75,9 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
     if (videoRef.current) videoRef.current.muted = isMuted;
   }, [isMuted]);
 
+    if (videoRef.current) videoRef.current.muted = isMuted;
+  }, [isMuted]);
+
   useEffect(() => {
     const videoNode = videoRef.current;
     if (!videoNode) return;
@@ -52,7 +89,21 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
     videoNode.addEventListener("pause", onPause);
     videoNode.addEventListener("timeupdate", onTimeUpdate);
     videoNode.addEventListener("loadedmetadata", onLoadedMetadata);
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onTimeUpdate = () => setCurrentTime(videoNode.currentTime);
+    const onLoadedMetadata = () => setDuration(videoNode.duration);
+    videoNode.addEventListener("play", onPlay);
+    videoNode.addEventListener("pause", onPause);
+    videoNode.addEventListener("timeupdate", onTimeUpdate);
+    videoNode.addEventListener("loadedmetadata", onLoadedMetadata);
     return () => {
+      videoNode.removeEventListener("play", onPlay);
+      videoNode.removeEventListener("pause", onPause);
+      videoNode.removeEventListener("timeupdate", onTimeUpdate);
+      videoNode.removeEventListener("loadedmetadata", onLoadedMetadata);
       videoNode.removeEventListener("play", onPlay);
       videoNode.removeEventListener("pause", onPause);
       videoNode.removeEventListener("timeupdate", onTimeUpdate);
@@ -91,6 +142,8 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
         src={src}
         loop
         playsInline
+        muted
+        className="w-full h-full object-cover"
         muted
         className="w-full h-full object-cover"
       />
@@ -139,8 +192,10 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
           <span className="text-xs font-mono">{formatTime(duration)}</span>
         </div>
       </div>
+      </div>
     </div>
   );
+});
 });
 
 export default VideoPlayer;

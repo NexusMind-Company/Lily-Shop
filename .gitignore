@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+# .gitignore
+.env.production
 
 # Editor directories and files
 .vscode/*
@@ -32,3 +34,4 @@ dist/
 build/
 .next/
 
+.env*
