@@ -33,7 +33,7 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <HelmetProvider>
       <Provider store={store}>
         <BrowserRouter>
@@ -45,5 +45,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </BrowserRouter>
       </Provider>
     </HelmetProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

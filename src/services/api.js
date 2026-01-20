@@ -1,4 +1,5 @@
 import axios from "axios";
+import { supabase, handleSupabaseError } from "./supabase";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
@@ -122,6 +123,14 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
+
+  // Sync updated profile to Supabase
+  try {
+    await supabase.from('profiles').upsert(response.data);
+  } catch (supabaseError) {
+    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+  }
+
   return response.data;
 };
 
@@ -130,6 +139,14 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null)
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
+
+  // Sync updated profile to Supabase
+  try {
+    await supabase.from('profiles').upsert(response.data);
+  } catch (supabaseError) {
+    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+  }
+
   return response.data;
 };
 
@@ -146,6 +163,14 @@ export const updateProfilePic = async (imageFile) => {
       },
     }
   );
+
+  // Sync updated profile to Supabase
+  try {
+    await supabase.from('profiles').upsert(response.data);
+  } catch (supabaseError) {
+    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+  }
+
   return response.data;
 };
 
