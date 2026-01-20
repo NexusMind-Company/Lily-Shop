@@ -1,33 +1,39 @@
-// src/components/profile/profileOwner.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { fetchProducts, fetchLikedProducts } from "../../services/api";
-import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { fetchContents } from "../../services/shopApi";
+import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
-  Grid3x3, LayoutGrid, Heart, Play, Eye, Settings,
-  Link as IconLink, ChevronLeft, Store, Package,
-  TrendingUp, BookmarkPlus, Share2
+  Grid,
+  Megaphone,
+  Heart,
+  ChevronLeft,
+  Play,
+  Eye,
+  Settings,
+  Link as IconLink,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
 const ProfileOwner = () => {
-  const [activeTab, setActiveTab] = useState("posts");
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [activeTab, setActiveTab] = useState(0);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
 
+  // --- STATES FOR POSTS ---
   const [userPosts, setUserPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]); // Store liked posts
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
 
+  // stricter authentication check
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!auth?.isAuthenticated || !token) {
@@ -35,22 +41,40 @@ const ProfileOwner = () => {
     }
   }, [auth?.isAuthenticated, navigate]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (auth?.isAuthenticated && token && !data) {
-      dispatch(fetchProfile());
-    }
-  }, [auth?.isAuthenticated, data, dispatch]);
+  // fetch profile data
+  // useEffect(() => {
+  //   const token = localStorage.getItem("access_token");
+  //   if (auth?.isAuthenticated && token && !data) {
+  //     dispatch(fetchProfile());
+  //   }
+  // }, [auth?.isAuthenticated, data, dispatch]);
 
+  // 1. Fetch User Posts (Tab 0)
   useEffect(() => {
     const loadUserPosts = async () => {
       const userId = data?.user?.id || data?.id;
-      if (userId && activeTab === "posts") {
+      if (userId && activeTab === 0) {
         setPostsLoading(true);
         try {
-          const response = await fetchProducts({ user: userId });
-          const postsData = Array.isArray(response) ? response : response.results || [];
-          setUserPosts(postsData);
+          const [productsRes, contentsRes] = await Promise.all([
+            fetchProducts({ user: userId }),
+            fetchContents({ user: userId }),
+          ]);
+
+          const products = Array.isArray(productsRes)
+            ? productsRes
+            : productsRes.results || [];
+
+          const contents = Array.isArray(contentsRes)
+            ? contentsRes
+            : contentsRes.results || [];
+
+          // Merge and sort by newest first
+          const allPosts = [...products, ...contents].sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
+
+          setUserPosts(allPosts);
         } catch (err) {
           console.error("Failed to load user posts:", err);
         } finally {
@@ -59,16 +83,22 @@ const ProfileOwner = () => {
       }
     };
 
-    if (data) loadUserPosts();
+    if (data) {
+      loadUserPosts();
+    }
   }, [data, activeTab]);
 
+  // 2. Fetch Liked Products (Tab 2 - Heart Icon)
   useEffect(() => {
     const loadLikedPosts = async () => {
-      if (activeTab === "liked") {
+      // Only fetch if we are on the Heart tab
+      if (activeTab === 2) {
         setLikedLoading(true);
         try {
           const response = await fetchLikedProducts();
-          const likedData = Array.isArray(response) ? response : response.results || [];
+          const likedData = Array.isArray(response)
+            ? response
+            : response.results || [];
           setLikedPosts(likedData);
         } catch (err) {
           console.error("Failed to load liked posts:", err);
@@ -82,31 +112,49 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
+  console.log("Profile User Data:", user);
 
-  const profileImageUrl = user.profile_pic?.startsWith("http")
-    ? user.profile_pic
-    : user.profile_pic
-    ? `${API_BASE_URL}/${user.profile_pic}`
-    : "/profile-icon.svg";
+  const profileImageUrl = useMemo(() => {
+    const defaultIcon = "/profile-icon.svg";
+    const picPath = user.profile_pic;
+
+    if (!picPath) return defaultIcon;
+    if (picPath.startsWith("http")) return picPath;
+
+    const cleanBase = API_BASE_URL.endsWith("/")
+      ? API_BASE_URL.slice(0, -1)
+      : API_BASE_URL;
+    const cleanPath = picPath.startsWith("/") ? picPath.slice(1) : picPath;
+
+    return `${cleanBase}/${cleanPath}`;
+  }, [user.profile_pic]);
 
   if (!auth?.isAuthenticated) return null;
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <LoaderSd />
-    </div>
-  );
 
-  if (error) navigate("/login");
-  if (!data) return (
-    <div className="flex items-center justify-center min-h-screen text-gray-500">
-      <p>No profile data found.</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen w-full">
+        <LoaderSd />
+      </div>
+    );
 
+  if (error) {
+    navigate("/login");
+  }
+
+  if (auth?.isAuthenticated && !data)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-500">
+        <p>No profile data found.</p>
+      </div>
+    );
+
+  // --- REUSABLE GRID RENDERER ---
+  // This ensures the Liked Grid looks IDENTICAL to the Posts Grid
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
       return (
-        <div className="flex justify-center my-12">
+        <div className="w-full flex justify-center my-8">
           <LoaderSd />
         </div>
       );
@@ -114,252 +162,167 @@ const ProfileOwner = () => {
 
     if (!items || items.length === 0) {
       return (
-        <div className="flex flex-col items-center my-16 text-gray-400">
-          <Package size={64} className="mb-4 opacity-30" />
-          <p className="text-lg">{emptyMessage}</p>
+        <div className="w-full flex flex-col items-center my-8 text-gray-400">
+          <p>{emptyMessage}</p>
         </div>
       );
     }
 
     return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-3 gap-1 mt-1"
-      >
+      <div className="grid grid-cols-3 gap-3 my-2 px-4">
         {items.map((post, i) => {
-          const mediaSrc = post.image || post.media || post.media_url || "/placeholder.png";
-          const isVideo = post.is_video || mediaSrc.endsWith(".mp4");
+          const mediaSrc =
+            post.image || post.media || post.media_url || "/placeholder.png";
+          const isVideo =
+            post.is_video ||
+            (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
 
           return (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
+              className="relative rounded-lg overflow-hidden"
               onClick={() => navigate(`/product-details/${post.id}`)}
-              className="relative aspect-square overflow-hidden cursor-pointer group"
             >
               {isVideo ? (
                 <video
                   src={mediaSrc}
-                  className="w-full h-full object-cover"
+                  className="w-full aspect-square object-cover bg-black"
                   muted
                 />
               ) : (
                 <img
                   src={mediaSrc}
                   alt="Post"
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  className="w-full aspect-square object-cover bg-black"
                 />
               )}
 
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="flex items-center gap-4 text-white">
-                  <div className="flex items-center gap-1">
-                    <Heart size={20} className="fill-white" />
-                    <span className="font-semibold">{post.likes || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye size={20} />
-                    <span className="font-semibold">{post.views || 0}</span>
-                  </div>
-                </div>
-              </div>
-
               {isVideo && (
-                <div className="absolute top-2 right-2">
-                  <Play size={20} className="text-white drop-shadow-lg" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Play size={28} className="text-white" />
                 </div>
               )}
-            </motion.div>
+              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
+                <Eye size={15} className="mr-1" /> {post.views || 0}
+              </div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     );
   };
 
+  const AnnouncementsGrid = () => (
+    <div className="text-center text-gray-400 my-8">No Promotions yet</div>
+  );
+
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white h-screen w-full overflow-y-auto no-scrollbar">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate(-1)}>
-            <ChevronLeft size={24} />
-          </button>
-          <h2 className="font-semibold text-lg">
-            {user.username || "Profile"}
-          </h2>
-          <div className="flex gap-3">
-            <Link to="/settings">
-              <Settings size={24} className="cursor-pointer" />
-            </Link>
-            <IconLink size={24} className="cursor-pointer" />
-          </div>
+      <div className="flex items-center justify-between px-4 py-3">
+        <button onClick={() => navigate(-1)}>
+          <ChevronLeft size={25} />
+        </button>
+        <h2 className="font-semibold text-lg">My Profile</h2>
+        <div className="flex gap-4">
+          <Link to="/settings">
+            <Settings size={25} className="cursor-pointer" />
+          </Link>
+          <IconLink size={25} className="cursor-pointer" />
         </div>
       </div>
 
-      {/* Profile Header */}
-      <div className="bg-white pb-4">
-        <div className="px-4 pt-6">
-          {/* Profile Pic & Basic Info */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative">
-              <img
-                src={profileImageUrl}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-lily"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "/profile-icon.svg";
-                }}
-              />
-              <Link 
-                to="/editProfile"
-                className="absolute bottom-0 right-0 bg-lily text-white p-1.5 rounded-full shadow-lg"
-              >
-                <Settings size={14} />
-              </Link>
-            </div>
-
-            <div className="flex-1">
-              <h3 className="font-bold text-xl">
-                {user.name || user.username || "User"}
-              </h3>
-              <p className="text-gray-500 text-sm">
-                @{user.username || "username"}
-              </p>
-            </div>
-          </div>
-
-          {/* Bio */}
-          <p className="text-gray-700 text-sm leading-relaxed mb-4">
-            {user.bio || "Add a bio to let people know more about you! ✨"}
-          </p>
-
-          {/* Stats */}
-          <div className="flex items-center justify-around py-4 border-t border-gray-200">
-            <div className="text-center">
-              <p className="font-bold text-2xl">{userPosts.length}</p>
-              <p className="text-gray-600 text-sm">Posts</p>
-            </div>
-            <Link to="/followers" className="text-center">
-              <p className="font-bold text-2xl">{user.follower_count || 0}</p>
-              <p className="text-gray-600 text-sm">Followers</p>
-            </Link>
-            <Link to="/following" className="text-center">
-              <p className="font-bold text-2xl">{user.following_count || 0}</p>
-              <p className="text-gray-600 text-sm">Following</p>
-            </Link>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-4">
-            <Link to="/editProfile" className="flex-1">
-              <button className="w-full py-2.5 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition">
-                Edit Profile
-              </button>
-            </Link>
-            <button className="w-full py-2.5 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition">
-              Share Profile
-            </button>
+      {/* Profile Info */}
+      <div className="mt-2 px-4">
+        <div className="flex gap-2 items-center">
+          <img
+            src={profileImageUrl}
+            alt="Profile"
+            className="w-20 h-20 rounded-full mb-2 object-cover bg-gray-200"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/profile-icon.svg";
+            }}
+          />
+          <div>
+            <h3 className="font-semibold">
+              {user.username || user.email?.split("@")[0] || "Unnamed User"}
+            </h3>
+            <p className="text-gray-500 text-sm">
+              @{user.username || "unknown"}
+            </p>
           </div>
         </div>
 
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 px-4 mt-4">
-          <div className="bg-lily/10 rounded-xl p-3 text-center">
-            <Store className="w-6 h-6 text-lily mx-auto mb-1" />
-            <p className="text-xs text-gray-600">Shops</p>
-            <p className="font-bold text-lily">{user.shop_count || 0}</p>
+        <p className="mt-1 text-sm">
+          {user.bio ||
+            "Add a bio to let people know more about you and your products!"}
+        </p>
+
+        {/* Stats */}
+        <div className="flex mt-4 text-sm items-center justify-between">
+          <div className="flex gap-5">
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-2xl">
+                {user.post_count || data.post_count || data.product_count || userPosts.length || 0}
+              </span>
+              <p>Posts</p>
+            </div>
+            <Link to="/followers">
+              <div className="flex flex-col items-center">
+                <p className="font-bold text-2xl">{user.follower_count || 0}</p>
+                <p>Followers</p>
+              </div>
+            </Link>
+            <Link to="/following">
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-2xl">
+                  {user.following_count || 0}
+                </span>
+                <p>Following</p>
+              </div>
+            </Link>
           </div>
-          <div className="bg-blue-50 rounded-xl p-3 text-center">
-            <TrendingUp className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-            <p className="text-xs text-gray-600">Sales</p>
-            <p className="font-bold text-blue-600">0</p>
-          </div>
-          <div className="bg-purple-50 rounded-xl p-3 text-center">
-            <BookmarkPlus className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-            <p className="text-xs text-gray-600">Saved</p>
-            <p className="font-bold text-purple-600">{likedPosts.length}</p>
-          </div>
+
+          <Link to="/editProfile">
+            <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
+              Edit Profile
+            </button>
+          </Link>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-[57px] z-30 bg-white border-b border-gray-200">
-        <div className="flex">
-          <button
-            onClick={() => setActiveTab("posts")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "posts"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
+      <div className="flex my-5 w-full justify-evenly">
+        <button
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 0 ? "border-lily text-lily" : "border-transparent"
             }`}
-          >
-            <Grid3x3 size={20} />
-            <span className="text-sm font-semibold">Posts</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("products")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "products"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
+          onClick={() => setActiveTab(0)}
+        >
+          <Grid size={30} />
+        </button>
+        <button
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 1 ? "border-lily text-lily" : "border-transparent"
             }`}
-          >
-            <Package size={20} />
-            <span className="text-sm font-semibold">Products</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("liked")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "liked"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
+          onClick={() => setActiveTab(1)}
+        >
+          <Megaphone size={30} />
+        </button>
+        <button
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 2 ? "border-lily text-lily" : "border-transparent"
             }`}
-          >
-            <Heart size={20} />
-            <span className="text-sm font-semibold">Saved</span>
-          </button>
-        </div>
+          onClick={() => setActiveTab(2)}
+        >
+          <Heart size={30} />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="bg-white">
-        <AnimatePresence mode="wait">
-          {activeTab === "posts" && (
-            <motion.div
-              key="posts"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              {renderGrid(userPosts, postsLoading, "No posts yet")}
-            </motion.div>
-          )}
-          {activeTab === "products" && (
-            <motion.div
-              key="products"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              {renderGrid(userPosts, postsLoading, "No products yet")}
-            </motion.div>
-          )}
-          {activeTab === "liked" && (
-            <motion.div
-              key="liked"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              {renderGrid(likedPosts, likedLoading, "No saved items yet")}
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Tab Content */}
+      <div>
+        {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
+        {activeTab === 1 && <AnnouncementsGrid />}
+        {activeTab === 2 &&
+          renderGrid(likedPosts, likedLoading, "No favorites yet")}
       </div>
     </div>
   );

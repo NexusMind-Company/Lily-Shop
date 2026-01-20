@@ -157,7 +157,7 @@ body {
 }
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
-  min-height: max(884px, 100dvh);
+  min-height: 100vh;
 }
 
 .no-scrollbar::-webkit-scrollbar {
