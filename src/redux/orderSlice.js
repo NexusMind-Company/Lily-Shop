@@ -3,6 +3,7 @@ import api from "../services/api";
 
 // ==================== THUNKS ====================
 
+// Create Order
 export const createOrder = createAsyncThunk(
   "orders/createOrder",
   async (orderData, { rejectWithValue }) => {
@@ -15,12 +16,12 @@ export const createOrder = createAsyncThunk(
   }
 );
 
+// Fetch Orders List
 export const fetchOrders = createAsyncThunk(
   "orders/fetchOrders",
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/orders/");
-      // Ensure we return an array or the correct property containing the list
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -30,6 +31,7 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
+// Fetch Single Order Detail
 export const fetchOrderDetail = createAsyncThunk(
   "orders/fetchOrderDetail",
   async (orderId, { rejectWithValue }) => {
@@ -51,8 +53,8 @@ const orderSlice = createSlice({
   initialState: {
     orders: [],
     currentOrder: null,
-    loading: false, // General loading state (fetching lists/details)
-    createOrderLoading: false, // Specific loading state for creation
+    loading: false, // general loading for fetching lists/details
+    createOrderLoading: false, // specific for order creation
     error: null,
     createOrderError: null,
   },
@@ -66,7 +68,7 @@ const orderSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // --- Create Order Cases ---
+    // Create Order
     builder
       .addCase(createOrder.pending, (state) => {
         state.createOrderLoading = true;
@@ -74,14 +76,13 @@ const orderSlice = createSlice({
       })
       .addCase(createOrder.fulfilled, (state) => {
         state.createOrderLoading = false;
-        // Optionally refresh orders list here if needed
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.createOrderLoading = false;
         state.createOrderError = action.payload;
       });
 
-    // --- Fetch Orders Cases ---
+    // Fetch Orders List
     builder
       .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
@@ -89,7 +90,6 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        // Handle paginated responses (e.g., action.payload.results) or direct arrays
         state.orders = Array.isArray(action.payload)
           ? action.payload
           : action.payload.results || [];
@@ -99,7 +99,7 @@ const orderSlice = createSlice({
         state.error = action.payload;
       });
 
-    // --- Fetch Order Detail Cases ---
+    // Fetch Order Detail
     builder
       .addCase(fetchOrderDetail.pending, (state) => {
         state.loading = true;
@@ -118,6 +118,7 @@ const orderSlice = createSlice({
 
 // ==================== EXPORTS ====================
 
+// Actions
 export const { clearOrderError, resetCurrentOrder } = orderSlice.actions;
 
 // Selectors
@@ -126,9 +127,9 @@ export const selectCurrentOrder = (state) => state.orders.currentOrder;
 export const selectOrderLoading = (state) => state.orders.loading;
 export const selectOrderError = (state) => state.orders.error;
 
-// Creation specific selectors
-export const selectCreateOrderLoading = (state) =>
-  state.orders.createOrderLoading;
+// Creation-specific selectors
+export const selectCreateOrderLoading = (state) => state.orders.createOrderLoading;
 export const selectCreateOrderError = (state) => state.orders.createOrderError;
 
+// Reducer
 export default orderSlice.reducer;

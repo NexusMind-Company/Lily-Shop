@@ -92,23 +92,61 @@ const SignUp = () => {
     return errors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate form
     const errors = validateForm();
-    setValidationErrors(errors);
-
-    if (Object.keys(errors).length === 0) {
-      // Dispatch registration
-      await dispatch(
-        registerUser({
-          email_or_phonenumber: formData.email_or_phonenumber.trim(),
-          password: formData.password,
-        })
-      );
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
     }
+
+    dispatch(
+      registerUser({
+        email_or_phonenumber: formData.email_or_phonenumber,
+        password: formData.password,
+      })
+    );
   };
+
+
+ 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   try {
+  //     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+      
+  //     const response = await axios.post(`${API_BASE_URL}/auth/users/`, {
+  //       email_or_phonenumber: emailOrPhone,
+  //       password: password,
+  //     });
+
+  //     // Check if email or phone
+  //     const isEmail = emailOrPhone.includes('@');
+  //     const verificationType = isEmail ? 'email' : 'sms';
+
+  //     // Redirect to verification page with contact info
+  //     navigate(`/verify?type=${verificationType}&contact=${encodeURIComponent(emailOrPhone)}`);
+      
+  //     // Show success message
+  //     alert(response.data.message || 'Registration successful! Please check your email/phone for verification code.');
+
+  //   } catch (err) {
+  //     const errorMsg =
+  //       err.response?.data?.error ||
+  //       err.response?.data?.["Invalid registration"] ||
+  //       err.response?.data?.detail ||
+  //       "Registration failed. Please try again.";
+
+  //     setError(errorMsg);
+  //   }
+  //    finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Password strength indicator
   const getPasswordStrength = (password) => {

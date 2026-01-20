@@ -9,7 +9,7 @@ const InboxList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token"); 
+    const token = localStorage.getItem("access_token");
     if (!token) {
       navigate("/login");
     }
@@ -36,17 +36,7 @@ const InboxList = () => {
       message: "Check your orders",
       link: "/orders",
       ChevronRight,
-      
     },
-    {
-      icon: "📦",
-      title: "vendor Dashboard",
-      message: "Check your orders",
-      link: "/vendor-dashboard",
-      ChevronRight,
-      
-    },
-    
   ];
 
   return (
@@ -75,7 +65,9 @@ const InboxList = () => {
                       {item.unread}
                     </span>
                   )}
-                  {item.ChevronRight && <ChevronRight className="text-gray-500 h-8 w-8" />}
+                  {item.ChevronRight && (
+                    <ChevronRight className="text-gray-500 h-8 w-8" />
+                  )}
                 </div>
               </div>
             </Link>

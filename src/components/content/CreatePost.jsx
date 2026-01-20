@@ -10,29 +10,51 @@ import {
   resetContentState as resetFunContent,
 } from "../../redux/funContentSlice";
 import {
-  FiChevronLeft,
-  FiCamera,
-  FiImage,
-  FiX,
-  FiCheck,
-  FiAlertCircle,
-  FiDollarSign,
-  FiPackage,
-} from "react-icons/fi";
+  ChevronRight,
+  ChevronLeft,
+  Camera,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+
+import MediaUploader from "./MediaUploader";
+import PostTypeSelector from "./PostTypeSelector";
+import ProductDetailsForm from "./ProductDetailsForm";
+import ContentPreview from "./ContentPreview";
+import CameraModal from "./CameraModal";
 
 const MAX_MEDIA = 5;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg", "video/mp4", "video/mov"];
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/jpg",
+  "image/webp",
+  "video/mp4",
+  "video/mov",
+  "video/quicktime",
+  "video/x-matroska",
+  "video/webm",
+];
 
 const CreatePost = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
+  // Redux State
   const { isAuthenticated } = useSelector((state) => state.auth);
   const productState = useSelector((state) => state.productContent);
   const funState = useSelector((state) => state.funContent);
 
+  // Local State
   const [step, setStep] = useState(1);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [dragActive, setDragActive] = useState(false); // Kept for layout, though MediaUploader handles drag now
+  const [localLoading, setLocalLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   const [formData, setFormData] = useState({
     postType: "",
     caption: "",
@@ -46,90 +68,47 @@ const CreatePost = () => {
     hashtags: "",
     location: "",
   });
+
   const [errors, setErrors] = useState({});
 
-  const isLoading = productState.loading || funState.loading;
+  // Derived State
+  const reduxLoading = productState.loading || funState.loading;
+  const loading = localLoading || reduxLoading;
   const success = productState.success || funState.success;
-  const apiError = productState.error || funState.error;
 
-  // Redirect if not authenticated
+  // 1. Auth Check
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
+    if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
-  // Handle success
+  // 2. Success Handler
   useEffect(() => {
     if (success) {
-      setTimeout(() => {
+      setSuccessMessage("Post created successfully!");
+      setErrorMessage("");
+      const timer = setTimeout(() => {
         dispatch(resetProductContent());
         dispatch(resetFunContent());
-        navigate("/");
-      }, 1500);
+        navigate("/feed");
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [success, navigate, dispatch]);
 
-  // ========================================
-  // MEDIA HANDLING
-  // ========================================
-  const validateFile = (file) => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return "Only JPEG, PNG images and MP4, MOV videos are allowed";
+  // 3. Error Handler
+  useEffect(() => {
+    const error = productState.error || funState.error;
+    if (error) {
+      const detail = error.detail || "Failed to publish content.";
+      const mediaError = Array.isArray(error.media)
+        ? error.media.join(" ")
+        : error.media;
+      setErrorMessage(mediaError || detail);
+      setLocalLoading(false);
     }
-    if (file.size > MAX_FILE_SIZE) {
-      return `File size must not exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`;
-    }
-    return null;
-  };
+  }, [productState.error, funState.error]);
 
-  const handleMediaSelect = (e) => {
-    const files = Array.from(e.target.files);
-    const newMedia = [];
-    const newErrors = [];
-
-    files.forEach((file) => {
-      const error = validateFile(file);
-      if (error) {
-        newErrors.push(error);
-        return;
-      }
-
-      if (formData.media.length + newMedia.length >= MAX_MEDIA) {
-        newErrors.push(`Maximum ${MAX_MEDIA} files allowed`);
-        return;
-      }
-
-      newMedia.push({
-        file,
-        url: URL.createObjectURL(file),
-        type: file.type.startsWith("video") ? "video" : "image",
-      });
-    });
-
-    if (newErrors.length > 0) {
-      setErrors((prev) => ({ ...prev, media: newErrors.join(". ") }));
-    } else {
-      setErrors((prev) => ({ ...prev, media: "" }));
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      media: [...prev.media, ...newMedia],
-    }));
-  };
-
-  const removeMedia = (index) => {
-    const item = formData.media[index];
-    if (item.url) URL.revokeObjectURL(item.url);
-
-    setFormData((prev) => ({
-      ...prev,
-      media: prev.media.filter((_, i) => i !== index),
-    }));
-  };
-
-  // Cleanup URLs on unmount
+  // 4. Cleanup Object URLs
   useEffect(() => {
     return () => {
       formData.media.forEach((item) => {
@@ -138,22 +117,74 @@ const CreatePost = () => {
     };
   }, []);
 
-  // ========================================
-  // FORM VALIDATION
-  // ========================================
-  const validateForm = () => {
-    const newErrors = {};
+  // -----------------------------------------------------
+  // HELPERS: Validation
+  // -----------------------------------------------------
+  const validateFile = (file) => {
+    if (!file) return null; // Skip if no file object (e.g. captured image might differ)
 
-    if (formData.media.length === 0) {
-      newErrors.media = "Please add at least one photo or video";
+    // Check MIME Type
+    const isValidMime = ALLOWED_TYPES.includes(file.type);
+    
+    // Check Extension (Fallback)
+    const fileExtension = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    const validExtensions = ["jpg", "jpeg", "png", "webp", "mp4", "mov", "mkv", "webm"];
+    const isValidExtension = validExtensions.includes(fileExtension);
+
+    if (!isValidMime && !isValidExtension) {
+      return `File type not supported: ${file.name}`;
     }
 
-    if (formData.postType === "product") {
-      if (!formData.name.trim()) {
-        newErrors.name = "Product name is required";
+    if (file.size > MAX_FILE_SIZE) {
+      return `File ${file.name} is too large (Max 500MB)`;
+    }
+    return null;
+  };
+
+  // -----------------------------------------------------
+  // FIX: Handle Media Update from Child Component
+  // -----------------------------------------------------
+  const handleMediaUpdate = (updatedMedia) => {
+    // 1. MediaUploader sends the FULL array of objects { id, type, url, file }
+    const newErrors = [];
+
+    // 2. Validate ONLY the items that have a raw file attached
+    const validMedia = updatedMedia.filter((item) => {
+      if (item.file) {
+        const error = validateFile(item.file);
+        if (error) {
+          newErrors.push(error);
+          return false; // Remove invalid file from state
+        }
       }
+      return true;
+    });
+
+    // 3. Set Errors if any
+    if (newErrors.length) {
+      setErrors((prev) => ({ ...prev, media: newErrors.join(", ") }));
+    } else {
+      setErrors((prev) => ({ ...prev, media: "" }));
+    }
+
+    // 4. Update State directly with the object array from MediaUploader
+    setFormData((prev) => ({
+      ...prev,
+      media: validMedia.slice(0, MAX_MEDIA),
+    }));
+  };
+
+  const validateStep = () => {
+    const newErrors = {};
+
+    if (step === 1 && formData.media.length === 0) {
+      newErrors.media = "Add at least one photo or video";
+    }
+
+    if (step === 2 && formData.postType === "product") {
+      if (!formData.name?.trim()) newErrors.name = "Product name required";
       if (!formData.price || parseFloat(formData.price) <= 0) {
-        newErrors.price = "Valid price is required";
+        newErrors.price = "Valid price required";
       }
     }
 
@@ -161,167 +192,114 @@ const CreatePost = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ========================================
-  // PUBLISH HANDLER
-  // ========================================
-  const handlePublish = async () => {
-    if (!validateForm()) return;
-
-    const submitFormData = new FormData();
-
-    if (formData.postType === "product") {
-      // Product creation
-      submitFormData.append("name", formData.name.trim() || "Untitled Product");
-      submitFormData.append("caption", formData.caption.trim() || "");
-      submitFormData.append("price", Number(formData.price));
-      submitFormData.append("in_stock", formData.in_stock);
-      submitFormData.append("quantity_available", Number(formData.quantity_available) || 0);
-      submitFormData.append("delivery_info", formData.delivery_info.trim() || "");
-      submitFormData.append("promotable", formData.promotable);
-      submitFormData.append("hashtags", formData.hashtags.trim() || "");
-
-      formData.media.forEach((item) => {
-        if (item.file) {
-          submitFormData.append("media", item.file);
-        }
-      });
-
-      await dispatch(createProductContent(submitFormData));
-    } else {
-      // Content creation
-      submitFormData.append("post_type", "FUN");
-      submitFormData.append("caption", formData.caption.trim() || "");
-      submitFormData.append("hashtags", formData.hashtags.trim() || "");
-      submitFormData.append("location", formData.location.trim() || "");
-
-      formData.media.forEach((item) => {
-        if (item.file) {
-          submitFormData.append("media", item.file);
-        }
-      });
-
-      await dispatch(createFunContent(submitFormData));
-    }
-  };
-
-  // ========================================
-  // STEP NAVIGATION
-  // ========================================
   const nextStep = () => {
-    if (step === 1 && formData.media.length === 0) {
-      setErrors({ media: "Please add at least one photo or video" });
-      return;
-    }
-    setStep((p) => p + 1);
+    if (validateStep()) setStep((p) => p + 1);
   };
 
   const prevStep = () => setStep((p) => p - 1);
 
-  // ========================================
-  // RENDER
-  // ========================================
+  // -----------------------------------------------------
+  // MAIN ACTION: Publish
+  // -----------------------------------------------------
+  const handlePublish = async () => {
+    if (!validateStep()) return;
+
+    setLocalLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const submitFormData = new FormData();
+
+      if (formData.postType === "product") {
+        submitFormData.append("name", formData.name?.trim() || "Untitled Product");
+        submitFormData.append("caption", formData.caption?.trim() || "");
+        submitFormData.append("price", formData.price ? Number(formData.price) : 0);
+        submitFormData.append("in_stock", formData.in_stock);
+        submitFormData.append("quantity_available", formData.quantity_available ? Number(formData.quantity_available) : 0);
+        submitFormData.append("delivery_info", formData.delivery_info?.trim() || "");
+        submitFormData.append("promotable", formData.promotable);
+        submitFormData.append("hashtags", formData.hashtags?.trim() || "");
+
+        // Append media
+        formData.media.forEach((item) => {
+          if (item.file) submitFormData.append("media", item.file);
+        });
+
+        await dispatch(createProductContent(submitFormData));
+      } else {
+        submitFormData.append("post_type", "FUN");
+        submitFormData.append("caption", formData.caption?.trim() || "");
+        submitFormData.append("hashtags", formData.hashtags?.trim() || "");
+        submitFormData.append("location", formData.location?.trim() || "");
+
+        // Append media
+        formData.media.forEach((item) => {
+          if (item.file) submitFormData.append("media", item.file);
+        });
+
+        await dispatch(createFunContent(submitFormData));
+      }
+    } catch (err) {
+      console.error("PUBLISH ERROR:", err);
+      setErrorMessage("An unexpected error occurred.");
+      setLocalLoading(false);
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col min-h-screen bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
-        {step > 1 ? (
-          <button onClick={prevStep} className="text-gray-600 hover:text-black">
-            <FiChevronLeft size={28} />
-          </button>
-        ) : (
-          <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-black">
-            <FiChevronLeft size={28} />
-          </button>
-        )}
-
-        <h2 className="text-lg font-semibold text-gray-900">
-          {step === 1 && "Add Media"}
-          {step === 2 && "Post Type"}
-          {step === 3 && "Details"}
-          {step === 4 && "Preview"}
-        </h2>
-
-        <div className="w-7" />
-      </div>
-
-      {/* Success Message */}
-      {success && (
-        <div className="mx-4 mt-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md">
-          <div className="flex items-center gap-2">
-            <FiCheck className="text-green-600" size={20} />
-            <div>
-              <p className="font-medium">Published successfully!</p>
-              <p className="text-sm">Redirecting to feed...</p>
-            </div>
-          </div>
+    <div className="w-full flex flex-col min-h-screen bg-white text-gray-900">
+      <div className="w-full relative flex-1">
+        {/* HEADER */}
+        <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+          {step > 1 ? (
+            <button onClick={prevStep} className="text-gray-600 hover:text-black transition">
+              <ChevronLeft size={30} />
+            </button>
+          ) : (
+            <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-black transition">
+              <ChevronLeft size={30} />
+            </button>
+          )}
+          <h2 className="text-lg font-semibold text-center w-full text-gray-900">
+            {step === 1 && "Create Post"}
+            {step === 2 && "Add Details"}
+            {step === 3 && "Preview"}
+          </h2>
+          <div className="w-[30px]" />
         </div>
-      )}
 
-      {/* Error Message */}
-      {apiError && (
-        <div className="mx-4 mt-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md">
-          <div className="flex items-center gap-2">
-            <FiAlertCircle className="text-red-600" size={20} />
-            <div>
-              <p className="font-medium">Failed to publish</p>
-              <p className="text-sm">
-                {typeof apiError === "string" ? apiError : apiError?.detail || "Please try again"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {/* STEP 1: Add Media */}
+        {/* STEP 1: UPLOAD MEDIA */}
         {step === 1 && (
-          <div className="space-y-4">
-            {/* Media Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {formData.media.map((item, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
-                  {item.type === "video" ? (
-                    <video src={item.url} className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={item.url} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
-                  )}
-                  <button
-                    onClick={() => removeMedia(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  >
-                    <FiX size={16} />
-                  </button>
-                </div>
-              ))}
-
-              {/* Add More Button */}
-              {formData.media.length < MAX_MEDIA && (
-                <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-lily transition-colors">
-                  <FiImage className="w-12 h-12 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-500">Add Media</span>
-                  <span className="text-xs text-gray-400 mt-1">{formData.media.length}/{MAX_MEDIA}</span>
-                  <input
-                    type="file"
-                    accept={ALLOWED_TYPES.join(",")}
-                    multiple
-                    onChange={handleMediaSelect}
-                    className="hidden"
-                  />
-                </label>
-              )}
+          <div className="p-4 space-y-8">
+            <div className="flex justify-center">
+              <button
+                onClick={() => setCameraOpen(true)}
+                className="flex flex-col items-center justify-center gap-2 px-10 py-8 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition w-full border-2 border-dashed border-gray-300"
+              >
+                <Camera className="w-10 h-10" />
+                <span>Open Camera</span>
+              </button>
             </div>
+
+            {/* Use the new handler here */}
+            <MediaUploader
+              media={formData.media}
+              setMedia={handleMediaUpdate} 
+              dragActive={dragActive}
+              setDragActive={setDragActive}
+            />
 
             {errors.media && (
-              <p className="text-red-500 text-sm">{errors.media}</p>
+              <p className="text-red-500 text-sm text-center">{errors.media}</p>
             )}
 
             <button
               onClick={nextStep}
               disabled={formData.media.length === 0}
-              className={`w-full py-3 rounded-full font-semibold transition ${
+              className={`w-full py-3 rounded-full font-semibold mt-4 transition ${
                 formData.media.length > 0
-                  ? "bg-lily hover:bg-darklily text-white"
+                  ? "bg-lily hover:bg-darklily text-black"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
@@ -330,136 +308,105 @@ const CreatePost = () => {
           </div>
         )}
 
-        {/* STEP 2: Post Type */}
+        {/* STEP 2: DETAILS FORM */}
         {step === 2 && (
-          <div className="space-y-4">
-            <button
-              onClick={() => {
-                setFormData((prev) => ({ ...prev, postType: "fun" }));
-                nextStep();
-              }}
-              className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-lily transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-lily rounded-full flex items-center justify-center">
-                  <FiCamera className="text-white" size={24} />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold text-lg">Fun Post</h3>
-                  <p className="text-sm text-gray-600">Share moments, stories, or experiences</p>
-                </div>
+          <div className="p-4 space-y-4">
+            <PostTypeSelector
+              postType={formData.postType}
+              setPostType={(type) =>
+                setFormData((prev) => ({ ...prev, postType: type }))
+              }
+            />
+
+            {formData.postType === "product" && (
+              <ProductDetailsForm
+                formData={formData}
+                setFormData={setFormData}
+                errors={errors}
+              />
+            )}
+
+            {formData.postType !== "product" && (
+              <div className="space-y-4">
+                <textarea
+                  placeholder="Write a caption..."
+                  className="w-full p-3 border rounded-lg"
+                  value={formData.caption}
+                  onChange={(e) =>
+                    setFormData({ ...formData, caption: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="Location"
+                  className="w-full p-3 border rounded-lg"
+                  value={formData.location}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="#Hashtags"
+                  className="w-full p-3 border rounded-lg"
+                  value={formData.hashtags}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hashtags: e.target.value })
+                  }
+                />
               </div>
-            </button>
+            )}
 
             <button
-              onClick={() => {
-                setFormData((prev) => ({ ...prev, postType: "product" }));
-                nextStep();
-              }}
-              className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-lily transition-colors"
+              onClick={nextStep}
+              className="w-full py-3 rounded-full bg-lily text-white hover:bg-darklily font-semibold mt-4 flex items-center justify-center gap-2"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                  <FiPackage className="text-white" size={24} />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold text-lg">Product Post</h3>
-                  <p className="text-sm text-gray-600">Sell a product with price and details</p>
-                </div>
-              </div>
+              Preview <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         )}
 
-        {/* STEP 3: Details */}
+        {/* STEP 3: PREVIEW & CONFIRM */}
         {step === 3 && (
-          <div className="space-y-4">
-            {formData.postType === "product" ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Product Name *</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full p-3 border rounded-lg"
-                    placeholder="Enter product name"
-                  />
-                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                </div>
+          <div className="p-4 space-y-4">
+            {errorMessage && (
+              <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg flex items-center gap-2">
+                <AlertCircle size={20} />
+                <p>{errorMessage}</p>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Price (₦) *</label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData((p) => ({ ...p, price: e.target.value }))}
-                    className="w-full p-3 border rounded-lg"
-                    placeholder="0.00"
-                  />
-                  {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
-                </div>
+            {successMessage && (
+              <div className="p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg flex items-center gap-2">
+                <CheckCircle size={20} />
+                <p>{successMessage}</p>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Quantity Available</label>
-                  <input
-                    type="number"
-                    value={formData.quantity_available}
-                    onChange={(e) => setFormData((p) => ({ ...p, quantity_available: e.target.value }))}
-                    className="w-full p-3 border rounded-lg"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Delivery Info</label>
-                  <textarea
-                    value={formData.delivery_info}
-                    onChange={(e) => setFormData((p) => ({ ...p, delivery_info: e.target.value }))}
-                    className="w-full p-3 border rounded-lg"
-                    rows="2"
-                    placeholder="How will this be delivered?"
-                  />
-                </div>
-              </>
-            ) : null}
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Caption</label>
-              <textarea
-                value={formData.caption}
-                onChange={(e) => setFormData((p) => ({ ...p, caption: e.target.value }))}
-                className="w-full p-3 border rounded-lg"
-                rows="3"
-                placeholder="Write a caption..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Hashtags</label>
-              <input
-                type="text"
-                value={formData.hashtags}
-                onChange={(e) => setFormData((p) => ({ ...p, hashtags: e.target.value }))}
-                className="w-full p-3 border rounded-lg"
-                placeholder="#tag1 #tag2"
-              />
-            </div>
-
-            <button
-              onClick={handlePublish}
-              disabled={isLoading}
-              className={`w-full py-3 rounded-full font-semibold transition ${
-                isLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-lily hover:bg-darklily text-white"
-              }`}
-            >
-              {isLoading ? "Publishing..." : "Publish"}
-            </button>
+            <ContentPreview
+              formData={formData}
+              onPublish={handlePublish}
+              setFormData={setFormData}
+              onBack={prevStep}
+              loading={loading}
+            />
           </div>
         )}
       </div>
+
+      <CameraModal
+        isOpen={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(data) => {
+          // Camera modal might return an object with { url, file, type }
+          setFormData((prev) => {
+            const exists = prev.media.some((m) => m.url === data.url);
+            if (exists) return prev;
+            return { ...prev, media: [...prev.media, data] };
+          });
+          setCameraOpen(false);
+        }}
+      />
     </div>
   );
 };
