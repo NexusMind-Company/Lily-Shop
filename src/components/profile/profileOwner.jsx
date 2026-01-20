@@ -42,12 +42,12 @@ const ProfileOwner = () => {
   }, [auth?.isAuthenticated, navigate]);
 
   // fetch profile data
-  // useEffect(() => {
-  //   const token = localStorage.getItem("access_token");
-  //   if (auth?.isAuthenticated && token && !data) {
-  //     dispatch(fetchProfile());
-  //   }
-  // }, [auth?.isAuthenticated, data, dispatch]);
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (auth?.isAuthenticated && token && !data) {
+      dispatch(fetchProfile());
+    }
+  }, [auth?.isAuthenticated, data, dispatch]);
 
   // 1. Fetch User Posts (Tab 0)
   useEffect(() => {
@@ -112,7 +112,7 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
-  console.log("Profile User Data:", user);
+  console.log("Profile User  Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -283,12 +283,17 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
+          <div className=""> <Link to="/vendor-dashboard">
+            <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-[16px]">
+             Food Subscription
+            </button>
+          </Link>
 
           <Link to="/editProfile">
             <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
               Edit Profile
             </button>
-          </Link>
+          </Link></div>
         </div>
       </div>
 
