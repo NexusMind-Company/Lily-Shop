@@ -25,12 +25,17 @@ import CameraModal from "./CameraModal";
 
 const MAX_MEDIA = 5;
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
   "image/jpg",
+  "image/webp",
   "video/mp4",
   "video/mov",
+  "video/quicktime",
+  "video/x-matroska",
+  "video/webm",
 ];
 
 const CreatePost = () => {
@@ -45,7 +50,7 @@ const CreatePost = () => {
   // Local State
   const [step, setStep] = useState(1);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
+  const [dragActive, setDragActive] = useState(false); // Kept for layout, though MediaUploader handles drag now
   const [localLoading, setLocalLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -76,7 +81,7 @@ const CreatePost = () => {
     if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
-  // 2. Success Handler & Redirect
+  // 2. Success Handler
   useEffect(() => {
     if (success) {
       setSuccessMessage("Post created successfully!");
@@ -94,12 +99,10 @@ const CreatePost = () => {
   useEffect(() => {
     const error = productState.error || funState.error;
     if (error) {
-      // API errors can be strings or objects
       const detail = error.detail || "Failed to publish content.";
       const mediaError = Array.isArray(error.media)
         ? error.media.join(" ")
         : error.media;
-
       setErrorMessage(mediaError || detail);
       setLocalLoading(false);
     }
@@ -115,51 +118,59 @@ const CreatePost = () => {
   }, []);
 
   // -----------------------------------------------------
-  // HELPERS: Media & Validation
+  // HELPERS: Validation
   // -----------------------------------------------------
   const validateFile = (file) => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return "Only JPEG, PNG, MP4, MOV files allowed";
+    if (!file) return null; // Skip if no file object (e.g. captured image might differ)
+
+    // Check MIME Type
+    const isValidMime = ALLOWED_TYPES.includes(file.type);
+    
+    // Check Extension (Fallback)
+    const fileExtension = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    const validExtensions = ["jpg", "jpeg", "png", "webp", "mp4", "mov", "mkv", "webm"];
+    const isValidExtension = validExtensions.includes(fileExtension);
+
+    if (!isValidMime && !isValidExtension) {
+      return `File type not supported: ${file.name}`;
     }
+
     if (file.size > MAX_FILE_SIZE) {
-      return `File must be under ${MAX_FILE_SIZE / 1024 / 1024}MB`;
+      return `File ${file.name} is too large (Max 500MB)`;
     }
     return null;
   };
 
-  const handleMediaSelect = (files) => {
-    const fileArray = Array.from(files);
-    const newMedia = [];
+  // -----------------------------------------------------
+  // FIX: Handle Media Update from Child Component
+  // -----------------------------------------------------
+  const handleMediaUpdate = (updatedMedia) => {
+    // 1. MediaUploader sends the FULL array of objects { id, type, url, file }
     const newErrors = [];
 
-    fileArray.forEach((file) => {
-      const error = validateFile(file);
-      if (error) {
-        newErrors.push(error);
-        return;
+    // 2. Validate ONLY the items that have a raw file attached
+    const validMedia = updatedMedia.filter((item) => {
+      if (item.file) {
+        const error = validateFile(item.file);
+        if (error) {
+          newErrors.push(error);
+          return false; // Remove invalid file from state
+        }
       }
-
-      if (formData.media.length + newMedia.length >= MAX_MEDIA) {
-        newErrors.push(`Maximum ${MAX_MEDIA} files`);
-        return;
-      }
-
-      newMedia.push({
-        file,
-        url: URL.createObjectURL(file),
-        type: file.type.startsWith("video") ? "video" : "image",
-      });
+      return true;
     });
 
+    // 3. Set Errors if any
     if (newErrors.length) {
-      setErrors((prev) => ({ ...prev, media: newErrors.join(". ") }));
+      setErrors((prev) => ({ ...prev, media: newErrors.join(", ") }));
     } else {
       setErrors((prev) => ({ ...prev, media: "" }));
     }
 
+    // 4. Update State directly with the object array from MediaUploader
     setFormData((prev) => ({
       ...prev,
-      media: [...prev.media, ...newMedia].slice(0, MAX_MEDIA),
+      media: validMedia.slice(0, MAX_MEDIA),
     }));
   };
 
@@ -201,25 +212,12 @@ const CreatePost = () => {
       const submitFormData = new FormData();
 
       if (formData.postType === "product") {
-        // --- PRODUCT PAYLOAD ---
-        submitFormData.append(
-          "name",
-          formData.name?.trim() || "Untitled Product",
-        );
+        submitFormData.append("name", formData.name?.trim() || "Untitled Product");
         submitFormData.append("caption", formData.caption?.trim() || "");
-        submitFormData.append(
-          "price",
-          formData.price ? Number(formData.price) : 0,
-        );
+        submitFormData.append("price", formData.price ? Number(formData.price) : 0);
         submitFormData.append("in_stock", formData.in_stock);
-        submitFormData.append(
-          "quantity_available",
-          formData.quantity_available ? Number(formData.quantity_available) : 0,
-        );
-        submitFormData.append(
-          "delivery_info",
-          formData.delivery_info?.trim() || "",
-        );
+        submitFormData.append("quantity_available", formData.quantity_available ? Number(formData.quantity_available) : 0);
+        submitFormData.append("delivery_info", formData.delivery_info?.trim() || "");
         submitFormData.append("promotable", formData.promotable);
         submitFormData.append("hashtags", formData.hashtags?.trim() || "");
 
@@ -230,7 +228,6 @@ const CreatePost = () => {
 
         await dispatch(createProductContent(submitFormData));
       } else {
-        // --- FUN PAYLOAD ---
         submitFormData.append("post_type", "FUN");
         submitFormData.append("caption", formData.caption?.trim() || "");
         submitFormData.append("hashtags", formData.hashtags?.trim() || "");
@@ -250,26 +247,17 @@ const CreatePost = () => {
     }
   };
 
-  // -----------------------------------------------------
-  // RENDER
-  // -----------------------------------------------------
   return (
     <div className="w-full flex flex-col min-h-screen bg-white text-gray-900">
       <div className="w-full relative flex-1">
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
           {step > 1 ? (
-            <button
-              onClick={prevStep}
-              className="text-gray-600 hover:text-black transition"
-            >
+            <button onClick={prevStep} className="text-gray-600 hover:text-black transition">
               <ChevronLeft size={30} />
             </button>
           ) : (
-            <button
-              onClick={() => navigate(-1)}
-              className="text-gray-600 hover:text-black transition"
-            >
+            <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-black transition">
               <ChevronLeft size={30} />
             </button>
           )}
@@ -278,7 +266,7 @@ const CreatePost = () => {
             {step === 2 && "Add Details"}
             {step === 3 && "Preview"}
           </h2>
-          <div className="w-[30px]" /> {/* Spacer for alignment */}
+          <div className="w-[30px]" />
         </div>
 
         {/* STEP 1: UPLOAD MEDIA */}
@@ -294,9 +282,10 @@ const CreatePost = () => {
               </button>
             </div>
 
+            {/* Use the new handler here */}
             <MediaUploader
               media={formData.media}
-              setMedia={handleMediaSelect}
+              setMedia={handleMediaUpdate} 
               dragActive={dragActive}
               setDragActive={setDragActive}
             />
@@ -329,7 +318,6 @@ const CreatePost = () => {
               }
             />
 
-            {/* Product Specific Form */}
             {formData.postType === "product" && (
               <ProductDetailsForm
                 formData={formData}
@@ -338,7 +326,6 @@ const CreatePost = () => {
               />
             )}
 
-            {/* Fun / Generic Form Fields */}
             {formData.postType !== "product" && (
               <div className="space-y-4">
                 <textarea
@@ -382,7 +369,6 @@ const CreatePost = () => {
         {/* STEP 3: PREVIEW & CONFIRM */}
         {step === 3 && (
           <div className="p-4 space-y-4">
-            {/* Error Message Display */}
             {errorMessage && (
               <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg flex items-center gap-2">
                 <AlertCircle size={20} />
@@ -390,7 +376,6 @@ const CreatePost = () => {
               </div>
             )}
 
-            {/* Success Message Display */}
             {successMessage && (
               <div className="p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg flex items-center gap-2">
                 <CheckCircle size={20} />
@@ -409,11 +394,11 @@ const CreatePost = () => {
         )}
       </div>
 
-      {/* CAMERA MODAL */}
       <CameraModal
         isOpen={cameraOpen}
         onClose={() => setCameraOpen(false)}
         onCapture={(data) => {
+          // Camera modal might return an object with { url, file, type }
           setFormData((prev) => {
             const exists = prev.media.some((m) => m.url === data.url);
             if (exists) return prev;
