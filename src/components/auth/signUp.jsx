@@ -92,23 +92,61 @@ const SignUp = () => {
     return errors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate form
     const errors = validateForm();
-    setValidationErrors(errors);
-
-    if (Object.keys(errors).length === 0) {
-      // Dispatch registration
-      await dispatch(
-        registerUser({
-          email_or_phonenumber: formData.email_or_phonenumber.trim(),
-          password: formData.password,
-        })
-      );
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
     }
+
+    dispatch(
+      registerUser({
+        email_or_phonenumber: formData.email_or_phonenumber,
+        password: formData.password,
+      })
+    );
   };
+
+
+ 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   try {
+  //     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+      
+  //     const response = await axios.post(`${API_BASE_URL}/auth/users/`, {
+  //       email_or_phonenumber: emailOrPhone,
+  //       password: password,
+  //     });
+
+  //     // Check if email or phone
+  //     const isEmail = emailOrPhone.includes('@');
+  //     const verificationType = isEmail ? 'email' : 'sms';
+
+  //     // Redirect to verification page with contact info
+  //     navigate(`/verify?type=${verificationType}&contact=${encodeURIComponent(emailOrPhone)}`);
+      
+  //     // Show success message
+  //     alert(response.data.message || 'Registration successful! Please check your email/phone for verification code.');
+
+  //   } catch (err) {
+  //     const errorMsg =
+  //       err.response?.data?.error ||
+  //       err.response?.data?.["Invalid registration"] ||
+  //       err.response?.data?.detail ||
+  //       "Registration failed. Please try again.";
+
+  //     setError(errorMsg);
+  //   }
+  //    finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Password strength indicator
   const getPasswordStrength = (password) => {
@@ -123,262 +161,229 @@ const SignUp = () => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="flex min-h-screen w-full bg-white">
-      {/* Left Side - Hero / Image (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-lily overflow-hidden flex-col justify-between p-12 text-white">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2070&auto=format&fit=crop"
-            alt="Virtual Store Background"
-            className="w-full h-full object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-lily/30 to-lily/90 mix-blend-multiply" />
-        </div>
-
-        <div className="relative z-10">
-          <Link to="/">
-            <h1 className="font-bold text-4xl uppercase tracking-wider">Lily Shops</h1>
-          </Link>
-        </div>
-
-        <div className="relative z-10 mb-20">
-          <h2 className="text-5xl font-bold mb-6 font-poppins leading-tight">
-            Start Your <br /> Online Business
-          </h2>
-          <p className="text-xl text-green-50 max-w-md">
-            Create an account to build your own virtual store and sell products, even without a physical shop.
-          </p>
-        </div>
-
-        <div className="relative z-10 text-sm opacity-70">
-          © {new Date().getFullYear()} Lily Shops. All rights reserved.
-        </div>
+    <section className="flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center bg-white w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-md z-40">
+        <Link to="/">
+          <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
+        </Link>
       </div>
 
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col relative overflow-y-auto">
-        {/* Mobile Header (Visible only on small screens) */}
-        <div className="lg:hidden flex items-center bg-white absolute top-0 left-0 right-0 h-16 px-6 shadow-sm z-40">
-          <Link to="/">
-            <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-          </Link>
-        </div>
+      {/* Page Content */}
+      <div className="mt-24">
+        {/* Page Title */}
+        <h2 className="font-poppins font-bold text-black text-2xl mb-2">
+          <span className="border-b-[3px] border-solid pb-1 border-lily">
+            Cre
+          </span>
+          ate Account
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Join Lily Shops and start selling today
+        </p>
 
-        <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 md:px-20 xl:px-32 pt-24 lg:pt-0 py-10">
-          <div className="max-w-md w-full mx-auto">
-            {/* Page Title */}
-            <div className="mb-8">
-              <h2 className="font-poppins font-bold text-black text-3xl mb-2">
-                <span className="border-b-[4px] border-solid pb-1 border-lily">
-                  Cre
-                </span>
-                ate Account
-              </h2>
-              <p className="text-gray-500 mt-2">
-                Join Lily Shops and start selling today
+        {/* Success Message */}
+        {registrationSuccess && (
+          <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md animate-fade-in">
+            <p className="font-medium flex items-center gap-2">
+              <FiCheck className="text-green-600" /> Registration successful!
+            </p>
+            <p className="text-sm">Redirecting you to login page...</p>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md animate-fade-in">
+            <p className="font-medium">✗ Registration Failed</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Sign Up Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Email or Phone Input */}
+          <div>
+            <label
+              htmlFor="email_or_phonenumber"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Email or Phone Number
+            </label>
+            <input
+              type="text"
+              id="email_or_phonenumber"
+              name="email_or_phonenumber"
+              value={formData.email_or_phonenumber}
+              onChange={handleChange}
+              placeholder="Enter email or phone number"
+              className={`input rounded-lg h-12 w-full px-4 border transition-colors ${
+                validationErrors.email_or_phonenumber
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-gray-300 focus:border-lily"
+              }`}
+              disabled={loading || registrationSuccess}
+            />
+            {validationErrors.email_or_phonenumber && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.email_or_phonenumber}
               </p>
-            </div>
-
-            {/* Success Message */}
-            {registrationSuccess && (
-              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-md">
-                <p className="font-medium flex items-center gap-2">
-                  <FiCheck className="text-green-600" /> Registration successful!
-                </p>
-                <p className="text-sm">Redirecting you to login page...</p>
-              </div>
             )}
+            <p className="text-xs text-gray-500 mt-1">
+              Use format: email@example.com or +234XXXXXXXXXX
+            </p>
+          </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-md">
-                <p className="font-medium">✗ Registration Failed</p>
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Sign Up Form */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Email or Phone Input */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="email_or_phonenumber"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email or Phone Number
-                </label>
-                <input
-                  type="text"
-                  id="email_or_phonenumber"
-                  name="email_or_phonenumber"
-                  value={formData.email_or_phonenumber}
-                  onChange={handleChange}
-                  placeholder="Enter email or phone number"
-                  className={`input w-full px-4 py-3 rounded-lg border bg-gray-50 focus:bg-white transition-all duration-200 outline-none ${validationErrors.email_or_phonenumber
-                    ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                    : "border-gray-200 focus:border-lily focus:ring-2 focus:ring-green-100"
-                    }`}
-                  disabled={loading || registrationSuccess}
-                />
-                {validationErrors.email_or_phonenumber && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {validationErrors.email_or_phonenumber}
-                  </p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Use format: email@example.com or +234XXXXXXXXXX
-                </p>
-              </div>
-
-              {/* Password Input */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create a password"
-                    className={`input w-full px-4 py-3 pr-12 rounded-lg border bg-gray-50 focus:bg-white transition-all duration-200 outline-none ${validationErrors.password
-                      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                      : "border-gray-200 focus:border-lily focus:ring-2 focus:ring-green-100"
-                      }`}
-                    disabled={loading || registrationSuccess}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={loading || registrationSuccess}
-                  >
-                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </button>
-                </div>
-                {validationErrors.password && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {validationErrors.password}
-                  </p>
-                )}
-                {formData.password && !validationErrors.password && (
-                  <p className={`text-xs mt-1 ${passwordStrength.color}`}>
-                    Password strength: {passwordStrength.text}
-                  </p>
-                )}
-              </div>
-
-              {/* Confirm Password Input */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    className={`input w-full px-4 py-3 pr-12 rounded-lg border bg-gray-50 focus:bg-white transition-all duration-200 outline-none ${validationErrors.confirmPassword
-                      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                      : "border-gray-200 focus:border-lily focus:ring-2 focus:ring-green-100"
-                      }`}
-                    disabled={loading || registrationSuccess}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={loading || registrationSuccess}
-                  >
-                    {showConfirmPassword ? (
-                      <FiEyeOff size={20} />
-                    ) : (
-                      <FiEye size={20} />
-                    )}
-                  </button>
-                </div>
-                {validationErrors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {validationErrors.confirmPassword}
-                  </p>
-                )}
-                {formData.confirmPassword &&
-                  formData.password === formData.confirmPassword &&
-                  !validationErrors.confirmPassword && (
-                    <p className="text-green-500 text-xs mt-1 flex items-center gap-1">
-                      <FiCheck size={14} /> Passwords match
-                    </p>
-                  )}
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
+          {/* Password Input */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                className={`input rounded-lg h-12 w-full px-4 pr-12 border transition-colors ${
+                  validationErrors.password
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-gray-300 focus:border-lily"
+                }`}
                 disabled={loading || registrationSuccess}
-                className={`w-full py-4 rounded-full font-bold text-white shadow-lg transition-all transform hover:-translate-y-0.5 mt-2 ${loading || registrationSuccess
-                  ? "bg-gray-400 cursor-not-allowed shadow-none"
-                  : "bg-lily hover:bg-darklily hover:shadow-xl active:scale-[0.98]"
-                  }`}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading || registrationSuccess}
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Creating Account...
-                  </span>
-                ) : registrationSuccess ? (
-                  "Success! Redirecting..."
+                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
+            </div>
+            {validationErrors.password && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.password}
+              </p>
+            )}
+            {formData.password && !validationErrors.password && (
+              <p className={`text-xs mt-1 ${passwordStrength.color}`}>
+                Password strength: {passwordStrength.text}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password Input */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                className={`input rounded-lg h-12 w-full px-4 pr-12 border transition-colors ${
+                  validationErrors.confirmPassword
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-gray-300 focus:border-lily"
+                }`}
+                disabled={loading || registrationSuccess}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading || registrationSuccess}
+              >
+                {showConfirmPassword ? (
+                  <FiEyeOff size={20} />
                 ) : (
-                  "CREATE ACCOUNT"
+                  <FiEye size={20} />
                 )}
               </button>
-
-              {/* Login Prompt */}
-              <div className="text-center mt-6">
-                <p className="text-gray-600">
-                  Already have an account?{" "}
-                  <Link
-                    to="/login"
-                    className="text-lily hover:text-darklily font-bold underline transition-colors ml-1"
-                  >
-                    Log In
-                  </Link>
+            </div>
+            {validationErrors.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.confirmPassword}
+              </p>
+            )}
+            {formData.confirmPassword &&
+              formData.password === formData.confirmPassword &&
+              !validationErrors.confirmPassword && (
+                <p className="text-green-500 text-xs mt-1 flex items-center gap-1">
+                  <FiCheck size={14} /> Passwords match
                 </p>
-              </div>
-            </form>
+              )}
           </div>
-        </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || registrationSuccess}
+            className={`h-12 rounded-full font-bold text-white transition-all mt-2 ${
+              loading || registrationSuccess
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-lily hover:bg-darklily hover:shadow-lg transform hover:scale-[1.02]"
+            }`}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Creating Account...
+              </span>
+            ) : registrationSuccess ? (
+              "Success! Redirecting..."
+            ) : (
+              "CREATE ACCOUNT"
+            )}
+          </button>
+
+          {/* Login Prompt */}
+          <div className="text-center mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-700">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-lily hover:text-darklily font-bold underline transition-colors"
+              >
+                Log In
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -16,6 +16,7 @@ import {
   Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { fetchContents } from "../../services/shopApi";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -42,39 +43,27 @@ const ProfileOwner = () => {
   }, [auth?.isAuthenticated, navigate]);
 
   // fetch profile data
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (auth?.isAuthenticated && token && !data) {
-      dispatch(fetchProfile());
-    }
-  }, [auth?.isAuthenticated, data, dispatch]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("access_token");
+  //   if (auth?.isAuthenticated && token && !data) {
+  //     dispatch(fetchProfile());
+  //   }
+  // }, [auth?.isAuthenticated, data, dispatch]);
 
   // 1. Fetch User Posts (Tab 0)
   useEffect(() => {
     const loadUserPosts = async () => {
       const userId = data?.user?.id || data?.id;
-      if (userId && activeTab === 0) {
+      console.log(data, userId)
+
+    if (userId && activeTab === 0) {
         setPostsLoading(true);
         try {
-          const [productsRes, contentsRes] = await Promise.all([
-            fetchProducts({ user: userId }),
-            fetchContents({ user: userId }),
-          ]);
-
-          const products = Array.isArray(productsRes)
-            ? productsRes
-            : productsRes.results || [];
-
-          const contents = Array.isArray(contentsRes)
-            ? contentsRes
-            : contentsRes.results || [];
-
-          // Merge and sort by newest first
-          const allPosts = [...products, ...contents].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-
-          setUserPosts(allPosts);
+          const response = await fetchContents({ user: userId });
+          const postsData = Array.isArray(response)
+            ? response
+            : response.results || [];
+          setUserPosts(postsData);
         } catch (err) {
           console.error("Failed to load user posts:", err);
         } finally {
@@ -283,17 +272,12 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
-          <div className=""> <Link to="/vendor-dashboard">
-            <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-[16px]">
-             Food Subscription
-            </button>
-          </Link>
 
           <Link to="/editProfile">
             <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
               Edit Profile
             </button>
-          </Link></div>
+          </Link>
         </div>
       </div>
 
