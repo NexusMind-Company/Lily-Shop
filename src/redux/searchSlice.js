@@ -8,8 +8,9 @@ export const searchProducts = createAsyncThunk(
     try {
       // Passes the search term to the API as a query parameter
       const response = await fetchProducts({ search: searchTerm });
-      // Returns the 'results' array from the paginated response, or the data itself if not paginated
-      return response.results || response;
+      
+      // FIX: The feed endpoint returns data in 'feed', fallback to 'results' or empty array
+      return response.feed || response.results || [];
     } catch (error) {
       return rejectWithValue(error.response?.data || "Search failed");
     }
