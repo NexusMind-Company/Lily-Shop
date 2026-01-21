@@ -1,11 +1,11 @@
-import CartPage from "../components/feed/cart/cartPage";
+import CartComponent from "../components/feed/cart/cartPage";
 import PageSEO from "../components/common/PageSEO";
 
 const CartPage = () => {
   return (
     <>
       <PageSEO />
-      <CartPage />
+      <CartComponent />
     </>
   );
 };
