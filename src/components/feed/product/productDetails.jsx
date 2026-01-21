@@ -1,70 +1,115 @@
-// src/components/feed/product/productDetails.jsx
 import React, { useState } from 'react';
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useFeed } from "../../../context/feedContext";
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Heart, Share2, MessageCircle, ShoppingCart, 
-  Plus, Minus, ChevronLeft, Store, CheckCircle2,
+  Heart, Share2, MessageCircle, 
+  Plus, Minus, ChevronLeft, CheckCircle2,
   Star, MapPin, Package, Shield
 } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation } from 'swiper/modules';
+
+// Styles
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSeller, onNavigateToShop }) => {
+// --- API Function (Ideally move this to api.js) ---
+const fetchProductById = async (id) => {
+  const res = await fetch(`/api/product/${id}`);
+  if (!res.ok) throw new Error("Failed to fetch product");
+  return res.json();
+};
+
+const ProductDetails = () => {
+  // --- 1. Data Architecture (From your simplistic component) ---
+  const { id } = useParams();
+  const navigate = useNavigate(); // Needed for the back button
+  const { posts } = useFeed(); 
+
+  // Try to find in context first
+  const productFromContext = posts.find((p) => String(p.id) === id);
+
+  // Fallback to API
+  const {
+    data: productFromApi,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => fetchProductById(id),
+    enabled: !productFromContext,
+  });
+
+  const product = productFromContext || productFromApi;
+
+  // --- 2. UI Logic & State (From the rich component) ---
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Helper: Format Price
+  const formatPrice = (kobo) => {
+    // Fallback if price is just a number
+    const price = kobo || 0; 
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0
+    }).format(price / 100);
+  };
+
+  // Handler: Add to Cart
   const handleAddToCart = async () => {
     setAddingToCart(true);
     
-    if (onAddToCart) {
-      await onAddToCart(product, quantity);
-    }
+    // Simulate API call or Context update here
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     setAddingToCart(false);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
+  // Handler: Buy Now
   const handleBuyNow = () => {
     handleAddToCart();
-    if (onBuyNow) {
-      setTimeout(() => onBuyNow(product, quantity), 600);
-    }
+    // Navigate to checkout logic would go here
+    setTimeout(() => {
+        console.log("Navigate to checkout with", product, quantity);
+    }, 600);
   };
 
+  // Handler: Share
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: product.name,
-        text: `Check out ${product.name} on Lily Shop`,
+        title: product?.name,
+        text: `Check out ${product?.name}`,
         url: window.location.href
-      });
+      }).catch(console.error);
     } else {
       setShowShareMenu(!showShareMenu);
     }
   };
 
-  const formatPrice = (kobo) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0
-    }).format(kobo / 100);
-  };
+  // --- 3. Render States ---
+  if (isLoading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (error) return <div className="flex h-screen items-center justify-center">Error loading product.</div>;
+  if (!product) return <div className="flex h-screen items-center justify-center">Product not found.</div>;
 
+  // --- 4. Main Rich UI Render ---
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24"> 
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <button 
-            onClick={onBack}
+            onClick={() => navigate(-1)}
             className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -96,25 +141,32 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
           navigation={true}
           className="aspect-square"
         >
-          {product.media?.map((item, index) => (
-            <SwiperSlide key={index}>
-              {item.type === 'image' ? (
-                <img
-                  src={item.url || item.media_url}
-                  alt={`${product.name} view ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <video
-                  src={item.url || item.media_url}
-                  playsInline
-                  loop
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              )}
+          {product.media?.length > 0 ? (
+            product.media.map((item, index) => (
+              <SwiperSlide key={index}>
+                {item.type === 'video' ? (
+                   <video
+                     src={item.url || item.media_url}
+                     playsInline loop muted autoPlay
+                     className="w-full h-full object-cover"
+                   />
+                ) : (
+                  <img
+                    src={item.url || item.media_url}
+                    alt={`${product.name} view ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </SwiperSlide>
+            ))
+          ) : (
+            // Fallback if no media exists
+            <SwiperSlide>
+                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    No Image
+                 </div>
             </SwiperSlide>
-          ))}
+          )}
         </Swiper>
         
         {/* Stock Badge */}
@@ -127,7 +179,6 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
 
       {/* Product Info */}
       <div className="bg-white mt-2 px-4 py-5">
-        {/* Price & Title */}
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {product.name}
@@ -158,7 +209,7 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
         {/* Seller Info */}
         {product.shop && (
           <div 
-            onClick={onNavigateToShop}
+            onClick={() => console.log("Navigate to shop", product.shop.id)}
             className="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-4 cursor-pointer hover:bg-gray-100 transition"
           >
             <div className="flex items-center gap-3">
@@ -178,13 +229,11 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                     <span>{product.shop.rating}</span>
-                    <span>·</span>
-                    <span>{product.shop.followers || 0} followers</span>
                   </div>
                 )}
               </div>
             </div>
-            <button className="px-4 py-2 bg-lily text-white rounded-lg font-semibold hover:bg-darklily transition">
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition">
               Follow
             </button>
           </div>
@@ -204,18 +253,18 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
         <div className="space-y-3 mb-6">
           {product.shipping && (
             <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Package className="w-5 h-5 text-lily" />
+              <Package className="w-5 h-5 text-gray-400" />
               <span>{product.shipping}</span>
             </div>
           )}
           {product.location && (
             <div className="flex items-center gap-3 text-sm text-gray-600">
-              <MapPin className="w-5 h-5 text-lily" />
+              <MapPin className="w-5 h-5 text-gray-400" />
               <span>{product.location}</span>
             </div>
           )}
           <div className="flex items-center gap-3 text-sm text-gray-600">
-            <Shield className="w-5 h-5 text-lily" />
+            <Shield className="w-5 h-5 text-green-500" />
             <span>Buyer protection guaranteed</span>
           </div>
         </div>
@@ -225,50 +274,23 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
       <div className="bg-white mt-2 px-4 py-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg">Reviews ({product.reviews || 0})</h3>
-          <button className="text-lily text-sm font-semibold">See all</button>
+          <button className="text-blue-600 text-sm font-semibold">See all</button>
         </div>
-        
-        {/* Sample Review - Replace with actual reviews */}
-        {product.reviews > 0 && (
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex items-start gap-3 mb-3">
-              <img 
-                src="/user.png" 
-                alt="Reviewer"
-                className="w-10 h-10 rounded-full"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold">Customer</span>
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Great product! Exactly as described.
-                </p>
-                <span className="text-xs text-gray-400 mt-1 block">2 days ago</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
-        <div className="flex items-center gap-3 max-w-screen-lg mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 max-w-screen-xl mx-auto">
+        <div className="flex items-center gap-3">
           {/* Message Seller */}
           <button 
-            onClick={onMessageSeller}
-            className="p-3 border-2 border-lily rounded-xl hover:bg-lily/5 transition"
+            onClick={() => console.log("Message seller")}
+            className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition"
           >
-            <MessageCircle className="w-6 h-6 text-lily" />
+            <MessageCircle className="w-6 h-6 text-gray-600" />
           </button>
 
           {/* Quantity Selector */}
-          <div className="flex items-center gap-2 border-2 border-gray-300 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 py-2">
             <button 
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               className="p-1 hover:bg-gray-100 rounded"
@@ -290,7 +312,7 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
           <button 
             onClick={handleAddToCart}
             disabled={addingToCart || product.stock === 0}
-            className="flex-1 bg-lily/10 text-lily border-2 border-lily py-3 rounded-xl font-bold hover:bg-lily/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-100 text-blue-600 border-2 border-blue-100 py-3 rounded-xl font-bold hover:bg-blue-200 transition disabled:opacity-50"
           >
             {addingToCart ? 'Adding...' : 'Add to Cart'}
           </button>
@@ -299,7 +321,7 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
           <button 
             onClick={handleBuyNow}
             disabled={product.stock === 0}
-            className="flex-1 bg-lily text-white py-3 rounded-xl font-bold hover:bg-darklily transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50"
           >
             {product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
           </button>
@@ -358,9 +380,6 @@ const ProductDetails = ({ product, onBack, onAddToCart, onBuyNow, onMessageSelle
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Spacer for bottom bar */}
-      <div className="h-24"></div>
     </div>
   );
 };

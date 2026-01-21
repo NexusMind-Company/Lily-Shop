@@ -40,9 +40,10 @@ const FeedContainer = () => {
       (entries) => {
         entries.forEach((entry) => {
           const mediaElement = Array.from(mediaRefs.current).find(
-            (item) => (item.getDOMNode ? item.getDOMNode() : item) === entry.target
+            (item) =>
+              (item.getDOMNode ? item.getDOMNode() : item) === entry.target,
           );
-          
+
           if (!mediaElement) return;
 
           const isPlayable = typeof mediaElement.play === "function";
@@ -62,7 +63,7 @@ const FeedContainer = () => {
           }
         });
       },
-      { threshold: 0.75 }
+      { threshold: 0.75 },
     );
 
     observerRef.current = observer;
@@ -79,7 +80,9 @@ const FeedContainer = () => {
   const handleVideoInit = useCallback((mediaObject) => {
     if (mediaObject) {
       mediaRefs.current.add(mediaObject);
-      const domNode = mediaObject.getDOMNode ? mediaObject.getDOMNode() : mediaObject;
+      const domNode = mediaObject.getDOMNode
+        ? mediaObject.getDOMNode()
+        : mediaObject;
       if (domNode && observerRef.current) {
         observerRef.current.observe(domNode);
       }
@@ -98,7 +101,7 @@ const FeedContainer = () => {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(loadMoreTriggerRef.current);
@@ -115,13 +118,13 @@ const FeedContainer = () => {
 
     const handleScroll = () => {
       scrollPositionRef.current = container.scrollTop;
-      
+
       const scrolled = container.scrollTop;
       const viewportHeight = container.clientHeight;
       const index = Math.round(scrolled / viewportHeight);
-      
+
       setCurrentPostIndex(index);
-      
+
       if (posts[index]) {
         saveCurrentPost(posts[index].id);
       }
@@ -261,10 +264,7 @@ const FeedContainer = () => {
 
         {/* Feed Items */}
         {posts.map((post, index) => (
-          <div
-            key={post.id}
-            className="h-full w-full snap-start flex-shrink-0"
-          >
+          <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
             <FeedItem
               post={post}
               onVideoInit={handleVideoInit}
@@ -293,7 +293,7 @@ const FeedContainer = () => {
         )}
 
         {/* End of Feed */}
-        {!hasNextPage && posts.length > 0 && (
+        {/* {!hasNextPage && posts.length > 0 && (
           <div className="h-full w-full snap-start flex items-center justify-center bg-black">
             <div className="text-white text-center p-8">
               <FiWifi className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -306,7 +306,7 @@ const FeedContainer = () => {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     );
   };

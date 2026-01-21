@@ -89,7 +89,7 @@ const CreatePost = () => {
       const timer = setTimeout(() => {
         dispatch(resetProductContent());
         dispatch(resetFunContent());
-        navigate("/feed");
+        navigate("/");
       }, 2000);
       return () => clearTimeout(timer);
     }
