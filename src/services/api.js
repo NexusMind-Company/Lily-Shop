@@ -90,7 +90,7 @@ api.interceptors.response.use(
         const rs = await api.post(
           "/auth/token/refresh/",
           { refresh: refreshToken },
-          { _isRefreshRequest: true }
+          { _isRefreshRequest: true },
         );
 
         const { access } = rs.data;
@@ -112,7 +112,7 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // --- AUTH & PROFILE ---
@@ -126,9 +126,12 @@ export const updateUsername = async (username) => {
 
   // Sync updated profile to Supabase
   try {
-    await supabase.from('profiles').upsert(response.data);
+    await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
-    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
   }
 
   return response.data;
@@ -136,15 +139,18 @@ export const updateUsername = async (username) => {
 
 export const updateProfile = async (profileData) => {
   const cleanData = Object.fromEntries(
-    Object.entries(profileData).filter(([, v]) => v != null)
+    Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
 
   // Sync updated profile to Supabase
   try {
-    await supabase.from('profiles').upsert(response.data);
+    await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
-    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
   }
 
   return response.data;
@@ -161,14 +167,17 @@ export const updateProfilePic = async (imageFile) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
 
   // Sync updated profile to Supabase
   try {
-    await supabase.from('profiles').upsert(response.data);
+    await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
-    console.error('Error updating user data in Supabase:', handleSupabaseError(supabaseError));
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
   }
 
   return response.data;
@@ -196,7 +205,8 @@ export const fetchAllFeed = async () => {
 };
 
 export const fetchProducts = async (params = {}) => {
-  const response = await api.get("/shops/products/", { params });
+  // CHANGED: Use /shops/feed/ for global search
+  const response = await api.get("/shops/feed/", { params });
   return response.data;
 };
 
@@ -231,7 +241,7 @@ export const fetchProductComments = async (productId) => {
 export const addProductComment = async (
   productId,
   commentText,
-  parentId = null
+  parentId = null,
 ) => {
   const payload = {
     comment_text: commentText,
@@ -240,14 +250,14 @@ export const addProductComment = async (
 
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
-    payload
+    payload,
   );
   return response.data;
 };
 
 export const deleteProductComment = async (commentId) => {
   const response = await api.delete(
-    `/shops/products/comments/${commentId}/delete/`
+    `/shops/products/comments/${commentId}/delete/`,
   );
   return response.data;
 };
@@ -260,21 +270,21 @@ export const fetchContentComments = async (contentId) => {
 export const addContentComment = async (
   contentId,
   commentText,
-  parentId = null
+  parentId = null,
 ) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
     {
       comment_text: commentText,
       parent: parentId,
-    }
+    },
   );
   return response.data;
 };
 
 export const deleteContentComment = async (commentId) => {
   const response = await api.delete(
-    `/shops/contents/comments/${commentId}/delete/`
+    `/shops/contents/comments/${commentId}/delete/`,
   );
   return response.data;
 };
@@ -297,7 +307,7 @@ export const recordProductView = async (productId) => {
 export const followUser = async (username) => {
   const response = await api.post(
     `/auth/follow/${encodeURIComponent(username)}/`,
-    {}
+    {},
   );
   return response.data;
 };
@@ -416,7 +426,7 @@ export const createSubscription = async ({
 
 export const updateSubscriptionMeals = async (
   subscriptionId,
-  mealSelections
+  mealSelections,
 ) => {
   const response = await api.put(`/subscriptions/${subscriptionId}/meals/`, {
     meal_selections: mealSelections,
@@ -444,4 +454,3 @@ export const resumeSubscription = async (subscriptionId) => {
 };
 
 export default api;
-
