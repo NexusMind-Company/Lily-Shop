@@ -1,9 +1,9 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BottomNav from "./bottomNav";
-import { fetchInboxMessages } from "../../redux/messageSlice";
+import { fetchConversations } from "../../redux/messageConversationSlice";
 
 export default function MessagesList() {
   const [activePage, setActivePage] = useState("inbox");
@@ -11,48 +11,90 @@ export default function MessagesList() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { inbox, loading, error } = useSelector((state) => state.messages);
+  const { conversations, conversationsLoading, error } = useSelector(
+    (state) => state.messages
+  );
+  const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchInboxMessages());
+    dispatch(fetchConversations());
+
+    // Polling every 30 seconds
+    const interval = setInterval(() => {
+      dispatch(fetchConversations());
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [dispatch]);
 
-  const rawMessages = Array.isArray(inbox)
-    ? inbox
-    : Array.isArray(inbox?.results)
-    ? inbox.results
+  // Format conversations into a displayable list
+  const formattedConversations = Array.isArray(conversations)
+    ? conversations.map((conv) => {
+      // Determine the other user (not the current user)
+      const isCurrentUserBuyer = conv.buyer?.id === user_data?.user?.id;
+      const otherUser = isCurrentUserBuyer ? conv.seller : conv.buyer;
+
+      // Get the last message
+      const lastMessage =
+        conv.messages && conv.messages.length > 0
+          ? conv.messages[conv.messages.length - 1]
+          : null;
+
+      return {
+        id: conv.id,
+        otherUserId: otherUser?.id,
+        name:
+          otherUser?.username ||
+          otherUser?.display_name ||
+          otherUser?.email ||
+          "Unknown User",
+        profilePic: otherUser?.profile_pic || null,
+        lastMessage: lastMessage?.content || "No messages yet",
+        time: conv.last_message_at
+          ? getTimeAgo(conv.last_message_at)
+          : "",
+        unread: lastMessage && !lastMessage.read && lastMessage.sender !== user_data?.user?.id,
+        productName: conv.product?.name || null,
+        orderRef: conv.order?.reference || null,
+      };
+    })
     : [];
 
-  const formattedMessages = rawMessages.map((msg) => ({
-    id: msg.other_user_id,
-    name: msg.sender_name || msg.sender?.username || "Unknown",
-    lastMessage: msg.content || msg.message || "",
-    time: msg.timestamp
-      ? new Date(msg.timestamp).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "",
-    unread: !msg.read,
-  }));
-
-  const filteredMessages = formattedMessages.filter(
+  const filteredConversations = formattedConversations.filter(
     (chat) =>
       chat.name.toLowerCase().includes(search.toLowerCase()) ||
-      chat.lastMessage.toLowerCase().includes(search.toLowerCase())
+      chat.lastMessage.toLowerCase().includes(search.toLowerCase()) ||
+      (chat.productName &&
+        chat.productName.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const noMessages = !loading && !error && rawMessages.length === 0;
+  const noConversations =
+    !conversationsLoading && !error && formattedConversations.length === 0;
 
   const noSearchResults =
-    !loading &&
+    !conversationsLoading &&
     !error &&
-    rawMessages.length > 0 &&
-    filteredMessages.length === 0;
+    formattedConversations.length > 0 &&
+    filteredConversations.length === 0;
+
+  function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d`;
+    return date.toLocaleDateString();
+  }
 
   return (
     <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto">
-      <header className="relative p-4">
+      <header className="relative p-4 bg-white shadow-sm">
         <RouterLink onClick={() => navigate(-1)}>
           <ChevronLeft className="absolute w-8 h-8" />
         </RouterLink>
@@ -62,56 +104,85 @@ export default function MessagesList() {
       <section className="p-4">
         <input
           type="text"
-          placeholder="Search messages..."
+          placeholder="Search conversations..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full p-2 pl-5 border-2 rounded-full hover:border-lily outline-none transition"
         />
       </section>
 
-      {loading && (
+      {conversationsLoading && (
         <div className="flex justify-center items-center h-40">
           <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {!loading && error && (
-        <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-5 rounded-lg">
-          {error}
+      {!conversationsLoading && error && (
+        <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-5 mx-4 rounded-lg">
+          {typeof error === "string" ? error : "Failed to load conversations"}
         </p>
       )}
 
-      {!loading && !error && noMessages && (
-        <p className="text-center text-ash mt-5 text-lg">No messages</p>
+      {!conversationsLoading && !error && noConversations && (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+            <MessageCircle className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="text-lg font-medium text-gray-500">No messages yet</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Start a conversation from a product page
+          </p>
+        </div>
       )}
 
-      {!loading && !error && noSearchResults && (
+      {!conversationsLoading && !error && noSearchResults && (
         <p className="text-center text-ash mt-8">No results found</p>
       )}
 
-      {!loading && !error && filteredMessages.length > 0 && (
-        <section className="p-4">
-          <div className="space-y-6">
-            {filteredMessages.map((chat) => (
+      {!conversationsLoading && !error && filteredConversations.length > 0 && (
+        <section className="px-4 pb-24">
+          <div className="space-y-3">
+            {filteredConversations.map((chat) => (
               <div
                 key={chat.id}
-                className="flex items-center justify-between cursor-pointer w-full"
-                // Navigate to the chat page with the user's ID
-                onClick={() => navigate(`/chat/${chat.id}`)}
+                className={`flex items-center justify-between cursor-pointer w-full p-3 rounded-xl transition-colors ${chat.unread ? "bg-purple-50" : "bg-white hover:bg-gray-50"
+                  }`}
+                onClick={() => navigate(`/chat/${chat.otherUserId}`)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-400"></div>
-                  <div>
-                    <h3 className="font-semibold">{chat.name}</h3>
-                    <p className="text-ash text-sm truncate max-w-[180px]">
-                      {chat.lastMessage || "No message"}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-lily to-purple-400 flex items-center justify-center overflow-hidden">
+                    {chat.profilePic ? (
+                      <img
+                        src={chat.profilePic}
+                        alt={chat.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-lg">
+                        {chat.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className={`font-semibold truncate ${chat.unread ? "text-gray-900" : "text-gray-700"}`}>
+                        {chat.name}
+                      </h3>
+                      {chat.productName && (
+                        <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                          {chat.productName}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-sm truncate max-w-[200px] ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}>
+                      {chat.lastMessage}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-ash text-sm">{chat.time || "--"}</p>
+                <div className="text-right flex flex-col items-end gap-1">
+                  <p className="text-xs text-gray-400">{chat.time}</p>
                   {chat.unread && (
-                    <span className="text-red-500 text-xs">🔴</span>
+                    <span className="w-2.5 h-2.5 bg-lily rounded-full"></span>
                   )}
                 </div>
               </div>

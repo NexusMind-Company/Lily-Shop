@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import { fetchShops } from "../../redux/shopSlice";
-import { Search } from "lucide-react";
+import { fetchNotifications } from "../../redux/notificationSlice";
+import { Search, Bell } from "lucide-react";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,6 +15,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
   const { shops, status } = useSelector((state) => state.shops);
+  const { unreadCount } = useSelector((state) => state.notifications);
   const dispatch = useDispatch();
   const menuRef = useRef(null);
   const searchRef = useRef(null);
@@ -24,7 +26,14 @@ const Header = () => {
     if (status === "idle") {
       dispatch(fetchShops());
     }
-  }, [status, dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchNotifications({ page: 1 }));
+      const interval = setInterval(() => {
+        dispatch(fetchNotifications({ page: 1 }));
+      }, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [status, dispatch, isAuthenticated]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -137,7 +146,7 @@ const Header = () => {
           }}
           ref={searchButtonRef}
         >
-          <Search className="w-7 h-7"/>
+          <Search className="w-7 h-7" />
         </button>
 
         <button
@@ -149,6 +158,17 @@ const Header = () => {
         </button>
 
         {isAuthenticated && (
+          <Link to="/notifications" className="cursor-pointer relative">
+            <Bell className="w-7 h-7" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        )}
+
+        {isAuthenticated && (
           <Link to="/messages" className="cursor-pointer w-8 hidden">
             <img src="/message-icon.svg" alt="message icon" />
           </Link>
@@ -158,11 +178,10 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${
-          searchOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
-        }`}
+        className={`absolute flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${searchOpen
+          ? "opacity-100 scale-y-100 origin-top"
+          : "opacity-0 scale-y-0 pointer-events-none"
+          }`}
       >
         <form
           onSubmit={handleSearchSubmit}
@@ -229,11 +248,10 @@ const Header = () => {
       {/* Dropdown Menu */}
       <ul
         ref={menuRef}
-        className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${
-          menuOpen
-            ? "opacity-100 scale-y-100 origin-top"
-            : "opacity-0 scale-y-0 pointer-events-none"
-        }`}
+        className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${menuOpen
+          ? "opacity-100 scale-y-100 origin-top"
+          : "opacity-0 scale-y-0 pointer-events-none"
+          }`}
       >
         {isAuthenticated && (
           <>
