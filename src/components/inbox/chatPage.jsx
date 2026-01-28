@@ -26,6 +26,7 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user_id: recipientId } = useParams();
+  console.log("Recipient ID:", recipientId);
 
   const { messages: conversation, loading, sending, currentPage, nextPage } =
     useSelector((state) => state.messages);
