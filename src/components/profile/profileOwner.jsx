@@ -231,13 +231,11 @@ const ProfileOwner = () => {
           <ChevronLeft size={25} />
         </button>
 
-        <h2 className="font-semibold text-lg text-center">My Profile</h2>
 
         <div className="flex gap-4">
           <Link to="/settings">
             <Settings size={25} className="cursor-pointer" />
           </Link>
-          <IconLink size={25} className="cursor-pointer" />
           <div className="flex justify-end">
             <button
               onClick={handleLogoutClick}
@@ -264,9 +262,12 @@ const ProfileOwner = () => {
             <h3 className="font-semibold">
               {user.username || user.email?.split("@")[0] || "Unnamed User"}
             </h3>
-            <p className="text-gray-500 text-sm">
-              @{user.username || "unknown"}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-500 text-sm">
+                @{user.username || "unknown"}
+              </p>
+              <IconLink size={15} className="cursor-pointer" />
+            </div>
           </div>
         </div>
 
