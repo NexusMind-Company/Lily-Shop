@@ -226,7 +226,7 @@ const ProfileOwner = () => {
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 mt-2">
+      <div className="flex items-center justify-between px-4 py-3 mt-1">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
         </button>
@@ -272,8 +272,7 @@ const ProfileOwner = () => {
         </div>
 
         <p className="mt-1 text-sm">
-          {user.bio ||
-            "Add a bio to let people know more about you and your products!"}
+          {user && user.bio ? user.bio : "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
