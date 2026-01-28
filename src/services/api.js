@@ -21,6 +21,15 @@ export const setAuthTokens = ({ access, refresh }) => {
   }
 };
 
+const setAuthHeader = () => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+};
+
+export { api, setAuthHeader };
+
 export const clearAuthTokens = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
