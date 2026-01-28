@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { fetchProducts, fetchLikedProducts } from "../../services/api";
+import { fetchProducts, fetchLikedProducts, clearAuthTokens } from "../../services/api";
 import { fetchContents } from "../../services/shopApi";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
@@ -13,9 +13,11 @@ import {
   Play,
   Eye,
   Settings,
+  LogOut,
   Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { handleLogout } from "../../redux/authSlice";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -216,6 +218,11 @@ const ProfileOwner = () => {
     <div className="text-center text-gray-400 my-8">No Promotions yet</div>
   );
 
+  const handleLogoutClick = () => {
+    dispatch(handleLogout()); // clear tokens, user data, profile, etc.
+    navigate("/login"); // redirect to login page
+  };
+
   return (
     <div className="bg-white h-screen w-full overflow-y-auto no-scrollbar">
       {/* Header */}
@@ -229,6 +236,13 @@ const ProfileOwner = () => {
             <Settings size={25} className="cursor-pointer" />
           </Link>
           <IconLink size={25} className="cursor-pointer" />
+          <div className="flex justify-end">
+            <button
+              onClick={handleLogoutClick}
+            >
+              <LogOut className="mr-2 cursor-pointer" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -285,15 +299,15 @@ const ProfileOwner = () => {
           </div>
           <div className=""> <Link to="/vendor-dashboard">
             <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-[16px]">
-             Food Subscription
+              Food Subscription
             </button>
           </Link>
 
-          <Link to="/editProfile">
-            <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
-              Edit Profile
-            </button>
-          </Link></div>
+            <Link to="/editProfile">
+              <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
+                Edit Profile
+              </button>
+            </Link></div>
         </div>
       </div>
 
