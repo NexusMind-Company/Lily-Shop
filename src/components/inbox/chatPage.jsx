@@ -25,8 +25,8 @@ const ChatPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user_id: recipientId } = useParams();
-  console.log("Recipient ID:", recipientId);
+  const { user_id: conversationId } = useParams();
+  console.log("Recipient ID:", conversationId);
 
   const { messages: conversation, loading, sending, currentPage, nextPage } =
     useSelector((state) => state.messages);
@@ -36,17 +36,24 @@ const ChatPage = () => {
   useEffect(() => {
     dispatch(clearConversation());
 
-    if (recipientId) {
-      dispatch(fetchConversationMessages({ userId: recipientId, page: 1 }));
+    if (conversationId) {
+      dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }))
+        .catch((error) => {
+          console.error("Error fetching conversation messages:", error);
+        });
 
       // Polling for new messages every 5 seconds
       const interval = setInterval(() => {
-        dispatch(fetchConversationMessages({ userId: recipientId, page: 1 }));
+        try {
+          dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }));
+        } catch (error) {
+          console.error("Error fetching conversation messages:", error);
+        }
       }, 5000);
 
       return () => clearInterval(interval);
     }
-  }, [recipientId]);
+  }, [conversationId]);
 
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
@@ -59,7 +66,7 @@ const ChatPage = () => {
     if (top === 0 && nextPage && !isFetchingMore) {
       setIsFetchingMore(true);
 
-      dispatch(fetchConversationMessages({ userId: recipientId, page: currentPage + 1 }))
+      dispatch(fetchConversationMessages({ userId: conversationId, page: currentPage + 1 }))
         .then(() => {
           setTimeout(() => {
             chatBoxRef.current.scrollTop = 10;
@@ -73,10 +80,13 @@ const ChatPage = () => {
   const handleSend = () => {
     if (!newMessage.trim()) return;
 
-    dispatch(sendMessageToUser({ userId: recipientId, content: newMessage }))
+    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
       .then(() => {
         setNewMessage("");
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
       });
   };
 
