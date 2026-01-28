@@ -224,13 +224,15 @@ const ProfileOwner = () => {
   };
 
   return (
-    <div className="bg-white h-screen w-full overflow-y-auto no-scrollbar">
+    <div className="max-w-md mx-auto min-h-screen pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 mt-2">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
         </button>
-        <h2 className="font-semibold text-lg">My Profile</h2>
+
+        <h2 className="font-semibold text-lg text-center">My Profile</h2>
+
         <div className="flex gap-4">
           <Link to="/settings">
             <Settings size={25} className="cursor-pointer" />
@@ -247,8 +249,8 @@ const ProfileOwner = () => {
       </div>
 
       {/* Profile Info */}
-      <div className="mt-2 px-4">
-        <div className="flex gap-2 items-center">
+      <div className="px-4 py-3 border-b border-gray-300">
+        <div className="flex flex-col gap-2 items-center justify-center">
           <img
             src={profileImageUrl}
             alt="Profile"
@@ -274,8 +276,8 @@ const ProfileOwner = () => {
         </p>
 
         {/* Stats */}
-        <div className="flex mt-4 text-sm items-center justify-between">
-          <div className="flex gap-5">
+        <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center">
+          <div className="flex gap-5 items-center mb-3 sm:mb-0 justify-center">
             <div className="flex flex-col items-center">
               <span className="font-bold text-2xl">
                 {user.post_count || data.post_count || data.product_count || userPosts.length || 0}
@@ -297,17 +299,18 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
-          <div className=""> <Link to="/vendor-dashboard">
-            <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-[16px]">
+          <div className="flex items-center justify-center"> <Link to="/vendor-dashboard">
+            <button className="px-4 sm:px-2 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold lg:text-[16px] sm:text-[12px]">
               Food Subscription
             </button>
           </Link>
 
             <Link to="/editProfile">
-              <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-[16px]">
+              <button className="px-4 sm:px-2 py-2 border-2 border-lily text-lily rounded-4xl font-bold lg:text-[16px] sm:text-[12px]">
                 Edit Profile
               </button>
-            </Link></div>
+            </Link>
+          </div>
         </div>
       </div>
 
