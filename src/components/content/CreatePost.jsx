@@ -24,7 +24,7 @@ import ContentPreview from "./ContentPreview";
 import CameraModal from "./CameraModal";
 
 const MAX_MEDIA = 5;
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -125,7 +125,7 @@ const CreatePost = () => {
 
     // Check MIME Type
     const isValidMime = ALLOWED_TYPES.includes(file.type);
-    
+
     // Check Extension (Fallback)
     const fileExtension = file.name ? file.name.split(".").pop().toLowerCase() : "";
     const validExtensions = ["jpg", "jpeg", "png", "webp", "mp4", "mov", "mkv", "webm"];
@@ -136,7 +136,7 @@ const CreatePost = () => {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return `File ${file.name} is too large (Max 500MB)`;
+      return `File ${file.name} is too large (Max 100MB)`;
     }
     return null;
   };
@@ -238,7 +238,12 @@ const CreatePost = () => {
           if (item.file) submitFormData.append("media", item.file);
         });
 
-        await dispatch(createFunContent(submitFormData));
+        // await dispatch(createFunContent(submitFormData));
+        const resultAction = await dispatch(createFunContent(formData));
+        if (createFunContent.fulfilled.match(resultAction)) {
+          setSuccessMessage("Post published successfully!");
+          // ... navigation logic
+        }
       }
     } catch (err) {
       console.error("PUBLISH ERROR:", err);
@@ -285,7 +290,7 @@ const CreatePost = () => {
             {/* Use the new handler here */}
             <MediaUploader
               media={formData.media}
-              setMedia={handleMediaUpdate} 
+              setMedia={handleMediaUpdate}
               dragActive={dragActive}
               setDragActive={setDragActive}
             />
@@ -297,11 +302,10 @@ const CreatePost = () => {
             <button
               onClick={nextStep}
               disabled={formData.media.length === 0}
-              className={`w-full py-3 rounded-full font-semibold mt-4 transition ${
-                formData.media.length > 0
-                  ? "bg-lily hover:bg-darklily text-black"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
+              className={`w-full py-3 rounded-full font-semibold mt-4 transition ${formData.media.length > 0
+                ? "bg-lily hover:bg-darklily text-black"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
             >
               Next
             </button>
