@@ -238,8 +238,8 @@ const CreatePost = () => {
           if (item.file) submitFormData.append("media", item.file);
         });
 
-        // await dispatch(createFunContent(submitFormData));
-        const resultAction = await dispatch(createFunContent(formData));
+        // Use submitFormData consistently
+        const resultAction = await dispatch(createFunContent(submitFormData));
         if (createFunContent.fulfilled.match(resultAction)) {
           setSuccessMessage("Post published successfully!");
           // ... navigation logic

@@ -18,23 +18,27 @@ export const createFunContent = createAsyncThunk(
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
-      const formData = new FormData();
+      // Expect submitFormData (FormData object) instead of raw payload
+      const formData = payload instanceof FormData ? payload : new FormData();
 
-      // Ensure fields aren't just empty strings if you want to avoid blank posts
-      formData.append("caption", payload.caption || "");
-      formData.append("hashtags", payload.hashtags || "");
-      formData.append("location", payload.location || "");
-      formData.append("post_type", "FUN");
+      // Only append if not already a FormData object
+      if (!(payload instanceof FormData)) {
+        formData.append("caption", payload.caption || "");
+        formData.append("hashtags", payload.hashtags || "");
+        formData.append("location", payload.location || "");
+        formData.append("post_type", "FUN");
 
-      // Handle the media array from CreatePost.jsx state
-      if (Array.isArray(payload.media)) {
-        payload.media.forEach((item) => {
-          // In CreatePost.jsx, media items are stored as { file, url, type }
-          if (item.file instanceof File) {
-            formData.append("media", item.file);
-          }
-        });
+        // Handle the media array from CreatePost.jsx state
+        if (Array.isArray(payload.media)) {
+          payload.media.forEach((item) => {
+            // In CreatePost.jsx, media items are stored as { file, url, type }
+            if (item.file instanceof File) {
+              formData.append("media", item.file);
+            }
+          });
+        }
       }
+
       const response = await api.post("/shops/contents/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
