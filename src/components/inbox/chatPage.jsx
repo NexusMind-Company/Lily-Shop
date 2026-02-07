@@ -25,7 +25,7 @@ const ChatPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user_id: conversationId } = useParams();
+  const { conversationId } = useParams();
   console.log("Recipient ID:", conversationId);
 
   const { messages: conversation, loading, sending, currentPage, nextPage } =
@@ -95,9 +95,9 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white shadow-sm">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
@@ -163,7 +163,7 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="flex-shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
         <input
           type="file"
           ref={fileInputRef}
