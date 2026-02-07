@@ -67,6 +67,7 @@ export const FeedProvider = ({ children }) => {
     isFetchingNextPage,
     isLoading,
     isError,
+    isFetching,
     error,
     refetch,
   } = useInfiniteQuery({
@@ -118,6 +119,7 @@ export const FeedProvider = ({ children }) => {
       posts,
       isLoading,
       isError,
+      isFetching,
       error: error?.message,
 
       // Pagination
@@ -141,6 +143,7 @@ export const FeedProvider = ({ children }) => {
       posts,
       isLoading,
       isError,
+      isFetching,
       error,
       loadMore,
       hasNextPage,
@@ -151,6 +154,8 @@ export const FeedProvider = ({ children }) => {
       getRestoreIndex,
       isMuted,
       activeTab,
+      setActiveTab,
+      scrollPositionRef,
     ]
   );
 

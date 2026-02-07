@@ -4,12 +4,15 @@ import TopNav from "./topNav";
 import BottomNav from "./bottomNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
+import FeedLoader from "../loaders/feedLoader";
 import { FiRefreshCw, FiWifi, FiWifiOff } from "react-icons/fi";
 
 const FeedContainer = () => {
   const {
     posts,
     isLoading,
+    isFetching,
+    isError,
     error,
     loadMore,
     hasNextPage,
@@ -57,7 +60,7 @@ const FeedContainer = () => {
               }
             });
             // Play current video
-            mediaElement.play().catch(() => {});
+            mediaElement.play().catch(() => { });
           } else {
             mediaElement.pause();
           }
@@ -181,16 +184,10 @@ const FeedContainer = () => {
   // ========================================
   const renderContent = () => {
     if (isLoading && posts.length === 0) {
-      return (
-        <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-          {[...Array(3)].map((_, i) => (
-            <PostCardSkeleton key={i} />
-          ))}
-        </div>
-      );
+      return <FeedLoader />;
     }
 
-    if (error) {
+    if (error && posts.length === 0) {
       return (
         <div className="h-full flex items-center justify-center p-4 text-center bg-black">
           <div className="text-white">
@@ -254,11 +251,27 @@ const FeedContainer = () => {
           >
             <div className="bg-white rounded-full p-3 shadow-lg">
               <FiRefreshCw
-                className={`w-6 h-6 text-lily ${
-                  isRefreshing ? "animate-spin" : ""
-                }`}
+                className={`w-6 h-6 text-lily ${isRefreshing ? "animate-spin" : ""
+                  }`}
               />
             </div>
+          </div>
+        )}
+
+        {/* Background Refresh Indicator */}
+        {isFetching && !isLoading && !isFetchingNextPage && !isRefreshing && (
+          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-40">
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="bg-[#050505]/80 backdrop-blur-xl rounded-full px-5 py-2 flex items-center gap-3 border border-lily/30 shadow-[0_0_15px_rgba(78,183,94,0.2)]"
+            >
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lily opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-lily"></span>
+              </div>
+              <span className="text-[11px] text-white font-medium tracking-wide uppercase">Fresh finds coming in...</span>
+            </motion.div>
           </div>
         )}
 
