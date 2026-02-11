@@ -55,8 +55,9 @@ const CustomerSubscriptionsPage = () => {
   };
 
   // Filter subscriptions based on active tab
-  const filteredSubscriptions =
-    subscriptions?.filter((subscription) => {
+  const subs = subscriptions?.data || subscriptions;
+  const filteredSubscriptions = (Array.isArray(subs) ? subs : []).filter(
+    (subscription) => {
       if (activeTab === "active") {
         return subscription.status.toLowerCase() === "active";
       }
@@ -64,7 +65,8 @@ const CustomerSubscriptionsPage = () => {
         subscription.status.toLowerCase() === "past" ||
         subscription.status.toLowerCase() === "paused"
       );
-    }) || [];
+    },
+  );
 
   // Loading state
   if (isLoading) {

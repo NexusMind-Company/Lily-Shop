@@ -9,24 +9,31 @@ import PropTypes from "prop-types";
 const QuickStats = ({ stats }) => {
   if (!stats) return null;
 
+  const colorMap = {
+  blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+  green: "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+  orange: "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
+};
+
+
   const statItems = [
     {
       IconComponent: User,
       value: stats.activeSubs,
       label: "Active Subs",
-      color: "blue",
+      color: colorMap.blue,
     },
     {
       IconComponent: CreditCard,
       value: `$${stats.revenue}`,
       label: "Revenue",
-      color: "green",
+      color: colorMap.green,
     },
     {
       IconComponent: Receipt,
       value: stats.pending,
       label: "Pending",
-      color: "orange",
+      color: colorMap.orange,
     },
   ];
 
@@ -38,7 +45,7 @@ const QuickStats = ({ stats }) => {
           className="bg-[#ffffff] dark:bg-surface-dark p-4 rounded-2xl shadow-soft flex flex-col items-center justify-center gap-1 border border-gray-100 dark:border-gray-800"
         >
           <div
-            className={`p-2 bg-${item.color}-50 dark:bg-${item.color}-900/30 text-${item.color}-600 dark:text-${item.color}-400 rounded-full mb-1`}
+            className={`p-2 ${item.color} rounded-full mb-1`}
           >
             <item.IconComponent className="text-xl" />
           </div>

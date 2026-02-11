@@ -19,12 +19,12 @@ const EditPlanPage = () => {
 
   const handleWeeklyEdit = () => {
     // Handle weekly plan edit
-    navigate("/subscription/manage?type=weekly&mode=edit");
+    navigate("/vendor/plans?type=weekly&mode=edit");
   };
 
   const handleMonthlyEdit = () => {
     // Handle monthly plan edit
-    navigate("/subscription/manage?type=monthly&mode=edit");
+    navigate("/vendor/plans?type=monthly&mode=edit");
   };
 
   return (
