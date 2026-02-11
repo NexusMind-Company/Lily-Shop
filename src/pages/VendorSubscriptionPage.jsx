@@ -1,29 +1,30 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
 import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+import { fetchVendorDetails } from "../services/subscriptionApi";
 import {
-  fetchVendorDetails,
-  fetchMealPlans,
-  fetchMenuItems,
-} from "../services/subscriptionApi";
-import { createSubscription } from "../services/api";
+  createSubscription,
+  fetchMealPlansByVendor,
+  fetchMealsByVendor,
+} from "../services/api";
+import { fetchReviewsForVendor } from "../services/subscriptionApi";
 import { useMutation } from "@tanstack/react-query";
-import { getCurrentUserId } from "../services/supabase";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 
 /**
  * VendorSubscriptionPage component - Page for customers to subscribe to vendor meal plans
  * @param {Object} props - Component props
  */
-const VendorSubscriptionPage = () => {
+const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
-  const vendorId = getCurrentUserId(); // Get vendor ID from logged-in session
+  const { vendorId: paramVendorId } = useParams();
+  const vendorId = propVendorId || paramVendorId; // Support both prop and URL param
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -47,18 +48,29 @@ const VendorSubscriptionPage = () => {
     error: plansError,
   } = useQuery({
     queryKey: ["mealPlans", vendorId],
-    queryFn: () => fetchMealPlans(vendorId),
+    queryFn: () => fetchMealPlansByVendor(vendorId),
     enabled: !!vendorId,
   });
 
-  // Fetch menu items
+  // Fetch menu items (meals)
   const {
     data: menuItems,
     isLoading: menuLoading,
     error: menuError,
   } = useQuery({
-    queryKey: ["menuItems", vendorId],
-    queryFn: () => fetchMenuItems(vendorId),
+    queryKey: ["meals", vendorId],
+    queryFn: () => fetchMealsByVendor(vendorId),
+    enabled: !!vendorId,
+  });
+
+  // Fetch vendor reviews
+  const {
+    data: reviews,
+    isLoading: reviewsLoading,
+    error: reviewsError,
+  } = useQuery({
+    queryKey: ["reviews", vendorId],
+    queryFn: () => fetchReviewsForVendor(vendorId),
     enabled: !!vendorId,
   });
 
@@ -114,7 +126,7 @@ const VendorSubscriptionPage = () => {
       console.error("Subscription creation failed:", error);
       alert(
         error.response?.data?.message ||
-          "Failed to create subscription. Please try again."
+          "Failed to create subscription. Please try again.",
       );
     },
   });
@@ -138,14 +150,16 @@ const VendorSubscriptionPage = () => {
 
   // Filter plans by selected period
   const filteredPlans =
-    plans?.filter((plan) => plan.period === selectedPlan) || [];
+    plans?.results?.filter((plan) => plan.period === selectedPlan) || [];
 
   // Calculate total price
-  const selectedPlanData = plans?.find((plan) => plan.id === selectedPlanId);
+  const selectedPlanData = plans?.results?.find(
+    (plan) => plan.id === selectedPlanId,
+  );
   const totalPrice = selectedPlanData ? selectedPlanData.price : 0;
 
   // Loading state
-  if (vendorLoading || plansLoading || menuLoading) {
+  if (vendorLoading || plansLoading || menuLoading || reviewsLoading) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-[#111813]  dark:text-text-main-dark">
@@ -156,7 +170,7 @@ const VendorSubscriptionPage = () => {
   }
 
   // Error state
-  if (vendorError || plansError || menuError) {
+  if (vendorError || plansError || menuError || reviewsError) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-red-500">
@@ -189,7 +203,7 @@ const VendorSubscriptionPage = () => {
         </div>
       </div>
 
-      <VendorHero vendor={vendor} />
+      <VendorHero vendor={vendor} reviews={reviews?.results || []} />
 
       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
 
@@ -206,7 +220,10 @@ const VendorSubscriptionPage = () => {
         ))}
       </div>
 
-      <MenuPreview menuItems={menuItems} onViewAll={handleViewAllMenu} />
+      <MenuPreview
+        menuItems={menuItems?.results || []}
+        onViewAll={handleViewAllMenu}
+      />
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 

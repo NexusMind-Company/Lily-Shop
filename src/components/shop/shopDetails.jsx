@@ -6,6 +6,7 @@ import LoaderSd from "../loaders/loaderSd";
 import PopUp from "./popUp";
 import ErrorDisplay from "../common/ErrorDisplay";
 import Ratings from "./ratings";
+import ContactVendorButton from "../subscription/ContactVendorButton";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -40,13 +41,13 @@ const ShopDetails = () => {
 
   const handleIncrementQuantity = useCallback(() => {
     setCurrentOrderQuantity((prev) =>
-      typeof prev === "number" ? prev + 1 : 1
+      typeof prev === "number" ? prev + 1 : 1,
     );
   }, []);
 
   const handleDecrementQuantity = useCallback(() => {
     setCurrentOrderQuantity((prev) =>
-      typeof prev === "number" && prev > 1 ? prev - 1 : 1
+      typeof prev === "number" && prev > 1 ? prev - 1 : 1,
     );
   }, []);
 
@@ -58,11 +59,11 @@ const ShopDetails = () => {
           : 1;
       const shopId = product ? product.id : "Unknown Shop";
       console.log(
-        `Confirmed order for product ID: ${productId}, Quantity: ${finalQuantity} from shop ID: ${shopId}`
+        `Confirmed order for product ID: ${productId}, Quantity: ${finalQuantity} from shop ID: ${shopId}`,
       );
       setOrderingProductId(null);
     },
-    [currentOrderQuantity, product]
+    [currentOrderQuantity, product],
   );
 
   const handleCancelOrder = useCallback(() => {
@@ -198,10 +199,11 @@ const ShopDetails = () => {
             </svg>
           </button>
 
-          <button className="text-black bg-white px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid border-gray-300">
-            <p>Coming Soon</p>
-            <img className="w-5" src="/message-icon.svg" alt="message-icon" />
-          </button>
+          <ContactVendorButton
+            vendorId={product.owner_id}
+            vendorName={product.name}
+            className="text-sm md:text-base"
+          />
         </div>
       </div>
       {/* Description and Address Section */}

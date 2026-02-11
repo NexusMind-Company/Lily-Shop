@@ -2,7 +2,6 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { useMutation } from "@tanstack/react-query";
 import { createMealPlan, createMeal } from "../../services/subscriptionApi";
-import { getCurrentUserId } from "../../services/supabase";
 import { Plus, X, Save } from "lucide-react";
 
 /**
@@ -14,7 +13,7 @@ const MealPlanForm = ({
   initialType = "weekly",
   isEdit = false,
 }) => {
-  const vendorId = getCurrentUserId();
+  const vendorId = "test-vendor";
 
   const [planData, setPlanData] = useState({
     name: "",
@@ -48,7 +47,7 @@ const MealPlanForm = ({
             ...meal,
             calories: parseInt(meal.calories) || 0,
             tags: meal.tags,
-          })
+          }),
         );
 
       Promise.all(mealPromises)
@@ -376,8 +375,8 @@ const MealPlanForm = ({
                 ? "Updating..."
                 : "Creating..."
               : isEdit
-              ? "Update Plan"
-              : "Create Plan"}
+                ? "Update Plan"
+                : "Create Plan"}
           </button>
         </div>
       </form>

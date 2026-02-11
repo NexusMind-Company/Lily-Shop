@@ -6,7 +6,6 @@ import SubscriptionStats from "../components/subscription/SubscriptionStats";
 import SubscriptionTabs from "../components/subscription/SubscriptionTabs";
 import FullSubscriptionList from "../components/subscription/FullSubscriptionList";
 import { fetchAllSubscriptions } from "../services/subscriptionApi";
-import { getCurrentUserId } from "../services/supabase";
 import { Plus } from "lucide-react";
 
 /**
@@ -15,7 +14,7 @@ import { Plus } from "lucide-react";
 const VendorSubscriptionsOverview = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
-  const vendorId = getCurrentUserId();
+  const vendorId = "test-vendor";
 
   // Fetch all subscriptions for the vendor (or demo data if no vendor)
   const {
@@ -49,7 +48,7 @@ const VendorSubscriptionsOverview = () => {
   const activeCount = activeSubscriptions.length;
   const weeklyAmount = activeSubscriptions.reduce(
     (total, sub) => total + parseFloat(sub.amount || 0),
-    0
+    0,
   );
 
   // Loading state

@@ -19,6 +19,7 @@ import productContentReducer from "./productContentSlice";
 import funContentReducer from "./funContentSlice";
 import searchReducer from "./searchSlice";
 import createSubscriptionVendorReducer from "./createSubscriptionVendorSlice";
+import userSubscriptionReducer from "./userSubscriptionSlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -44,6 +45,7 @@ export const store = configureStore({
     activities: activitiesReducer,
     search: searchReducer,
     createSubscriptionVendor: createSubscriptionVendorReducer,
+    userSubscription: userSubscriptionReducer,
   },
 });
 

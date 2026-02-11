@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 import TopAppBar from "../components/manageVendorPlans/TopAppBar";
 import PlanSelectionCard from "../components/subscription/PlanSelectionCard";
 import HelpSection from "../components/subscription/HelpSection";
@@ -11,20 +12,45 @@ import { CalendarDays, CalendarRange } from "lucide-react";
  */
 const CreateSubscriptionPlanPage = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleBackClick = () => {
     // Handle back navigation
     navigate(-1);
   };
 
-  const handleWeeklySelect = () => {
-    // Handle weekly plan selection - navigate to create form with type
-    navigate("/subscription/manage?type=weekly");
+  const handleWeeklySelect = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await api.post("/foods/subscriptions/create/", {
+        plan_name: "Weekly Meal Plan",
+      });
+      // On success, navigate to manage page
+      navigate("/vendor/plans?type=weekly");
+    } catch (error) {
+      console.error("Error creating weekly plan:", error);
+      // Optionally show user-friendly error message
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleMonthlySelect = () => {
-    // Handle monthly plan selection - navigate to create form with type
-    navigate("/subscription/manage?type=monthly");
+  const handleMonthlySelect = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await api.post("/foods/subscriptions/create/", {
+        plan_name: "Monthly Meal Plan",
+      });
+      // On success, navigate to manage page
+      navigate("/vendor/plans?type=monthly");
+    } catch (error) {
+      console.error("Error creating monthly plan:", error);
+      // Optionally show user-friendly error message
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,7 +76,7 @@ const CreateSubscriptionPlanPage = () => {
             title="Weekly Meal Plan"
             description="Create a menu for 7 days. Best for flexible menus and trying new items."
             imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Tjy7xd0cR5LT4akA5XfNh7qu17h7sGSTS7U4S-FrskGJgpNBDCkllNKTGEhNy-rOH_NyH_r6y9mKSG-amJ45DBcy8NXARPFd0YajXDBDAwOdk-SiI7uMUQtPA2AwyJgxDLfnyc0eiwntUwZV6hSXKQ2otfud9i9V-Hwguj51Vnn1TdJrHVaJuLHvVeYuTZCguxJil3QTS72211iZdJuuxXIjpKqTNZXpDQ_LqWzmJpdokfXchCkfC9xExo12p6HPIozZ7rPRCew4"
-            onClick={handleWeeklySelect}
+            onClick={loading ? undefined : handleWeeklySelect}
           />
           <PlanSelectionCard
             icon={<CalendarDays />}
@@ -58,7 +84,7 @@ const CreateSubscriptionPlanPage = () => {
             title="Monthly Meal Plan"
             description="Set a recurring menu for 4 weeks. Ideal for loyal customers and stability."
             imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tW_Vj0swJcH8RIkmksm5lRXlqa8tx5AUqzdsj6s-_ezogqG9qSTXdbDptkyXj6EuK5Bw1FPCbcK2bkO8qNSfwKq_JbeEsZuUW41ptgaKkCzgGjs9hRvG2xePMG-obVekOexYF0WY1ywyNNl7i_xhQyZCSadaqcrwj4AuTsY1_98HMahhdEuoIggckL2RFstIKHRvKDV6Ccw88tGJUivNJZ9tb8gbH-Y29shFtBGPiZmAZG5qBI-TadU_xbEYYP22znhYlMOEMzbO"
-            onClick={handleMonthlySelect}
+            onClick={loading ? undefined : handleMonthlySelect}
           />
         </div>
         <HelpSection

@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const BottomNav = ({ activePage, setActivePage }) => {
@@ -41,6 +42,24 @@ const BottomNav = ({ activePage, setActivePage }) => {
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Create</span>
+      </Link>
+        {/* Food */}
+      <Link
+        to="/food"
+        className={`flex flex-col items-center relative ${activePage === "food" ? "text-lily" : "text-ash"
+          }`}
+      >
+        <button
+          onClick={() => setActivePage("food")}
+          className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2"
+        >
+          {activePage === "food" ? (
+           <UtensilsCrossed className="text-lily h-7 w-7" />
+          ) : (
+           <UtensilsCrossed className=" h-7 w-7" />
+          )}
+        </button>
+        <span className="text-xs font-poppins mt-6">Food</span>
       </Link>
       {/* Chatroom */}
       <Link
