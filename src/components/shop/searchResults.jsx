@@ -9,13 +9,11 @@ const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
 
-  // Select results from the new search slice
   const { results, status } = useSelector((state) => state.search);
   const [imageLoading, setImageLoading] = useState({});
 
   const searchQuery = searchParams.get("q") || "";
 
-  // Dispatch the product search when the query changes
   useEffect(() => {
     if (searchQuery) {
       dispatch(searchProducts(searchQuery));
@@ -27,6 +25,14 @@ const SearchResults = () => {
       ...prev,
       [id]: false,
     }));
+  };
+
+  const getProductImage = (product) => {
+    if (product.media && product.media.length > 0) {
+      const firstMedia = product.media[0];
+      return firstMedia.url || firstMedia.media_url || firstMedia.src || "/shop.png";
+    }
+    return product.image_url || "/shop.png";
   };
 
   if (status === "loading") {
@@ -55,7 +61,6 @@ const SearchResults = () => {
 
   return (
     <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-6xl mx-auto overflow-hidden">
-      {/* Navigation & Header */}
       <div className="flex flex-col items-start gap-1">
         <div className="text-sm">
           <Link to="/" className="pr-0.5 hover:underline text-gray-500">
@@ -71,7 +76,6 @@ const SearchResults = () => {
         </div>
       </div>
 
-      {/* Results Grid */}
       {results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="bg-gray-100 p-6 rounded-full mb-4">
@@ -113,11 +117,7 @@ const SearchResults = () => {
                       ? "opacity-0"
                       : "opacity-100"
                   }`}
-                  src={
-                    Array.isArray(product.media)
-                      ? product.media[0]?.src
-                      : product.image_url || product.media || "/shop.png"
-                  }
+                  src={getProductImage(product)}
                   alt={product.name}
                   onLoad={() => handleImageLoad(product.id)}
                   onError={(e) => {
@@ -125,7 +125,6 @@ const SearchResults = () => {
                   }}
                 />
 
-                {/* Like Count Overlay */}
                 {product.likes_count > 0 && (
                   <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                     <Heart size={10} className="fill-white text-white" />

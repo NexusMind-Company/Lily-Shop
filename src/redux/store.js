@@ -20,6 +20,7 @@ import funContentReducer from "./funContentSlice";
 import searchReducer from "./searchSlice";
 import createSubscriptionVendorReducer from "./createSubscriptionVendorSlice";
 import userSubscriptionReducer from "./userSubscriptionSlice";
+import notificationReducer from "./notificationSlice";
 
 import { setAuthTokens } from "../services/api";
 
@@ -46,6 +47,7 @@ export const store = configureStore({
     search: searchReducer,
     createSubscriptionVendor: createSubscriptionVendorReducer,
     userSubscription: userSubscriptionReducer,
+    notifications: notificationReducer,
   },
 });
 

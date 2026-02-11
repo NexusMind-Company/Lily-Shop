@@ -22,9 +22,9 @@ const queryClient = new QueryClient({
         // Retry up to 3 times for other errors
         return failureCount < 3;
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 30 * 1000, // 30 seconds
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
     },
     mutations: {
       retry: 1,
@@ -33,17 +33,17 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <Provider store={store}>
-        <BrowserRouter>
-          <QueryClientProvider client={queryClient}>
-            <PaymentProvider>
+  // <React.StrictMode>
+  <HelmetProvider>
+    <Provider store={store}>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <PaymentProvider>
             <App />
-            </PaymentProvider>
-          </QueryClientProvider>
-        </BrowserRouter>
-      </Provider>
-    </HelmetProvider>
-  </React.StrictMode>
+          </PaymentProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </Provider>
+  </HelmetProvider>
+  // </React.StrictMode>
 );

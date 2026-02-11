@@ -18,27 +18,30 @@ export const createFunContent = createAsyncThunk(
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
-      const formData = new FormData();
+      // Expect submitFormData (FormData object) instead of raw payload
+      const formData = payload instanceof FormData ? payload : new FormData();
 
-      formData.append("caption", payload.caption?.trim() || "");
-      formData.append("hashtags", payload.hashtags?.trim() || "");
-      formData.append("location", payload.location?.trim() || "");
+      // Only append if not already a FormData object
+      if (!(payload instanceof FormData)) {
+        formData.append("caption", payload.caption || "");
+        formData.append("hashtags", payload.hashtags || "");
+        formData.append("location", payload.location || "");
+        formData.append("post_type", "FUN");
 
-      // media
-      if (payload.media instanceof File || payload.media instanceof Blob) {
-        formData.append("media", payload.media);
-      } else if (typeof payload.media === "string" && payload.media.trim() !== "") {
-        formData.append("media_url", payload.media);
-      } else {
-        formData.append("media_url", "");
+        // Handle the media array from CreatePost.jsx state
+        if (Array.isArray(payload.media)) {
+          payload.media.forEach((item) => {
+            // In CreatePost.jsx, media items are stored as { file, url, type }
+            if (item.file instanceof File) {
+              formData.append("media", item.file);
+            }
+          });
+        }
       }
-
-      console.log("sending FUN content to backend:", Object.fromEntries(formData.entries()));
 
       const response = await api.post("/shops/contents/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       return response.data;
     } catch (error) {
       console.error("Fun content failed:", error.response || error);

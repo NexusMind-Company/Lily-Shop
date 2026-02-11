@@ -25,20 +25,35 @@ const ChatPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user_id: recipientId } = useParams();
+  const { conversationId } = useParams();
+  console.log("Recipient ID:", conversationId);
 
   const { messages: conversation, loading, sending, currentPage, nextPage } =
-    useSelector((state) => state.messageConversation);
+    useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
 
   //  On mount & user change
   useEffect(() => {
     dispatch(clearConversation());
 
-    if (recipientId) {
-      dispatch(fetchConversationMessages({ userId: recipientId, page: 1 }));
+    if (conversationId) {
+      dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }))
+        .catch((error) => {
+          console.error("Error fetching conversation messages:", error);
+        });
+
+      // Polling for new messages every 5 seconds
+      const interval = setInterval(() => {
+        try {
+          dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }));
+        } catch (error) {
+          console.error("Error fetching conversation messages:", error);
+        }
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
-  }, [recipientId]);
+  }, [conversationId]);
 
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
@@ -51,10 +66,10 @@ const ChatPage = () => {
     if (top === 0 && nextPage && !isFetchingMore) {
       setIsFetchingMore(true);
 
-      dispatch(fetchConversationMessages({ userId: recipientId, page: currentPage + 1 }))
+      dispatch(fetchConversationMessages({ userId: conversationId, page: currentPage + 1 }))
         .then(() => {
           setTimeout(() => {
-            chatBoxRef.current.scrollTop = 10; 
+            chatBoxRef.current.scrollTop = 10;
             setIsFetchingMore(false);
           }, 100);
         });
@@ -65,10 +80,13 @@ const ChatPage = () => {
   const handleSend = () => {
     if (!newMessage.trim()) return;
 
-    dispatch(sendMessageToUser({ userId: recipientId, content: newMessage }))
+    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
       .then(() => {
         setNewMessage("");
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
       });
   };
 
@@ -77,9 +95,9 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white shadow-sm">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
@@ -92,8 +110,8 @@ const ChatPage = () => {
           <div>
             <h2 className="font-semibold text-gray-800">
               {conversation[0]?.recipient_username ||
-              conversation[0]?.sender_username ||
-              "Chat"}
+                conversation[0]?.sender_username ||
+                "Chat"}
             </h2>
             <p className="text-xs text-green-600">Online</p>
           </div>
@@ -118,18 +136,16 @@ const ChatPage = () => {
           conversation.map((msg) => (
             <div
               key={msg.id}
-              className={`flex ${
-                msg.sender === user_data?.user?.id
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
+              className={`flex ${msg.sender === user_data?.user?.id
+                ? "justify-end"
+                : "justify-start"
+                }`}
             >
               <div
-                className={`max-w-[75%] p-3 rounded-2xl text-sm ${
-                  msg.sender === user_data?.user?.id
-                    ? "bg-green-100 text-gray-800 rounded-br-none"
-                    : "bg-pink-100 text-gray-800 rounded-bl-none"
-                }`}
+                className={`max-w-[75%] p-3 rounded-2xl text-sm ${msg.sender === user_data?.user?.id
+                  ? "bg-green-100 text-gray-800 rounded-br-none"
+                  : "bg-pink-100 text-gray-800 rounded-bl-none"
+                  }`}
               >
                 {msg.content}
                 <p className="text-[10px] mt-1 opacity-70 text-right">
@@ -147,7 +163,7 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="flex-shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
         <input
           type="file"
           ref={fileInputRef}
@@ -173,9 +189,8 @@ const ChatPage = () => {
 
         <button onClick={handleSend} disabled={sending}>
           <SendHorizontal
-            className={`h-8 w-8 ${
-              sending ? "text-gray-400" : "text-lily"
-            } transition-all`}
+            className={`h-8 w-8 ${sending ? "text-gray-400" : "text-lily"
+              } transition-all`}
           />
         </button>
       </div>

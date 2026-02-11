@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { fetchProducts, fetchLikedProducts } from "../../services/api";
+import { fetchProducts, fetchLikedProducts, clearAuthTokens } from "../../services/api";
 import { fetchContents } from "../../services/shopApi";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
@@ -13,9 +13,11 @@ import {
   Play,
   Eye,
   Settings,
+  LogOut,
   Link as IconLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { handleLogout } from "../../redux/authSlice";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -216,25 +218,37 @@ const ProfileOwner = () => {
     <div className="text-center text-gray-400 my-8">No Promotions yet</div>
   );
 
+  const handleLogoutClick = () => {
+    dispatch(handleLogout()); // clear tokens, user data, profile, etc.
+    navigate("/login"); // redirect to login page
+  };
+
   return (
-    <div className="bg-white h-screen w-full overflow-y-auto no-scrollbar">
+    <div className="max-w-md mx-auto min-h-screen pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 mt-1">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
         </button>
-        <h2 className="font-semibold text-lg">My Profile</h2>
+
+
         <div className="flex gap-4">
           <Link to="/settings">
             <Settings size={25} className="cursor-pointer" />
           </Link>
-          <IconLink size={25} className="cursor-pointer" />
+          <div className="flex justify-end">
+            <button
+              onClick={handleLogoutClick}
+            >
+              <LogOut className="mr-2 cursor-pointer" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Profile Info */}
-      <div className="mt-2 px-4">
-        <div className="flex gap-2 items-center">
+      <div className="px-4 py-3 border-b border-gray-300">
+        <div className="flex flex-col gap-2 items-center justify-center">
           <img
             src={profileImageUrl}
             alt="Profile"
@@ -248,20 +262,22 @@ const ProfileOwner = () => {
             <h3 className="font-semibold">
               {user.username || user.email?.split("@")[0] || "Unnamed User"}
             </h3>
-            <p className="text-gray-500 text-sm">
-              @{user.username || "unknown"}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-500 text-sm">
+                @{user.username || "unknown"}
+              </p>
+              <IconLink size={15} className="cursor-pointer" />
+            </div>
           </div>
         </div>
 
         <p className="mt-1 text-sm">
-          {user.bio ||
-            "Add a bio to let people know more about you and your products!"}
+          {user && user.bio ? user.bio : "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
-        <div className="flex mt-4 text-sm items-center justify-between">
-          <div className="flex gap-5">
+        <div className="flex flex-col justify-center items-center">
+          <div className="flex gap-5 items-center mb-3 justify-center">
             <div className="flex flex-col items-center">
               <span className="font-bold text-2xl">
                 {user.post_count ||

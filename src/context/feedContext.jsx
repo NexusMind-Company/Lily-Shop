@@ -15,7 +15,7 @@ const FEED_PAGE_SIZE = 20;
 
 // Feed API functions
 const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
-  const endpoint = activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
+  const endpoint = activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/home/";
 
   const response = await api.get(endpoint, {
     params: {
@@ -67,13 +67,14 @@ export const FeedProvider = ({ children }) => {
     isFetchingNextPage,
     isLoading,
     isError,
+    isFetching,
     error,
     refetch,
   } = useInfiniteQuery({
     queryKey: ["feed", activeTab],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, activeTab }),
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextPage : undefined,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Always fetch on mount/refresh
     gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
   });
 
@@ -118,6 +119,7 @@ export const FeedProvider = ({ children }) => {
       posts,
       isLoading,
       isError,
+      isFetching,
       error: error?.message,
 
       // Pagination
@@ -141,6 +143,7 @@ export const FeedProvider = ({ children }) => {
       posts,
       isLoading,
       isError,
+      isFetching,
       error,
       loadMore,
       hasNextPage,
@@ -151,6 +154,8 @@ export const FeedProvider = ({ children }) => {
       getRestoreIndex,
       isMuted,
       activeTab,
+      setActiveTab,
+      scrollPositionRef,
     ]
   );
 
