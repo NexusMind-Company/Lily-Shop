@@ -73,11 +73,18 @@ export const registerUser = createAsyncThunk(
       const response = await api.post("/auth/users/", userData);
       return response.data;
     } catch (error) {
-      console.error("Registration Error:", error.response?.data);
+      console.error("Registration Error FULL:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+      });
       return rejectWithValue(
         error.response?.data?.detail ||
-          error.response?.data?.message ||
-          "Registration failed.",
+        error.response?.data?.message ||
+        error.response?.data?.["Invalid registration"]?.[0] ||
+        error.response?.data?.email_or_phonenumber?.[0] ||
+        error.response?.data?.password?.[0] ||
+        "Registration failed."
       );
     }
   },

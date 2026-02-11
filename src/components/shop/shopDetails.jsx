@@ -1,358 +1,384 @@
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+// src/components/shop/shopDetails.jsx
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
-import PopUp from "./popUp";
 import ErrorDisplay from "../common/ErrorDisplay";
 import Ratings from "./ratings";
 import ContactVendorButton from "../subscription/ContactVendorButton";
+import {
+  ChevronLeft, MapPin, Phone, Share2, MessageCircle,
+  Star, Store, Eye, Package, Grid3x3, ShoppingCart,
+  Plus, Minus, Check, Heart
+} from "lucide-react";
 
 const ShopDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  
   const {
-    selectedShop: product,
+    selectedShop: shop,
     status,
     error,
   } = useSelector((state) => state.shops);
 
-  const [imageEnlarged, setImageEnlarged] = useState(false);
-  const [showRatings, setShowRatings] = useState(false);
-  const [copyPopUp, setCopyPopUp] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-
+  const [activeTab, setActiveTab] = useState("products");
   const [orderingProductId, setOrderingProductId] = useState(null);
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
-
-  const handleStartOrder = useCallback((productId) => {
-    setOrderingProductId(productId);
-    setCurrentOrderQuantity(1);
-  }, []);
-
-  const handleQuantityChange = useCallback((event) => {
-    const newQuantity = parseInt(event.target.value, 10);
-    if (!isNaN(newQuantity) && newQuantity >= 1) {
-      setCurrentOrderQuantity(newQuantity);
-    } else if (event.target.value === "") {
-      setCurrentOrderQuantity("");
-    }
-  }, []);
-
-  const handleIncrementQuantity = useCallback(() => {
-    setCurrentOrderQuantity((prev) =>
-      typeof prev === "number" ? prev + 1 : 1,
-    );
-  }, []);
-
-  const handleDecrementQuantity = useCallback(() => {
-    setCurrentOrderQuantity((prev) =>
-      typeof prev === "number" && prev > 1 ? prev - 1 : 1,
-    );
-  }, []);
-
-  const handleConfirmOrder = useCallback(
-    (productId) => {
-      const finalQuantity =
-        typeof currentOrderQuantity === "number" && currentOrderQuantity >= 1
-          ? currentOrderQuantity
-          : 1;
-      const shopId = product ? product.id : "Unknown Shop";
-      console.log(
-        `Confirmed order for product ID: ${productId}, Quantity: ${finalQuantity} from shop ID: ${shopId}`,
-      );
-      setOrderingProductId(null);
-    },
-    [currentOrderQuantity, product],
-  );
-
-  const handleCancelOrder = useCallback(() => {
-    setOrderingProductId(null);
-  }, []);
+  const [following, setFollowing] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   useEffect(() => {
     dispatch(fetchShopById(id));
   }, [id, dispatch]);
 
-  const handleCopyLink = () => {
-    const shopLink = `${window.location.origin}/product/${id}`;
-    navigator.clipboard.writeText(shopLink).then(() => {
-      setCopyPopUp(true);
-      setTimeout(() => setCopyPopUp(false), 2000);
-    });
+  const handleStartOrder = (productId) => {
+    setOrderingProductId(productId);
+    setCurrentOrderQuantity(1);
   };
 
-  const handleImageClick = () => {
-    setImageEnlarged(true);
+  const handleQuantityChange = (delta) => {
+    setCurrentOrderQuantity((prev) => Math.max(1, prev + delta));
   };
 
-  const imagepopup = () => {
-    setImageEnlarged(false);
+  const handleConfirmOrder = (productId) => {
+    console.log(`Order confirmed: Product ${productId}, Quantity: ${currentOrderQuantity}`);
+    setOrderingProductId(null);
+    navigate(`/checkout?product=${productId}&quantity=${currentOrderQuantity}`);
   };
 
-  const handleImageLoad = () => {
-    setImageLoading(false);
-  };
-
-  const toggleRatingsView = () => {
-    setShowRatings((prev) => !prev);
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: shop.name,
+        text: `Check out ${shop.name} on Lily Shop`,
+        url: window.location.href
+      });
+    } else {
+      setShowShareMenu(true);
+    }
   };
 
   if (status === "loading") {
-    return <LoaderSd />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoaderSd />
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorDisplay message={error} center={true} />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <ErrorDisplay message={error} center={true} />
+      </div>
+    );
   }
 
-  if (!product) {
-    return <ErrorDisplay message="Shop details not found." center={true} />;
+  if (!shop) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <ErrorDisplay message="Shop not found." center={true} />
+      </div>
+    );
   }
 
   return (
-    <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
-      {/* Product Title */}
-      <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center text-center px-2.5">
-        <h1 className="text-xl font-normal font-poppins">{product.name}</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button onClick={() => navigate(-1)}>
+            <ChevronLeft size={24} />
+          </button>
+          <h2 className="font-semibold text-lg truncate max-w-[60%]">
+            {shop.name}
+          </h2>
+          <button onClick={handleShare}>
+            <Share2 size={24} />
+          </button>
+        </div>
       </div>
-      {/* Product Image */}
-      <div className="mt-7 flex flex-col items-center justify-center w-full relative">
-        <button
-          className="cursor-pointer flex items-center gap-0.5 text-right font-poppins text-xs font-medium absolute -top-6 right-0"
-          onClick={handleCopyLink}
-        >
-          <p>Copy</p>
-          <img className="w-4" src="/copy.svg" alt="copy-icon" />
-        </button>
-        <div className="w-full aspect-[16/9] relative overflow-hidden rounded-2xl">
-          {imageLoading && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-2xl">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-8 h-8 border-[4px] border-solid border-lily border-t-transparent rounded-full animate-spin"></div>
+
+      {/* Shop Cover */}
+      <div className="relative h-64 bg-gradient-to-br from-lily/20 to-lily/5">
+        {shop.image_url ? (
+          <img
+            src={shop.image_url}
+            alt={shop.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Store size={80} className="text-lily/30" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        
+        {/* Shop Badge */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="flex items-end gap-4">
+            <div className="bg-white p-1 rounded-2xl">
+              <div className="w-20 h-20 bg-lily/10 rounded-xl flex items-center justify-center">
+                <Store size={40} className="text-lily" />
               </div>
             </div>
-          )}
-          <img
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
-              imageLoading ? "opacity-0" : "opacity-100"
-            }`}
-            src={product.image_url}
-            alt={product.name}
-            onLoad={handleImageLoad}
-            onClick={handleImageClick}
-          />
-        </div>
-      </div>
-      {/* Enlarged Image Section */}
-      {imageEnlarged && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-          onClick={imagepopup}
-        >
-          <img
-            className="max-w-[90%] max-h-[90%] rounded-lg"
-            src={product.image_url}
-            alt={product.name}
-          />
-        </div>
-      )}
-      <div className="flex justify-between w-full mt-5 font-poppins items-center">
-        {/* Contact */}
-        <p className="text-lily text-sm font-semibold font-poppins uppercase mt-5">
-          Contacts: <span className="text-black">{product.owner_phone}</span>
-        </p>
-      </div>
-      {/* Status, Message Button, and Copy Link */}{" "}
-      <div className="flex justify-between w-full mt-5 font-poppins items-center">
-        <div>
-          <p className="font-bold font-poppins text-[13px]/[19.5px]">
-            Status: <span className="text-lily">{product.owner_status}</span>
-          </p>
-          <p className="font-normal font-poppins text-[11px]/[16.5px]">
-            Visits: <span className="text-lily">{product.visitor_count}</span>
-          </p>
-        </div>{" "}
-        <div className="flex flex-col md:flex-row items-center gap-2">
-          <button
-            onClick={toggleRatingsView}
-            className={`text-${showRatings ? "white" : "black"} ${
-              showRatings ? "bg-lily" : "bg-white"
-            } px-4 py-2 text-sm md:text-base rounded-md flex items-center gap-2 border-[1px] border-solid ${
-              showRatings ? "border-lily" : "border-gray-300"
-            } hover:opacity-90 transition-all duration-200 shadow-sm`}
-          >
-            <p>{showRatings ? "Close Rating" : "Rate Shop"}</p>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill={showRatings ? "white" : "none"}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-              />
-            </svg>
-          </button>
-
-          <ContactVendorButton
-            vendorId={product.owner_id}
-            vendorName={product.name}
-            className="text-sm md:text-base"
-          />
-        </div>
-      </div>
-      {/* Description and Address Section */}
-      <div className="flex flex-col gap-4 items-start mt-6 w-full">
-        <div className="w-full">
-          <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-[2px] border-solid border-[#F6AD6D]">
-              Descripti
-            </span>
-            on
-          </h2>
-          <p className="font-inter text-gray-700 text-sm leading-6">
-            {product.description}
-          </p>
-        </div>
-
-        <div className="w-full">
-          <h2 className="font-poppins font-bold text-black text-sm uppercase mb-2">
-            <span className="border-b-[2px] border-solid border-[#F6AD6D]">
-              Addre
-            </span>
-            ss
-          </h2>
-          <p className="font-inter text-gray-700 text-sm leading-6">
-            {product.address}
-          </p>
-        </div>
-      </div>
-      {/* Products Section */}
-      <div className="flex flex-col gap-3 items-start my-5 w-full">
-        <h2 className="font-poppins font-bold text-black text-xs/[18px] uppercase">
-          <span className="border-b-[2px] border-solid border-[#F6AD6D]">
-            Produ
-          </span>
-          cts
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
-          {product.products.map((productItem) => (
-            <div
-              key={productItem.name}
-              className="flex flex-col gap-2 w-full text-wrap"
-            >
-              <img
-                className="w-full h-40 md:h-48 rounded-lg object-cover"
-                src={productItem.image_url}
-                alt={productItem.name}
-              />
-              <ul className="border-l-[2px] border-solid border-[#F6AD6D] pl-2 font-inter">
-                <li className="text-xs md:text-sm text-black font-semibold">
-                  {productItem.name}
-                </li>
-                <li className="text-xs md:text-sm font-normal text-lily">
-                  ₦<span className="text-black">{productItem.price}</span>
-                </li>
-              </ul>
-              {orderingProductId === productItem.id ? (
-                <div className="mt-2 flex flex-col gap-2 items-center">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleDecrementQuantity}
-                      className="px-2 py-1 border rounded-md hover:bg-gray-100"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={currentOrderQuantity}
-                      onChange={handleQuantityChange}
-                      onBlur={() => {
-                        // Ensure quantity is at least 1 on blur if empty
-                        if (
-                          currentOrderQuantity === "" ||
-                          currentOrderQuantity < 1
-                        ) {
-                          setCurrentOrderQuantity(1);
-                        }
-                      }}
-                      className="w-12 text-center border rounded-md p-1"
-                      min="1"
-                    />
-                    <button
-                      onClick={handleIncrementQuantity}
-                      className="px-2 py-1 border rounded-md hover:bg-gray-100"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="flex gap-2 w-full">
-                    <button
-                      onClick={() => handleConfirmOrder(productItem.id)}
-                      className="flex-1 bg-green-500 text-white p-1.5 text-xs font-bold text-center rounded-md hover:bg-green-600 transition-colors"
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      onClick={handleCancelOrder}
-                      className="flex-1 bg-gray-300 text-black p-1.5 text-xs font-bold text-center rounded-md hover:bg-gray-400 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleStartOrder(productItem.id)}
-                  className="w-full bg-lily text-white p-1.5 text-xs font-bold text-center hover:bg-lily-dark active:bg-lily-dark transition-colors duration-200 mt-1 rounded-md"
-                >
-                  Order
-                </button>
-              )}
+            <div className="flex-1 text-white">
+              <h1 className="text-2xl font-bold mb-1">{shop.name}</h1>
+              <p className="text-sm opacity-90">{shop.category || "Shop"}</p>
             </div>
-          ))}
-        </div>{" "}
-      </div>
-      {/* Ratings Component */}
-      {showRatings && (
-        <div className="fixed inset-0 bg-white bg-opacity-98 backdrop-blur-sm z-50 overflow-auto pt-2 pb-20 animate-fadeIn">
-          <div className="max-w-4xl mx-auto px-4 relative">
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={toggleRatingsView}
-                className="bg-lily text-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:bg-opacity-90 transition-all"
-                aria-label="Close ratings"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />{" "}
-                </svg>
-              </button>{" "}
-            </div>
-            <Ratings shopName={product.name} />
           </div>
         </div>
-      )}
-      {/* PopUp Component */}
-      {copyPopUp && (
-        <PopUp copyPopUp={copyPopUp} handlePopUp={() => setCopyPopUp(false)} />
-      )}
-    </section>
+      </div>
+
+      {/* Shop Info */}
+      <div className="bg-white pb-4">
+        <div className="px-4 pt-4">
+          {/* Stats */}
+          <div className="flex items-center justify-around py-4 border-b border-gray-200">
+            <div className="text-center">
+              <p className="font-bold text-xl">{shop.products?.length || 0}</p>
+              <p className="text-gray-600 text-sm">Products</p>
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-xl">{shop.visitor_count || 0}</p>
+              <p className="text-gray-600 text-sm">Visitors</p>
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-xl">4.5</p>
+              <p className="text-gray-600 text-sm">Rating</p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 mt-4">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setFollowing(!following)}
+              className={`flex-1 py-2.5 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${
+                following
+                  ? "bg-gray-100 text-gray-700"
+                  : "bg-lily text-white"
+              }`}
+            >
+              {following ? (
+                <>
+                  <Check size={18} />
+                  Following
+                </>
+              ) : (
+                <>
+                  <Plus size={18} />
+                  Follow Shop
+                </>
+              )}
+            </motion.button>
+
+            <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition">
+              <MessageCircle size={20} />
+            </button>
+          </div>
+
+          {/* Contact Info */}
+          <div className="mt-4 space-y-3">
+            {shop.owner_phone && (
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="w-5 h-5 text-lily" />
+                <span>{shop.owner_phone}</span>
+              </div>
+            )}
+            {shop.address && (
+              <div className="flex items-start gap-3 text-sm">
+                <MapPin className="w-5 h-5 text-lily shrink-0 mt-0.5" />
+                <span className="text-gray-600">{shop.address}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {shop.description && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h3 className="font-semibold mb-2">About</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {shop.description}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Products Section */}
+      <div className="bg-white mt-2">
+        <div className="flex border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
+              activeTab === "products"
+                ? "border-lily text-lily"
+                : "border-transparent text-gray-500"
+            }`}
+          >
+            <Grid3x3 size={20} />
+            <span className="text-sm font-semibold">Products</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("reviews")}
+            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
+              activeTab === "reviews"
+                ? "border-lily text-lily"
+                : "border-transparent text-gray-500"
+            }`}
+          >
+            <Star size={20} />
+            <span className="text-sm font-semibold">Reviews</span>
+          </button>
+        </div>
+
+        {/* Products Grid */}
+        <AnimatePresence mode="wait">
+          {activeTab === "products" && (
+            <motion.div
+              key="products"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-4"
+            >
+              {shop.products && shop.products.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {shop.products.map((product) => (
+                    <motion.div
+                      key={product.id}
+                      layout
+                      className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
+                    >
+                      <div className="relative aspect-square">
+                        <img
+                          src={product.image_url || "/placeholder.png"}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      <div className="p-3">
+                        <h4 className="font-semibold text-sm mb-1 truncate">
+                          {product.name}
+                        </h4>
+                        <p className="text-lily font-bold mb-3">
+                          ₦{product.price?.toLocaleString()}
+                        </p>
+
+                        {orderingProductId === product.id ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
+                              <button
+                                onClick={() => handleQuantityChange(-1)}
+                                className="p-1 hover:bg-gray-100 rounded"
+                              >
+                                <Minus size={16} />
+                              </button>
+                              <span className="font-semibold min-w-[30px] text-center">
+                                {currentOrderQuantity}
+                              </span>
+                              <button
+                                onClick={() => handleQuantityChange(1)}
+                                className="p-1 hover:bg-gray-100 rounded"
+                              >
+                                <Plus size={16} />
+                              </button>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleConfirmOrder(product.id)}
+                                className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setOrderingProductId(null)}
+                                className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleStartOrder(product.id)}
+                            className="w-full bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition flex items-center justify-center gap-2"
+                          >
+                            <ShoppingCart size={16} />
+                            Order
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <Package size={64} className="mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No products yet</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === "reviews" && (
+            <motion.div
+              key="reviews"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-4"
+            >
+              <div className="text-center py-16">
+                <Star size={64} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-500">No reviews yet</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Share Menu */}
+      <AnimatePresence>
+        {showShareMenu && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowShareMenu(false)}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end"
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full rounded-t-3xl p-6"
+            >
+              <h3 className="font-bold text-lg mb-4">Share Shop</h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    setShowShareMenu(false);
+                  }}
+                  className="w-full text-left p-3 hover:bg-gray-100 rounded-lg"
+                >
+                  Copy Link
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
