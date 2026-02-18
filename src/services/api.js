@@ -1,8 +1,4 @@
 import axios from "axios";
-<<<<<<< HEAD
-=======
-import { supabase, handleSupabaseError } from "./supabase";
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
@@ -14,7 +10,6 @@ const api = axios.create({
   },
 });
 
-<<<<<<< HEAD
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
   if (token) {
@@ -24,8 +19,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
     localStorage.setItem("access_token", access);
@@ -75,13 +68,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-<<<<<<< HEAD
     if (!originalRequest) {
       return Promise.reject(error);
     }
 
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
     if (originalRequest._isRefreshRequest) {
       isRefreshing = false;
       processQueue(error, null);
@@ -98,12 +88,8 @@ api.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-<<<<<<< HEAD
             originalRequest.headers = originalRequest.headers || {};
             originalRequest.headers.Authorization = "Bearer " + token;
-=======
-            originalRequest.headers["Authorization"] = "Bearer " + token;
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
             return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -123,13 +109,8 @@ api.interceptors.response.use(
       }
 
       try {
-<<<<<<< HEAD
         const rs = await axios.post(
           `${API_BASE_URL}/auth/token/refresh/`,
-=======
-        const rs = await api.post(
-          "/auth/token/refresh/",
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
           { refresh: refreshToken },
           { _isRefreshRequest: true },
         );
@@ -137,12 +118,8 @@ api.interceptors.response.use(
         const { access } = rs.data;
         setAuthTokens({ access });
 
-<<<<<<< HEAD
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${access}`;
-=======
-        originalRequest.headers["Authorization"] = `Bearer ${access}`;
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 
         processQueue(null, access);
         return api(originalRequest);
@@ -157,10 +134,6 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
     return Promise.reject(error);
   },
 );
@@ -173,20 +146,6 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
-<<<<<<< HEAD
-=======
-
-  // Sync updated profile to Supabase
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
   return response.data;
 };
 
@@ -195,20 +154,6 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
-<<<<<<< HEAD
-=======
-
-  // Sync updated profile to Supabase
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
   return response.data;
 };
 
@@ -226,7 +171,6 @@ export const updateProfilePic = async (imageFile) => {
     },
   );
 
-<<<<<<< HEAD
   return response.data;
 };
 
@@ -249,18 +193,6 @@ export const uploadMediaFile = async (file) => {
     },
   });
 
-=======
-  // Sync updated profile to Supabase
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
   return response.data;
 };
 
@@ -291,18 +223,10 @@ export const fetchProducts = async (params = {}) => {
   return response.data;
 };
 
-<<<<<<< HEAD
-=======
-// --- Fetch Liked Products ---
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 export const fetchLikedProducts = async () => {
   const response = await api.get("/shops/my-liked-products/");
   return response.data;
 };
-<<<<<<< HEAD
-=======
-// ------------------------------------------
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 
 export const fetchNearbyFeed = async () => {
   const response = await api.get("/shops/products/nearby/");
@@ -540,7 +464,6 @@ export const resumeSubscription = async (subscriptionId) => {
   return response.data;
 };
 
-<<<<<<< HEAD
 // --- SUBSCRIPTION FETCHING ENDPOINTS ---
 export const fetchSubscriptionStats = async (vendorId) => {
   const response = await api.get(`/foods/subscriptions/vendor/${vendorId}/`);
@@ -793,7 +716,4 @@ export const cancelUserSubscription = async () => {
   return response.data;
 };
 
-
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 export default api;
