@@ -4,15 +4,91 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../services/api";
 
+/* =========================
+   Skeleton Card Component
+========================= */
+const SkeletonCard = () => {
+  return (
+    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 flex items-center gap-5">
+      <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse"></div>
+      <div className="flex-1 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+        <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+      </div>
+    </div>
+  );
+};
+
+/* =========================
+   Vendor Card Component
+========================= */
+const VendorCard = ({ vendor, onClick }) => {
+  const [imageError, setImageError] = React.useState(false);
+
+  const imageUrl = vendor.all_media_urls?.[0];
+  const showImage = imageUrl && !imageError;
+
+  const initials =
+    vendor.name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "NA";
+
+  return (
+    <div
+      onClick={() => onClick(vendor.id)}
+      className="group bg-white border border-gray-100 hover:border-gray-200
+      shadow-sm hover:shadow-lg transition-all duration-300
+      rounded-2xl p-5 flex items-center gap-5 cursor-pointer"
+    >
+      {/* Avatar */}
+      <div className="w-24 h-24 flex-shrink-0">
+        {showImage ? (
+          <img
+            src={imageUrl}
+            alt={vendor.name}
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover rounded-full
+            ring-4 ring-white shadow-sm
+            transition-transform duration-300
+            group-hover:scale-105"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center
+            rounded-full bg-gray-200 text-gray-600 font-semibold text-lg
+            ring-4 ring-white shadow-sm"
+          >
+            {initials}
+          </div>
+        )}
+      </div>
+
+      {/* Vendor Info */}
+      <div className="flex-1 min-w-0">
+        <h2 className="text-lg font-semibold truncate">
+          {vendor.name}
+        </h2>
+        <p className="text-sm text-gray-500 line-clamp-2">
+          {vendor.description || "No description available"}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* =========================
+   Vendors List Page
+========================= */
 const VendorsList = () => {
   const navigate = useNavigate();
 
-  // Fetch vendors from backend
   const { data, isLoading, error } = useQuery({
     queryKey: ["vendors"],
     queryFn: async () => {
       const response = await api.get("/foods/vendors/");
-      console.log(response.data);
       return response.data;
     },
   });
@@ -27,71 +103,46 @@ const VendorsList = () => {
     navigate(-1);
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-4">
-        <button
-          onClick={handleBack}
-          className="mb-4 text-blue-500 hover:underline"
-        >
-          <ArrowLeft className="" />
-        </button>
-        <h1 className="text-2xl font-bold mb-4">Vendors</h1>
-        <div className="flex justify-center items-center min-h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lily"></div>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="container mx-auto p-6">
+      {/* Back Button */}
+      <button
+        onClick={handleBack}
+        className="mb-6 text-gray-600 hover:text-black transition-colors"
+      >
+        <ArrowLeft />
+      </button>
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-4">
-        <button
-          onClick={handleBack}
-          className="mb-4 text-blue-500 hover:underline"
-        >
-          <ArrowLeft className="" />
-        </button>
-        <h1 className="text-2xl font-bold mb-4">Vendors</h1>
+      <h1 className="text-3xl font-bold mb-8">Vendors</h1>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
         <div className="text-center text-red-500">
           Error loading vendors: {error.message}
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="container mx-auto p-4">
-      <button
-        onClick={handleBack}
-        className="mb-4 text-blue-500 hover:underline"
-      >
-        <ArrowLeft className="" />
-      </button>
-      <h1 className="text-2xl font-bold mb-4">Vendors</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {vendors.map((vendor) => (
-          <div
-            key={vendor.id}
-            onClick={() => handleVendorClick(vendor.id)}
-            className="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
-          >
-            <img
-              src={
-                vendor.all_media_urls?.[0] ||
-                "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg"
-              }
-              alt={vendor.name}
-              className="w-full h-56 object-cover rounded-md mb-4"
+      {/* Vendors Grid */}
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vendors.map((vendor) => (
+            <VendorCard
+              key={vendor.id}
+              vendor={vendor}
+              onClick={handleVendorClick}
             />
-            <h2 className="text-xl font-semibold">{vendor.name}</h2>
-            <p className="text-gray-600">
-              {vendor.description || "No description"}
-            </p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

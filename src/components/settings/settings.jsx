@@ -1,5 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { User, Bell, Info, LogOut, Wallet, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  User,
+  Bell,
+  Info,
+  LogOut,
+  Wallet,
+  ChevronRight,
+  ChevronLeft,
+  Utensils,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { handleLogout } from "../../redux/authSlice"; // ✅ import logout handler
@@ -14,11 +23,42 @@ const Settings = () => {
   };
 
   const items = [
-    { icon: <User size={30} />, text: "Account", sub: "See information about your account", to: "/account" },
-    { icon: <Wallet size={30} />, text: "Wallet", sub: "Manage your wallet and payments", to: "/wallet" },
-    { icon: <Bell size={30} />, text: "Notifications", sub: "Manage notifications", to: "/notifications" },
-    { icon: <Info size={30} />, text: "About us", sub: "Learn more about us", to: "/about" },
-    { icon: <LogOut size={30} />, text: "Logout", sub: "Logout of your account", action: handleLogoutClick },
+    {
+      icon: <User size={30} />,
+      text: "Account",
+      sub: "See information about your account",
+      to: "/account",
+    },
+    {
+      icon: <Wallet size={30} />,
+      text: "Wallet",
+      sub: "Manage your wallet and payments",
+      to: "/wallet",
+    },
+    {
+      icon: <Bell size={30} />,
+      text: "Notifications",
+      sub: "Manage notifications",
+      to: "/notifications",
+    },
+    {
+      icon: <Utensils size={30} />,
+      text: "Food vendor",
+      sub: "Become a food vendor and start selling your meals",
+      to: "/create-vendor",
+    },
+    {
+      icon: <Info size={30} />,
+      text: "About us",
+      sub: "Learn more about us",
+      to: "/about",
+    },
+    {
+      icon: <LogOut size={30} />,
+      text: "Logout",
+      sub: "Logout of your account",
+      action: handleLogoutClick,
+    },
   ];
 
   return (
