@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 import { useState } from "react";
+=======
+import { useState, useEffect, useRef, useCallback } from "react";
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 import { useNavigate } from "react-router-dom";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
 import { useDispatch } from "react-redux";
 import useFormValidation from "../../hooks/useFormValidation";
 import ErrorDisplay from "../common/ErrorDisplay";
 
+<<<<<<< HEAD
 const INITIAL_FORM_STATE = {
   name: "",
   cuisine: "",
@@ -24,11 +29,65 @@ const VALIDATION_RULES = {
     maxLength: 254,
   },
   contact_phone: { required: false, maxLength: 20 },
+=======
+const MAX_FILE_SIZE_MB = 5;
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+
+const validateFile = (file) => {
+  if (!file) return "No file selected.";
+
+  const fileExtension = "." + file.name.split(".").pop().toLowerCase();
+  if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    return "Only JPEG and PNG formats are allowed.";
+  }
+
+  if (!file.type || !ALLOWED_FILE_TYPES.includes(file.type)) {
+    return "Invalid file type. Only JPEG and PNG formats are allowed.";
+  }
+
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    return `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`;
+  }
+
+  return null;
+};
+
+const INITIAL_FORM_STATE = {
+  name: "",
+  cuisine: "",
+  location: "",
+  description: "",
+  contactPhone: "",
+  contactEmail: "",
+};
+
+const VALIDATION_RULES = {
+  name: { required: true, requiredMessage: "Vendor name is required." },
+  cuisine: { required: true, requiredMessage: "Cuisine type is required." },
+  location: { required: true, requiredMessage: "Location is required." },
+  description: {
+    required: true,
+    requiredMessage: "Description is required.",
+  },
+  contactPhone: {
+    required: true,
+    requiredMessage: "Contact phone is required.",
+  },
+  contactEmail: {
+    required: true,
+    requiredMessage: "Contact email is required.",
+  },
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 };
 
 const CreateSubscriptionVendor = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+<<<<<<< HEAD
+=======
+  const imageInputRef = useRef(null);
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 
   const {
     values,
@@ -41,16 +100,77 @@ const CreateSubscriptionVendor = () => {
     setErrors: setFieldErrors,
   } = useFormValidation(INITIAL_FORM_STATE, VALIDATION_RULES);
 
+<<<<<<< HEAD
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [submissionError, setSubmissionError] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
 
   const actualSubmitLogic = async (validatedTextValues) => {
+=======
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(null);
+  const [submissionStatus, setSubmissionStatus] = useState("idle");
+  const [submissionError, setSubmissionError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
+
+  const handleImageInputChange = useCallback(
+    (e) => {
+      const file = e.target.files[0];
+      setImageError(null);
+      setSelectedFile(null);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+
+      if (!file) return;
+
+      const validationError = validateFile(file);
+      if (validationError) {
+        setImageError(validationError);
+        if (imageInputRef.current) imageInputRef.current.value = "";
+        return;
+      }
+
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.vendorImage;
+        return newErrors;
+      });
+    },
+    [imagePreview, setFieldErrors]
+  );
+
+  const actualSubmitLogic = async (validatedTextValues) => {
+    if (!selectedFile) {
+      setImageError("Please upload a vendor image.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        vendorImage: "Vendor image is required.",
+      }));
+      setSubmissionStatus("idle");
+      return;
+    }
+    if (imageError) {
+      setFieldErrors((prev) => ({ ...prev, vendorImage: imageError }));
+      setSubmissionStatus("idle");
+      return;
+    }
+
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
     setSubmissionStatus("loading");
     setSubmissionError(null);
     setSuccessMsg("");
 
+<<<<<<< HEAD
     const vendorData = {
       name: validatedTextValues.name.trim(),
       cuisine: validatedTextValues.cuisine.trim(),
@@ -65,20 +185,47 @@ const CreateSubscriptionVendor = () => {
       setSuccessMsg("Food vendor created successfully! Redirecting...");
       setSubmissionStatus("succeeded");
       resetForm();
+=======
+    const formData = new FormData();
+    formData.append("name", validatedTextValues.name.trim());
+    formData.append("cuisine", validatedTextValues.cuisine.trim());
+    formData.append("location", validatedTextValues.location.trim());
+    formData.append("description", validatedTextValues.description.trim());
+    formData.append("contactPhone", validatedTextValues.contactPhone.trim());
+    formData.append("contactEmail", validatedTextValues.contactEmail.trim());
+    formData.append("image", selectedFile);
+
+    try {
+      await dispatch(createSubscriptionVendor(formData)).unwrap();
+      setSuccessMsg("Subscription vendor created successfully! Redirecting...");
+      setSubmissionStatus("succeeded");
+      resetForm();
+      setSelectedFile(null);
+      setImagePreview(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+      setImageError(null);
+      setFieldErrors({});
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 
       setTimeout(() => {
         setSuccessMsg("");
         navigate("/vendor-dashboard");
       }, 3000);
     } catch (err) {
+<<<<<<< HEAD
       console.error("Failed to create food vendor:", err);
       let errorMsg = "Failed to create food vendor. ";
+=======
+      console.error("Failed to create subscription vendor:", err);
+      let errorMsg = "Failed to create subscription vendor. ";
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
       if (err && err.message && err.message.includes("timeout")) {
         errorMsg += "Request timed out. Please try again.";
       } else if (err && err.message && err.message.includes("Network Error")) {
         errorMsg += "Network error. Please check your connection.";
       } else if (err && typeof err === "object" && err.status === 401) {
         errorMsg = "Please log in to create a vendor.";
+<<<<<<< HEAD
       } else if (
         err &&
         typeof err === "object" &&
@@ -102,6 +249,11 @@ const CreateSubscriptionVendor = () => {
         typeof err.detail === "string"
       ) {
         errorMsg = err.detail;
+=======
+      } else if (err && typeof err === "object" && err.status === 413) {
+        errorMsg =
+          "The uploaded file is too large. Please upload a smaller file.";
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
       } else if (
         err &&
         typeof err === "object" &&
@@ -124,7 +276,11 @@ const CreateSubscriptionVendor = () => {
       <div className="w-full">
         <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
+<<<<<<< HEAD
             Create <span className="text-lily">Food Vendor</span>
+=======
+            Create <span className="text-lily">Subscription Vendor</span>
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
           </h1>
         </div>
       </div>
@@ -175,7 +331,11 @@ const CreateSubscriptionVendor = () => {
             htmlFor="cuisine"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
+<<<<<<< HEAD
             Cuisine (Optional)
+=======
+            Cuisine Type
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
           </label>
           <input
             type="text"
@@ -196,6 +356,85 @@ const CreateSubscriptionVendor = () => {
 
         <div>
           <label
+<<<<<<< HEAD
+=======
+            htmlFor="location"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Location
+          </label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value={values.location}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`input h-[46px] w-full ${
+              fieldErrors.location ? "border-red-500" : "border-gray-300"
+            }`}
+            aria-invalid={fieldErrors.location ? "true" : "false"}
+          />
+          {fieldErrors.location && (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.location}</p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="contactPhone"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Contact Phone
+          </label>
+          <input
+            type="tel"
+            id="contactPhone"
+            name="contactPhone"
+            value={values.contactPhone}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`input h-[46px] w-full ${
+              fieldErrors.contactPhone ? "border-red-500" : "border-gray-300"
+            }`}
+            aria-invalid={fieldErrors.contactPhone ? "true" : "false"}
+          />
+          {fieldErrors.contactPhone && (
+            <p className="text-red-500 text-xs mt-1">
+              {fieldErrors.contactPhone}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="contactEmail"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Contact Email
+          </label>
+          <input
+            type="email"
+            id="contactEmail"
+            name="contactEmail"
+            value={values.contactEmail}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`input h-[46px] w-full ${
+              fieldErrors.contactEmail ? "border-red-500" : "border-gray-300"
+            }`}
+            aria-invalid={fieldErrors.contactEmail ? "true" : "false"}
+          />
+          {fieldErrors.contactEmail && (
+            <p className="text-red-500 text-xs mt-1">
+              {fieldErrors.contactEmail}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
             htmlFor="description"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
@@ -204,6 +443,7 @@ const CreateSubscriptionVendor = () => {
           <textarea
             id="description"
             name="description"
+<<<<<<< HEAD
             value={values.description}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -212,6 +452,17 @@ const CreateSubscriptionVendor = () => {
             }`}
             aria-invalid={fieldErrors.description ? "true" : "false"}
           />
+=======
+            rows="4"
+            value={values.description}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`input w-full ${
+              fieldErrors.description ? "border-red-500" : "border-gray-300"
+            }`}
+            aria-invalid={fieldErrors.description ? "true" : "false"}
+          ></textarea>
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
           {fieldErrors.description && (
             <p className="text-red-500 text-xs mt-1">
               {fieldErrors.description}
@@ -220,6 +471,7 @@ const CreateSubscriptionVendor = () => {
         </div>
 
         <div>
+<<<<<<< HEAD
           <label
             htmlFor="contact_email"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -290,6 +542,106 @@ const CreateSubscriptionVendor = () => {
           {mediaFiles.length > 0 && (
             <p className="text-sm text-gray-600 mt-1">
               {mediaFiles.length} file(s) selected
+=======
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Vendor Image
+          </label>
+          <div
+            className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${
+              imageError || fieldErrors.vendorImage
+                ? "border-red-400"
+                : "border-gray-300"
+            } border-dashed rounded-md cursor-pointer hover:border-lily transition-colors`}
+            onClick={() => imageInputRef.current?.click()}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const mockEvent = { target: { files: e.dataTransfer.files } };
+                handleImageInputChange(mockEvent);
+              }
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <div className="space-y-1 text-center">
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Vendor Preview"
+                  className="mx-auto h-24 w-24 object-cover rounded-md"
+                />
+              ) : (
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+              <div className="flex text-sm text-gray-600">
+                <span className="relative rounded-md font-medium text-lily hover:text-lily-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-lily-dark">
+                  <span>{selectedFile ? "Change file" : "Upload a file"}</span>
+                  <input
+                    type="file"
+                    id="vendorImage"
+                    name="vendorImage"
+                    ref={imageInputRef}
+                    onChange={handleImageInputChange}
+                    accept={ALLOWED_EXTENSIONS.join(",")}
+                    className="sr-only"
+                  />
+                </span>
+                {!selectedFile && <p className="pl-1">or drag and drop</p>}
+              </div>
+              <p className="text-xs text-ash">
+                PNG, JPG, JPEG up to {MAX_FILE_SIZE_MB}MB
+              </p>
+            </div>
+          </div>
+
+          {selectedFile && !imageError && (
+            <div className="mt-2 text-sm text-gray-700 flex items-center justify-between">
+              <span className="truncate max-w-[calc(100%-4rem)]">
+                Selected: {selectedFile.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFile(null);
+                  setImagePreview(null);
+                  setImageError(null);
+                  if (imageInputRef.current) imageInputRef.current.value = "";
+                  setFieldErrors((prev) => {
+                    const newErrors = { ...prev };
+                    delete newErrors.vendorImage;
+                    return newErrors;
+                  });
+                }}
+                className="ml-2 text-xs text-red-600 hover:text-red-800 font-medium flex-shrink-0"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
+          {imageError && (
+            <p className="text-red-500 text-xs mt-1">{imageError}</p>
+          )}
+          {!imageError && fieldErrors.vendorImage && (
+            <p className="text-red-500 text-xs mt-1">
+              {fieldErrors.vendorImage}
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
             </p>
           )}
         </div>
@@ -301,7 +653,11 @@ const CreateSubscriptionVendor = () => {
         >
           {submissionStatus === "loading"
             ? "Creating Vendor..."
+<<<<<<< HEAD
             : "Create Food Vendor"}
+=======
+            : "Create Subscription Vendor"}
+>>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
         </button>
       </form>
     </section>

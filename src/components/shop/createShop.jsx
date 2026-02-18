@@ -101,7 +101,6 @@ const CreateShop = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
     // Validate on change if field has been touched
     if (touched[name]) {
       const error = validateField(name, value);
@@ -112,7 +111,6 @@ const CreateShop = () => {
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
-
     const error = validateField(name, value);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
@@ -124,7 +122,6 @@ const CreateShop = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
 
     const error = validateImage(file);
-
     if (error) {
       setErrors((prev) => ({ ...prev, image: error }));
       setImageFile(null);
@@ -163,7 +160,6 @@ const CreateShop = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
     Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
@@ -395,7 +391,6 @@ const CreateShop = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Shop Image *
           </label>
-
           {!imagePreview ? (
             <div
               className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
