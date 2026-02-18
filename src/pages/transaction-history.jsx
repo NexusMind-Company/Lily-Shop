@@ -1,10 +1,11 @@
-import TransactHistory from "../components/wallet/transactionHistory";
+import TransactionHistory from "../components/wallet/transactionHistory";
 import PageSEO from "../components/common/PageSEO";
-export default function TransactionHistory() {
+
+export default function TransactionHistoryPage() {
   return (
     <>
-      <PageSEO />
-      <TransactHistory />
+      <PageSEO title="Transaction History - Lily Shop" />
+      <TransactionHistory />
     </>
   );
 }

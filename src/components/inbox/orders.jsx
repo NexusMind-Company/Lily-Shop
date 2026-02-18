@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders } from "../../redux/orderSlice";
+import { fetchOrders, selectOrders, selectOrderLoading, selectOrderError } from "../../redux/orderSlice";
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import BottomNav from "./bottomNav";
 
 const Orders = () => {
   const dispatch = useDispatch();
-  const { orders, loading, error } = useSelector((state) => state.orders);
+  const orders = useSelector(selectOrders);
+  const loading = useSelector(selectOrderLoading);
+  const error = useSelector(selectOrderError);
 
   const [activePage, setActivePage] = useState("inbox");
 
@@ -53,7 +55,11 @@ const Orders = () => {
       <section className="p-4">
         {/* Loading and error states */}
         {loading && <p className="text-gray-500 text-center">Loading orders...</p>}
-        {error && <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-2 rounded-lg">{error}</p>}
+        {error && (
+          <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-2 rounded-lg">
+            {error}
+          </p>
+        )}
         {!loading && orders.length === 0 && !error && (
           <p className="text-gray-500 text-center text-lg">No orders found.</p>
         )}
