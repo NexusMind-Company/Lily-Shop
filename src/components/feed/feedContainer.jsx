@@ -6,6 +6,7 @@ import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 import FeedLoader from "../loaders/feedLoader";
 import { FiRefreshCw, FiWifi, FiWifiOff } from "react-icons/fi";
+import { motion } from "framer-motion";
 
 const FeedContainer = () => {
   const {
