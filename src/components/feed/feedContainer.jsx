@@ -287,7 +287,7 @@ const FeedContainer = () => {
 
         {/* Feed Items */}
         {posts.map((post, index) => (
-          <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
+          <div key={post.id} className="h-full w-full snap-start shrink-0">
             <FeedItem
               post={post}
               onVideoInit={handleVideoInit}
@@ -313,7 +313,7 @@ const FeedContainer = () => {
 
   return (
     <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
+      <div className="relative h-full w-full md:max-w-md lg:max-w-117.5 md:shadow-xl">
         {/* Top Navigation */}
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
