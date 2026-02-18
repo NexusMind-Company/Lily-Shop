@@ -89,6 +89,7 @@ const VendorsList = () => {
     queryKey: ["vendors"],
     queryFn: async () => {
       const response = await api.get("/foods/vendors/");
+      console.log(response.data);
       return response.data;
     },
   });

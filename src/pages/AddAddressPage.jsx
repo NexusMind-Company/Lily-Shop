@@ -1,7 +1,11 @@
 import AddAddress from "../components/address/addAddress";
+import PageSEO from "../components/common/PageSEO";
 
-const AddAddressPage = () => {
-  return <AddAddress />;
-};
-
-export default AddAddressPage;
+export default function AddAddressPage() {
+  return (
+    <>
+      <PageSEO title="Add Address - Lily Shop" />
+      <AddAddress />
+    </>
+  );
+}

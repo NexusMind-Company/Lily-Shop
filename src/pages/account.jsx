@@ -1,5 +1,5 @@
 import Acc from "../components/account/acc";
-const Account = () => {
+const AccountPage = () => {
   return (
     <>
       <Acc />
@@ -7,4 +7,4 @@ const Account = () => {
   );
 };
 
-export default Account;
+export default AccountPage;
