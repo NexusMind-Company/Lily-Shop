@@ -4,8 +4,8 @@ import TopNav from "./topNav";
 import BottomNav from "./bottomNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
-import FeedLoader from "../loaders/feedLoader";
-import { FiRefreshCw, FiWifi, FiWifiOff } from "react-icons/fi";
+import { FiRefreshCw, FiWifiOff } from "react-icons/fi";
+import { motion } from "framer-motion";
 
 const FeedContainer = () => {
   const {
@@ -60,7 +60,7 @@ const FeedContainer = () => {
               }
             });
             // Play current video
-            mediaElement.play().catch(() => { });
+            mediaElement.play().catch(() => {});
           } else {
             mediaElement.pause();
           }
@@ -183,8 +183,15 @@ const FeedContainer = () => {
   // RENDER CONTENT
   // ========================================
   const renderContent = () => {
+    // UPDATED: Use PostCardSkeleton instead of FeedLoader
     if (isLoading && posts.length === 0) {
-      return <FeedLoader />;
+      return (
+        <div className="h-full w-full overflow-hidden bg-black">
+          {[1, 2, 3].map((i) => (
+            <PostCardSkeleton key={i} />
+          ))}
+        </div>
+      );
     }
 
     if (error && posts.length === 0) {
@@ -251,8 +258,9 @@ const FeedContainer = () => {
           >
             <div className="bg-white rounded-full p-3 shadow-lg">
               <FiRefreshCw
-                className={`w-6 h-6 text-lily ${isRefreshing ? "animate-spin" : ""
-                  }`}
+                className={`w-6 h-6 text-lily ${
+                  isRefreshing ? "animate-spin" : ""
+                }`}
               />
             </div>
           </div>
@@ -270,14 +278,16 @@ const FeedContainer = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lily opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-lily"></span>
               </div>
-              <span className="text-[11px] text-white font-medium tracking-wide uppercase">Fresh finds coming in...</span>
+              <span className="text-[11px] text-white font-medium tracking-wide uppercase">
+                Fresh finds coming in...
+              </span>
             </motion.div>
           </div>
         )}
 
         {/* Feed Items */}
         {posts.map((post, index) => (
-          <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
+          <div key={post.id} className="h-full w-full snap-start shrink-0">
             <FeedItem
               post={post}
               onVideoInit={handleVideoInit}
@@ -286,15 +296,8 @@ const FeedContainer = () => {
           </div>
         ))}
 
-        {/* Loading More Indicator */}
-        {isFetchingNextPage && (
-          <div className="h-full w-full snap-start flex items-center justify-center bg-black">
-            <div className="text-white flex flex-col items-center gap-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              <p className="text-sm">Loading more posts...</p>
-            </div>
-          </div>
-        )}
+        {/* Loading More Indicator - UPDATED to use Skeleton */}
+        {isFetchingNextPage && <PostCardSkeleton />}
 
         {/* Infinite Scroll Trigger */}
         {hasNextPage && !isFetchingNextPage && (
@@ -304,29 +307,13 @@ const FeedContainer = () => {
             style={{ scrollSnapAlign: "none" }}
           />
         )}
-
-        {/* End of Feed */}
-        {/* {!hasNextPage && posts.length > 0 && (
-          <div className="h-full w-full snap-start flex items-center justify-center bg-black">
-            <div className="text-white text-center p-8">
-              <FiWifi className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm opacity-70">You're all caught up!</p>
-              <button
-                onClick={refreshFeed}
-                className="mt-4 px-6 py-2 bg-lily text-white rounded-full text-sm hover:bg-darklily transition-colors"
-              >
-                Refresh Feed
-              </button>
-            </div>
-          </div>
-        )} */}
       </div>
     );
   };
 
   return (
     <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-md lg:max-w-[470px] md:shadow-xl">
+      <div className="relative h-full w-full md:max-w-md lg:max-w-117.5 md:shadow-xl">
         {/* Top Navigation */}
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
