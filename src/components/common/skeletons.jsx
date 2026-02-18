@@ -1,7 +1,7 @@
 import React from "react";
 
 export const PostCardSkeleton = () => (
-  <div className="relative w-full h-[85vh] bg-black snap-start flex-shrink-0">
+  <div className="relative w-full h-[98vh] bg-black snap-start flex-shrink-0">
     <div className="skeleton-post-media"></div>
     {/* CHANGED: z-20 -> z-[5] to sit below Nav bars */}
     <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-[5]">
