@@ -228,6 +228,9 @@ const App = () => {
             {/* Content Creation */}
             <Route path="/createContent" element={<CreateContentPage />} />
 
+            {/* Food  */}
+            <Route path="/food" element={<VendorsList />} />
+
             {/* Inbox & Social */}
             <Route path="/inbox" element={<InboxPage />} />
             <Route path="/messages" element={<Messages />} />
