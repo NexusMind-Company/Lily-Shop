@@ -5,14 +5,9 @@ import PropTypes from "prop-types";
  * VendorHero component displaying vendor profile and basic info
  * @param {Object} props - Component props
  * @param {Object} props.vendor - Vendor data
-<<<<<<< HEAD
  * @param {Array} props.reviews - Array of vendor reviews
  */
 const VendorHero = ({ vendor, reviews = [] }) => {
-=======
- */
-const VendorHero = ({ vendor }) => {
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
   if (!vendor) return null;
 
   return (
@@ -25,11 +20,7 @@ const VendorHero = ({ vendor }) => {
               className="bg-center bg-no-repeat bg-cover rounded-2xl h-24 w-24 shadow-sm"
               style={{
                 backgroundImage: `url("${
-<<<<<<< HEAD
                   vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg"
-=======
-                  vendor.image || "https://via.placeholder.com/96"
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
                 }")`,
               }}
               alt={`${vendor.name} profile`}
@@ -47,14 +38,11 @@ const VendorHero = ({ vendor }) => {
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
               {vendor.cuisine} • {vendor.location}
             </p>
-<<<<<<< HEAD
             {vendor.phone && (
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
                 Phone: {vendor.phone}
               </p>
             )}
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
             <div className="flex items-center gap-1.5 mt-2">
               <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
                 {vendor.rating} <Star className="text-[12px] ml-0.5" />
@@ -68,7 +56,6 @@ const VendorHero = ({ vendor }) => {
         <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
           {vendor.description}
         </p>
-<<<<<<< HEAD
 
         {/* Reviews Section */}
         {reviews.length > 0 && (
@@ -117,8 +104,6 @@ const VendorHero = ({ vendor }) => {
             )}
           </div>
         )}
-=======
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
       </div>
     </div>
   );
@@ -134,7 +119,6 @@ VendorHero.propTypes = {
     rating: PropTypes.number,
     reviewCount: PropTypes.string,
     description: PropTypes.string,
-<<<<<<< HEAD
     phone: PropTypes.string,
   }),
   reviews: PropTypes.arrayOf(
@@ -146,9 +130,6 @@ VendorHero.propTypes = {
       created_at: PropTypes.string.isRequired,
     })
   ),
-=======
-  }),
->>>>>>> b81ff230c3e51c31ac845258bb381bae56316d46
 };
 
 export default VendorHero;
