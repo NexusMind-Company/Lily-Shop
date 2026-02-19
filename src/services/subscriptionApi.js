@@ -10,10 +10,13 @@ import {
   fetchMealPlansByVendor as apiFetchMealPlansByVendor,
   fetchMealsByVendor as apiFetchMealsByVendor,
   fetchFoodVendor,
+  fetchAllFoodVendors,
   fetchMealPlan,
   subscribeToPlan,
   unsubscribeFromPlan,
   createSubscriptionPlan,
+  updateSubscriptionPlan,
+  partialUpdateSubscriptionPlan,
   deleteMealPlan,
   deleteMeal,
   updateReview,
@@ -78,12 +81,42 @@ export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
  * @param {string} vendorId - The vendor's unique ID
  * @returns {Promise<Object>} Vendor details object
  */
+export const fetchAllVendors = async (params = {}) => {
+  try {
+    const data = await fetchAllFoodVendors(params);
+    return data;
+  } catch (error) {
+    console.error("Error fetching all food vendors:", error);
+    throw error;
+  }
+};
+
 export const fetchVendorDetails = async (vendorId) => {
   try {
     const data = await fetchFoodVendor(vendorId);
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
+    throw error;
+  }
+};
+
+export const updatePlan = async (planId, planData) => {
+  try {
+    const data = await updateSubscriptionPlan(planId, planData);
+    return data;
+  } catch (error) {
+    console.error("Error updating subscription plan:", error);
+    throw error;
+  }
+};
+
+export const partialUpdatePlan = async (planId, planData) => {
+  try {
+    const data = await partialUpdateSubscriptionPlan(planId, planData);
+    return data;
+  } catch (error) {
+    console.error("Error partially updating subscription plan:", error);
     throw error;
   }
 };
@@ -116,12 +149,11 @@ export const fetchVendorSubscriptionPlans = async (
   { page = 1, page_size = 10 } = {},
 ) => {
   try {
-    const data = await apiFetchVendorSubscriptionPlans({
-      vendorId,
+    const data = await apiFetchVendorSubscriptionPlans(vendorId, {
       page,
       page_size,
     });
-    console.log("📊 API fetchVendorSubscriptionPlans response:", data);
+    console.log(" API fetchVendorSubscriptionPlans response:", data);
     return data;
   } catch (error) {
     console.error("Error fetching vendor subscription plans:", error);
@@ -159,7 +191,7 @@ export const fetchCustomerSubscriptions = async (customerId) => {
 export const createMealPlan = async (mealPlanData) => {
   try {
     const data = await createSubscriptionPlan(mealPlanData);
-    console.log("📊 API createMealPlan response:", data);
+    console.log(" API createMealPlan response:", data);
     return data;
   } catch (error) {
     console.error("Error creating meal plan:", error.response?.data || error);
@@ -371,6 +403,7 @@ export const deleteVendorReview = async (reviewId) => {
 export const fetchReviewsForVendor = async (vendorId) => {
   try {
     const data = await fetchVendorReviews(vendorId);
+    console.log(" API fetchReviewsForVendor response:", data);
     return data;
   } catch (error) {
     console.error("Error fetching vendor reviews:", error);
