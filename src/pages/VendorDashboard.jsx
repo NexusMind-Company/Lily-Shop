@@ -23,11 +23,11 @@ const VendorDashboard = ({ vendorId }) => {
   // ✅ vendorId resolves AFTER redux hydrates
   console.log("📋 VendorDashboard received props:", vendorId);
   console.log("📋 Profile data from Redux:", profileData);
-  
+
   const vendorIdForApi = vendorId ?? profileData?.user?.vendor_id;
   console.log("📋 vendorIdForApi value:", vendorIdForApi);
   console.log("📋 vendorIdForApi type:", typeof vendorIdForApi);
-  
+
   // Ensure vendorId is always a string
   const validVendorId =
     typeof vendorIdForApi === "string" ? vendorIdForApi : null;
@@ -42,12 +42,9 @@ const VendorDashboard = ({ vendorId }) => {
   } = useQuery({
     queryKey: ["subscriptionStats", validVendorId],
     queryFn: async () => {
-      console.log(
-        "📊 Fetching subscription stats with vendorId:",
-        validVendorId,
-      );
+      console.log(" Fetching subscription stats with vendorId:", validVendorId);
       const result = await fetchSubscriptionStats(validVendorId);
-      console.log("📊 Subscription stats result:", result);
+      console.log(" Subscription stats result:", result);
       return result;
     },
     enabled: Boolean(validVendorId),
@@ -68,7 +65,7 @@ const VendorDashboard = ({ vendorId }) => {
         page: 1,
         page_size: 10,
       });
-      console.log("📊 Vendor subscription plans result:", result);
+      console.log(" Vendor subscription plans result:", result);
       return result;
     },
     enabled: Boolean(validVendorId),
@@ -88,7 +85,7 @@ const VendorDashboard = ({ vendorId }) => {
         verified: profileData.user.verified,
       }
     : null;
-  console.log("📊 VendorDashboard statsRaw:", statsRaw);
+  console.log(" VendorDashboard statsRaw:", statsRaw);
   const stats = statsRaw
     ? {
         activeSubs: Number(statsRaw.activeSubs ?? 0),
