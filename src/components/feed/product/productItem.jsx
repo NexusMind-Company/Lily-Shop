@@ -108,17 +108,20 @@ const ProductItem = ({ product }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-  const mediaArray = Array.isArray(product?.media)
-    ? product.media
-    : product?.media
+  // --- FIXED: Robust Media Handling (Matches FeedItem) ---
+  const rawMedia = product.media || product.media_url || product.image_url;
+
+  const mediaArray = Array.isArray(rawMedia)
+    ? rawMedia
+    : rawMedia
     ? [
         {
-          src: product.media,
+          src: rawMedia,
           type:
-            typeof product.media === "string" &&
-            (product.media.endsWith(".mp4") ||
-              product.media.endsWith(".mov") ||
-              product.media.endsWith(".webm"))
+            typeof rawMedia === "string" &&
+            (rawMedia.endsWith(".mp4") ||
+              rawMedia.endsWith(".mov") ||
+              rawMedia.endsWith(".webm"))
               ? "video"
               : "image",
         },

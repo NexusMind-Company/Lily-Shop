@@ -1,7 +1,7 @@
 import CartPage from "../components/feed/cart/cartPage";
 
 const CheckoutPage = () => {
-  <CartPage />
-}
+  return <CartPage />;
+};
 
 export default CheckoutPage;
