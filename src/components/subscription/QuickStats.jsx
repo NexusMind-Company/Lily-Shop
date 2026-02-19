@@ -64,7 +64,7 @@ const QuickStats = ({ stats }) => {
 QuickStats.propTypes = {
   stats: PropTypes.shape({
     activeSubs: PropTypes.number.isRequired,
-    revenue: PropTypes.string.isRequired,
+    revenue: PropTypes.number.isRequired,
     pending: PropTypes.number.isRequired,
   }),
 };

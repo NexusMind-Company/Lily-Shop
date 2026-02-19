@@ -21,8 +21,17 @@ const VendorDashboard = ({ vendorId }) => {
   const { data: profileData } = useSelector((state) => state.profile);
 
   // ✅ vendorId resolves AFTER redux hydrates
+  console.log("📋 VendorDashboard received props:", vendorId);
+  console.log("📋 Profile data from Redux:", profileData);
+
   const vendorIdForApi = vendorId ?? profileData?.user?.vendor_id;
-  
+  console.log("📋 vendorIdForApi value:", vendorIdForApi);
+  console.log("📋 vendorIdForApi type:", typeof vendorIdForApi);
+
+  // Ensure vendorId is always a string
+  const validVendorId =
+    typeof vendorIdForApi === "string" ? vendorIdForApi : null;
+  console.log("📋 validVendorId:", validVendorId);
 
   // ---------------- Queries ----------------
 
@@ -31,14 +40,14 @@ const VendorDashboard = ({ vendorId }) => {
     isFetching: statsFetching,
     error: statsError,
   } = useQuery({
-    queryKey: ["subscriptionStats", vendorIdForApi],
+    queryKey: ["subscriptionStats", validVendorId],
     queryFn: async () => {
-      console.log("📊 Fetching subscription stats with vendorId:", vendorIdForApi);
-      const result = await fetchSubscriptionStats(vendorIdForApi);
-      console.log("📊 Subscription stats result:", result);
+      console.log(" Fetching subscription stats with vendorId:", validVendorId);
+      const result = await fetchSubscriptionStats(validVendorId);
+      console.log(" Subscription stats result:", result);
       return result;
     },
-    enabled: Boolean(vendorIdForApi),
+    enabled: Boolean(validVendorId),
   });
 
   const {
@@ -46,20 +55,20 @@ const VendorDashboard = ({ vendorId }) => {
     isFetching: subscriptionsFetching,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: ["vendorSubscriptionPlans", vendorIdForApi],
+    queryKey: ["vendorSubscriptionPlans", validVendorId],
     queryFn: async () => {
       console.log(
         "🔍 Fetching vendor subscription plans with vendorId:",
-        vendorIdForApi,
+        validVendorId,
       );
-      const result = await fetchVendorSubscriptionPlans(vendorIdForApi, {
+      const result = await fetchVendorSubscriptionPlans(validVendorId, {
         page: 1,
         page_size: 10,
       });
-      console.log("📊 Vendor subscription plans result:", result);
+      console.log(" Vendor subscription plans result:", result);
       return result;
     },
-    enabled: Boolean(vendorIdForApi),
+    enabled: Boolean(validVendorId),
   });
 
   // Extract results from paginated response
@@ -76,7 +85,7 @@ const VendorDashboard = ({ vendorId }) => {
         verified: profileData.user.verified,
       }
     : null;
-  console.log("📊 VendorDashboard statsRaw:", statsRaw);
+  console.log(" VendorDashboard statsRaw:", statsRaw);
   const stats = statsRaw
     ? {
         activeSubs: Number(statsRaw.activeSubs ?? 0),

@@ -6,8 +6,9 @@ import MenuItem from "./MenuItem";
  * @param {Object} props - Component props
  * @param {Array} props.menuItems - Array of menu items
  * @param {Function} props.onViewAll - Function to handle view all action
+ * @param {Function} props.onMealClick - Function to handle meal click
  */
-const MenuPreview = ({ menuItems, onViewAll }) => {
+const MenuPreview = ({ menuItems, onViewAll, onMealClick }) => {
   return (
     <div className="mt-4 pb-8">
       <div className="flex items-center justify-between px-4 mb-4">
@@ -24,7 +25,13 @@ const MenuPreview = ({ menuItems, onViewAll }) => {
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
         {menuItems && menuItems.length > 0 ? (
-          menuItems.map((item) => <MenuItem key={item.id} item={item} />)
+          menuItems.map((item, index) => (
+            <MenuItem 
+              key={index} 
+              item={item} 
+              onClick={() => onMealClick(item)} 
+            />
+          ))
         ) : (
           <p className="text-slate-500 dark:text-slate-400 text-center py-8">
             No menu items available
@@ -36,16 +43,9 @@ const MenuPreview = ({ menuItems, onViewAll }) => {
 };
 
 MenuPreview.propTypes = {
-  menuItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.string,
-      days: PropTypes.string,
-      isSnack: PropTypes.bool,
-    })
-  ),
+  menuItems: PropTypes.array,
   onViewAll: PropTypes.func.isRequired,
+  onMealClick: PropTypes.func.isRequired,
 };
 
 export default MenuPreview;

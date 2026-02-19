@@ -134,6 +134,7 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   },
 );
@@ -466,16 +467,26 @@ export const resumeSubscription = async (subscriptionId) => {
 
 // --- SUBSCRIPTION FETCHING ENDPOINTS ---
 export const fetchSubscriptionStats = async (vendorId) => {
-  const response = await api.get(`/foods/subscriptions/vendor/${vendorId}/`);
-  const subscriptions = response.data.results || response.data;
-  return {
-    activeSubs: subscriptions.filter((sub) => sub.status === "active").length,
-    revenue: subscriptions
-      .filter((sub) => sub.status === "active")
-      .reduce((sum, sub) => sum + parseFloat(sub.price || 0), 0)
-      .toFixed(2),
-    pending: subscriptions.filter((sub) => sub.status === "pending").length,
-  };
+  // Validate vendorId is a string
+  if (!vendorId || typeof vendorId !== "string") {
+    console.error("❌ fetchSubscriptionStats: vendorId must be a valid string");
+    return { activeSubs: 0, revenue: 0, pending: 0 }; // Return default stats
+  }
+
+  try {
+    const response = await api.get(`/foods/subscriptions/vendor/`);
+    const subscriptions = response.data.results || response.data;
+    return {
+      activeSubs: subscriptions.filter((sub) => sub.status === "active").length,
+      revenue: subscriptions
+        .filter((sub) => sub.status === "active")
+        .reduce((sum, sub) => sum + parseFloat(sub.price || 0), 0),
+      pending: subscriptions.filter((sub) => sub.status === "pending").length,
+    };
+  } catch (error) {
+    console.error("❌ API Error fetching subscription stats:", error);
+    return { activeSubs: 0, revenue: 0, pending: 0 }; // Return default stats on error
+  }
 };
 
 export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
@@ -495,14 +506,32 @@ export const fetchVendorSubscriptionPlans = async (
   vendorId,
   { page = 1, page_size = 10 } = {},
 ) => {
-  const response = await api.get(
-    `/foods/subscriptions/vendors/${vendorId}/plans/`,
-    {
-      params: { page, page_size },
-    },
+  // Validate vendorId is a string
+  console.log("📡 fetchVendorSubscriptionPlans received vendorId:", vendorId);
+  console.log(
+    "📡 fetchVendorSubscriptionPlans vendorId type:",
+    typeof vendorId,
   );
-  console.log("📊 API fetchVendorSubscriptionPlans response:", response.data);
-  return response.data;
+  if (!vendorId || typeof vendorId !== "string") {
+    console.error(
+      "❌ fetchVendorSubscriptionPlans: vendorId must be a valid string",
+    );
+    return { results: [] }; // Return empty results to avoid errors
+  }
+
+  try {
+    const response = await api.get(
+      `/foods/subscriptions/vendors/${vendorId}/plans/`,
+      {
+        params: { page, page_size },
+      },
+    );
+    console.log(" API fetchVendorSubscriptionPlans response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ API Error fetching vendor subscription plans:", error);
+    return { results: [] }; // Return empty results on error
+  }
 };
 
 export const fetchCustomerSubscriptions = async () => {
@@ -513,19 +542,32 @@ export const fetchCustomerSubscriptions = async () => {
 // --- FOODS (Meals & Meal Plans) ---
 export const fetchMealsByVendor = async (vendorId) => {
   const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
+  console.log(" API fetchMealsByVendor response:", response.data);
   return response.data;
 };
 
-export const fetchMealPlansByVendor = async () => {
-  if (!vendorId) throw new Error("vendorId is required");
-  const response = await api.get(`/foods/subscriptions/vendor/`);
-  console.log("📊 API fetchMealPlansByVendor response:", response.data);
-  return response.data.menus || [];
+export const fetchMealPlansByVendor = async (vendorId) => {
+  if (!vendorId) {
+    console.error("fetchMealPlansByVendor: vendorId is required");
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+
+  try {
+    const response = await api.get(
+      `/foods/subscriptions/vendors/${vendorId}/plans/`,
+    );
+    console.log(" API fetchMealPlansByVendor response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching meal plans by vendor:", error);
+    // Return empty data structure to prevent page failure
+    return { count: 0, next: null, previous: null, results: [] };
+  }
 };
 
 export const createMealPlan = async (mealPlanData) => {
   const response = await api.post("/foods/subscriptions/create/", mealPlanData);
-  console.log("📊 API createMealPlan response:", response.data);
+  console.log(" API createMealPlan response:", response.data);
   return response.data;
 };
 
@@ -562,6 +604,95 @@ export const createFoodVendor = async (vendorData) => {
 
 export const fetchFoodVendor = async (vendorId) => {
   const response = await api.get(`/foods/food-vendors/${vendorId}/`);
+  console.log(" API fetchFoodVendor response:", response.data);
+  return response.data;
+};
+
+export const fetchAllFoodVendors = async (params = {}) => {
+  const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const updateSubscriptionPlan = async (planId, planData) => {
+  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+    planData;
+
+  // Validate required fields
+  if (!plan_name || !price) {
+    throw new Error("Plan name and price are required");
+  }
+
+  const formData = new FormData();
+  formData.append("plan_name", plan_name);
+  formData.append("price", price.toString());
+
+  if (trial_days !== undefined && trial_days !== null) {
+    formData.append("trial_days", trial_days.toString());
+  }
+
+  if (description !== undefined && description !== null) {
+    formData.append("description", description);
+  }
+
+  if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
+    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  }
+
+  if (media && Array.isArray(media)) {
+    media.forEach((file) => {
+      formData.append("media", file);
+    });
+  } else if (media) {
+    formData.append("media", media);
+  }
+
+  const response = await api.put(
+    `/foods/subscriptions/${planId}/update/`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const partialUpdateSubscriptionPlan = async (planId, planData) => {
+  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+    planData;
+
+  const formData = new FormData();
+
+  if (plan_name) formData.append("plan_name", plan_name);
+  if (price !== undefined && price !== null)
+    formData.append("price", price.toString());
+  if (trial_days !== undefined && trial_days !== null)
+    formData.append("trial_days", trial_days.toString());
+  if (description !== undefined && description !== null)
+    formData.append("description", description);
+  if (meal_per_cycle !== undefined && meal_per_cycle !== null)
+    formData.append("meal_per_cycle", meal_per_cycle.toString());
+
+  if (media && Array.isArray(media)) {
+    media.forEach((file) => {
+      formData.append("media", file);
+    });
+  } else if (media) {
+    formData.append("media", media);
+  }
+
+  const response = await api.patch(
+    `/foods/subscriptions/${planId}/update/`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
   return response.data;
 };
 
