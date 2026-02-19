@@ -20,12 +20,24 @@ const ProfileVisiting = () => {
   const [followLoading, setFollowLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { username } = useParams();
+  
+  // FIX: Destructure both potential parameter names
+  const { userId, username } = useParams();
+  // Use whichever parameter is present in the URL
+  const profileIdentifier = userId || username;
+
   const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Guard clause: if no ID/username found, don't attempt fetch
+    if (!profileIdentifier) return;
+
     if (user_data) {
-      if (String(user_data.id) === String(username) || user_data.username === username) {
+      // Check if visiting own profile (comparing both ID and Username)
+      if (
+        String(user_data.id) === String(profileIdentifier) || 
+        user_data.username === profileIdentifier
+      ) {
         navigate("/profile");
         return;
       }
@@ -34,7 +46,8 @@ const ProfileVisiting = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const result = await fetchPublicProfile(username);
+        // Pass the resolved identifier to the API
+        const result = await fetchPublicProfile(profileIdentifier);
         
         const normalizedData = {
           user: {
@@ -61,8 +74,8 @@ const ProfileVisiting = () => {
       }
     };
 
-    if (username) loadData();
-  }, [username, user_data, navigate]);
+    loadData();
+  }, [profileIdentifier, user_data, navigate]);
 
   const handleFollow = async () => {
     if (!data?.user?.username || followLoading) return;

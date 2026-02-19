@@ -23,7 +23,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
 
   useEffect(() => {
-    // console.log("FeedItem Post Data:", post);
     if (!post.user_id && !post.userId) {
       // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
@@ -55,9 +54,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  
+  // FIX: Ensure boolean conversion handles string "true"/"false" from backend
   const [isLiked, setIsLiked] = useState(
     post.is_liked === true || post.is_liked === "true"
   );
+  
   const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
 
   const [likeCount, setLikeCount] = useState(
@@ -113,29 +115,36 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
+      
+      // OPTIMISTIC UPDATE: Instantly toggle state
       const previousIsLiked = isLiked;
       const previousLikeCount = likeCount;
 
-      setIsLiked(!previousIsLiked);
-      setLikeCount(
-        !previousIsLiked
-          ? previousLikeCount + 1
-          : Math.max(0, previousLikeCount - 1)
+      const newIsLiked = !previousIsLiked;
+      setIsLiked(newIsLiked);
+      
+      // Adjust count based on new state
+      setLikeCount((prev) => 
+        newIsLiked ? prev + 1 : Math.max(0, prev - 1)
       );
 
       return { previousIsLiked, previousLikeCount };
     },
     onSuccess: (data) => {
-      if (data && data.message) {
-        const msg = data.message.toLowerCase();
-        if (msg.includes("unliked")) {
-          setIsLiked(false);
-        } else if (msg.includes("liked")) {
-          setIsLiked(true);
-        }
+      // Backend might return the REAL count or status
+      // If your backend returns { liked: true, likes_count: 123 }, update it here.
+      // For now, we trust the optimistic update unless data specifically overrides it.
+      
+      if (data && typeof data.liked !== 'undefined') {
+         setIsLiked(data.liked);
+      }
+      
+      if (data && typeof data.likes_count !== 'undefined') {
+         setLikeCount(data.likes_count);
       }
     },
     onError: (err, variables, context) => {
+      // ROLLBACK on error
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
@@ -254,7 +263,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       </AnimatePresence>
 
       {/* Content Overlay */}
-      <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-4 text-white z-5 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
 
