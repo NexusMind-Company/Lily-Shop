@@ -526,7 +526,7 @@ export const fetchVendorSubscriptionPlans = async (
         params: { page, page_size },
       },
     );
-    console.log("📊 API fetchVendorSubscriptionPlans response:", response.data);
+    console.log(" API fetchVendorSubscriptionPlans response:", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ API Error fetching vendor subscription plans:", error);
@@ -542,19 +542,32 @@ export const fetchCustomerSubscriptions = async () => {
 // --- FOODS (Meals & Meal Plans) ---
 export const fetchMealsByVendor = async (vendorId) => {
   const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
+  console.log(" API fetchMealsByVendor response:", response.data);
   return response.data;
 };
 
-export const fetchMealPlansByVendor = async () => {
-  if (!vendorId) throw new Error("vendorId is required");
-  const response = await api.get(`/foods/subscriptions/vendor/`);
-  console.log("📊 API fetchMealPlansByVendor response:", response.data);
-  return response.data.menus || [];
+export const fetchMealPlansByVendor = async (vendorId) => {
+  if (!vendorId) {
+    console.error("fetchMealPlansByVendor: vendorId is required");
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+
+  try {
+    const response = await api.get(
+      `/foods/subscriptions/vendors/${vendorId}/plans/`,
+    );
+    console.log(" API fetchMealPlansByVendor response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching meal plans by vendor:", error);
+    // Return empty data structure to prevent page failure
+    return { count: 0, next: null, previous: null, results: [] };
+  }
 };
 
 export const createMealPlan = async (mealPlanData) => {
   const response = await api.post("/foods/subscriptions/create/", mealPlanData);
-  console.log("📊 API createMealPlan response:", response.data);
+  console.log(" API createMealPlan response:", response.data);
   return response.data;
 };
 
@@ -591,7 +604,7 @@ export const createFoodVendor = async (vendorData) => {
 
 export const fetchFoodVendor = async (vendorId) => {
   const response = await api.get(`/foods/food-vendors/${vendorId}/`);
-  console.log("📊 API fetchFoodVendor response:", response.data);
+  console.log(" API fetchFoodVendor response:", response.data);
   return response.data;
 };
 
