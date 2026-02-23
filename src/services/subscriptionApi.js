@@ -1,0 +1,532 @@
+import {
+  fetchPublicProfile,
+  fetchSubscriptionStats as apiFetchSubscriptionStats,
+  fetchRecentSubscriptions as apiFetchRecentSubscriptions,
+  fetchAllSubscriptions as apiFetchAllSubscriptions,
+  fetchCustomerSubscriptions as apiFetchCustomerSubscriptions,
+  fetchVendorSubscriptionPlans as apiFetchVendorSubscriptionPlans,
+  createMealPlan as apiCreateMealPlan,
+  createMeal as apiCreateMeal,
+  fetchMealPlansByVendor as apiFetchMealPlansByVendor,
+  fetchMealsByVendor as apiFetchMealsByVendor,
+  fetchFoodVendor,
+  fetchAllFoodVendors,
+  fetchMealPlan,
+  subscribeToPlan,
+  unsubscribeFromPlan,
+  createSubscriptionPlan,
+  updateSubscriptionPlan,
+  partialUpdateSubscriptionPlan,
+  deleteMealPlan,
+  deleteMeal,
+  updateReview,
+  partialUpdateReview,
+  deleteReview,
+  fetchVendorReviews,
+  createVendorReview,
+  deleteVendorProfile,
+  fetchSubscribedVendors,
+  fetchVendorSubscriptions,
+  api,
+} from "./api";
+
+/**
+ * Fetch vendor profile by vendor ID
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Object>} Vendor profile data
+ */
+export const fetchVendorProfile = async (vendorId) => {
+  try {
+    const data = await fetchPublicProfile(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch subscription statistics for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Object>} Stats object with activeSubs, revenue, pending
+ */
+export const fetchSubscriptionStats = async (vendorId) => {
+  try {
+    const data = await apiFetchSubscriptionStats(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscription stats:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch recent subscriptions for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @param {number} limit - Number of recent subscriptions to fetch (default 5)
+ * @returns {Promise<Array>} Array of recent subscription objects
+ */
+export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
+  try {
+    const data = await apiFetchRecentSubscriptions(vendorId, limit);
+    return data;
+  } catch (error) {
+    console.error("Error fetching recent subscriptions:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch vendor details for subscription page
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Object>} Vendor details object
+ */
+export const fetchAllVendors = async (params = {}) => {
+  try {
+    const data = await fetchAllFoodVendors(params);
+    return data;
+  } catch (error) {
+    console.error("Error fetching all food vendors:", error);
+    throw error;
+  }
+};
+
+export const fetchVendorDetails = async (vendorId) => {
+  try {
+    const data = await fetchFoodVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor details:", error);
+    throw error;
+  }
+};
+
+export const updatePlan = async (planId, planData) => {
+  try {
+    const data = await updateSubscriptionPlan(planId, planData);
+    return data;
+  } catch (error) {
+    console.error("Error updating subscription plan:", error);
+    throw error;
+  }
+};
+
+export const partialUpdatePlan = async (planId, planData) => {
+  try {
+    const data = await partialUpdateSubscriptionPlan(planId, planData);
+    return data;
+  } catch (error) {
+    console.error("Error partially updating subscription plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch all subscriptions for a vendor (for overview page)
+ * @param {string} vendorId - The vendor's unique ID (would come from auth context)
+ * @returns {Promise<Array>} Array of all subscription objects
+ */
+export const fetchAllSubscriptions = async (vendorId) => {
+  try {
+    const data = await apiFetchAllSubscriptions(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching all subscriptions:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch vendor subscription plans with pagination
+ * @param {string} vendorId - The vendor's unique ID
+ * @param {Object} params - Pagination parameters
+ * @param {number} params.page - Page number (default 1)
+ * @param {number} params.page_size - Number of results per page (default 10)
+ * @returns {Promise<Object>} Paginated response with count, next, previous, and results
+ */
+export const fetchVendorSubscriptionPlans = async (
+  vendorId,
+  { page = 1, page_size = 10 } = {},
+) => {
+  try {
+    const data = await apiFetchVendorSubscriptionPlans(vendorId, {
+      page,
+      page_size,
+    });
+    console.log(" API fetchVendorSubscriptionPlans response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor subscription plans:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch customer subscriptions (for customer view)
+ * @param {string} customerId - The customer's unique ID (would come from auth context)
+ * @returns {Promise<Array>} Array of customer subscription objects
+ */
+export const fetchCustomerSubscriptions = async (customerId) => {
+  try {
+    const data = await apiFetchCustomerSubscriptions();
+
+    if (!data) {
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching customer subscriptions:", error);
+    throw error instanceof Error
+      ? error
+      : new Error("Failed to fetch subscriptions");
+  }
+};
+
+/**
+ * Create a meal plan
+ * @param {Object} mealPlanData - The meal plan data with optional media file
+ * @returns {Promise<Object>} Created meal plan data
+ */
+export const createMealPlan = async (mealPlanData) => {
+  try {
+    const data = await createSubscriptionPlan(mealPlanData);
+    console.log(" API createMealPlan response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error creating meal plan:", error.response?.data || error);
+    throw error;
+  }
+};
+/**
+ * Create a meal
+ * @param {string} vendorId - The vendor's unique ID (not used, for consistency)
+ * @param {Object} mealData - The meal data
+ * @returns {Promise<Object>} Created meal data
+ */
+export const createMeal = async (vendorId, mealData) => {
+  try {
+    const data = await apiCreateMeal(mealData);
+    return data;
+  } catch (error) {
+    console.error("Error creating meal:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch meal plans for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Array>} Array of meal plan objects
+ */
+export const fetchMealPlans = async (vendorId) => {
+  try {
+    const data = await apiFetchMealPlansByVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching meal plans:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch available meals for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Array>} Array of meal objects
+ */
+export const fetchAvailableMeals = async (vendorId) => {
+  try {
+    const data = await apiFetchMealsByVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching available meals:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch food vendor details
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Object>} Vendor details object
+ */
+export const fetchFoodVendorDetails = async (vendorId) => {
+  try {
+    const data = await fetchFoodVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching food vendor details:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch meal plan details
+ * @param {string} mealPlanId - The meal plan's unique ID
+ * @returns {Promise<Object>} Meal plan details object
+ */
+export const fetchMealPlanDetails = async (mealPlanId) => {
+  try {
+    const data = await fetchMealPlan(mealPlanId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching meal plan details:", error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to a meal plan
+ * @returns {Promise<Object>} Subscription result
+ */
+export const subscribeToMealPlan = async () => {
+  try {
+    const data = await subscribeToPlan();
+    return data;
+  } catch (error) {
+    console.error("Error subscribing to meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Unsubscribe from a meal plan
+ * @param {string} planId - The plan's unique ID
+ * @returns {Promise<Object>} Unsubscription result
+ */
+export const unsubscribeFromMealPlan = async (planId) => {
+  try {
+    const data = await unsubscribeFromPlan(planId);
+    return data;
+  } catch (error) {
+    console.error("Error unsubscribing from meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a subscription plan
+ * @param {Object} planData - The plan data
+ * @returns {Promise<Object>} Created plan object
+ */
+export const createVendorSubscriptionPlan = async (planData) => {
+  try {
+    const data = await createSubscriptionPlan(planData);
+    return data;
+  } catch (error) {
+    console.error("Error creating subscription plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a meal plan
+ * @param {string} mealPlanId - The meal plan ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteVendorMealPlan = async (mealPlanId) => {
+  try {
+    const data = await deleteMealPlan(mealPlanId);
+    return data;
+  } catch (error) {
+    console.error("Error deleting meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a meal
+ * @param {string} mealId - The meal ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteVendorMeal = async (mealId) => {
+  try {
+    const data = await deleteMeal(mealId);
+    return data;
+  } catch (error) {
+    console.error("Error deleting meal:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update a review
+ * @param {string} reviewId - The review ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Updated review
+ */
+export const updateVendorReview = async (reviewId, reviewData) => {
+  try {
+    const data = await updateReview(reviewId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error updating review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Partially update a review
+ * @param {string} reviewId - The review ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Updated review
+ */
+export const partialUpdateVendorReview = async (reviewId, reviewData) => {
+  try {
+    const data = await partialUpdateReview(reviewId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error partially updating review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a review
+ * @param {string} reviewId - The review ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteVendorReview = async (reviewId) => {
+  try {
+    const data = await deleteReview(reviewId);
+    return data;
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch reviews for a vendor
+ * @param {string} vendorId - The vendor ID
+ * @returns {Promise<Array>} Array of reviews
+ */
+export const fetchReviewsForVendor = async (vendorId) => {
+  try {
+    const data = await fetchVendorReviews(vendorId);
+    console.log(" API fetchReviewsForVendor response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor reviews:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a review for a vendor
+ * @param {string} vendorId - The vendor ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Created review
+ */
+export const createReviewForVendor = async (vendorId, reviewData) => {
+  try {
+    const data = await createVendorReview(vendorId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error creating vendor review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete the authenticated user's vendor profile
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteUserVendorProfile = async () => {
+  try {
+    const data = await deleteVendorProfile();
+    return data;
+  } catch (error) {
+    console.error("Error deleting vendor profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch vendors the user is subscribed to
+ * @returns {Promise<Array>} Array of subscribed vendors
+ */
+export const fetchUserSubscribedVendors = async () => {
+  try {
+    const data = await fetchSubscribedVendors();
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscribed vendors:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch subscriptions to a specific vendor
+ * @param {string} vendorId - The vendor ID
+ * @returns {Promise<Array>} Array of subscriptions
+ */
+export const fetchSubscriptionsToVendor = async (vendorId) => {
+  try {
+    const data = await fetchVendorSubscriptions(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscriptions to vendor:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update a meal plan
+ * @param {string} id - The meal plan ID
+ * @param {Object} payload - The meal plan data with optional media file
+ * @returns {Promise<Object>} Updated meal plan data
+ */
+export const updateMealPlan = async (id, payload) => {
+  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+    payload;
+
+  // If media is a file, use FormData; otherwise use JSON
+  if (media instanceof File) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(media.type)) {
+      throw new Error(
+        "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
+      );
+    }
+
+    const formData = new FormData();
+    formData.append("plan_name", plan_name);
+    formData.append("price", price.toString());
+
+    if (trial_days !== undefined && trial_days !== null) {
+      formData.append("trial_days", trial_days.toString());
+    }
+
+    if (description !== undefined && description !== null) {
+      formData.append("description", description);
+    }
+
+    if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
+      formData.append("meal_per_cycle", meal_per_cycle.toString());
+    }
+
+    formData.append("media", media);
+
+    const response = await api.patch(`/foods/subscriptions/${id}/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  }
+
+  // Otherwise use JSON
+  const response = await api.patch(
+    `/foods/subscriptions/${id}/update/`,
+    payload,
+  );
+  return response.data;
+};
+
+// Note: The following functions have been removed because the corresponding backend endpoints don't exist:
+// - fetchMenuItems
+// - updateMealSelection
+//
+// These will need to be implemented on the backend or the frontend components will need to be updated
+// to work without these features.
