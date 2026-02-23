@@ -155,10 +155,7 @@ function App() {
             <Route path="/subscription-callback" element={<SubscriptionCallbackPage />} />
 
             <Route path="/subscription/payment/:planId" element={<SubscriptionPaymentPage />} />
-            <Route path="/subscription/processing" element={<SubscriptionProcessingPage />} />
             {/* <Route path="/subscription/success" element={<SubscriptionSuccessPage />} /> */}
-            {/* <Route path="/my-subscriptions" element={<CustomerSubscriptionsPage />} /> */}
-
             {/* User Premium */}
             <Route path="/user-subscription" element={<UserSubscriptionPage />} />
             <Route path="/user-subscription/success" element={<UserSubscriptionSuccessPage />} />
@@ -166,14 +163,11 @@ function App() {
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
-            <Route path="/lily-chat" element={<LilyChat />} />
 
           </Route>
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
-
-            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
             <Route path="/vendor/subscriptions" element={<VendorSubscriptionsOverview />} />
             <Route path="/vendor/plans" element={<ManageVendorPlansPage />} />
             <Route path="/vendor/plans/create" element={<CreateSubscriptionPlanPage />} />
