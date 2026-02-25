@@ -776,7 +776,7 @@ export const createSubscriptionPlan = async (planData) => {
 };
 
 export const deleteMealPlan = async (mealPlanId) => {
-  const response = await api.delete(`/foods/meal-plans/${mealPlanId}/delete/`);
+  const response = await api.delete(`/foods/subscriptions/${mealPlanId}/delete/`);
   return response.data;
 };
 

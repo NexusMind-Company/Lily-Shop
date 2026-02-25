@@ -9,6 +9,7 @@ import Pagination from "../components/subscription/Pagination";
 import {
   fetchVendorSubscriptionPlans,
   fetchSubscriptionStats,
+  deleteVendorMealPlan,
 } from "../services/subscriptionApi";
 import { CreditCard, Plus, User } from "lucide-react";
 
@@ -140,16 +141,10 @@ const ManageVendorPlansPage = () => {
     ) {
       try {
         await deleteVendorMealPlan(planId);
-        // Refresh the plans list after deletion
-        const updatedPlansData = await fetchVendorSubscriptionPlans(vendorId, {
-          page: currentPage,
-          page_size: pageSize,
+        // Navigate to /vendor/plans page after successful deletion
+        navigate("/vendor/plans", {
+          state: { message: "Meal plan deleted successfully!" },
         });
-        const updatedPlans =
-          updatedPlansData.results ||
-          (Array.isArray(updatedPlansData) ? updatedPlansData : []);
-        setPlans(updatedPlans);
-        setTotalCount(updatedPlansData.count || 0);
       } catch (error) {
         console.error("Error deleting meal plan:", error);
         alert("Failed to delete meal plan. Please try again.");
