@@ -20,7 +20,7 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
 
   // 2️⃣ Vendor-only route
   if (requiredRole === "vendor" && !isVendor) {
-    return <Navigate to="/subscriptions" replace />;
+    return <Navigate to="/vendor-dashboard" replace />;
   }
 
   return children ? children : <Outlet />;

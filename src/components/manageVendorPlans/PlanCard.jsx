@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CheckCircle, ExternalLink, Plus } from "lucide-react";
+import { CheckCircle, ExternalLink, Plus, Trash2 } from "lucide-react";
 
 /**
  * PlanCard component for displaying a subscription plan.
@@ -14,6 +14,7 @@ import { CheckCircle, ExternalLink, Plus } from "lucide-react";
  * @param {string} props.buttonText - Text for the button.
  * @param {function} props.onButtonClick - Function to call when button is clicked.
  * @param {function} [props.onCardClick] - Optional function to call when card is clicked.
+ * @param {function} [props.onDeleteClick] - Optional function to call when delete button is clicked.
  */
 const PlanCard = ({
   isActive,
@@ -25,6 +26,7 @@ const PlanCard = ({
   buttonText,
   onButtonClick,
   onCardClick,
+  onDeleteClick,
 }) => {
   if (isActive) {
     return (
@@ -62,13 +64,24 @@ const PlanCard = ({
               </div>
             ))}
           </div>
-          <button
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-[#13ec49] bg-transparent text-[#111813] dark:text-white hover:bg-[#13ec49]/10 transition-colors text-sm font-bold"
-            onClick={onButtonClick}
-          >
-            <span>{buttonText}</span>
-            <ExternalLink />
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="flex-1 flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-[#13ec49] bg-transparent text-[#111813] dark:text-white hover:bg-[#13ec49]/10 transition-colors text-sm font-bold"
+              onClick={onButtonClick}
+            >
+              <span>{buttonText}</span>
+              <ExternalLink />
+            </button>
+            {onDeleteClick && (
+              <button
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-bold"
+                onClick={onDeleteClick}
+                title="Delete plan"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -113,6 +126,8 @@ PlanCard.propTypes = {
   buttonText: PropTypes.string.isRequired,
   onButtonClick: PropTypes.func.isRequired,
   onCardClick: PropTypes.func,
+  onDeleteClick: PropTypes.func,
 };
 
 export default PlanCard;
+
