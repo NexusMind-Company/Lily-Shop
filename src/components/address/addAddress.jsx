@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChevronLeft, MapPin, Home, Building, User, Phone, Save, Loader2, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { addNewAddress } from "../services/api";
 
 export default function AddAddress() {
   const navigate = useNavigate();
@@ -67,6 +68,34 @@ export default function AddAddress() {
     }
   };
 
+  // const handleSave = async () => {
+  //   if (!validateForm()) {
+  //     return;
+  //   }
+
+  //   setSaving(true);
+
+  //   try {
+  //     // TODO: Replace with actual API call
+  //     // await api.post("/user/addresses", formData);
+      
+  //     // Simulate API call
+  //     await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  //     setSuccess(true);
+      
+  //     // Navigate back after short delay
+  //     setTimeout(() => {
+  //       navigate(from, { replace: true });
+  //     }, 1000);
+  //   } catch (error) {
+  //     console.error("Failed to save address:", error);
+  //     setErrors({ submit: "Failed to save address. Please try again." });
+  //     setSaving(false);
+  //   }
+  // };
+
+
   const handleSave = async () => {
     if (!validateForm()) {
       return;
@@ -75,11 +104,14 @@ export default function AddAddress() {
     setSaving(true);
 
     try {
-      // TODO: Replace with actual API call
-      // await api.post("/user/addresses", formData);
+      // Import at the top of your file
+      // import { addNewAddress } from "../services/api";
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Format the complete address string
+      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state}${formData.landmark ? ', Near ' + formData.landmark : ''}`;
+      
+      // Call the API with formatted address
+      await addNewAddress(fullAddress);
 
       setSuccess(true);
       
@@ -89,7 +121,9 @@ export default function AddAddress() {
       }, 1000);
     } catch (error) {
       console.error("Failed to save address:", error);
-      setErrors({ submit: "Failed to save address. Please try again." });
+      setErrors({ 
+        submit: error.response?.data?.detail || "Failed to save address. Please try again." 
+      });
       setSaving(false);
     }
   };
