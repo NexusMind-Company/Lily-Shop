@@ -43,12 +43,14 @@ import Deposit from "./pages/deposit";
 import Withdraw from "./pages/withdraw";
 import ConfirmWithdrawal from "./pages/confirmWithdrawal";
 import WithdrawSuccess from "./pages/withdrawSuccess";
+import WalletTopUpPage from "./pages/WalletTopUpPage";
 
 /* ---------------- ORDERS ---------------- */
 import CartPage from "./pages/cart";
 import OrderSummaryPage from "./pages/OrderSummaryPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 /* ---------------- SUBSCRIPTIONS ---------------- */
 import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
@@ -64,6 +66,8 @@ import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
 import UserSubscriptionPage from "./pages/UserSubscriptionPage";
 import UserSubscriptionSuccessPage from "./pages/UserSubscriptionSuccessPage";
 import UserSubscriptionCallbackPage from "./pages/UserSubscriptionCallbackPage";
+import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
+import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
 
 /* ---------------- OTHER ---------------- */
 import Settings from "./pages/settings";
@@ -71,6 +75,7 @@ import LilyChat from "./components/ai/lilyChat";
 import VendorDashboard from "./pages/VendorDashboard";
 import VerificationPage from "./pages/VerificationPage";
 import CreateSubscriptionVendorPage from "./pages/createSubscriptionVendor";
+import EditProfile from "./components/profile/editProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -85,7 +90,6 @@ function App() {
       <Toaster position="top-center" />
 
       <Routes>
-
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -97,20 +101,14 @@ function App() {
 
         {/* ================= PROTECTED ROUTES ================= */}
         <Route element={<ProtectedRoute />}>
-
-          {/* Layout wrapper */}
           <Route element={<FeedLayout />}>
-
             {/* Feed */}
             <Route path="/" element={<Feed />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/food" element={<VendorsList />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/product-details/:id" element={<FeedProductDetails />} />
-             <Route
-              path="/create-vendor"
-              element={<CreateSubscriptionVendorPage />}
-            />
+            <Route path="/create-vendor" element={<CreateSubscriptionVendorPage />} />
 
             {/* Vendor browsing */}
             <Route
@@ -125,6 +123,7 @@ function App() {
             <Route path="/profile/:userId/following" element={<FollowingPage />} />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/editProfile" element={<EditProfile />} />
 
             {/* Inbox & Social */}
             <Route path="/inbox" element={<InboxPage />} />
@@ -138,32 +137,34 @@ function App() {
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/withdraw/confirm" element={<ConfirmWithdrawal />} />
             <Route path="/withdraw/success" element={<WithdrawSuccess />} />
+            <Route path="/wallet/topup" element={<WalletTopUpPage />} />
 
             {/* Orders */}
             <Route path="/cart" element={<CartPage />} />
             <Route path="/order-summary" element={<OrderSummaryPage />} />
             <Route path="/orders" element={<OrderHistoryPage />} />
             <Route path="/order/:orderId" element={<OrderDetailPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
 
-            {/* Customer Subscriptions */}
+            {/* Subscriptions */}
             <Route path="/subscriptions" element={<CustomerSubscriptionsPage />} />
             <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
             <Route path="/subscription-callback" element={<SubscriptionCallbackPage />} />
+            <Route path="/subscription/payment/:planId" element={<SubscriptionPaymentPage />} />
+            <Route path="/subscription/processing" element={<SubscriptionProcessingPage />} />
 
             {/* User Premium */}
             <Route path="/user-subscription" element={<UserSubscriptionPage />} />
             <Route path="/user-subscription/success" element={<UserSubscriptionSuccessPage />} />
             <Route path="/user-subscription/callback" element={<UserSubscriptionCallbackPage />} />
 
-            {/* Settings */}
+            {/* Extras */}
             <Route path="/settings" element={<Settings />} />
             <Route path="/lily-chat" element={<LilyChat />} />
-
           </Route>
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
-
             <Route path="/vendor-dashboard" element={<VendorDashboard />} />
             <Route path="/vendor/subscriptions" element={<VendorSubscriptionsOverview />} />
             <Route path="/vendor/plans" element={<ManageVendorPlansPage />} />
@@ -172,11 +173,8 @@ function App() {
             <Route path="/vendor/plans/:planId/edit" element={<EditPlanPage />} />
             <Route path="/subscription/create-meal-plan" element={<CreateMealPlanPage />} />
             <Route path="/subscription/create-meal-plan/:planId" element={<EditPlanPage />} />
-
           </Route>
-
         </Route>
-
       </Routes>
     </FeedProvider>
   );

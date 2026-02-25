@@ -350,13 +350,35 @@ export const shareProductToChat = async (productId, recipientId) => {
 };
 
 // --- WALLET & PAYMENTS ---
+// export const fetchDeliveryAddresses = async () => {
+//   const response = await api.get("/user/addresses");
+//   return response.data;
+// };
+
 export const fetchDeliveryAddresses = async () => {
-  const response = await api.get("/user/addresses");
-  return response.data;
+  const response = await api.get("/auth/profile/me/");
+  const deliveryAddress = response.data.deliveryAddress;
+  
+  // Return in array format for compatibility
+  return deliveryAddress ? [{ id: 1, address: deliveryAddress }] : [];
 };
 
+// export const addNewAddress = async (addressData) => {
+//   const response = await api.post("/user/addresses", addressData);
+//   return response.data;
+// };
+
 export const addNewAddress = async (addressData) => {
-  const response = await api.post("/user/addresses", addressData);
+  // Extract the address string from the data
+  const address = typeof addressData === 'string' 
+    ? addressData 
+    : addressData.address || addressData.deliveryAddress;
+  
+  // Update the user profile with the new delivery address
+  const response = await api.patch("/auth/profile/update/", {
+    deliveryAddress: address
+  });
+  
   return response.data;
 };
 
@@ -419,22 +441,45 @@ export const topUpWallet = async (amountNaira) => {
 };
 
 // --- SUBSCRIPTIONS ---
-export const createSubscription = async ({
-  vendor_id,
-  plan_id,
-  payment_method,
-  meal_selections = [],
-  delivery_address_id,
-}) => {
-  const response = await api.post("/subscriptions/create/", {
-    vendor_id,
+// export const createSubscription = async ({
+//   vendor_id,
+//   plan_id,
+//   payment_method,
+//   meal_selections = [],
+//   delivery_address_id,
+// }) => {
+//   const response = await api.post("/subscriptions/create/", {
+//     vendor_id,
+//     plan_id,
+//     payment_method,
+//     meal_selections,
+//     delivery_address_id,
+//   });
+//   return response.data;
+// };
+
+
+export const createSubscription = async (plan_id) => {
+  const response = await api.post("/foods/subscribe/", {
     plan_id,
-    payment_method,
-    meal_selections,
-    delivery_address_id,
   });
   return response.data;
 };
+
+export const getWalletBalance = async () => {
+  const response = await api.get("/wallet/me/");
+  return response.data;
+};
+
+export const getUserSubscriptions = async () => {
+  const response = await api.get("/foods/subscriptions/me/");
+  return response.data;
+};
+
+// export const unsubscribeFromPlan = async (plan_id) => {
+//   const response = await api.post(`/foods/subscriptions/${plan_id}/unsubscribe/`);
+//   return response.data;
+// };
 
 export const updateSubscriptionMeals = async (
   subscriptionId,
