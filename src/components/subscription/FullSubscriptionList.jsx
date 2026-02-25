@@ -2,14 +2,22 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import SubscriptionItem from "./SubscriptionItem";
 import SubscriberDetailModal from "./SubscriberDetailModal";
+import Pagination from "./Pagination";
 
 /**
  * FullSubscriptionList component for displaying all subscriptions with tabs
  * @param {Object} props - Component props
  * @param {Array} props.subscriptions - Array of all subscriptions
  * @param {string} props.activeTab - Currently active tab
+ * @param {Object} props.pagination - Pagination information {currentPage, totalPages, totalCount, pageSize}
+ * @param {Function} props.onPageChange - Function to handle page change
  */
-const FullSubscriptionList = ({ subscriptions, activeTab }) => {
+const FullSubscriptionList = ({
+  subscriptions,
+  activeTab,
+  pagination,
+  onPageChange,
+}) => {
   const [selectedSubscriber, setSelectedSubscriber] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -79,6 +87,17 @@ const FullSubscriptionList = ({ subscriptions, activeTab }) => {
         )}
       </section>
 
+      {/* Pagination */}
+      {pagination && onPageChange && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalCount={pagination.totalCount}
+          pageSize={pagination.pageSize}
+          onPageChange={onPageChange}
+        />
+      )}
+
       <SubscriberDetailModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -105,9 +124,16 @@ FullSubscriptionList.propTypes = {
         name: PropTypes.string,
         profile_pic: PropTypes.string,
       }),
-    })
+    }),
   ).isRequired,
   activeTab: PropTypes.oneOf(["active", "past"]).isRequired,
+  pagination: PropTypes.shape({
+    currentPage: PropTypes.number.isRequired,
+    totalPages: PropTypes.number.isRequired,
+    totalCount: PropTypes.number.isRequired,
+    pageSize: PropTypes.number.isRequired,
+  }),
+  onPageChange: PropTypes.func,
 };
 
 export default FullSubscriptionList;

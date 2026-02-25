@@ -70,6 +70,7 @@ import Settings from "./pages/settings";
 import LilyChat from "./components/ai/lilyChat";
 import VendorDashboard from "./pages/VendorDashboard";
 import VerificationPage from "./pages/VerificationPage";
+import CreateSubscriptionVendorPage from "./pages/createSubscriptionVendor";
 
 function App() {
   const dispatch = useDispatch();
@@ -106,6 +107,10 @@ function App() {
             <Route path="/food" element={<VendorsList />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/product-details/:id" element={<FeedProductDetails />} />
+             <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendorPage />}
+            />
 
             {/* Vendor browsing */}
             <Route

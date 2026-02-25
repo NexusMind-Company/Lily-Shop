@@ -497,8 +497,10 @@ export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
     .slice(0, limit);
 };
 
-export const fetchAllSubscriptions = async (vendorId) => {
-  const response = await api.get(`/foods/subscriptions/vendor/`);
+export const fetchAllSubscriptions = async (vendorId, { page = 1, page_size = 10 } = {}) => {
+  const response = await api.get(`/foods/subscriptions/vendor/`, {
+    params: { page, page_size },
+  });
   return response.data;
 };
 
@@ -660,7 +662,7 @@ export const updateSubscriptionPlan = async (planId, planData) => {
 };
 
 export const partialUpdateSubscriptionPlan = async (planId, planData) => {
-  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
     planData;
 
   const formData = new FormData();
@@ -672,8 +674,8 @@ export const partialUpdateSubscriptionPlan = async (planId, planData) => {
     formData.append("trial_days", trial_days.toString());
   if (description !== undefined && description !== null)
     formData.append("description", description);
-  if (meal_per_cycle !== undefined && meal_per_cycle !== null)
-    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  if (meals_per_cycle !== undefined && meals_per_cycle !== null)
+    formData.append("meals_per_cycle", meals_per_cycle.toString());
 
   if (media && Array.isArray(media)) {
     media.forEach((file) => {
@@ -702,7 +704,7 @@ export const fetchMealPlans = async () => {
 };
 
 export const fetchMealPlan = async (id) => {
-  const res = await api.get(`/foods/meal-plans/${id}/`);
+  const res = await api.get(`/foods/subscriptions/${id}/`);
   return res.data;
 };
 
