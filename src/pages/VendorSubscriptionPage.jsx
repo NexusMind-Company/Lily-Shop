@@ -251,7 +251,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-background-dark rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="text-lg font-bold">{selectedMeal}</h2>
+              <h2 className="text-lg font-bold">{selectedMeal.name || 'Unnamed Meal'}</h2>
               <button
                 onClick={handleCloseMealDetails}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
@@ -277,8 +277,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                   Meal Plan Details
                 </h3>
                 <p className="text-slate-800 dark:text-slate-200">
-                  {selectedMeal} includes a balanced combination of protein,
-                  carbohydrates, and vegetables.
+                  {selectedMeal.description || `${selectedMeal.name} includes a balanced combination of protein, carbohydrates, and vegetables.`}
                 </p>
               </div>
               <div className="mb-4">
@@ -292,7 +291,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
                     >
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{plan.name}</span>
+                        <span className="text-sm font-medium">{plan.plan_name || plan.name}</span>
                         <span className="text-sm font-bold">
                           ₦{plan.price.toLocaleString()}
                         </span>

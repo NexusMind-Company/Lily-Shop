@@ -5,11 +5,12 @@ import TopAppBar from "../components/manageVendorPlans/TopAppBar";
 import StatsCard from "../components/manageVendorPlans/StatsCard";
 import PlanCard from "../components/manageVendorPlans/PlanCard";
 import MealPlanForm from "../components/manageVendorPlans/MealPlanForm";
+import Pagination from "../components/subscription/Pagination";
 import {
   fetchVendorSubscriptionPlans,
   fetchSubscriptionStats,
 } from "../services/subscriptionApi";
-import { CreditCard, User } from "lucide-react";
+import { CreditCard, Plus, User } from "lucide-react";
 
 const ManageVendorPlansPage = () => {
   const navigate = useNavigate();
@@ -20,10 +21,25 @@ const ManageVendorPlansPage = () => {
   const isEdit = mode === "edit";
 
   // Get vendorId from navigate state (passed from VendorDashboard) or from Redux profile
-  const { profileData } = useSelector((state) => state.profile);
-  const initialVendorId =
-    location.state?.vendorId || profileData?.user?.vendor_id || null;
-  const [vendorId, setVendorId] = useState(initialVendorId);
+  const { data: profileData } = useSelector((state) => state.profile); // Note: changed from profileData to data
+  const { user_data } = useSelector((state) => state.auth);
+  const vendorIdForApi = location.state?.vendorId ?? profileData?.user?.vendor_id ?? user_data?.vendor_id;
+  console.log("📋 vendorIdForApi value:", vendorIdForApi);
+  console.log("📋 vendorIdForApi type:", typeof vendorIdForApi);
+  
+  // Ensure vendorId is always a string
+  const validVendorId =
+    typeof vendorIdForApi === "string" ? vendorIdForApi : null;
+  console.log("📋 validVendorId:", validVendorId);
+  
+  const [vendorId, setVendorId] = useState(validVendorId);
+
+  // Update vendorId when profile data arrives
+  useEffect(() => {
+    if (validVendorId) {
+      setVendorId(validVendorId);
+    }
+  }, [validVendorId]);
 
   const [stats, setStats] = useState({
     activeSubs: 0,
@@ -32,6 +48,9 @@ const ManageVendorPlansPage = () => {
   });
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const [totalCount, setTotalCount] = useState(0);
 
   // ---------------- Load Vendor Stats & Plans ----------------
   useEffect(() => {
@@ -48,7 +67,10 @@ const ManageVendorPlansPage = () => {
         // Fetch subscription stats and meal plans for this vendor
         const [statsData, plansData] = await Promise.all([
           fetchSubscriptionStats(vendorId),
-          fetchVendorSubscriptionPlans(vendorId, { page: 1, page_size: 100 }),
+          fetchVendorSubscriptionPlans(vendorId, {
+            page: currentPage,
+            page_size: pageSize,
+          }),
         ]);
 
         console.log("Stats data received:", statsData);
@@ -56,9 +78,11 @@ const ManageVendorPlansPage = () => {
 
         setStats(statsData);
         // Extract results from paginated response
-        const extractedPlans = plansData.results || (Array.isArray(plansData) ? plansData : []);
+        const extractedPlans =
+          plansData.results || (Array.isArray(plansData) ? plansData : []);
         console.log("Extracted plans:", extractedPlans);
         setPlans(extractedPlans);
+        setTotalCount(plansData.count || 0);
       } catch (err) {
         console.error("Failed to load vendor plans:", err);
       } finally {
@@ -67,7 +91,20 @@ const ManageVendorPlansPage = () => {
     };
 
     loadData();
-  }, [vendorId]);
+  }, [vendorId, currentPage]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const pagination = {
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   // ---------------- Navigation Handlers ----------------
   const handleBackClick = () => {
@@ -93,6 +130,31 @@ const ManageVendorPlansPage = () => {
 
   const handleCreatePlan = () => {
     navigate("/subscription/create-meal-plan", { state: { vendorId } });
+  };
+
+  const handleDeletePlan = async (planId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this meal plan? This action cannot be undone.",
+      )
+    ) {
+      try {
+        await deleteVendorMealPlan(planId);
+        // Refresh the plans list after deletion
+        const updatedPlansData = await fetchVendorSubscriptionPlans(vendorId, {
+          page: currentPage,
+          page_size: pageSize,
+        });
+        const updatedPlans =
+          updatedPlansData.results ||
+          (Array.isArray(updatedPlansData) ? updatedPlansData : []);
+        setPlans(updatedPlans);
+        setTotalCount(updatedPlansData.count || 0);
+      } catch (error) {
+        console.error("Error deleting meal plan:", error);
+        alert("Failed to delete meal plan. Please try again.");
+      }
+    }
   };
 
   // ---------------- Loading / Error States ----------------
@@ -121,8 +183,9 @@ const ManageVendorPlansPage = () => {
   }
 
   // ---------------- Separate Active / Inactive Plans ----------------
-  const activePlans = plans.filter((p) => p.is_active);
-  const inactivePlans = plans.filter((p) => !p.is_active);
+  // Since there's no is_active property, we'll consider all plans as active for now
+  const activePlans = plans;
+  const inactivePlans = [];
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
@@ -142,7 +205,14 @@ const ManageVendorPlansPage = () => {
             value={`₦${stats.revenue}`}
           />
         </div>
-
+        <div className="p-4 flex items-center justify-end max-w-4xl mx-auto w-full">
+          <button
+            onClick={handleCreatePlan}
+            className="bg-lily flex text-white self-end  px-4 py-2 rounded-lg  transition-colors duration-200"
+          >
+            <Plus /> New Plan
+          </button>
+        </div>
         {/* Active Plans */}
         {activePlans.map((plan) => (
           <div key={plan.id} className="flex flex-col gap-3">
@@ -155,22 +225,42 @@ const ManageVendorPlansPage = () => {
             <PlanCard
               isActive
               imageUrl="/placeholder-food.jpg"
-              price={plan.price ? `₦${plan.price}` : "—"}
-              title={plan.name}
+              price={
+                plan.price
+                  ? `₦${Number(plan.price).toLocaleString("en-NG", {
+                      minimumFractionDigits: Number.isInteger(
+                        Number(plan.price),
+                      )
+                        ? 0
+                        : 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "—"
+              }
+              title={plan.plan_name}
               description={plan.description || "No description"}
-              features={[
-                "Visible in marketplace",
-                plan.menu?.is_active ? "Currently live" : "Hidden",
-              ]}
+              features={["Visible in marketplace", "Currently live"]}
               buttonText="Edit Plan details"
               onButtonClick={() => handleEditPlan(plan.id)}
               onCardClick={() => handleViewPlan(plan.id)}
+              onDeleteClick={() => handleDeletePlan(plan.id)}
             />
           </div>
         ))}
 
-        {/* Inactive / Empty State */}
-        {inactivePlans.length === 0 && (
+        {/* Pagination */}
+        {totalCount > pageSize && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+          />
+        )}
+
+        {/* Empty State - Only when there are no plans */}
+        {activePlans.length === 0 && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-lg font-bold">Meal Plans</h3>

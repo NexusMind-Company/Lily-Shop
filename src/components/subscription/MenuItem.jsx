@@ -28,14 +28,19 @@ const MenuItem = ({ item, onClick }) => {
           </div>
         )}
       </div>
-      <p className="text-xs font-bold truncate">{item}</p>
+      <p className="text-xs font-bold truncate">{item.name || 'Unnamed Item'}</p>
       <p className="text-[10px] text-slate-500 font-medium -mt-1">Available</p>
     </div>
   );
 };
 
 MenuItem.propTypes = {
-  item: PropTypes.string.isRequired,
+  item: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    image: PropTypes.string,
+    isSnack: PropTypes.bool,
+  }).isRequired,
   onClick: PropTypes.func.isRequired,
 };
 

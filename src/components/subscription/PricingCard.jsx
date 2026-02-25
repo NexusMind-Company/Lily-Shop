@@ -10,15 +10,25 @@ import PropTypes from "prop-types";
  * @param {Function} props.onSelect - Function to handle plan selection
  */
 const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
+  // Ensure plan has all required properties with defaults
+  const safePlan = {
+    id: plan.id || '',
+    name: plan.plan_name || plan.name || 'Unnamed Plan',
+    description: plan.description || 'No description available',
+    price: plan.price || 0,
+    period: plan.frequency || plan.period || 'month',
+    features: plan.features || ['No features listed'],
+  };
+
   return (
     <div className="relative group cursor-pointer">
       <input
         className="peer sr-only"
-        id={`plan_${plan.id}`}
+        id={`plan_${safePlan.id}`}
         name="plan"
         type="radio"
         checked={isSelected}
-        onChange={() => onSelect(plan.id)}
+        onChange={() => onSelect(safePlan.id)}
       />
       <label
         className={`flex flex-col gap-4 rounded-2xl border-2 p-5 shadow-sm transition-all ${
@@ -26,7 +36,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
             ? "border-[#13ec49] bg-[#ffffff] dark:bg-surface-dark shadow-[0_4px_20px_-4px_rgba(19,236,73,0.15)]"
             : "border-transparent bg-[#ffffff] dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-opacity-80"
         }`}
-        htmlFor={`plan_${plan.id}`}
+        htmlFor={`plan_${safePlan.id}`}
       >
         {isPopular && (
           <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
@@ -36,10 +46,10 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              {plan.name}
+              {safePlan.name}
             </h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-              {plan.description}
+              {safePlan.description}
             </p>
           </div>
           <div
@@ -58,15 +68,15 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
         </div>
         <div className="flex items-baseline gap-1">
           <span className="text-3xl font-black tracking-tight">
-            ${plan.price}
+            ₦{safePlan.price.toLocaleString()}
           </span>
           <span className="text-sm font-bold text-slate-400">
-            /{plan.period}
+            /{safePlan.period}
           </span>
         </div>
         <div className="h-px w-full bg-slate-100 dark:bg-slate-700"></div>
         <div className="flex flex-col gap-2.5">
-          {plan.features.map((feature, index) => (
+          {safePlan.features.map((feature, index) => (
             <div
               key={index}
               className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300"
