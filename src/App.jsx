@@ -92,6 +92,7 @@ import MealSelectionPage from "./pages/MealSelectionPage";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
 import VendorDashboard from "./pages/VendorDashboard";
+import VendorsList from "./pages/VendorsList";
 
 // --- Pages: Settings & Ads ---
 import Settings from "./pages/settings";
@@ -370,6 +371,7 @@ const App = () => {
               path="/subscription/callback"
               element={<SubscriptionCallbackPage />}
             />
+            <Route path="/food" element={<VendorsList />} />
 
             {/* Settings & Ads */}
             <Route path="/settings" element={<Settings />} />
