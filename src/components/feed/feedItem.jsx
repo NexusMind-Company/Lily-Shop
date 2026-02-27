@@ -23,13 +23,10 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
 
   useEffect(() => {
-    // console.log("FeedItem Post Data:", post);
     if (!post.user_id && !post.userId) {
-      // console.warn(`[FeedItem] Warning: No UUID found for post.`);
     }
   }, [post]);
 
-  // Handle different API key names (media, media_url, image_url)
   const rawMedia = post.media || post.media_url || post.image_url;
 
   const mediaArray = Array.isArray(rawMedia)
@@ -68,7 +65,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     Number(post.comment_count || post.comments_count || post.comments || 0)
   );
 
-  // Initialize View Count from backend
   const [viewCount, setViewCount] = useState(
     Number(post.visit_count || post.views || 0)
   );
@@ -85,18 +81,21 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost = user_data?.username === displayUsername;
-  const isProduct = post.type === "product" || post.price != null;
-  // Check if it's content that has a linked product (Selling Content)
-  const hasLinkedProduct = !isProduct && post.product;
+  
+  const isProduct = 
+    post.type?.toLowerCase() === "product" || 
+    post.price_in_naira !== undefined || 
+    post.price !== undefined || 
+    post.name !== undefined || 
+    post.productName !== undefined;
 
-  // --- View Tracking Logic ---
+  const hasLinkedProduct = !isProduct && post.product != null;
+
   useEffect(() => {
     let timer;
     if (isActive) {
-      // If user dwells for 2 seconds, count as a view
       timer = setTimeout(() => {
         recordProductView(post.id).catch((err) => {
-          // console.error("Failed to record view", err);
         });
       }, 2000);
     }
@@ -205,7 +204,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       className="relative w-full h-full bg-lily text-white"
       onDoubleClick={handleDoubleTap}
     >
-      {/* Media Container */}
       <div className="media-container-cover w-full h-full bg-black">
         {mediaArray.length > 1 ? (
           <MediaCarousel
@@ -221,7 +219,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <img
             ref={mediaRef}
             src={mediaArray[0]?.src || "/placeholder-image.png"}
-            alt={post.name || post.caption || "Post"}
+            alt={post.name || post.productName || post.caption || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
               if (!e.target.src.includes("/feed-image.png")) {
@@ -235,7 +233,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         </div>
       </div>
 
-      {/* Like Animation */}
       <AnimatePresence>
         {showLikeAnimation && (
           <motion.div
@@ -253,12 +250,10 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      {/* Content Overlay */}
-      <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 text-white z-[5] pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-5 text-white z-5 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
 
-            {/* User Info */}
             <div className="relative gap-3 flex items-center">
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
@@ -289,22 +284,19 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </Link>
             </div>
 
-            {/* Title/Name */}
             <h2 className="font-bold text-lg">
-              {post.name || post.caption?.slice(0, 30) || "Untitled"}
+              {post.name || post.productName || post.caption?.slice(0, 30) || "Untitled"}
             </h2>
 
-            {/* Price - Show for Products OR Content with linked product */}
-            {(isProduct || (hasLinkedProduct && post.product?.price)) && (
+            {(isProduct || (hasLinkedProduct && (post.product?.price_in_naira || post.product?.price))) && (
               <p className="font-bold">
                 ₦
                 {Number(
-                  isProduct ? post.price : post.product.price
+                  isProduct ? (post.price_in_naira || post.price) : (post.product.price_in_naira || post.product.price)
                 ).toLocaleString()}
               </p>
             )}
 
-            {/* Caption */}
             {post.caption && (
               <motion.p layout className="text-sm font-light">
                 {isExpanded
@@ -321,7 +313,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </motion.p>
             )}
 
-            {/* Music Track */}
             <p className="font-light flex items-center gap-1">
               <span>
                 <img src="/icons/music.svg" alt="" />
@@ -329,7 +320,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               {post.musicTrack || "Original Audio"}
             </p>
 
-            {/* Buy Now Button */}
             {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2">
                 <Link
@@ -346,7 +336,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
           </div>
 
-          {/* Action Buttons (Right Side) */}
           <div className="flex flex-col items-center space-y-4 pointer-events-auto">
             <button onClick={handleLike} className="flex flex-col items-center">
               <img
@@ -397,7 +386,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         </div>
       </div>
 
-      {/* Modals */}
       <AnimatePresence>
         {showCommentsModal && (
           <CommentsModal
