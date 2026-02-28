@@ -124,7 +124,6 @@ api.interceptors.response.use(
   },
 );
 
-// --- AUTH & PROFILE ---
 export const fetchUserProfile = async () => {
   const response = await api.get("/auth/profile/me/");
   return response.data;
@@ -133,7 +132,6 @@ export const fetchUserProfile = async () => {
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
 
-  // Sync updated profile to Supabase
   try {
     await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
@@ -152,7 +150,6 @@ export const updateProfile = async (profileData) => {
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
 
-  // Sync updated profile to Supabase
   try {
     await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
@@ -179,7 +176,6 @@ export const updateProfilePic = async (imageFile) => {
     },
   );
 
-  // Sync updated profile to Supabase
   try {
     await supabase.from("profiles").upsert(response.data);
   } catch (supabaseError) {
@@ -197,7 +193,6 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- SHOPS & PRODUCTS ---
 export const fetchShopDetails = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/`);
   return response.data;
@@ -208,26 +203,23 @@ export const fetchShopProducts = async (shopId) => {
   return response.data;
 };
 
-export const fetchAllFeed = async () => {
-  const response = await api.get("/shops/feed/");
-  return response.data;
-};
-
-export const fetchProducts = async (params = {}) => {
-  // CHANGED: Use /shops/feed/ for global search
+export const fetchAllFeed = async (params = {}) => {
   const response = await api.get("/shops/feed/", { params });
   return response.data;
 };
 
-// --- Fetch Liked Products ---
+export const fetchProducts = async (params = {}) => {
+  const response = await api.get("/shops/feed/", { params });
+  return response.data;
+};
+
 export const fetchLikedProducts = async () => {
   const response = await api.get("/shops/my-liked-products/");
   return response.data;
 };
-// ------------------------------------------
 
-export const fetchNearbyFeed = async () => {
-  const response = await api.get("/shops/products/nearby/");
+export const fetchNearbyFeed = async (params = {}) => {
+  const response = await api.get("/shops/products/nearby/", { params });
   return response.data;
 };
 
@@ -241,7 +233,6 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
-// --- INTERACTIONS ---
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
@@ -326,7 +317,6 @@ export const toggleFollowShop = async (shopId) => {
   return response.data;
 };
 
-// --- MESSAGING ---
 export const sendMessage = async ({
   recipientId,
   content,
@@ -346,7 +336,6 @@ export const shareProductToChat = async (productId, recipientId) => {
   return response.data;
 };
 
-// --- WALLET & PAYMENTS ---
 export const fetchDeliveryAddresses = async () => {
   const response = await api.get("/user/addresses");
   return response.data;
@@ -415,7 +404,6 @@ export const topUpWallet = async (amountNaira) => {
   return response.data;
 };
 
-// --- SUBSCRIPTIONS ---
 export const createSubscription = async ({
   vendor_id,
   plan_id,

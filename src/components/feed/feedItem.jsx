@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -21,11 +21,7 @@ const formatCount = (num) =>
 
 const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
-
-  useEffect(() => {
-    if (!post.user_id && !post.userId) {
-    }
-  }, [post]);
+  const queryClient = useQueryClient();
 
   const rawMedia = post.media || post.media_url || post.image_url;
 
@@ -33,17 +29,17 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     ? rawMedia
     : rawMedia
       ? [
-        {
-          src: rawMedia,
-          type:
-            typeof rawMedia === "string" &&
+          {
+            src: rawMedia,
+            type:
+              typeof rawMedia === "string" &&
               (rawMedia.endsWith(".mp4") ||
                 rawMedia.endsWith(".mov") ||
                 rawMedia.endsWith(".webm"))
-              ? "video"
-              : "image",
-        },
-      ]
+                ? "video"
+                : "image",
+          },
+        ]
       : [];
 
   const isVideo =
@@ -52,21 +48,26 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+
   const [isLiked, setIsLiked] = useState(
-    post.is_liked === true || post.is_liked === "true"
+    post.is_liked === true ||
+      post.is_liked === "true" ||
+      post.has_liked === true,
   );
-  const [isFollowed, setIsFollowed] = useState(post.is_followed || false);
+  const [isFollowed, setIsFollowed] = useState(
+    post.is_followed === true || post.has_followed === true,
+  );
 
   const [likeCount, setLikeCount] = useState(
-    Number(post.like_count || post.likes_count || post.likes || 0)
+    Number(post.like_count || post.likes_count || post.likes || 0),
   );
 
   const [commentCount, setCommentCount] = useState(
-    Number(post.comment_count || post.comments_count || post.comments || 0)
+    Number(post.comment_count || post.comments_count || post.comments || 0),
   );
 
   const [viewCount, setViewCount] = useState(
-    Number(post.visit_count || post.views || 0)
+    Number(post.visit_count || post.view_count || post.views || 0),
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -81,22 +82,43 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost = user_data?.username === displayUsername;
-  
-  const isProduct = 
-    post.type?.toLowerCase() === "product" || 
-    post.price_in_naira !== undefined || 
-    post.price !== undefined || 
-    post.name !== undefined || 
+
+  const isProduct =
+    post.type?.toLowerCase() === "product" ||
+    post.price_in_naira !== undefined ||
+    post.price !== undefined ||
+    post.name !== undefined ||
     post.productName !== undefined;
 
   const hasLinkedProduct = !isProduct && post.product != null;
 
   useEffect(() => {
+    setIsLiked(
+      post.is_liked === true ||
+        post.is_liked === "true" ||
+        post.has_liked === true,
+    );
+    setIsFollowed(
+      post.is_followed === true ||
+        post.is_followed === "true" ||
+        post.has_followed === true,
+    );
+    setLikeCount(
+      Number(post.like_count || post.likes_count || post.likes || 0),
+    );
+    setCommentCount(
+      Number(post.comment_count || post.comments_count || post.comments || 0),
+    );
+    setViewCount(
+      Number(post.visit_count || post.view_count || post.views || 0),
+    );
+  }, [post]);
+
+  useEffect(() => {
     let timer;
     if (isActive) {
       timer = setTimeout(() => {
-        recordProductView(post.id).catch((err) => {
-        });
+        recordProductView(post.id).catch((err) => {});
       }, 2000);
     }
     return () => clearTimeout(timer);
@@ -112,34 +134,77 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     },
     onMutate: async () => {
       if (!isAuthenticated) return;
+
       const previousIsLiked = isLiked;
       const previousLikeCount = likeCount;
+      const newIsLiked = !previousIsLiked;
+      const newLikeCount = newIsLiked
+        ? previousLikeCount + 1
+        : Math.max(0, previousLikeCount - 1);
 
-      setIsLiked(!previousIsLiked);
-      setLikeCount(
-        !previousIsLiked
-          ? previousLikeCount + 1
-          : Math.max(0, previousLikeCount - 1)
-      );
+      // Optimistically update local state
+      setIsLiked(newIsLiked);
+      setLikeCount(newLikeCount);
+
+      // Optimistically update the React Query Cache so it doesn't revert on scroll/rerender
+      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+        if (!oldData || !oldData.pages) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            items:
+              page.items?.map((item) => {
+                if (item.id === post.id) {
+                  return {
+                    ...item,
+                    is_liked: newIsLiked,
+                    like_count: newLikeCount,
+                  };
+                }
+                return item;
+              }) || [],
+          })),
+        };
+      });
 
       return { previousIsLiked, previousLikeCount };
     },
     onSuccess: (data) => {
-      if (data && data.message) {
-        const msg = data.message.toLowerCase();
-        if (msg.includes("unliked")) {
-          setIsLiked(false);
-        } else if (msg.includes("liked")) {
-          setIsLiked(true);
-        }
+      // Some backends return the new state, let's sync if they do
+      if (data && data.like_count !== undefined) {
+        setLikeCount(Number(data.like_count));
       }
     },
     onError: (err, variables, context) => {
+      // Revert if API fails
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
+
+        // Revert cache
+        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+          if (!oldData || !oldData.pages) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              items:
+                page.items?.map((item) => {
+                  if (item.id === post.id) {
+                    return {
+                      ...item,
+                      is_liked: context.previousIsLiked,
+                      like_count: context.previousLikeCount,
+                    };
+                  }
+                  return item;
+                }) || [],
+            })),
+          };
+        });
       }
-      console.error("Like error:", err);
+      console.error(`[Post ${post.id}] Like error:`, err);
     },
   });
 
@@ -253,7 +318,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       <div className="absolute bottom-5 left-0 right-0 p-4 pb-20 md:pb-5 text-white z-5 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
-
             <div className="relative gap-3 flex items-center">
               <Link to={profileLink} className="relative block">
                 <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
@@ -285,14 +349,21 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             </div>
 
             <h2 className="font-bold text-lg">
-              {post.name || post.productName || post.caption?.slice(0, 30) || "Untitled"}
+              {post.name ||
+                post.productName ||
+                post.caption?.slice(0, 30) ||
+                "Untitled"}
             </h2>
 
-            {(isProduct || (hasLinkedProduct && (post.product?.price_in_naira || post.product?.price))) && (
+            {(isProduct ||
+              (hasLinkedProduct &&
+                (post.product?.price_in_naira || post.product?.price))) && (
               <p className="font-bold">
                 ₦
                 {Number(
-                  isProduct ? (post.price_in_naira || post.price) : (post.product.price_in_naira || post.product.price)
+                  isProduct
+                    ? post.price_in_naira || post.price
+                    : post.product.price_in_naira || post.product.price,
                 ).toLocaleString()}
               </p>
             )}
@@ -323,8 +394,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2">
                 <Link
-                  to={`/product-details/${isProduct ? post.id : post.product.id
-                    }`}
+                  to={`/product-details/${
+                    isProduct ? post.id : post.product.id
+                  }`}
                   className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
                 >
                   <span>
@@ -402,8 +474,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshops.com/${isProduct ? "product" : "content"
-              }/${post.id}`}
+            postUrl={`https://lilyshops.com/${
+              isProduct ? "product" : "content"
+            }/${post.id}`}
             postCaption={post.caption}
           />
         )}
