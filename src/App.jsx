@@ -12,7 +12,7 @@ import { FeedProvider } from "./context/feedContext";
 
 /* ---------------- AUTH ---------------- */
 import Login from "./components/auth/login";
-import SignUp from "./components/auth/signup";
+import SignUp from "./components/auth/signUp";
 import ForgotPassword from "./components/auth/forgotPassword";
 import VerifyEmail from "./components/auth/verifyEmail";
 import VerifyCode from "./components/auth/verifyCode";
@@ -41,7 +41,7 @@ import AccountPage from "./pages/account";
 import Wallet from "./pages/wallet";
 import Deposit from "./pages/deposit";
 import Withdraw from "./pages/withdraw";
-import ConfirmWithdrawal from "./pages/confirmWithdrawal";
+import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
 import WithdrawSuccess from "./pages/withdrawSuccess";
 import WalletTopUpPage from "./pages/WalletTopUpPage";
 
@@ -50,8 +50,7 @@ import CartPage from "./pages/cart";
 import OrderSummaryPage from "./pages/OrderSummaryPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
-import CheckoutPage from './pages/CheckoutPage';
-
+import CheckoutPage from "./pages/CheckoutPage";
 
 /* ---------------- SUBSCRIPTIONS ---------------- */
 import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
@@ -91,7 +90,6 @@ function App() {
       <Toaster position="top-center" />
 
       <Routes>
-
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -103,16 +101,17 @@ function App() {
 
         {/* ================= PROTECTED ROUTES ================= */}
         <Route element={<ProtectedRoute />}>
-
           {/* Layout wrapper */}
           <Route element={<FeedLayout />}>
-
             {/* Feed */}
             <Route path="/" element={<Feed />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/food" element={<VendorsList />} />
             <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/product-details/:id" element={<FeedProductDetails />} />
+            <Route
+              path="/product-details/:id"
+              element={<FeedProductDetails />}
+            />
 
             {/* Vendor browsing */}
             <Route
@@ -123,8 +122,14 @@ function App() {
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<ProfileVisiting />} />
-            <Route path="/profile/:userId/followers" element={<FollowersPage />} />
-            <Route path="/profile/:userId/following" element={<FollowingPage />} />
+            <Route
+              path="/profile/:userId/followers"
+              element={<FollowersPage />}
+            />
+            <Route
+              path="/profile/:userId/following"
+              element={<FollowingPage />}
+            />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
 
@@ -150,36 +155,68 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
 
             {/* Customer Subscriptions */}
-            <Route path="/subscriptions" element={<CustomerSubscriptionsPage />} />
-            <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
-            <Route path="/subscription-callback" element={<SubscriptionCallbackPage />} />
+            <Route
+              path="/subscriptions"
+              element={<CustomerSubscriptionsPage />}
+            />
+            <Route
+              path="/subscription-success"
+              element={<SubscriptionSuccessPage />}
+            />
+            <Route
+              path="/subscription-callback"
+              element={<SubscriptionCallbackPage />}
+            />
 
-            <Route path="/subscription/payment/:planId" element={<SubscriptionPaymentPage />} />
+            <Route
+              path="/subscription/payment/:planId"
+              element={<SubscriptionPaymentPage />}
+            />
             {/* <Route path="/subscription/success" element={<SubscriptionSuccessPage />} /> */}
             {/* User Premium */}
-            <Route path="/user-subscription" element={<UserSubscriptionPage />} />
-            <Route path="/user-subscription/success" element={<UserSubscriptionSuccessPage />} />
-            <Route path="/user-subscription/callback" element={<UserSubscriptionCallbackPage />} />
+            <Route
+              path="/user-subscription"
+              element={<UserSubscriptionPage />}
+            />
+            <Route
+              path="/user-subscription/success"
+              element={<UserSubscriptionSuccessPage />}
+            />
+            <Route
+              path="/user-subscription/callback"
+              element={<UserSubscriptionCallbackPage />}
+            />
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
-
           </Route>
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
-            <Route path="/vendor/subscriptions" element={<VendorSubscriptionsOverview />} />
+            <Route
+              path="/vendor/subscriptions"
+              element={<VendorSubscriptionsOverview />}
+            />
             <Route path="/vendor/plans" element={<ManageVendorPlansPage />} />
-            <Route path="/vendor/plans/create" element={<CreateSubscriptionPlanPage />} />
+            <Route
+              path="/vendor/plans/create"
+              element={<CreateSubscriptionPlanPage />}
+            />
             <Route path="/vendor/plans/:planId" element={<PlanDetailsPage />} />
-            <Route path="/vendor/plans/:planId/edit" element={<EditPlanPage />} />
-            <Route path="/subscription/create-meal-plan" element={<CreateMealPlanPage />} />
-            <Route path="/subscription/create-meal-plan/:planId" element={<EditPlanPage />} />
-
+            <Route
+              path="/vendor/plans/:planId/edit"
+              element={<EditPlanPage />}
+            />
+            <Route
+              path="/subscription/create-meal-plan"
+              element={<CreateMealPlanPage />}
+            />
+            <Route
+              path="/subscription/create-meal-plan/:planId"
+              element={<EditPlanPage />}
+            />
           </Route>
-
         </Route>
-
       </Routes>
     </FeedProvider>
   );
