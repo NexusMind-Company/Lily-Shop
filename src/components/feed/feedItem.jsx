@@ -48,6 +48,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       mediaArray[0].src.match(/\.(mp4|mov|webm)$/i));
 
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const [currentPostId, setCurrentPostId] = useState(post.id);
 
   const [isLiked, setIsLiked] = useState(
     post.is_liked === true ||
@@ -73,6 +74,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
 
   const navigate = useNavigate();
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
@@ -93,6 +95,21 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const hasLinkedProduct = !isProduct && post.product != null;
 
   useEffect(() => {
+    if (post.id !== currentPostId) {
+      setCurrentPostId(post.id);
+      setHasViewed(false);
+      setViewCount(
+        Number(post.visit_count || post.view_count || post.views || 0),
+      );
+    } else {
+      setViewCount((prev) => {
+        const incomingCount = Number(
+          post.visit_count || post.view_count || post.views || 0,
+        );
+        return incomingCount > prev ? incomingCount : prev;
+      });
+    }
+
     setIsLiked(
       post.is_liked === true ||
         post.is_liked === "true" ||
@@ -109,20 +126,59 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     setCommentCount(
       Number(post.comment_count || post.comments_count || post.comments || 0),
     );
-    setViewCount(
-      Number(post.visit_count || post.view_count || post.views || 0),
-    );
-  }, [post]);
+  }, [post, currentPostId]);
 
   useEffect(() => {
     let timer;
-    if (isActive) {
+    if (isActive && !hasViewed) {
       timer = setTimeout(() => {
-        recordProductView(post.id).catch((err) => {});
+        if (isProduct) {
+          setViewCount((prev) => prev + 1);
+          setHasViewed(true);
+
+          recordProductView(post.id)
+            .then(() => {
+              queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+                if (!oldData || !oldData.pages) return oldData;
+                return {
+                  ...oldData,
+                  pages: oldData.pages.map((page) => ({
+                    ...page,
+                    items:
+                      page.items?.map((item) => {
+                        if (item.id === post.id) {
+                          const currentViews = Number(
+                            item.views ||
+                              item.view_count ||
+                              item.visit_count ||
+                              0,
+                          );
+                          return {
+                            ...item,
+                            views: currentViews + 1,
+                            view_count: currentViews + 1,
+                            visit_count: currentViews + 1,
+                          };
+                        }
+                        return item;
+                      }) || [],
+                  })),
+                };
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+              setViewCount((prev) => Math.max(0, prev - 1));
+              setHasViewed(false);
+            });
+        } else {
+          // It's a fun content post. No API to record view, but we mark it viewed locally so timer stops.
+          setHasViewed(true);
+        }
       }, 2000);
     }
     return () => clearTimeout(timer);
-  }, [isActive, post.id]);
+  }, [isActive, post.id, isProduct, hasViewed, queryClient]);
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
@@ -142,11 +198,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         ? previousLikeCount + 1
         : Math.max(0, previousLikeCount - 1);
 
-      // Optimistically update local state
       setIsLiked(newIsLiked);
       setLikeCount(newLikeCount);
 
-      // Optimistically update the React Query Cache so it doesn't revert on scroll/rerender
       queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
         if (!oldData || !oldData.pages) return oldData;
         return {
@@ -171,18 +225,15 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       return { previousIsLiked, previousLikeCount };
     },
     onSuccess: (data) => {
-      // Some backends return the new state, let's sync if they do
       if (data && data.like_count !== undefined) {
         setLikeCount(Number(data.like_count));
       }
     },
     onError: (err, variables, context) => {
-      // Revert if API fails
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
 
-        // Revert cache
         queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
           return {
@@ -448,6 +499,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               <span className="text-xs font-semibold">Message</span>
             </button>
 
+            {/* This block handles showing views for ALL content types now */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
@@ -474,7 +526,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://lilyshops.com/${
+            postUrl={`https://phantomclips.com/${
               isProduct ? "product" : "content"
             }/${post.id}`}
             postCaption={post.caption}

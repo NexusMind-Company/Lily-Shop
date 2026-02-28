@@ -14,7 +14,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
 import { addToCart } from "../../../redux/cartSlice";
-import { likeProduct, followUser } from "../../../services/api";
+import {
+  likeProduct,
+  followUser,
+  recordProductView,
+} from "../../../services/api";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -23,6 +27,9 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
+
+const formatCount = (num) =>
+  num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
@@ -95,8 +102,8 @@ const ProductItem = ({ product }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
 
-  // Interaction States
   const [isLiked, setIsLiked] = useState(
     product.is_liked === true ||
       product.is_liked === "true" ||
@@ -108,11 +115,14 @@ const ProductItem = ({ product }) => {
       product.has_followed === true,
   );
 
+  const [viewCount, setViewCount] = useState(
+    Number(product.visit_count || product.view_count || product.views || 0),
+  );
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-  // Robust Media Extraction mapping backend response correctly
   const rawMedia =
     product.all_media_urls?.length > 0
       ? product.all_media_urls
@@ -141,7 +151,23 @@ const ProductItem = ({ product }) => {
 
   const displayPrice = product.price_in_naira || product.price || 0;
 
-  // --- Like Mutation ---
+  useEffect(() => {
+    let timer;
+    if (!hasViewed && product?.id) {
+      timer = setTimeout(() => {
+        setViewCount((prev) => prev + 1);
+        setHasViewed(true);
+
+        recordProductView(product.id).catch((err) => {
+          console.log(err);
+          setViewCount((prev) => Math.max(0, prev - 1));
+          setHasViewed(false);
+        });
+      }, 2000);
+    }
+    return () => clearTimeout(timer);
+  }, [product?.id, hasViewed]);
+
   const { mutate: toggleLike } = useMutation({
     mutationFn: () => likeProduct(product.id),
     onMutate: () => {
@@ -151,7 +177,6 @@ const ProductItem = ({ product }) => {
     onError: () => setIsLiked((prev) => !prev),
   });
 
-  // --- Follow Mutation ---
   const { mutate: toggleFollow } = useMutation({
     mutationFn: () =>
       followUser(
@@ -181,7 +206,6 @@ const ProductItem = ({ product }) => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) return navigate("/login");
-    // Send standard direct buy format matched with CheckoutPage logic
     navigate("/checkout", {
       state: {
         directBuy: true,
@@ -205,7 +229,6 @@ const ProductItem = ({ product }) => {
     : reviewsArray.slice(0, 3);
   const hasMoreReviews = reviewsArray.length > 3;
 
-  // Safe Username Display & Navigation
   const displayUsername =
     product.shop_name || product.username || product.user || "Unknown Vendor";
   const profileLink = product.shop
@@ -281,6 +304,13 @@ const ProductItem = ({ product }) => {
             <span className="text-ash flex items-center mt-1">
               <img src="/icons/star2.svg" alt="" className="mr-1 w-4 h-4" />
               {product.rating || 0} ({product.reviews || 0})
+              <span className="mx-2 text-gray-400">•</span>
+              <img
+                src="/icons/eye.svg"
+                alt="Views"
+                className="mr-1 w-4 h-4 opacity-70"
+              />
+              {formatCount(viewCount)}
             </span>
           </div>
 
