@@ -1,11 +1,17 @@
-// src/pages/CheckoutPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ArrowLeft, Wallet, CreditCard, Lock, ShoppingBag, 
-  AlertCircle, CheckCircle2, Plus, ChevronRight 
+import {
+  ArrowLeft,
+  Wallet,
+  CreditCard,
+  Lock,
+  ShoppingBag,
+  AlertCircle,
+  CheckCircle2,
+  Plus,
+  ChevronRight,
 } from "lucide-react";
 import {
   createOrder,
@@ -61,7 +67,8 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     if (!cartItems || cartItems.length === 0) return;
-    if (paymentMethod === "wallet" && walletBalance < cart.total_price_naira) return;
+    if (paymentMethod === "wallet" && walletBalance < cart.total_price_naira)
+      return;
 
     setProcessing(true);
 
@@ -81,7 +88,9 @@ const CheckoutPage = () => {
       if (result.payment_result) {
         if (result.payment_result.status === "paid") {
           await dispatch(clearCart());
-          navigate("/order-success", { state: { order: result, paymentMethod } });
+          navigate("/order-success", {
+            state: { order: result, paymentMethod },
+          });
         } else if (result.payment_result.authorization_url) {
           window.location.href = result.payment_result.authorization_url;
         }
@@ -93,13 +102,14 @@ const CheckoutPage = () => {
     }
   };
 
-  const insufficientBalance = paymentMethod === "wallet" && walletBalance < cart.total_price_naira;
+  const insufficientBalance =
+    paymentMethod === "wallet" && walletBalance < cart.total_price_naira;
 
   // Loading State
   if (cartLoading || loadingWallet) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
@@ -121,7 +131,7 @@ const CheckoutPage = () => {
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
@@ -129,8 +139,12 @@ const CheckoutPage = () => {
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <ShoppingBag className="w-12 h-12 text-gray-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">Add some amazing products to get started!</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Your cart is empty
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Add some amazing products to get started!
+          </p>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -160,7 +174,9 @@ const CheckoutPage = () => {
             </motion.button>
             <div className="flex items-center space-x-2">
               <Lock className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-gray-600 font-medium">Secure Checkout</span>
+              <span className="text-sm text-gray-600 font-medium">
+                Secure Checkout
+              </span>
             </div>
           </div>
         </div>
@@ -168,7 +184,7 @@ const CheckoutPage = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {/* Page Title */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
@@ -192,9 +208,12 @@ const CheckoutPage = () => {
                 <div className="flex items-start space-x-3">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="font-semibold text-red-900 mb-1">Order Failed</p>
+                    <p className="font-semibold text-red-900 mb-1">
+                      Order Failed
+                    </p>
                     <p className="text-sm text-red-700">
-                      {orderError?.error || "Failed to create order. Please try again."}
+                      {orderError?.error ||
+                        "Failed to create order. Please try again."}
                     </p>
                   </div>
                 </div>
@@ -235,32 +254,48 @@ const CheckoutPage = () => {
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="sr-only"
                   />
-                  <div className={`border-2 rounded-xl p-5 transition-all ${
-                    paymentMethod === "wallet" 
-                      ? "border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-md" 
-                      : "border-gray-200 hover:border-pink-300 bg-white"
-                  }`}>
+                  <div
+                    className={`border-2 rounded-xl p-5 transition-all ${
+                      paymentMethod === "wallet"
+                        ? "border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-md"
+                        : "border-gray-200 hover:border-pink-300 bg-white"
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          paymentMethod === "wallet" 
-                            ? "bg-gradient-to-br from-pink-500 to-purple-600" 
-                            : "bg-gray-100"
-                        }`}>
-                          <Wallet className={`w-6 h-6 ${
-                            paymentMethod === "wallet" ? "text-white" : "text-gray-600"
-                          }`} />
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            paymentMethod === "wallet"
+                              ? "bg-gradient-to-br from-pink-500 to-purple-600"
+                              : "bg-gray-100"
+                          }`}
+                        >
+                          <Wallet
+                            className={`w-6 h-6 ${
+                              paymentMethod === "wallet"
+                                ? "text-white"
+                                : "text-gray-600"
+                            }`}
+                          />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-800">Lily Wallet</p>
-                          <p className="text-sm text-gray-500">Instant payment</p>
+                          <p className="font-semibold text-gray-800">
+                            Lily Wallet
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Instant payment
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500 mb-1">Balance</p>
-                        <p className={`text-lg font-bold ${
-                          insufficientBalance ? "text-red-600" : "text-green-600"
-                        }`}>
+                        <p
+                          className={`text-lg font-bold ${
+                            insufficientBalance
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
                           ₦{walletBalance.toLocaleString()}
                         </p>
                       </div>
@@ -278,7 +313,11 @@ const CheckoutPage = () => {
                           <div className="flex items-start space-x-2 mb-3">
                             <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-red-600">
-                              Insufficient balance. Top up ₦{(cart.total_price_naira - walletBalance).toLocaleString()} more.
+                              Insufficient balance. Top up ₦
+                              {(
+                                cart.total_price_naira - walletBalance
+                              ).toLocaleString()}{" "}
+                              more.
                             </p>
                           </div>
                           <motion.button
@@ -326,24 +365,34 @@ const CheckoutPage = () => {
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="sr-only"
                   />
-                  <div className={`border-2 rounded-xl p-5 transition-all ${
-                    paymentMethod === "paystack" 
-                      ? "border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-md" 
-                      : "border-gray-200 hover:border-pink-300 bg-white"
-                  }`}>
+                  <div
+                    className={`border-2 rounded-xl p-5 transition-all ${
+                      paymentMethod === "paystack"
+                        ? "border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-md"
+                        : "border-gray-200 hover:border-pink-300 bg-white"
+                    }`}
+                  >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        paymentMethod === "paystack" 
-                          ? "bg-gradient-to-br from-pink-500 to-purple-600" 
-                          : "bg-gray-100"
-                      }`}>
-                        <CreditCard className={`w-6 h-6 ${
-                          paymentMethod === "paystack" ? "text-white" : "text-gray-600"
-                        }`} />
+                      <div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          paymentMethod === "paystack"
+                            ? "bg-gradient-to-br from-pink-500 to-purple-600"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        <CreditCard
+                          className={`w-6 h-6 ${
+                            paymentMethod === "paystack"
+                              ? "text-white"
+                              : "text-gray-600"
+                          }`}
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-gray-800">Paystack</p>
-                        <p className="text-sm text-gray-500">Card, Bank Transfer, USSD</p>
+                        <p className="text-sm text-gray-500">
+                          Card, Bank Transfer, USSD
+                        </p>
                       </div>
                       {paymentMethod === "paystack" && (
                         <motion.div
@@ -387,7 +436,11 @@ const CheckoutPage = () => {
                     >
                       <div className="relative">
                         <img
-                          src={item.product.image_url || item.product.media_url || "/placeholder.png"}
+                          src={
+                            item.product.image_url ||
+                            item.product.media_url ||
+                            "/placeholder.png"
+                          }
                           alt={item.product.name}
                           className="w-20 h-20 object-cover rounded-lg"
                         />
@@ -400,7 +453,11 @@ const CheckoutPage = () => {
                           {item.product.name}
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">
-                          ₦{(item.subtotal_naira / item.quantity).toLocaleString()} each
+                          ₦
+                          {(
+                            item.subtotal_naira / item.quantity
+                          ).toLocaleString()}{" "}
+                          each
                         </p>
                       </div>
                       <div className="text-right">
@@ -431,7 +488,9 @@ const CheckoutPage = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({cart.total_items} items)</span>
-                    <span className="font-semibold">₦{cart.total_price_naira.toLocaleString()}</span>
+                    <span className="font-semibold">
+                      ₦{cart.total_price_naira.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
@@ -439,7 +498,9 @@ const CheckoutPage = () => {
                   </div>
                   <div className="border-t-2 border-dashed border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-gray-800">Total</span>
+                      <span className="text-lg font-bold text-gray-800">
+                        Total
+                      </span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                         ₦{cart.total_price_naira.toLocaleString()}
                       </span>
@@ -448,8 +509,16 @@ const CheckoutPage = () => {
                 </div>
 
                 <motion.button
-                  whileHover={!processing && !orderLoading && !insufficientBalance ? { scale: 1.02 } : {}}
-                  whileTap={!processing && !orderLoading && !insufficientBalance ? { scale: 0.98 } : {}}
+                  whileHover={
+                    !processing && !orderLoading && !insufficientBalance
+                      ? { scale: 1.02 }
+                      : {}
+                  }
+                  whileTap={
+                    !processing && !orderLoading && !insufficientBalance
+                      ? { scale: 0.98 }
+                      : {}
+                  }
                   onClick={handlePlaceOrder}
                   disabled={processing || orderLoading || insufficientBalance}
                   className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 ${
@@ -462,7 +531,11 @@ const CheckoutPage = () => {
                     <>
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                         className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                       />
                       <span>Processing...</span>
@@ -480,7 +553,7 @@ const CheckoutPage = () => {
                   <div className="flex items-start space-x-2">
                     <Lock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-blue-800 leading-relaxed">
-                      Your payment is secured with industry-standard encryption. 
+                      Your payment is secured with industry-standard encryption.
                       Funds are held safely until delivery is confirmed.
                     </p>
                   </div>
