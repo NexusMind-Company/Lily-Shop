@@ -107,7 +107,10 @@ const SubscriptionItem = ({ subscription, onClick }) => {
       </div>
       <div className="flex flex-col items-end gap-1">
         <span className="text-base font-bold text-text-main dark:text-white">
-          ${parseFloat(price).toFixed(2)}
+         ₦{Number(price).toLocaleString('en-NG', {
+            minimumFractionDigits: Number.isInteger(Number(price)) ? 0 : 2,
+            maximumFractionDigits: 2
+          })}
         </span>
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge.className}`}
