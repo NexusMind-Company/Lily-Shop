@@ -9,6 +9,11 @@ import MenuItem from "./MenuItem";
  * @param {Function} props.onMealClick - Function to handle meal click
  */
 const MenuPreview = ({ menuItems, onViewAll, onMealClick }) => {
+  // Extract menu items from nested structure (menu_items property)
+  const flattenedMenuItems = menuItems && menuItems.length > 0 
+    ? menuItems.flatMap(menu => menu.menu_items || [])
+    : [];
+
   return (
     <div className="mt-4 pb-8">
       <div className="flex items-center justify-between px-4 mb-4">
@@ -24,8 +29,8 @@ const MenuPreview = ({ menuItems, onViewAll, onMealClick }) => {
         className="flex overflow-x-auto gap-3 px-4 pb-4 snap-x hide-scrollbar"
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
-        {menuItems && menuItems.length > 0 ? (
-          menuItems.map((item, index) => (
+        {flattenedMenuItems.length > 0 ? (
+          flattenedMenuItems.map((item, index) => (
             <MenuItem 
               key={index} 
               item={item} 

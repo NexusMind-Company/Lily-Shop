@@ -66,16 +66,16 @@ import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
 import UserSubscriptionPage from "./pages/UserSubscriptionPage";
 import UserSubscriptionSuccessPage from "./pages/UserSubscriptionSuccessPage";
 import UserSubscriptionCallbackPage from "./pages/UserSubscriptionCallbackPage";
-
 import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
 import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
-// import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 
 /* ---------------- OTHER ---------------- */
 import Settings from "./pages/settings";
 import LilyChat from "./components/ai/lilyChat";
 import VendorDashboard from "./pages/VendorDashboard";
 import VerificationPage from "./pages/VerificationPage";
+import CreateSubscriptionVendorPage from "./pages/createSubscriptionVendor";
+import EditProfile from "./components/profile/editProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -132,6 +132,7 @@ function App() {
             />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/editProfile" element={<EditProfile />} />
 
             {/* Inbox & Social */}
             <Route path="/inbox" element={<InboxPage />} />
@@ -187,7 +188,7 @@ function App() {
               element={<UserSubscriptionCallbackPage />}
             />
 
-            {/* Settings */}
+            {/* Extras */}
             <Route path="/settings" element={<Settings />} />
           </Route>
 
