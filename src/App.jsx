@@ -70,6 +70,7 @@ import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
 import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
 
 /* ---------------- OTHER ---------------- */
+import About from "./components/about";
 import Settings from "./pages/settings";
 import LilyChat from "./components/ai/lilyChat";
 import VendorDashboard from "./pages/VendorDashboard";
@@ -133,6 +134,7 @@ function App() {
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/editProfile" element={<EditProfile />} />
+            <Route path="/about" element={<About />} />
 
             {/* Inbox & Social */}
             <Route path="/inbox" element={<InboxPage />} />
