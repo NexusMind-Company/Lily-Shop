@@ -250,7 +250,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-5 text-white z-5 pointer-events-none">
+      <div className="absolute bottom-5 left-0 right-0 p-4 pb-20 md:pb-5 text-white z-5 pointer-events-none">
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
 
