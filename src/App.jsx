@@ -70,7 +70,7 @@ import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
 import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
 
 /* ---------------- OTHER ---------------- */
-import About from "./components/about";
+import About from "./components/about/About";
 import Settings from "./pages/settings";
 import LilyChat from "./components/ai/lilyChat";
 import VendorDashboard from "./pages/VendorDashboard";
