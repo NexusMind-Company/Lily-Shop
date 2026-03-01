@@ -1,4 +1,3 @@
-// src/components/settings/About.jsx
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -18,11 +17,14 @@ const About = () => {
     sections: [
       {
         title: "About Us",
-        content: `LilyShops – The Future of Social Commerce
-
-LilyShops is a social commerce platform letting creators, vendors, and everyday users connect through content and commerce. Our "Shop from Feed" feature allows users to purchase directly from posts as they scroll, bringing convenience, fun, and community together.
-
-Our mission is to make commerce social, fun and open to the world.`,
+        content: `Lilyshops is your all-in-one app where social media meets easy shopping and stress-free eating.
+         Scroll through fun feeds of videos, photos, and posts, like dances or daily vibes, from creators and vendors. 
+         Spot something cool? Tap to buy it right there, no jumping apps. 
+         Plus, for food lovers, subscribe to your favorite restaurants or vendors once weekly or monthly—and get meals delivered daily without re-ordering. 
+         Save time, save money, and enjoy a community where buying feels like hanging out
+         
+         Our mission is to make commerce social, fun and available to everyone 
+         Our vision is to be the biggest social commerce in the world`,
       },
       {
         title: "Privacy Policy",
@@ -52,14 +54,13 @@ Your Rights
 • Object to certain processing
 • Withdraw consent where applicable
 
-Contact: ai.nexusmind@gmail.com`,
+Contact: info.lilyshops@gmail.com`,
       },
       {
         title: "Terms & Conditions",
         content: `LilyShops – Terms & Conditions
 
-Acceptance
-By using LilyShops, you agree to these terms.
+Acceptance By using LilyShops, you agree to these terms.
 
 Account & Eligibility
 • Must provide accurate, up-to-date info
@@ -71,8 +72,9 @@ Vendor Responsibilities
 • Comply with local laws and tax obligations
 
 Commission & Payments
-• LilyShops takes a 5% commission on each sale
-• Payment held in escrow until confirmation
+• LilyShops takes a 10% commission on each sale and subscription fess
+• Payment held in escrow until confirmation (for shop from feed) 
+while restaurants for food subscription gets their money instantly 
 • Vendors may withdraw net earnings
 
 Content & Intellectual Property
@@ -84,7 +86,7 @@ Content & Intellectual Property
         content: `Need Help? We're Here for You
 
 If you have questions, concerns, or feedback:
-• Email: ai.nexusmind@gmail.com
+• Email:  info.lilyshops@gmail.com
 • In-app support / ticket system
 • FAQs in our Help Center
 • Report problems, content issues, or violations
@@ -95,14 +97,21 @@ We aim to respond to all inquiries within 48 hours.`,
         title: "FAQ",
         content: `Frequently Asked Questions
 
+        Q: How do I sign up as a restaurant?
+A: You signup and login as a restaurant by navigating to food 
+
+Q: What is the food subscription?
+A: The food subscription feature is a feature where users can subscribe for
+ food to any restaurant or food vendor, and get your food daily without any stress.
+
 Q: How do I buy using "Shop from Feed"?
 A: Tap "Buy Now" on a post with a product, confirm checkout, and your order will be processed.
 
 Q: How much commission do you charge vendors?
-A: We charge a 5% commission per successful sale.
+A: We charge a 10% commission per successful sale.
 
 Q: When can I withdraw money from my vendor wallet?
-A: Once your balance reaches ₦X, you can request withdrawal to your bank.
+A:  Anytime, you can request withdrawal to your bank.  
 
 Q: Can I post content without selling?
 A: Yes — you can post purely social content without a "Buy Now" CTA.
@@ -118,6 +127,8 @@ A: You share your referral link. When someone signs up & buys, you earn a reward
         content: `What LilyShops Offers
 
 • Shop from Feed: buy directly from posts
+⁠• Food subscription: users can subscribe weekly or monthly instead of
+ buying food daily or paying for daily ordering.
 • Content-first experience: browse, scroll, shop
 • Wallet & escrow: safe and secure payments
 • Nearby / Local discovery: see vendors near you
@@ -164,6 +175,10 @@ Terms and thresholds apply; your affiliate balance must meet minimum of ₦1000 
 4. Payment held in escrow
 5. Vendor fulfills order
 6. Buyer confirms receipt → funds released
+7. You click on ‘Food’ 
+8. ⁠You subscribe and get unlimited food for the week
+9. ⁠Vendors get payment and withdraw to their account 
+10. ⁠It's seamless, entertaining, social, and safe.
 
 It's seamless, entertaining, social, and safe.`,
       },
@@ -176,24 +191,26 @@ It's seamless, entertaining, social, and safe.`,
 • Pay per impression, click, or conversion
 • We also offer affiliate tie-ins and co-branded campaigns
 
-Contact "ai.nexusmind@gmail.com" for more media kits and rates.`,
+Contact "info.lilyshops@gmail.com" for more media kits and rates.`,
       },
       {
         title: "Monetization",
         content: `How LilyShops Earns
 
-• 5% Commission from every sale
+• 10% Commission from every sale
 • Advertising revenue from brands
 • Featured / sponsored posts
-• Transaction fees and premium features
-
+• Transaction fees and premium features, 
 We aim for fair rates that let vendors and creators thrive.`,
       },
       {
         title: "Our Story",
         content: `From Vision to Revolution
 
-LilyShops began as a dream: to break down the line between browsing and buying. We envisioned a future where commerce isn't separate — it's part of life, part of scrolls. With a small team, we built a social-commerce platform where every post could be a shop. We're here to celebrate creators, empower vendors, and make everyday user a joyful and entertaining experience.`,
+LilyShops began as a dream: to break down the line between browsing and buying.
+ We envisioned a future where commerce isn't separate — it's part of life, part of scrolls.
+  With a small team, we built a social-commerce platform where every post could be a shop and every subscription could feed a nation. .
+   We're here to celebrate creators, empower vendors, and make everyday user a joyful and entertaining experience.`,
       },
       {
         title: "Refund & Return Policy",

@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed } from "lucide-react"; // <-- Import the icon
 
@@ -13,7 +14,7 @@ const BottomNav = ({ activePage }) => {
             <img src="/icons/home-4.svg" className="h-7 w-7" />
           )}
         </button>
-        <span className="text-xs font-poppins mt-6">Home</span>
+        <span className="text-xs font-poppins mt-6 md:mt-2">Home</span>
       </Link>
       
       {/* Create */}
@@ -25,7 +26,26 @@ const BottomNav = ({ activePage }) => {
             <img src="/icons/create-circle.svg" className="h-7 w-7" />
           )}
         </button>
-        <span className="text-xs font-poppins mt-6">Create</span>
+        <span className="text-xs font-poppins mt-6 md:mt-2">Create</span>
+      </Link>
+      {/* Food */}
+      <Link
+        to="/food"
+        className={`flex flex-col items-center relative ${
+          activePage === "food" ? "text-lily" : "text-ash"
+        }`}
+      >
+        <button
+          onClick={() => setActivePage("food")}
+          className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2 md:static md:translate-x-0 md:transform-none"
+        >
+          {activePage === "food" ? (
+            <UtensilsCrossed className="text-lily h-7 w-7" />
+          ) : (
+            <UtensilsCrossed className="text-gray-600 h-7 w-7" />
+          )}
+        </button>
+        <span className="text-xs font-poppins mt-6 md:mt-2">Food</span>
       </Link>
 
       {/* Food */}
@@ -67,7 +87,7 @@ const BottomNav = ({ activePage }) => {
             <img src="/icons/user.svg" className="h-7 w-7" />
           )}
         </button>
-        <span className="text-xs font-poppins mt-6">Profile</span>
+        <span className="text-xs font-poppins mt-6 md:mt-2">Profile</span>
       </Link>
     </div>
   );

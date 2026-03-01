@@ -1,5 +1,34 @@
-import { supabase, handleSupabaseError } from "./supabase";
-import { fetchPublicProfile } from "./api";
+import {
+  fetchPublicProfile,
+  fetchSubscriptionStats as apiFetchSubscriptionStats,
+  fetchRecentSubscriptions as apiFetchRecentSubscriptions,
+  fetchAllSubscriptions as apiFetchAllSubscriptions,
+  fetchCustomerSubscriptions as apiFetchCustomerSubscriptions,
+  fetchVendorSubscriptionPlans as apiFetchVendorSubscriptionPlans,
+  createMealPlan as apiCreateMealPlan,
+  createMeal as apiCreateMeal,
+  fetchMealPlansByVendor as apiFetchMealPlansByVendor,
+  fetchMealsByVendor as apiFetchMealsByVendor,
+  fetchFoodVendor,
+  fetchAllFoodVendors,
+  fetchMealPlan,
+  subscribeToPlan,
+  unsubscribeFromPlan,
+  createSubscriptionPlan,
+  updateSubscriptionPlan,
+  partialUpdateSubscriptionPlan,
+  deleteMealPlan,
+  deleteMeal,
+  updateReview,
+  partialUpdateReview,
+  deleteReview,
+  fetchVendorReviews,
+  createVendorReview,
+  deleteVendorProfile,
+  fetchSubscribedVendors,
+  fetchVendorSubscriptions,
+  api,
+} from "./api";
 
 /**
  * Fetch vendor profile by vendor ID
@@ -23,43 +52,8 @@ export const fetchVendorProfile = async (vendorId) => {
  */
 export const fetchSubscriptionStats = async (vendorId) => {
   try {
-    // Active subscriptions count
-    const { count: activeSubs, error: activeError } = await supabase
-      .from("subscriptions")
-      .select("*", { count: "exact", head: true })
-      .eq("vendor_id", vendorId)
-      .eq("status", "active");
-
-    if (activeError) throw activeError;
-
-    // Revenue: sum of amounts for active subscriptions
-    const { data: revenueData, error: revenueError } = await supabase
-      .from("subscriptions")
-      .select("amount")
-      .eq("vendor_id", vendorId)
-      .eq("status", "active");
-
-    if (revenueError) throw revenueError;
-
-    const revenue = revenueData.reduce(
-      (sum, sub) => sum + parseFloat(sub.amount),
-      0
-    );
-
-    // Pending count
-    const { count: pending, error: pendingError } = await supabase
-      .from("subscriptions")
-      .select("*", { count: "exact", head: true })
-      .eq("vendor_id", vendorId)
-      .eq("status", "pending");
-
-    if (pendingError) throw pendingError;
-
-    return {
-      activeSubs: activeSubs || 0,
-      revenue: revenue.toFixed(2),
-      pending: pending || 0,
-    };
+    const data = await apiFetchSubscriptionStats(vendorId);
+    return data;
   } catch (error) {
     console.error("Error fetching subscription stats:", error);
     throw error;
@@ -74,72 +68,10 @@ export const fetchSubscriptionStats = async (vendorId) => {
  */
 export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
   try {
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select(
-        `
-        id,
-        plan_type,
-        amount,
-        status,
-        started_at,
-        customers (
-          id,
-          name,
-          profile_pic
-        )
-      `
-      )
-      .eq("vendor_id", vendorId)
-      .order("started_at", { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
+    const data = await apiFetchRecentSubscriptions(vendorId, limit);
     return data;
   } catch (error) {
     console.error("Error fetching recent subscriptions:", error);
-    throw error;
-  }
-};
-
-/**
- * Fetch meal plans for a vendor
- * @param {string} vendorId - The vendor's unique ID
- * @returns {Promise<Array>} Array of meal plan objects
- */
-export const fetchMealPlans = async (vendorId) => {
-  try {
-    const { data, error } = await supabase
-      .from("meal_plans")
-      .select("*")
-      .eq("vendor_id", vendorId);
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error("Error fetching meal plans:", error);
-    throw error;
-  }
-};
-
-/**
- * Fetch menu items for a vendor
- * @param {string} vendorId - The vendor's unique ID
- * @param {number} limit - Number of menu items to fetch (default 10)
- * @returns {Promise<Array>} Array of menu item objects
- */
-export const fetchMenuItems = async (vendorId, limit = 10) => {
-  try {
-    const { data, error } = await supabase
-      .from("meals")
-      .select("*")
-      .eq("vendor_id", vendorId)
-      .limit(limit);
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error("Error fetching menu items:", error);
     throw error;
   }
 };
@@ -149,9 +81,19 @@ export const fetchMenuItems = async (vendorId, limit = 10) => {
  * @param {string} vendorId - The vendor's unique ID
  * @returns {Promise<Object>} Vendor details object
  */
+export const fetchAllVendors = async (params = {}) => {
+  try {
+    const data = await fetchAllFoodVendors(params);
+    return data;
+  } catch (error) {
+    console.error("Error fetching all food vendors:", error);
+    throw error;
+  }
+};
+
 export const fetchVendorDetails = async (vendorId) => {
   try {
-    const data = await fetchPublicProfile(vendorId);
+    const data = await fetchFoodVendor(vendorId);
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
@@ -159,60 +101,68 @@ export const fetchVendorDetails = async (vendorId) => {
   }
 };
 
-/**
- * Fetch available meals for a vendor
- * @param {string} vendorId - The vendor's unique ID
- * @param {number} limit - Number of meals to fetch (default 20)
- * @returns {Promise<Array>} Array of meal objects
- */
-export const fetchAvailableMeals = async (vendorId, limit = 20) => {
+export const updatePlan = async (planId, planData) => {
   try {
-    const { data, error } = await supabase
-      .from("meals")
-      .select("*")
-      .eq("vendor_id", vendorId)
-      .limit(limit);
-
-    if (error) throw error;
+    const data = await updateSubscriptionPlan(planId, planData);
     return data;
   } catch (error) {
-    console.error("Error fetching available meals:", error);
+    console.error("Error updating subscription plan:", error);
+    throw error;
+  }
+};
+
+export const partialUpdatePlan = async (planId, planData) => {
+  try {
+    const data = await partialUpdateSubscriptionPlan(planId, planData);
+    return data;
+  } catch (error) {
+    console.error("Error partially updating subscription plan:", error);
     throw error;
   }
 };
 
 /**
- * Fetch all subscriptions for a vendor (for overview page)
+ * Fetch all subscriptions for a vendor (for overview page) with pagination
  * @param {string} vendorId - The vendor's unique ID (would come from auth context)
- * @returns {Promise<Array>} Array of all subscription objects
+ * @param {Object} params - Pagination parameters
+ * @param {number} params.page - Page number (default 1)
+ * @param {number} params.page_size - Number of results per page (default 10)
+ * @returns {Promise<Object>} Paginated response with count, next, previous, and results
  */
-export const fetchAllSubscriptions = async (vendorId) => {
+export const fetchAllSubscriptions = async (
+  vendorId,
+  { page = 1, page_size = 10 } = {},
+) => {
   try {
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select(
-        `
-        id,
-        plan_type,
-        plan_name,
-        amount,
-        status,
-        started_at,
-        dietary_notes,
-        customers (
-          id,
-          name,
-          profile_pic
-        )
-      `
-      )
-      .eq("vendor_id", vendorId)
-      .order("started_at", { ascending: false });
-
-    if (error) throw error;
+    const data = await apiFetchAllSubscriptions(vendorId, { page, page_size });
     return data;
   } catch (error) {
     console.error("Error fetching all subscriptions:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch vendor subscription plans with pagination
+ * @param {string} vendorId - The vendor's unique ID
+ * @param {Object} params - Pagination parameters
+ * @param {number} params.page - Page number (default 1)
+ * @param {number} params.page_size - Number of results per page (default 10)
+ * @returns {Promise<Object>} Paginated response with count, next, previous, and results
+ */
+export const fetchVendorSubscriptionPlans = async (
+  vendorId,
+  { page = 1, page_size = 10 } = {},
+) => {
+  try {
+    const data = await apiFetchVendorSubscriptionPlans(vendorId, {
+      page,
+      page_size,
+    });
+    console.log(" API fetchVendorSubscriptionPlans response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor subscription plans:", error);
     throw error;
   }
 };
@@ -224,62 +174,13 @@ export const fetchAllSubscriptions = async (vendorId) => {
  */
 export const fetchCustomerSubscriptions = async (customerId) => {
   try {
-    // If no customerId provided, try to get from localStorage (backend auth system)
-    let userId = customerId;
-    if (!userId) {
-      const userData = localStorage.getItem("user_data");
-      if (userData) {
-        const user = JSON.parse(userData);
-        userId = user?.id || user?.user_id;
-      }
-    }
-
-    // If no userId, return empty array (allow viewing without login)
-    if (!userId) {
-      return [];
-    }
-
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select(
-        `
-        id,
-        vendor_name,
-        vendor_image,
-        plan_name,
-        amount,
-        frequency,
-        meal_count,
-        status,
-        next_billing,
-        next_delivery,
-        paused_date,
-        paused_reason,
-        created_at,
-        vendors (
-          id,
-          name,
-          image
-        )
-      `
-      )
-      .eq("customer_id", userId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw handleSupabaseError(error);
-    }
+    const data = await apiFetchCustomerSubscriptions();
 
     if (!data) {
       return [];
     }
 
-    // Transform the data to match our component expectations
-    return data.map((sub) => ({
-      ...sub,
-      vendor_name: sub.vendors?.name || sub.vendor_name || "Unknown Vendor",
-      vendor_image: sub.vendors?.image || sub.vendor_image,
-    }));
+    return data;
   } catch (error) {
     console.error("Error fetching customer subscriptions:", error);
     throw error instanceof Error
@@ -289,68 +190,29 @@ export const fetchCustomerSubscriptions = async (customerId) => {
 };
 
 /**
- * Create a new meal plan for a vendor
- * @param {string} vendorId - The vendor's unique ID
- * @param {Object} planData - The plan data object
- * @param {string} planData.name - Plan name
- * @param {string} planData.type - Plan type (weekly/monthly)
- * @param {number} planData.price - Plan price
- * @param {string} planData.description - Plan description
- * @param {Array} planData.features - Array of features
- * @returns {Promise<Object>} Created plan data
+ * Create a meal plan
+ * @param {Object} mealPlanData - The meal plan data with optional media file
+ * @returns {Promise<Object>} Created meal plan data
  */
-export const createMealPlan = async (vendorId, planData) => {
+export const createMealPlan = async (mealPlanData) => {
   try {
-    const { data, error } = await supabase
-      .from("meal_plans")
-      .insert({
-        vendor_id: vendorId,
-        name: planData.name,
-        type: planData.type,
-        price: planData.price,
-        description: planData.description,
-        features: planData.features,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await createSubscriptionPlan(mealPlanData);
+    console.log(" API createMealPlan response:", data);
     return data;
   } catch (error) {
-    console.error("Error creating meal plan:", error);
+    console.error("Error creating meal plan:", error.response?.data || error);
     throw error;
   }
 };
-
 /**
- * Create a new meal for a vendor
- * @param {string} vendorId - The vendor's unique ID
- * @param {Object} mealData - The meal data object
- * @param {string} mealData.name - Meal name
- * @param {string} mealData.description - Meal description
- * @param {string} mealData.image - Meal image URL
- * @param {number} mealData.calories - Meal calories
- * @param {Array} mealData.tags - Array of tag objects {label, type}
+ * Create a meal
+ * @param {string} vendorId - The vendor's unique ID (not used, for consistency)
+ * @param {Object} mealData - The meal data
  * @returns {Promise<Object>} Created meal data
  */
 export const createMeal = async (vendorId, mealData) => {
   try {
-    const { data, error } = await supabase
-      .from("meals")
-      .insert({
-        vendor_id: vendorId,
-        name: mealData.name,
-        description: mealData.description,
-        image: mealData.image,
-        calories: mealData.calories,
-        tags: mealData.tags,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await apiCreateMeal(mealData);
     return data;
   } catch (error) {
     console.error("Error creating meal:", error);
@@ -359,42 +221,118 @@ export const createMeal = async (vendorId, mealData) => {
 };
 
 /**
- * Update an existing meal plan
- * @param {string} planId - The plan ID
- * @param {Object} updates - The updates object
- * @returns {Promise<Object>} Updated plan data
+ * Fetch meal plans for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Array>} Array of meal plan objects
  */
-export const updateMealPlan = async (planId, updates) => {
+export const fetchMealPlans = async (vendorId) => {
   try {
-    const { data, error } = await supabase
-      .from("meal_plans")
-      .update(updates)
-      .eq("id", planId)
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await apiFetchMealPlansByVendor(vendorId);
     return data;
   } catch (error) {
-    console.error("Error updating meal plan:", error);
+    console.error("Error fetching meal plans:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch available meals for a vendor
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Array>} Array of meal objects
+ */
+export const fetchAvailableMeals = async (vendorId) => {
+  try {
+    const data = await apiFetchMealsByVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching available meals:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch food vendor details
+ * @param {string} vendorId - The vendor's unique ID
+ * @returns {Promise<Object>} Vendor details object
+ */
+export const fetchFoodVendorDetails = async (vendorId) => {
+  try {
+    const data = await fetchFoodVendor(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching food vendor details:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch meal plan details
+ * @param {string} mealPlanId - The meal plan's unique ID
+ * @returns {Promise<Object>} Meal plan details object
+ */
+export const fetchMealPlanDetails = async (mealPlanId) => {
+  try {
+    const data = await fetchMealPlan(mealPlanId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching meal plan details:", error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to a meal plan
+ * @returns {Promise<Object>} Subscription result
+ */
+export const subscribeToMealPlan = async () => {
+  try {
+    const data = await subscribeToPlan();
+    return data;
+  } catch (error) {
+    console.error("Error subscribing to meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Unsubscribe from a meal plan
+ * @param {string} planId - The plan's unique ID
+ * @returns {Promise<Object>} Unsubscription result
+ */
+export const unsubscribeFromMealPlan = async (planId) => {
+  try {
+    const data = await unsubscribeFromPlan(planId);
+    return data;
+  } catch (error) {
+    console.error("Error unsubscribing from meal plan:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a subscription plan
+ * @param {Object} planData - The plan data
+ * @returns {Promise<Object>} Created plan object
+ */
+export const createVendorSubscriptionPlan = async (planData) => {
+  try {
+    const data = await createSubscriptionPlan(planData);
+    return data;
+  } catch (error) {
+    console.error("Error creating subscription plan:", error);
     throw error;
   }
 };
 
 /**
  * Delete a meal plan
- * @param {string} planId - The plan ID
- * @returns {Promise<Object>} Delete result
+ * @param {string} mealPlanId - The meal plan ID
+ * @returns {Promise<Object>} Deletion result
  */
-export const deleteMealPlan = async (planId) => {
+export const deleteVendorMealPlan = async (mealPlanId) => {
   try {
-    const { error } = await supabase
-      .from("meal_plans")
-      .delete()
-      .eq("id", planId);
-
-    if (error) throw error;
-    return { success: true };
+    const data = await deleteMealPlan(mealPlanId);
+    return data;
   } catch (error) {
     console.error("Error deleting meal plan:", error);
     throw error;
@@ -402,24 +340,203 @@ export const deleteMealPlan = async (planId) => {
 };
 
 /**
- * Update meal selection for a subscription
- * @param {string} subscriptionId - The subscription ID
- * @param {Array} selectedMealIds - Array of selected meal IDs
- * @returns {Promise<Object>} Update result
+ * Delete a meal
+ * @param {string} mealId - The meal ID
+ * @returns {Promise<Object>} Deletion result
  */
-export const updateMealSelection = async (subscriptionId, selectedMealIds) => {
+export const deleteVendorMeal = async (mealId) => {
   try {
-    const { data, error } = await supabase.from("subscription_meals").upsert(
-      selectedMealIds.map((mealId) => ({
-        subscription_id: subscriptionId,
-        meal_id: mealId,
-      }))
-    );
-
-    if (error) throw error;
+    const data = await deleteMeal(mealId);
     return data;
   } catch (error) {
-    console.error("Error updating meal selection:", error);
+    console.error("Error deleting meal:", error);
     throw error;
   }
 };
+
+/**
+ * Update a review
+ * @param {string} reviewId - The review ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Updated review
+ */
+export const updateVendorReview = async (reviewId, reviewData) => {
+  try {
+    const data = await updateReview(reviewId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error updating review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Partially update a review
+ * @param {string} reviewId - The review ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Updated review
+ */
+export const partialUpdateVendorReview = async (reviewId, reviewData) => {
+  try {
+    const data = await partialUpdateReview(reviewId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error partially updating review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a review
+ * @param {string} reviewId - The review ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteVendorReview = async (reviewId) => {
+  try {
+    const data = await deleteReview(reviewId);
+    return data;
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch reviews for a vendor
+ * @param {string} vendorId - The vendor ID
+ * @returns {Promise<Array>} Array of reviews
+ */
+export const fetchReviewsForVendor = async (vendorId) => {
+  try {
+    const data = await fetchVendorReviews(vendorId);
+    console.log(" API fetchReviewsForVendor response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching vendor reviews:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a review for a vendor
+ * @param {string} vendorId - The vendor ID
+ * @param {Object} reviewData - The review data
+ * @returns {Promise<Object>} Created review
+ */
+export const createReviewForVendor = async (vendorId, reviewData) => {
+  try {
+    const data = await createVendorReview(vendorId, reviewData);
+    return data;
+  } catch (error) {
+    console.error("Error creating vendor review:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete the authenticated user's vendor profile
+ * @returns {Promise<Object>} Deletion result
+ */
+export const deleteUserVendorProfile = async () => {
+  try {
+    const data = await deleteVendorProfile();
+    return data;
+  } catch (error) {
+    console.error("Error deleting vendor profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch vendors the user is subscribed to
+ * @returns {Promise<Array>} Array of subscribed vendors
+ */
+export const fetchUserSubscribedVendors = async () => {
+  try {
+    const data = await fetchSubscribedVendors();
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscribed vendors:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch subscriptions to a specific vendor
+ * @param {string} vendorId - The vendor ID
+ * @returns {Promise<Array>} Array of subscriptions
+ */
+export const fetchSubscriptionsToVendor = async (vendorId) => {
+  try {
+    const data = await fetchVendorSubscriptions(vendorId);
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscriptions to vendor:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update a meal plan
+ * @param {string} id - The meal plan ID
+ * @param {Object} payload - The meal plan data with optional media file
+ * @returns {Promise<Object>} Updated meal plan data
+ */
+export const updateMealPlan = async (id, payload) => {
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
+    payload;
+
+  // If media is a file, use FormData; otherwise use JSON
+  if (media instanceof File) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(media.type)) {
+      throw new Error(
+        "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
+      );
+    }
+
+    const formData = new FormData();
+    formData.append("plan_name", plan_name);
+    formData.append("price", price.toString());
+
+    if (trial_days !== undefined && trial_days !== null) {
+      formData.append("trial_days", trial_days.toString());
+    }
+
+    if (description !== undefined && description !== null) {
+      formData.append("description", description);
+    }
+
+    if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
+      formData.append("meals_per_cycle", meals_per_cycle.toString());
+    }
+
+    formData.append("media", media);
+
+    const response = await api.patch(
+      `/foods/subscriptions/${id}/update/`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  // Otherwise use JSON
+  const response = await api.patch(
+    `/foods/subscriptions/${id}/update/`,
+    payload,
+  );
+  return response.data;
+};
+
+// Note: The following functions have been removed because the corresponding backend endpoints don't exist:
+// - fetchMenuItems
+// - updateMealSelection
+//
+// These will need to be implemented on the backend or the frontend components will need to be updated
+// to work without these features.

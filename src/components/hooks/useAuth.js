@@ -1,6 +1,5 @@
 import { useState } from "react";
 import axios from "axios";
-import { supabase, handleSupabaseError } from "../../services/supabase";
 
 const useAuth = () => {
   const [error, setError] = useState(null);
@@ -14,23 +13,6 @@ const useAuth = () => {
     try {
       const response = await axios.post(url, credentials);
       setData(response.data);
-
-      // Send authenticated user data to Supabase
-      try {
-        console.log("Profile payload:", response.data);
-
-        await supabase.from("profiles").upsert({
-          id: response.data.id,
-          name: response.data.username || response.data.name,
-          email: response.data.email,
-          profile_pic: response.data.profile_pic,
-        });
-      } catch (supabaseError) {
-        console.error(
-          "Error saving user data to Supabase:",
-          handleSupabaseError(supabaseError)
-        );
-      }
     } catch (err) {
       if (
         err.response &&
@@ -40,7 +22,7 @@ const useAuth = () => {
         setError(
           err.response.data || {
             _error: "An unknown validation error occurred.",
-          }
+          },
         );
       } else {
         setError({

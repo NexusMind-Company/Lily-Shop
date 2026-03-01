@@ -1,5 +1,4 @@
 import axios from "axios";
-import { supabase, handleSupabaseError } from "./supabase";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
@@ -9,6 +8,15 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const setAuthTokens = ({ access, refresh }) => {
@@ -60,6 +68,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
     if (originalRequest._isRefreshRequest) {
       isRefreshing = false;
       processQueue(error, null);
@@ -76,7 +88,8 @@ api.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = "Bearer " + token;
             return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -96,8 +109,8 @@ api.interceptors.response.use(
       }
 
       try {
-        const rs = await api.post(
-          "/auth/token/refresh/",
+        const rs = await axios.post(
+          `${API_BASE_URL}/auth/token/refresh/`,
           { refresh: refreshToken },
           { _isRefreshRequest: true },
         );
@@ -105,7 +118,8 @@ api.interceptors.response.use(
         const { access } = rs.data;
         setAuthTokens({ access });
 
-        originalRequest.headers["Authorization"] = `Bearer ${access}`;
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${access}`;
 
         processQueue(null, access);
         return api(originalRequest);
@@ -120,6 +134,7 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   },
 );
@@ -183,7 +198,27 @@ export const updateProfilePic = async (imageFile) => {
       "Error updating user data in Supabase:",
       handleSupabaseError(supabaseError),
     );
+  return response.data;
+};
+
+// --- FILE UPLOAD ---
+export const uploadMediaFile = async (file) => {
+  // Validate that the file is an image
+  if (file instanceof File) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error("Only image files (JPEG, PNG, GIF, WEBP) are allowed");
+    }
   }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.post("/foods/subscriptions/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return response.data;
 };
@@ -341,13 +376,36 @@ export const shareProductToChat = async (productId, recipientId) => {
   return response.data;
 };
 
+// --- WALLET & PAYMENTS ---
+// export const fetchDeliveryAddresses = async () => {
+//   const response = await api.get("/user/addresses");
+//   return response.data;
+// };
+
 export const fetchDeliveryAddresses = async () => {
-  const response = await api.get("/user/addresses");
-  return response.data;
+  const response = await api.get("/auth/profile/me/");
+  const deliveryAddress = response.data.deliveryAddress;
+  
+  // Return in array format for compatibility
+  return deliveryAddress ? [{ id: 1, address: deliveryAddress }] : [];
 };
 
+// export const addNewAddress = async (addressData) => {
+//   const response = await api.post("/user/addresses", addressData);
+//   return response.data;
+// };
+
 export const addNewAddress = async (addressData) => {
-  const response = await api.post("/user/addresses", addressData);
+  // Extract the address string from the data
+  const address = typeof addressData === 'string' 
+    ? addressData 
+    : addressData.address || addressData.deliveryAddress;
+  
+  // Update the user profile with the new delivery address
+  const response = await api.patch("/auth/profile/update/", {
+    deliveryAddress: address
+  });
+  
   return response.data;
 };
 
@@ -409,22 +467,46 @@ export const topUpWallet = async (amountNaira) => {
   return response.data;
 };
 
-export const createSubscription = async ({
-  vendor_id,
-  plan_id,
-  payment_method,
-  meal_selections = [],
-  delivery_address_id,
-}) => {
-  const response = await api.post("/subscriptions/create/", {
-    vendor_id,
+// --- SUBSCRIPTIONS ---
+// export const createSubscription = async ({
+//   vendor_id,
+//   plan_id,
+//   payment_method,
+//   meal_selections = [],
+//   delivery_address_id,
+// }) => {
+//   const response = await api.post("/subscriptions/create/", {
+//     vendor_id,
+//     plan_id,
+//     payment_method,
+//     meal_selections,
+//     delivery_address_id,
+//   });
+//   return response.data;
+// };
+
+
+export const createSubscription = async (plan_id) => {
+  const response = await api.post("/foods/subscribe/", {
     plan_id,
-    payment_method,
-    meal_selections,
-    delivery_address_id,
   });
   return response.data;
 };
+
+export const getWalletBalance = async () => {
+  const response = await api.get("/wallet/me/");
+  return response.data;
+};
+
+export const getUserSubscriptions = async () => {
+  const response = await api.get("/foods/subscriptions/me/");
+  return response.data;
+};
+
+// export const unsubscribeFromPlan = async (plan_id) => {
+//   const response = await api.post(`/foods/subscriptions/${plan_id}/unsubscribe/`);
+//   return response.data;
+// };
 
 export const updateSubscriptionMeals = async (
   subscriptionId,
@@ -452,6 +534,390 @@ export const pauseSubscription = async (subscriptionId, reason = "") => {
 
 export const resumeSubscription = async (subscriptionId) => {
   const response = await api.post(`/subscriptions/${subscriptionId}/resume/`);
+  return response.data;
+};
+
+// --- SUBSCRIPTION FETCHING ENDPOINTS ---
+export const fetchSubscriptionStats = async (vendorId) => {
+  // Validate vendorId is a string
+  if (!vendorId || typeof vendorId !== "string") {
+    console.error("❌ fetchSubscriptionStats: vendorId must be a valid string");
+    return { activeSubs: 0, revenue: 0, pending: 0 }; // Return default stats
+  }
+
+  try {
+    const response = await api.get(`/foods/subscriptions/vendor/`);
+    const subscriptions = response.data.results || response.data;
+    return {
+      activeSubs: subscriptions.filter((sub) => sub.status === "active").length,
+      revenue: subscriptions
+        .filter((sub) => sub.status === "active")
+        .reduce((sum, sub) => sum + parseFloat(sub.price || 0), 0),
+      pending: subscriptions.filter((sub) => sub.status === "pending").length,
+    };
+  } catch (error) {
+    console.error("❌ API Error fetching subscription stats:", error);
+    return { activeSubs: 0, revenue: 0, pending: 0 }; // Return default stats on error
+  }
+};
+
+export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
+  const response = await api.get(`/foods/subscriptions/vendor/`);
+  const subscriptions = response.data.results || response.data;
+  return subscriptions
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, limit);
+};
+
+export const fetchAllSubscriptions = async (vendorId, { page = 1, page_size = 10 } = {}) => {
+  const response = await api.get(`/foods/subscriptions/vendor/`, {
+    params: { page, page_size },
+  });
+  return response.data;
+};
+
+export const fetchVendorSubscriptionPlans = async (
+  vendorId,
+  { page = 1, page_size = 10 } = {},
+) => {
+  // Validate vendorId is a string
+  console.log("📡 fetchVendorSubscriptionPlans received vendorId:", vendorId);
+  console.log(
+    "📡 fetchVendorSubscriptionPlans vendorId type:",
+    typeof vendorId,
+  );
+  if (!vendorId || typeof vendorId !== "string") {
+    console.error(
+      "❌ fetchVendorSubscriptionPlans: vendorId must be a valid string",
+    );
+    return { results: [] }; // Return empty results to avoid errors
+  }
+
+  try {
+    const response = await api.get(
+      `/foods/subscriptions/vendors/${vendorId}/plans/`,
+      {
+        params: { page, page_size },
+      },
+    );
+    console.log(" API fetchVendorSubscriptionPlans response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ API Error fetching vendor subscription plans:", error);
+    return { results: [] }; // Return empty results on error
+  }
+};
+
+export const fetchCustomerSubscriptions = async () => {
+  const response = await api.get(`/foods/subscriptions/me/`);
+  return response.data;
+};
+
+// --- FOODS (Meals & Meal Plans) ---
+export const fetchMealsByVendor = async (vendorId) => {
+  const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
+  console.log(" API fetchMealsByVendor response:", response.data);
+  return response.data;
+};
+
+export const fetchMealPlansByVendor = async (vendorId) => {
+  if (!vendorId) {
+    console.error("fetchMealPlansByVendor: vendorId is required");
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+
+  try {
+    const response = await api.get(
+      `/foods/subscriptions/vendors/${vendorId}/plans/`,
+    );
+    console.log(" API fetchMealPlansByVendor response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching meal plans by vendor:", error);
+    // Return empty data structure to prevent page failure
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+};
+
+export const createMealPlan = async (mealPlanData) => {
+  const response = await api.post("/foods/subscriptions/create/", mealPlanData);
+  console.log(" API createMealPlan response:", response.data);
+  return response.data;
+};
+
+export const createMeal = async (mealData) => {
+  const response = await api.post("/foods/meals/", mealData);
+  return response.data;
+};
+
+export const createFoodVendor = async (vendorData) => {
+  const formData = new FormData();
+
+  if (vendorData.name) formData.append("name", vendorData.name);
+  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
+  if (vendorData.description)
+    formData.append("description", vendorData.description);
+  if (vendorData.contact_email)
+    formData.append("contact_email", vendorData.contact_email);
+  if (vendorData.contact_phone)
+    formData.append("contact_phone", vendorData.contact_phone);
+
+  if (vendorData.media && Array.isArray(vendorData.media)) {
+    vendorData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
+
+  const response = await api.post("/foods/food-vendors/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const fetchFoodVendor = async (vendorId) => {
+  const response = await api.get(`/foods/food-vendors/${vendorId}/`);
+  console.log(" API fetchFoodVendor response:", response.data);
+  return response.data;
+};
+
+export const fetchAllFoodVendors = async (params = {}) => {
+  const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const updateSubscriptionPlan = async (planId, planData) => {
+  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+    planData;
+
+  // Validate required fields
+  if (!plan_name || !price) {
+    throw new Error("Plan name and price are required");
+  }
+
+  const formData = new FormData();
+  formData.append("plan_name", plan_name);
+  formData.append("price", price.toString());
+
+  if (trial_days !== undefined && trial_days !== null) {
+    formData.append("trial_days", trial_days.toString());
+  }
+
+  if (description !== undefined && description !== null) {
+    formData.append("description", description);
+  }
+
+  if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
+    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  }
+
+  if (media && Array.isArray(media)) {
+    media.forEach((file) => {
+      formData.append("media", file);
+    });
+  } else if (media) {
+    formData.append("media", media);
+  }
+
+  const response = await api.put(
+    `/foods/subscriptions/${planId}/update/`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const partialUpdateSubscriptionPlan = async (planId, planData) => {
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
+    planData;
+
+  const formData = new FormData();
+
+  if (plan_name) formData.append("plan_name", plan_name);
+  if (price !== undefined && price !== null)
+    formData.append("price", price.toString());
+  if (trial_days !== undefined && trial_days !== null)
+    formData.append("trial_days", trial_days.toString());
+  if (description !== undefined && description !== null)
+    formData.append("description", description);
+  if (meals_per_cycle !== undefined && meals_per_cycle !== null)
+    formData.append("meals_per_cycle", meals_per_cycle.toString());
+
+  if (media && Array.isArray(media)) {
+    media.forEach((file) => {
+      formData.append("media", file);
+    });
+  } else if (media) {
+    formData.append("media", media);
+  }
+
+  const response = await api.patch(
+    `/foods/subscriptions/${planId}/update/`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const fetchMealPlans = async () => {
+  const res = await api.get("/foods/meal-plans/");
+  return res.data;
+};
+
+export const fetchMealPlan = async (id) => {
+  const res = await api.get(`/foods/subscriptions/${id}/`);
+  return res.data;
+};
+
+export const subscribeToPlan = async () => {
+  const response = await api.post("/foods/subscribe/");
+  return response.data;
+};
+
+export const unsubscribeFromPlan = async (planId) => {
+  const response = await api.post(
+    `/foods/subscriptions/${planId}/unsubscribe/`,
+  );
+  return response.data;
+};
+
+export const createSubscriptionPlan = async (planData) => {
+  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+    planData;
+
+  // Validate required fields
+  if (!plan_name || !price) {
+    throw new Error("Plan name and price are required");
+  }
+
+  // If media is provided, validate it's an image file
+  if (media) {
+    if (media instanceof File) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(media.type)) {
+        throw new Error(
+          "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
+        );
+      }
+    }
+  }
+
+  const formData = new FormData();
+  formData.append("plan_name", plan_name);
+  formData.append("price", price.toString());
+
+  if (trial_days !== undefined && trial_days !== null) {
+    formData.append("trial_days", trial_days.toString());
+  }
+
+  if (description !== undefined && description !== null) {
+    formData.append("description", description);
+  }
+
+  if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
+    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  }
+
+  if (media) {
+    formData.append("media", media);
+  }
+
+  const response = await api.post("/foods/subscriptions/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+
+export const deleteMealPlan = async (mealPlanId) => {
+  const response = await api.delete(`/foods/subscriptions/${mealPlanId}/delete/`);
+  return response.data;
+};
+
+export const deleteMeal = async (mealId) => {
+  const response = await api.delete(`/foods/meals/${mealId}/delete/`);
+  return response.data;
+};
+
+export const updateReview = async (reviewId, reviewData) => {
+  const response = await api.put(`/foods/reviews/${reviewId}/`, reviewData);
+  return response.data;
+};
+
+export const partialUpdateReview = async (reviewId, reviewData) => {
+  const response = await api.patch(`/foods/reviews/${reviewId}/`, reviewData);
+  return response.data;
+};
+
+export const deleteReview = async (reviewId) => {
+  const response = await api.delete(`/foods/reviews/${reviewId}/`);
+  return response.data;
+};
+
+export const fetchVendorReviews = async (vendorId) => {
+  const response = await api.get(`/foods/vendors/${vendorId}/reviews/`);
+  return response.data;
+};
+
+export const createVendorReview = async (vendorId, reviewData) => {
+  const response = await api.post(
+    `/foods/vendors/${vendorId}/reviews/create/`,
+    reviewData,
+  );
+  return response.data;
+};
+
+export const deleteVendorProfile = async () => {
+  const response = await api.delete("/foods/vendors/me/delete/");
+  return response.data;
+};
+
+export const fetchSubscribedVendors = async () => {
+  const response = await api.get("/foods/vendors/subscribed/");
+  return response.data;
+};
+
+export const fetchVendorSubscriptions = async (vendorId) => {
+  const response = await api.get(`/foods/subscriptions/${vendorId}/`);
+  return response.data;
+};
+
+// --- USER SUBSCRIPTION ---
+export const initiateUserSubscription = async (paymentData) => {
+  const response = await api.post("/subscriptions/user/initiate/", paymentData);
+  return response.data;
+};
+
+export const verifyUserSubscription = async (reference) => {
+  const response = await api.post("/subscriptions/user/verify/", { reference });
+  return response.data;
+};
+
+export const fetchUserSubscriptionStatus = async () => {
+  const response = await api.get("/subscriptions/user/status/");
+  return response.data;
+};
+
+export const cancelUserSubscription = async () => {
+  const response = await api.post("/subscriptions/user/cancel/");
   return response.data;
 };
 
