@@ -24,19 +24,34 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const rawMedia = post.media || post.media_url || post.image_url;
+  const rawMedia =
+    post.all_media_urls?.length > 0
+      ? post.all_media_urls
+      : post.media?.length > 0
+        ? post.media
+        : post.media || post.media_url || post.image_url;
 
   const mediaArray = Array.isArray(rawMedia)
-    ? rawMedia
+    ? rawMedia.map((item) => {
+        const srcString =
+          typeof item === "string"
+            ? item
+            : item.src || item.url || item.image_url || item.media_url || item;
+        const isVid =
+          typeof srcString === "string" &&
+          srcString.match(/\.(mp4|mov|webm)$/i);
+        return {
+          src: srcString,
+          type: item.type ? item.type : isVid ? "video" : "image",
+        };
+      })
     : rawMedia
       ? [
           {
             src: rawMedia,
             type:
               typeof rawMedia === "string" &&
-              (rawMedia.endsWith(".mp4") ||
-                rawMedia.endsWith(".mov") ||
-                rawMedia.endsWith(".webm"))
+              rawMedia.match(/\.(mp4|mov|webm)$/i)
                 ? "video"
                 : "image",
           },
@@ -228,7 +243,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       }
     },
     onError: (err, variables, context) => {
-      // ROLLBACK on error
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
@@ -314,7 +328,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   };
 
-  // ✅ UPDATED: Share link points to the feed with the post ID as a query parameter
   const shareUrl = `${window.location.origin}/?postId=${post.id}`;
 
   return (
