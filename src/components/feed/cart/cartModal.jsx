@@ -13,14 +13,14 @@ import { useNavigate } from "react-router-dom";
 const CartModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const cart = useSelector(selectCart);
   const cartItems = useSelector(selectCartItems) || [];
   const cartItemCount = cartItems.length;
 
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [updatingItems, setUpdatingItems] = useState(new Set());
-  
+
   const areAllSelected =
     cartItems.length > 0 && selectedItems.size === cartItems.length;
 
@@ -45,15 +45,17 @@ const CartModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    setUpdatingItems(prev => new Set(prev).add(itemId));
-    
+    setUpdatingItems((prev) => new Set(prev).add(itemId));
+
     try {
-      await dispatch(updateCartItem({ id: itemId, quantity: newQuantity })).unwrap();
+      await dispatch(
+        updateCartItem({ id: itemId, quantity: newQuantity }),
+      ).unwrap();
     } catch (error) {
       console.error("Update failed:", error);
       alert(error?.error || "Failed to update quantity");
     } finally {
-      setUpdatingItems(prev => {
+      setUpdatingItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(itemId);
         return newSet;
@@ -62,14 +64,13 @@ const CartModal = ({ isOpen, onClose }) => {
   };
 
   const handleRemoveItem = async (itemId) => {
-    if (!confirm('Remove this item from cart?')) return;
-    
-    setUpdatingItems(prev => new Set(prev).add(itemId));
-    
+    if (!window.confirm("Remove this item from cart?")) return;
+
+    setUpdatingItems((prev) => new Set(prev).add(itemId));
+
     try {
       await dispatch(removeFromCart(itemId)).unwrap();
-      // Remove from selected items
-      setSelectedItems(prev => {
+      setSelectedItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(itemId);
         return newSet;
@@ -78,7 +79,7 @@ const CartModal = ({ isOpen, onClose }) => {
       console.error("Remove failed:", error);
       alert("Failed to remove item");
     } finally {
-      setUpdatingItems(prev => {
+      setUpdatingItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(itemId);
         return newSet;
@@ -86,11 +87,10 @@ const CartModal = ({ isOpen, onClose }) => {
     }
   };
 
-  // Calculate total based on selected items
   const selectedTotal = useMemo(() => {
     return cartItems.reduce((total, item) => {
       if (selectedItems.has(item.id)) {
-        return total + (item.subtotal_naira || 0);
+        return total + Number(item.subtotal_naira || 0);
       }
       return total;
     }, 0);
@@ -108,7 +108,12 @@ const CartModal = ({ isOpen, onClose }) => {
   };
 
   const formatPrice = (price) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (price === null || price === undefined || Number.isNaN(Number(price))) {
+      return "0";
+    }
+    return Number(price)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleToggleAll = () => {
@@ -131,6 +136,32 @@ const CartModal = ({ isOpen, onClose }) => {
     });
   };
 
+  const getProductImage = (product) => {
+    if (!product) return "/feed-image.png";
+
+    const rawMedia =
+      product.all_media_urls?.length > 0
+        ? product.all_media_urls
+        : product.media?.length > 0
+          ? product.media
+          : product.media || product.media_url || product.image_url;
+
+    if (Array.isArray(rawMedia) && rawMedia.length > 0) {
+      const first = rawMedia[0];
+      return typeof first === "string"
+        ? first
+        : first.src ||
+            first.url ||
+            first.image_url ||
+            first.media_url ||
+            "/feed-image.png";
+    }
+
+    if (typeof rawMedia === "string") return rawMedia;
+
+    return "/feed-image.png";
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -149,7 +180,6 @@ const CartModal = ({ isOpen, onClose }) => {
             className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
                 Cart ({cartItemCount})
@@ -162,7 +192,6 @@ const CartModal = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            {/* Select All Section */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
               <p className="text-center font-bold text-lg text-gray-800">
                 Items ({selectedItems.size} selected)
@@ -181,7 +210,6 @@ const CartModal = ({ isOpen, onClose }) => {
               </label>
             </div>
 
-            {/* Cart Items List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {cartItems.length === 0 ? (
                 <p className="text-center text-gray-500 mt-8">
@@ -190,23 +218,32 @@ const CartModal = ({ isOpen, onClose }) => {
               ) : (
                 cartItems.map((item) => {
                   const isUpdating = updatingItems.has(item.id);
-                  const priceChanged = item.price_changed || (item.price_kobo_snapshot !== item.current_price_kobo);
-                  
+                  const priceChanged =
+                    item.price_changed ||
+                    item.price_kobo_snapshot !== item.current_price_kobo;
+
                   return (
                     <div
                       key={item.id}
                       className={`flex items-center space-x-3 border-b border-gray-200 pb-4 ${
-                        isUpdating ? 'opacity-50 pointer-events-none' : ''
+                        isUpdating ? "opacity-50 pointer-events-none" : ""
                       }`}
                     >
                       <div className="flex flex-col gap-2 w-30 flex-shrink-0">
                         <p className="text-sm text-gray-500 break-words">
-                          {item.product?.user || item.product?.shop_name || "Seller"}
+                          {item.product?.user ||
+                            item.product?.shop_name ||
+                            "Seller"}
                         </p>
                         <img
-                          src={item.product?.media_url || item.product?.image_url || "/placeholder.png"}
+                          src={getProductImage(item.product)}
                           alt={item.product?.name || "Product"}
                           className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                          onError={(e) => {
+                            if (!e.target.src.includes("/feed-image.png")) {
+                              e.target.src = "/feed-image.png";
+                            }
+                          }}
                         />
                       </div>
                       <div className="flex-1 flex flex-col">
@@ -217,10 +254,11 @@ const CartModal = ({ isOpen, onClose }) => {
                         <p className="text-sm text-gray-600">
                           ₦{formatPrice(item.current_price_kobo / 100)}
                         </p>
-                        
+
                         {priceChanged && (
                           <p className="text-xs text-amber-600">
-                            ⚠️ Price changed from ₦{formatPrice(item.price_kobo_snapshot / 100)}
+                            ⚠️ Price changed from ₦
+                            {formatPrice(item.price_kobo_snapshot / 100)}
                           </p>
                         )}
 
@@ -236,7 +274,7 @@ const CartModal = ({ isOpen, onClose }) => {
                               onClick={() =>
                                 handleUpdateQuantity(item.id, item.quantity - 1)
                               }
-                              disabled={isUpdating || item.quantity <= 1}
+                              disabled={isUpdating}
                               className="p-1 text-white bg-gray-300 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Minus size={16} />
@@ -248,7 +286,11 @@ const CartModal = ({ isOpen, onClose }) => {
                               onClick={() =>
                                 handleUpdateQuantity(item.id, item.quantity + 1)
                               }
-                              disabled={isUpdating || item.quantity >= (item.product?.quantity_available || 99)}
+                              disabled={
+                                isUpdating ||
+                                item.quantity >=
+                                  (item.product?.quantity_available || 99)
+                              }
                               className="p-1 text-white bg-gray-900 rounded-full hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Plus size={16} />
@@ -288,7 +330,6 @@ const CartModal = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* Footer: Total and Checkout Button */}
             {cartItems.length > 0 && (
               <div className="flex gap-4 items-center p-4 border-t border-gray-200 bg-white flex-shrink-0">
                 <div className="flex flex-col items-start mb-4 w-[40%]">
@@ -296,7 +337,7 @@ const CartModal = ({ isOpen, onClose }) => {
                     Total Payment:
                   </span>
                   <span className="text-lg font-bold text-gray-800">
-                    ₦{formatPrice(selectedTotal.toFixed(2))}
+                    ₦{formatPrice(selectedTotal)}
                   </span>
                 </div>
                 <button
