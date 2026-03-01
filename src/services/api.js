@@ -139,7 +139,6 @@ api.interceptors.response.use(
   },
 );
 
-// --- AUTH & PROFILE ---
 export const fetchUserProfile = async () => {
   const response = await api.get("/auth/profile/me/");
   return response.data;
@@ -147,6 +146,16 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
+
+  try {
+    await supabase.from("profiles").upsert(response.data);
+  } catch (supabaseError) {
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
+  }
+
   return response.data;
 };
 
@@ -155,6 +164,16 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
+
+  try {
+    await supabase.from("profiles").upsert(response.data);
+  } catch (supabaseError) {
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
+  }
+
   return response.data;
 };
 
@@ -172,6 +191,13 @@ export const updateProfilePic = async (imageFile) => {
     },
   );
 
+  try {
+    await supabase.from("profiles").upsert(response.data);
+  } catch (supabaseError) {
+    console.error(
+      "Error updating user data in Supabase:",
+      handleSupabaseError(supabaseError),
+    );
   return response.data;
 };
 
@@ -202,7 +228,6 @@ export const fetchPublicProfile = async (userId) => {
   return response.data;
 };
 
-// --- SHOPS & PRODUCTS ---
 export const fetchShopDetails = async (shopId) => {
   const response = await api.get(`/shops/${shopId}/`);
   return response.data;
@@ -213,13 +238,12 @@ export const fetchShopProducts = async (shopId) => {
   return response.data;
 };
 
-export const fetchAllFeed = async () => {
-  const response = await api.get("/shops/feed/");
+export const fetchAllFeed = async (params = {}) => {
+  const response = await api.get("/shops/feed/", { params });
   return response.data;
 };
 
 export const fetchProducts = async (params = {}) => {
-  // CHANGED: Use /shops/feed/ for global search
   const response = await api.get("/shops/feed/", { params });
   return response.data;
 };
@@ -229,8 +253,8 @@ export const fetchLikedProducts = async () => {
   return response.data;
 };
 
-export const fetchNearbyFeed = async () => {
-  const response = await api.get("/shops/products/nearby/");
+export const fetchNearbyFeed = async (params = {}) => {
+  const response = await api.get("/shops/products/nearby/", { params });
   return response.data;
 };
 
@@ -244,7 +268,6 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
-// --- INTERACTIONS ---
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
@@ -316,6 +339,11 @@ export const recordProductView = async (productId) => {
   return response.data;
 };
 
+export const recordContentView = async (contentId) => {
+  const response = await api.post(`/shops/contents/${contentId}/view/`, {});
+  return response.data;
+};
+
 export const followUser = async (username) => {
   const response = await api.post(
     `/auth/follow/${encodeURIComponent(username)}/`,
@@ -329,7 +357,6 @@ export const toggleFollowShop = async (shopId) => {
   return response.data;
 };
 
-// --- MESSAGING ---
 export const sendMessage = async ({
   recipientId,
   content,
