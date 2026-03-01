@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useFeed } from "../../context/feedContext";
 import TopNav from "./topNav";
-// import BottomNav from "./bottomNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 import { FiRefreshCw, FiWifiOff } from "react-icons/fi";
@@ -22,18 +22,50 @@ const FeedContainer = () => {
     activeTab,
     setActiveTab,
     saveCurrentPost,
-    getRestoreIndex,
   } = useFeed();
+
+  const [searchParams] = useSearchParams();
+  const sharedPostId = searchParams.get("postId");
 
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
   const observerRef = useRef(null);
   const loadMoreTriggerRef = useRef(null);
 
-  // const [activePage, setActivePage] = useState("home");
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [hasScrolledToShared, setHasScrolledToShared] = useState(false);
+
+  // ========================================
+  // SCROLL TO SHARED POST
+  // ========================================
+  useEffect(() => {
+    if (
+      sharedPostId &&
+      !hasScrolledToShared &&
+      posts.length > 0 &&
+      scrollContainerRef.current
+    ) {
+      const targetIndex = posts.findIndex(
+        (p) => String(p.id) === String(sharedPostId),
+      );
+
+      if (targetIndex !== -1) {
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            const viewportHeight = scrollContainerRef.current.clientHeight;
+            scrollContainerRef.current.scrollTo({
+              top: targetIndex * viewportHeight,
+              behavior: "smooth",
+            });
+            setCurrentPostIndex(targetIndex);
+            setHasScrolledToShared(true);
+          }
+        }, 100);
+      }
+    }
+  }, [posts, sharedPostId, hasScrolledToShared]);
 
   // ========================================
   // VIDEO INTERSECTION OBSERVER
@@ -49,7 +81,6 @@ const FeedContainer = () => {
 
           if (!mediaElement) return;
 
-          // ✅ FIX: Get the actual DOM node before calling play/pause
           const domEl = mediaElement.getDOMNode
             ? mediaElement.getDOMNode()
             : mediaElement;
@@ -58,7 +89,6 @@ const FeedContainer = () => {
           if (!isPlayable) return;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
-            // Pause all other videos
             mediaRefs.current.forEach((item) => {
               const el = item.getDOMNode ? item.getDOMNode() : item;
               if (el && el !== domEl && typeof el.pause === "function") {
@@ -66,12 +96,9 @@ const FeedContainer = () => {
               }
             });
 
-            // ✅ FIX: play() may return undefined — guard before .catch()
             const playPromise = domEl.play();
             if (playPromise !== undefined) {
-              playPromise.catch(() => {
-                // Autoplay was prevented — silently ignore
-              });
+              playPromise.catch(() => {});
             }
           } else {
             if (typeof domEl.pause === "function") {
@@ -134,22 +161,31 @@ const FeedContainer = () => {
     if (!container || posts.length === 0) return;
 
     const handleScroll = () => {
+      if (isRefreshing) return; // Prevent scroll calculation conflicts during pull-to-refresh
+
       scrollPositionRef.current = container.scrollTop;
 
       const scrolled = container.scrollTop;
       const viewportHeight = container.clientHeight;
       const index = Math.round(scrolled / viewportHeight);
 
-      setCurrentPostIndex(index);
-
-      if (posts[index]) {
-        saveCurrentPost(posts[index].id);
+      if (index !== currentPostIndex) {
+        setCurrentPostIndex(index);
+        if (posts[index]) {
+          saveCurrentPost(posts[index].id);
+        }
       }
     };
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [posts, scrollPositionRef, saveCurrentPost]);
+  }, [
+    posts,
+    scrollPositionRef,
+    saveCurrentPost,
+    currentPostIndex,
+    isRefreshing,
+  ]);
 
   // ========================================
   // PULL TO REFRESH
@@ -159,7 +195,7 @@ const FeedContainer = () => {
 
   const handleTouchStart = useCallback((e) => {
     const container = scrollContainerRef.current;
-    if (container && container.scrollTop === 0) {
+    if (container && container.scrollTop <= 0) {
       touchStartY.current = e.touches[0].clientY;
       isPulling.current = true;
     }
@@ -207,7 +243,7 @@ const FeedContainer = () => {
       );
     }
 
-    if (error && posts.length === 0) {
+    if (isError || (error && posts.length === 0)) {
       return (
         <div className="h-full flex items-center justify-center p-4 text-center bg-black">
           <div className="text-white">
@@ -331,11 +367,6 @@ const FeedContainer = () => {
         </div>
 
         {renderContent()}
-
-        {/* Bottom Navigation */}
-        {/* <div className="absolute bottom-0 left-0 right-0 z-40">
-          <BottomNav activePage={activePage} setActivePage={setActivePage} />
-        </div> */}
 
         {/* Post Counter */}
         {posts.length > 0 && (

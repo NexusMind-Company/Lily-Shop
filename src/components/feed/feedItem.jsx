@@ -314,13 +314,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   };
 
-  const sharePath = isProduct ? "product" : "content";
-  const shareId = isProduct
-    ? post.id
-    : hasLinkedProduct
-      ? post.product.id
-      : post.id;
-  const shareUrl = `${window.location.origin}/${sharePath}/${shareId}`;
+  // ✅ UPDATED: Share link points to the feed with the post ID as a query parameter
+  const shareUrl = `${window.location.origin}/?postId=${post.id}`;
 
   return (
     <div
