@@ -12,7 +12,6 @@ import CommentItem from "../comments/commentItem";
 import { CommentSkeleton } from "../../common/skeletons";
 import { useNavigate } from "react-router-dom";
 
-// Helper to count comments and nested replies recursively
 const countNodes = (nodes) => {
   if (!Array.isArray(nodes)) return 0;
   return nodes.reduce((acc, node) => {
@@ -26,18 +25,18 @@ const CommentsModal = ({
   postId,
   itemType,
   totalComments,
-  onCommentCountUpdate, // NEW: Prop to sync count back to FeedItem
+  onCommentCountUpdate,
 }) => {
   const dispatch = useDispatch();
   const textareaRef = useRef(null);
 
   const { user_data: currentUser, isAuthenticated } = useSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   const comments = useSelector((state) => state.feedComments.comments);
   const commentsStatus = useSelector(
-    (state) => state.feedComments.commentsStatus
+    (state) => state.feedComments.commentsStatus,
   );
 
   const [commentText, setCommentText] = useState("");
@@ -61,11 +60,9 @@ const CommentsModal = ({
     }
   }, [isOpen, dispatch]);
 
-  // NEW: Sync the real count to the parent component
   useEffect(() => {
     if (commentsStatus === "succeeded" || comments.length > 0) {
       const realCount = countNodes(comments);
-      // Only update if it's different to prevent loops, or blindly update if simple
       if (onCommentCountUpdate) {
         onCommentCountUpdate(realCount);
       }
@@ -116,13 +113,18 @@ const CommentsModal = ({
         ? trimmedText.substring(`@${replyTarget.user} `.length).trim()
         : trimmedText;
 
+    const currentUserName =
+      currentUser?.name || currentUser?.username || "User";
+
     const newComment = {
-      id: `local_${Date.now()}`,
-      user: currentUser?.name || currentUser?.username || "User",
+      id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user: currentUserName,
+      user_name: currentUserName,
       userpic: currentUser?.userpic || currentUser?.profile_pic || null,
       text: finalCommentText,
       timeAgo: "Just now",
       likes: 0,
+      like_count: 0,
       replies: [],
       postId: postId,
       itemType: itemType,
@@ -130,7 +132,6 @@ const CommentsModal = ({
       replyingTo: replyTarget ? replyTarget.user : null,
     };
 
-    // Redux update is synchronous, so the useEffect above will catch the change
     dispatch(addLocalComment(newComment));
 
     try {
@@ -164,7 +165,6 @@ const CommentsModal = ({
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
-                {/* Use the dynamically calculated total from comments if available, else fallback */}
                 {comments.length > 0 ? countNodes(comments) : totalComments}{" "}
                 comments
               </h2>
@@ -189,9 +189,13 @@ const CommentsModal = ({
                 </p>
               )}
               {comments.length > 0 &&
-                comments.map((comment) => (
+                comments.map((comment, index) => (
                   <CommentItem
-                    key={comment.id}
+                    key={
+                      comment?.id
+                        ? String(comment.id)
+                        : `comment-${index}-${Date.now()}`
+                    }
                     comment={comment}
                     onReply={handleReplyTag}
                   />

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useFeed } from "../../context/feedContext";
 import TopNav from "./topNav";
-import BottomNav from "./bottomNav";
+// import BottomNav from "./bottomNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 import { FiRefreshCw, FiWifiOff } from "react-icons/fi";
@@ -30,7 +30,7 @@ const FeedContainer = () => {
   const observerRef = useRef(null);
   const loadMoreTriggerRef = useRef(null);
 
-  const [activePage, setActivePage] = useState("home");
+  // const [activePage, setActivePage] = useState("home");
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -333,9 +333,9 @@ const FeedContainer = () => {
         {renderContent()}
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-0 left-0 right-0 z-40">
+        {/* <div className="absolute bottom-0 left-0 right-0 z-40">
           <BottomNav activePage={activePage} setActivePage={setActivePage} />
-        </div>
+        </div> */}
 
         {/* Post Counter */}
         {posts.length > 0 && (

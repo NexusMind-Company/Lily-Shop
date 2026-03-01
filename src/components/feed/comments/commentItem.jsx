@@ -11,10 +11,13 @@ const getInitials = (fullName) => {
 
 const CommentItem = ({ comment, onReply, isReply = false }) => {
   const [showReplies, setShowReplies] = useState(false);
-  const initials = getInitials(comment.user);
+
+  // Safely extract the username based on possible API response fields
+  const userName =
+    comment.user || comment.user_name || comment.username || "User";
+  const initials = getInitials(userName);
   const hasReplies = comment.replies && comment.replies.length > 0;
 
-  // Handle various potential API field names for the comment body
   const commentBody =
     comment.text ||
     comment.comment ||
@@ -24,7 +27,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
 
   const handleReplyClick = (e) => {
     e.stopPropagation();
-    onReply({ user: comment.user, id: comment.id });
+    onReply({ user: userName, id: comment.id });
   };
 
   return (
@@ -37,7 +40,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
         {comment.userpic ? (
           <img
             src={comment.userpic}
-            alt={comment.user}
+            alt={userName}
             className="w-full h-full rounded-full object-cover"
           />
         ) : (
@@ -48,8 +51,10 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
       <div className="flex-1 min-w-0">
         <div className="bg-gray-50 rounded-lg p-2">
           <div className="flex justify-between items-center text-xs">
-            <p className="font-semibold text-gray-800">{comment.user}</p>
-            <span className="text-gray-500">{comment.timeAgo}</span>
+            <p className="font-semibold text-gray-800">{userName}</p>
+            <span className="text-gray-500">
+              {comment.timeAgo || "Just now"}
+            </span>
           </div>
           <p className="text-sm text-gray-700 mt-1">
             {comment.replyingTo && (
@@ -74,7 +79,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
               alt="Likes"
               className="w-3 h-3"
             />
-            <span>{comment.likes || 0}</span>
+            <span>{comment.likes || comment.like_count || 0}</span>
           </span>
         </div>
 
@@ -100,7 +105,11 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
               <div className="mt-2 space-y-1">
                 {comment.replies.map((reply, index) => (
                   <CommentItem
-                    key={reply.id ? String(reply.id) : `reply-${index}`}
+                    key={
+                      reply?.id
+                        ? String(reply.id)
+                        : `reply-${index}-${Date.now()}`
+                    }
                     comment={reply}
                     onReply={onReply}
                     isReply={true}

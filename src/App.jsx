@@ -48,6 +48,8 @@ import WalletTopUpPage from "./pages/WalletTopUpPage";
 /* ---------------- ORDERS ---------------- */
 import CartPage from "./pages/cart";
 import OrderSummaryPage from "./pages/OrderSummaryPage";
+import CartPage from "./pages/CartPage";
+import Cart from "./pages/cart";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -63,6 +65,8 @@ import PlanDetailsPage from "./pages/PlanDetailsPage";
 import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorsList from "./pages/VendorsList";
 import UserSubscriptionPage from "./pages/UserSubscriptionPage";
 import UserSubscriptionSuccessPage from "./pages/UserSubscriptionSuccessPage";
 import UserSubscriptionCallbackPage from "./pages/UserSubscriptionCallbackPage";
@@ -78,6 +82,17 @@ import VerificationPage from "./pages/VerificationPage";
 import CreateSubscriptionVendorPage from "./pages/createSubscriptionVendor";
 import EditProfile from "./components/profile/editProfile";
 
+const ScrollToTopAuto = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+const App = () => {
 function App() {
   const dispatch = useDispatch();
 
@@ -107,6 +122,38 @@ function App() {
             {/* Feed */}
             <Route path="/" element={<Feed />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/searchResults" element={<SearchResults />} />
+
+            {/* Product Details */}
+            <Route
+              path="/product-details/:id"
+              element={<FeedProductDetails />}
+            />
+            <Route path="/product/:id" element={<FeedProductDetails />} />
+
+            {/* Cart & Checkout */}
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+
+            {/* Shop Routes */}
+            <Route path="/create-shop" element={<CreateShop />} />
+            <Route path="/createShop" element={<CreateShop />} />
+
+            <Route path="/my-shop" element={<MyShop />} />
+            <Route path="/myShop" element={<MyShop />} />
+
+            <Route path="/shop/:shopId" element={<ShopDetails />} />
+            <Route path="/shop/:id" element={<ShopDetails />} />
+
+            <Route path="/rating" element={<Ratings />} />
+
+            <Route path="/edit-shop/:shopId" element={<EditShop />} />
+            <Route path="/editShop/:shop_id/edit-shop" element={<EditShop />} />
+
+            <Route
+              path="/shop/add-products/:shopId"
+              element={<AddProducts />}
+            />
             <Route path="/food" element={<VendorsList />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route
@@ -218,6 +265,41 @@ function App() {
               path="/subscription/create-meal-plan/:planId"
               element={<EditPlanPage />}
             />
+            <Route path="/food" element={<VendorsList />} />
+
+            {/* Settings & Ads */}
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+            <Route path="/change-dob" element={<ChangeDOBPage />} />
+            <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
+            <Route path="/change-phone" element={<ChangePhonePage />} />
+            <Route path="/ChangePhone" element={<ChangePhonePage />} />
+            <Route path="/confirm-phone" element={<ConfirmPhonePage />} />
+            <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
+            <Route path="/change-username" element={<ChangeUsernamePage />} />
+            <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/password" element={<PasswordModalPage />} />
+
+            <Route path="/ads" element={<PurchaseAds />} />
+            <Route path="/purchaseAds" element={<PurchaseAds />} />
+
+            <Route path="/ads/details" element={<FetchAdDetails />} />
+            <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+
+            <Route path="/ads/payment" element={<PaymentInitiation />} />
+            <Route path="/ads/verify" element={<VerifyTransaction />} />
+            <Route path="/verify-transaction" element={<VerifyTransaction />} />
+
+            <Route path="/payment-failed" element={<PaymentFailedPage />} />
+            <Route path="/payment-success" element={<PaymentSuccessPage />} />
+
+            {/* AI Chat */}
+            <Route path="/lily-chat" element={<LilyChat />} />
+            <Route path="/lilyChat" element={<LilyChat />} />
           </Route>
         </Route>
       </Routes>
