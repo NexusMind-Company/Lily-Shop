@@ -142,7 +142,10 @@ const SideNav = ({ activePage }) => {
 
       <AnimatePresence>
         {isSearchModalOpen && (
-          <SearchModal onClose={() => setIsSearchModalOpen(false)} />
+          <SearchModal
+            isOpen={isSearchModalOpen}
+            onClose={() => setIsSearchModalOpen(false)}
+          />
         )}
       </AnimatePresence>
     </div>
