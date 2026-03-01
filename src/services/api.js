@@ -198,6 +198,8 @@ export const updateProfilePic = async (imageFile) => {
       "Error updating user data in Supabase:",
       handleSupabaseError(supabaseError),
     );
+  }
+  
   return response.data;
 };
 
