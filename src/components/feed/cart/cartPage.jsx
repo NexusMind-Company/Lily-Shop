@@ -278,13 +278,56 @@ const CartPage = () => {
             Items ({itemCount})
           </h3>
           <div className="space-y-3">
-            {itemsToCheckout.map((item) => (
+            {/* {itemsToCheckout.map((item) => (
               <div key={item.id} className="flex items-center space-x-3">
                 <div className="flex flex-col gap-2 items-start">
-                  <p className="text-sm text-gray-500">{item.username}</p>
+                  {/* <p className="text-sm text-gray-500">{item.username}</p>  
+
+                  <p className="text-sm text-gray-500">{item.product?.shop?.name || item.username || 'Vendor'}</p>
                   <img
-                    src={item.mediaSrc}
-                    alt={item.productName}
+                    src={item.product?.image_url || item.product?.media_url || '/placeholder-image.png'}
+                    alt={item.product?.name || 'Product'}
+                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/placeholder-image.png";
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  {/* <p className="font-medium text-gray-800">
+                    {item.productName}
+                  </p> 
+                  <p className="font-medium text-gray-800">
+                    {item.product?.name || 'Product'}
+                  </p>
+                  {/* <p className="text-sm font-semibold text-pink">
+                    N{formatPrice(item.price * item.quantity)}
+                  </p> 
+
+                  <p className="text-sm font-semibold text-pink">
+                    N{formatPrice((item.product?.price || item.price) * item.quantity)}
+                  </p>
+                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                  {item.color && (
+                    <p className="text-sm text-gray-500">Color: {item.color}</p>
+                  )}
+                  {item.size && (
+                    <p className="text-xs text-gray-500">Size: {item.size}</p>
+                  )}
+                </div>
+               </div> 
+             ))}  */}
+
+             {itemsToCheckout.map((item) => (
+              <div key={item.id} className="flex items-center space-x-3">
+                <div className="flex flex-col gap-2 items-start">
+                  <p className="text-sm text-gray-500">
+                    {item.product?.shop?.name || item.username || 'Vendor'}
+                  </p>
+                  <img
+                    src={item.product?.image_url || item.product?.media_url || '/placeholder-image.png'}
+                    alt={item.product?.name || 'Product'}
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                     onError={(e) => {
                       e.target.onerror = null;
@@ -294,10 +337,10 @@ const CartPage = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-800">
-                    {item.productName}
+                    {item.product?.name || 'Product'}
                   </p>
                   <p className="text-sm font-semibold text-pink">
-                    N{formatPrice(item.price * item.quantity)}
+                    N{formatPrice((item.product?.price || item.price || 0) * item.quantity)}
                   </p>
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   {item.color && (

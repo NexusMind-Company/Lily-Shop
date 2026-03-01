@@ -11,11 +11,13 @@ const CreateShop = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const imageInputRef = useRef(null);
-  
-  const { status, error: apiError, success } = useSelector(
-    (state) => state.createShop
-  );
-  
+
+  const {
+    status,
+    error: apiError,
+    success,
+  } = useSelector((state) => state.createShop);
+
   const isLoading = status === "loading";
 
   const [formData, setFormData] = useState({
@@ -23,6 +25,7 @@ const CreateShop = () => {
     address: "",
     category: "",
     description: "",
+    phone: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -64,8 +67,17 @@ const CreateShop = () => {
         return "";
       case "description":
         if (!value.trim()) return "Description is required";
-        if (value.length < 20) return "Description must be at least 20 characters";
-        if (value.length > 500) return "Description must not exceed 500 characters";
+        if (value.length < 20)
+          return "Description must be at least 20 characters";
+        if (value.length > 500)
+          return "Description must not exceed 500 characters";
+        return "";
+      case "phone":
+        if (!value.trim()) return "Phone number is required";
+        const phoneRegex = /^(\+234|0)[789]\d{9}$/;
+        if (!phoneRegex.test(value)) {
+          return "Please enter a valid Nigerian phone number";
+        }
         return "";
       default:
         return "";
@@ -74,22 +86,22 @@ const CreateShop = () => {
 
   const validateImage = (file) => {
     if (!file) return "Shop image is required";
-    
+
     if (!ALLOWED_TYPES.includes(file.type)) {
       return "Only JPEG and PNG images are allowed";
     }
-    
+
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       return `Image size must not exceed ${MAX_FILE_SIZE_MB}MB`;
     }
-    
+
     return "";
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Validate on change if field has been touched
     if (touched[name]) {
       const error = validateField(name, value);
@@ -100,7 +112,7 @@ const CreateShop = () => {
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
-    
+
     const error = validateField(name, value);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
@@ -112,7 +124,7 @@ const CreateShop = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
 
     const error = validateImage(file);
-    
+
     if (error) {
       setErrors((prev) => ({ ...prev, image: error }));
       setImageFile(null);
@@ -151,7 +163,7 @@ const CreateShop = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
@@ -166,6 +178,7 @@ const CreateShop = () => {
       address: true,
       category: true,
       description: true,
+      phone: true,
       image: true,
     });
 
@@ -184,6 +197,7 @@ const CreateShop = () => {
     submitData.append("address", formData.address.trim());
     submitData.append("category", formData.category.trim());
     submitData.append("description", formData.description.trim());
+    submitData.append("phone", formData.phone.trim());
     submitData.append("image", imageFile);
 
     await dispatch(createShop(submitData));
@@ -314,6 +328,34 @@ const CreateShop = () => {
           )}
         </div>
 
+        {/* Phone Number */}
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Phone Number *
+          </label>
+          <input
+            type="text"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            disabled={isLoading}
+            className={`input h-12 w-full rounded-lg px-4 transition-colors ${
+              errors.phone && touched.phone
+                ? "border-red-400 focus:border-red-500"
+                : "border-gray-300 focus:border-lily"
+            }`}
+            placeholder="Enter your phone number"
+          />
+          {errors.phone && touched.phone && (
+            <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+          )}
+        </div>
+
         {/* Description */}
         <div>
           <label
@@ -353,7 +395,7 @@ const CreateShop = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Shop Image *
           </label>
-          
+
           {!imagePreview ? (
             <div
               className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${

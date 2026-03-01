@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
 import ErrorDisplay from "../common/ErrorDisplay";
+import Ratings from "./ratings";
+import ContactVendorButton from "../subscription/ContactVendorButton";
 import {
   ChevronLeft, MapPin, Phone, Share2, MessageCircle,
   Star, Store, Eye, Package, Grid3x3, ShoppingCart,

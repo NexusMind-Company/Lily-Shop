@@ -1,9 +1,11 @@
-import WithdrawConfirm from "../components/wallet/WithdrawConfirm"
+import WithdrawConfirm from "../components/wallet/WithdrawConfirm";
+import PageSEO from "../components/common/PageSEO";
 
-export default function ConfirmWithdrawal () {
-    return(
-        <>
-            <WithdrawConfirm />
-        </>
-    )
+export default function ConfirmWithdrawalPage() {
+  return (
+    <>
+      <PageSEO title="Confirm Withdrawal - Lily Shop" />
+      <WithdrawConfirm />
+    </>
+  );
 }

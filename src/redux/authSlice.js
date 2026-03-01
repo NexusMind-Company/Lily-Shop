@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
-import { supabase, handleSupabaseError } from "../services/supabase";
 
 // ==================== LOGIN USER ====================
 export const loginUser = createAsyncThunk(
@@ -38,13 +37,6 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem("user_data", JSON.stringify(data.user));
       }
 
-      // Send authenticated user data to Supabase
-      try {
-        await supabase.from('profiles').upsert(data.user);
-      } catch (supabaseError) {
-        console.error('Error saving user data to Supabase:', handleSupabaseError(supabaseError));
-      }
-
       // Fetch full profile safely
       try {
         await dispatch(fetchProfile());
@@ -69,9 +61,8 @@ export const loginUser = createAsyncThunk(
 
       return rejectWithValue(errMsg);
     }
-  }
+  },
 );
-
 
 // Regiser User
 export const registerUser = createAsyncThunk(
@@ -96,7 +87,7 @@ export const registerUser = createAsyncThunk(
         "Registration failed."
       );
     }
-  }
+  },
 );
 
 // ==================== INITIAL STATE ====================
@@ -166,7 +157,7 @@ const authSlice = createSlice({
         if (action.payload.user) {
           localStorage.setItem(
             "user_data",
-            JSON.stringify(action.payload.user)
+            JSON.stringify(action.payload.user),
           );
         }
       })

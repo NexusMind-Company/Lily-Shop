@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CheckCircle, ExternalLink, Plus } from "lucide-react";
+import { CheckCircle, ExternalLink, Plus, Trash2 } from "lucide-react";
 
 /**
  * PlanCard component for displaying a subscription plan.
@@ -13,6 +13,8 @@ import { CheckCircle, ExternalLink, Plus } from "lucide-react";
  * @param {string[]} [props.features] - Array of feature strings (only for active plans).
  * @param {string} props.buttonText - Text for the button.
  * @param {function} props.onButtonClick - Function to call when button is clicked.
+ * @param {function} [props.onCardClick] - Optional function to call when card is clicked.
+ * @param {function} [props.onDeleteClick] - Optional function to call when delete button is clicked.
  */
 const PlanCard = ({
   isActive,
@@ -23,10 +25,15 @@ const PlanCard = ({
   features,
   buttonText,
   onButtonClick,
+  onCardClick,
+  onDeleteClick,
 }) => {
   if (isActive) {
     return (
-      <div className="flex flex-col rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-white dark:bg-[#1a2c1e] overflow-hidden">
+      <div
+        className="flex flex-col rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-white dark:bg-[#1a2c1e] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+        onClick={onCardClick}
+      >
         <div
           className="w-full h-40 bg-center bg-no-repeat bg-cover relative"
           style={{ backgroundImage: `url("${imageUrl}")` }}
@@ -52,26 +59,38 @@ const PlanCard = ({
                 key={index}
                 className="flex items-center gap-2 text-sm text-[#61896b] dark:text-gray-400"
               >
-                <CheckCircle/>
+                <CheckCircle />
                 <span>{feature}</span>
               </div>
             ))}
           </div>
-          <button
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-[#13ec49] bg-transparent text-[#111813] dark:text-white hover:bg-[#13ec49]/10 transition-colors text-sm font-bold"
-            onClick={onButtonClick}
-          >
-            <span>{buttonText}</span>
-            <ExternalLink />
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="flex-1 flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-[#13ec49] bg-transparent text-[#111813] dark:text-white hover:bg-[#13ec49]/10 transition-colors text-sm font-bold"
+              onClick={onButtonClick}
+            >
+              <span>{buttonText}</span>
+              <ExternalLink />
+            </button>
+            {onDeleteClick && (
+              <button
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-bold"
+                onClick={onDeleteClick}
+                title="Delete plan"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
   } else {
     return (
       <div
-        className="bg-cover bg-center flex flex-col items-stretch justify-end rounded-xl pt-[100px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden group"
+        className="bg-cover bg-center flex flex-col items-stretch justify-end rounded-xl pt-[100px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden cursor-pointer group"
         style={{ backgroundImage: `url("${imageUrl}")` }}
+        onClick={onCardClick}
       >
         {/* Dark Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
@@ -88,7 +107,7 @@ const PlanCard = ({
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-12 px-6 bg-[#13ec49] text-[#111813] hover:bg-[#0fd641] transition-colors text-sm font-bold shadow-lg"
             onClick={onButtonClick}
           >
-            <Plus/>
+            <Plus />
             <span>{buttonText}</span>
           </button>
         </div>
@@ -106,6 +125,9 @@ PlanCard.propTypes = {
   features: PropTypes.arrayOf(PropTypes.string),
   buttonText: PropTypes.string.isRequired,
   onButtonClick: PropTypes.func.isRequired,
+  onCardClick: PropTypes.func,
+  onDeleteClick: PropTypes.func,
 };
 
 export default PlanCard;
+

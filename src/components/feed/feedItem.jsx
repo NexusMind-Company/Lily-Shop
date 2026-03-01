@@ -228,6 +228,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       }
     },
     onError: (err, variables, context) => {
+      // ROLLBACK on error
       if (context) {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);

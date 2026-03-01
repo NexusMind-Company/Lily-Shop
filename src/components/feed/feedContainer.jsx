@@ -49,20 +49,34 @@ const FeedContainer = () => {
 
           if (!mediaElement) return;
 
-          const isPlayable = typeof mediaElement.play === "function";
+          // ✅ FIX: Get the actual DOM node before calling play/pause
+          const domEl = mediaElement.getDOMNode
+            ? mediaElement.getDOMNode()
+            : mediaElement;
+
+          const isPlayable = domEl && typeof domEl.play === "function";
           if (!isPlayable) return;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
             // Pause all other videos
             mediaRefs.current.forEach((item) => {
-              if (item !== mediaElement && typeof item.pause === "function") {
-                item.pause();
+              const el = item.getDOMNode ? item.getDOMNode() : item;
+              if (el && el !== domEl && typeof el.pause === "function") {
+                el.pause();
               }
             });
-            // Play current video
-            mediaElement.play().catch(() => {});
+
+            // ✅ FIX: play() may return undefined — guard before .catch()
+            const playPromise = domEl.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                // Autoplay was prevented — silently ignore
+              });
+            }
           } else {
-            mediaElement.pause();
+            if (typeof domEl.pause === "function") {
+              domEl.pause();
+            }
           }
         });
       },
@@ -183,7 +197,6 @@ const FeedContainer = () => {
   // RENDER CONTENT
   // ========================================
   const renderContent = () => {
-    // UPDATED: Use PostCardSkeleton instead of FeedLoader
     if (isLoading && posts.length === 0) {
       return (
         <div className="h-full w-full overflow-hidden bg-black">
@@ -258,9 +271,7 @@ const FeedContainer = () => {
           >
             <div className="bg-white rounded-full p-3 shadow-lg">
               <FiRefreshCw
-                className={`w-6 h-6 text-lily ${
-                  isRefreshing ? "animate-spin" : ""
-                }`}
+                className={`w-6 h-6 text-lily ${isRefreshing ? "animate-spin" : ""}`}
               />
             </div>
           </div>
@@ -296,7 +307,7 @@ const FeedContainer = () => {
           </div>
         ))}
 
-        {/* Loading More Indicator - UPDATED to use Skeleton */}
+        {/* Loading More Indicator */}
         {isFetchingNextPage && <PostCardSkeleton />}
 
         {/* Infinite Scroll Trigger */}
@@ -326,7 +337,7 @@ const FeedContainer = () => {
           <BottomNav activePage={activePage} setActivePage={setActivePage} />
         </div> */}
 
-        {/* Post Counter (Optional) */}
+        {/* Post Counter */}
         {posts.length > 0 && (
           <div className="absolute top-20 right-4 z-30 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
             {currentPostIndex + 1} / {posts.length}

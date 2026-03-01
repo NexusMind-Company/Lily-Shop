@@ -6,8 +6,14 @@ import MenuItem from "./MenuItem";
  * @param {Object} props - Component props
  * @param {Array} props.menuItems - Array of menu items
  * @param {Function} props.onViewAll - Function to handle view all action
+ * @param {Function} props.onMealClick - Function to handle meal click
  */
-const MenuPreview = ({ menuItems, onViewAll }) => {
+const MenuPreview = ({ menuItems, onViewAll, onMealClick }) => {
+  // Extract menu items from nested structure (menu_items property)
+  const flattenedMenuItems = menuItems && menuItems.length > 0 
+    ? menuItems.flatMap(menu => menu.menu_items || [])
+    : [];
+
   return (
     <div className="mt-4 pb-8">
       <div className="flex items-center justify-between px-4 mb-4">
@@ -23,8 +29,14 @@ const MenuPreview = ({ menuItems, onViewAll }) => {
         className="flex overflow-x-auto gap-3 px-4 pb-4 snap-x hide-scrollbar"
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
-        {menuItems && menuItems.length > 0 ? (
-          menuItems.map((item) => <MenuItem key={item.id} item={item} />)
+        {flattenedMenuItems.length > 0 ? (
+          flattenedMenuItems.map((item, index) => (
+            <MenuItem 
+              key={index} 
+              item={item} 
+              onClick={() => onMealClick(item)} 
+            />
+          ))
         ) : (
           <p className="text-slate-500 dark:text-slate-400 text-center py-8">
             No menu items available
@@ -36,16 +48,9 @@ const MenuPreview = ({ menuItems, onViewAll }) => {
 };
 
 MenuPreview.propTypes = {
-  menuItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.string,
-      days: PropTypes.string,
-      isSnack: PropTypes.bool,
-    })
-  ),
+  menuItems: PropTypes.array,
   onViewAll: PropTypes.func.isRequired,
+  onMealClick: PropTypes.func.isRequired,
 };
 
 export default MenuPreview;

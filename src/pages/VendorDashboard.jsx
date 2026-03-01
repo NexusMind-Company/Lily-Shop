@@ -1,145 +1,138 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
+import { useState } from "react";
+
 import DashboardHeader from "../components/subscription/DashboardHeader";
 import ProfileSection from "../components/subscription/ProfileSection";
 import QuickStats from "../components/subscription/QuickStats";
 import ManagePlansCard from "../components/subscription/ManagePlansCard";
 import SubscriptionList from "../components/subscription/SubscriptionList";
-import BottomNavigation from "../components/subscription/BottomNavigation";
-import {
-  fetchVendorProfile,
-  fetchSubscriptionStats,
-  fetchRecentSubscriptions,
-} from "../services/subscriptionApi";
-import { getCurrentUserId } from "../services/supabase";
 
-/**
- * VendorDashboard component - Main dashboard for vendors to manage subscriptions
- * @param {Object} props - Component props
- * @param {string} props.vendorId - The vendor's unique ID (would come from auth context)
- */
+import {
+  fetchSubscriptionStats,
+  fetchVendorSubscriptionPlans,
+} from "../services/subscriptionApi";
+
 const VendorDashboard = ({ vendorId }) => {
   const navigate = useNavigate();
-  const vendorIdToUse = vendorId || getCurrentUserId();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  // Fetch vendor profile (demo data if no vendor)
-  const {
-    data: profile,
-    isLoading: profileLoading,
-    error: profileError,
-  } = useQuery({
-    queryKey: ["vendorProfile", vendorIdToUse || "demo"],
-    queryFn: () =>
-      vendorIdToUse
-        ? fetchVendorProfile(vendorIdToUse)
-        : Promise.resolve({
-            name: "Demo Vendor",
-            image: null,
-            verified: false,
-            cuisine: "Various",
-            location: "Demo Location",
-            rating: 4.5,
-            review_count: 0,
-            description: "This is a demo vendor profile for testing purposes.",
-          }),
-    enabled: true,
-  });
+  const { user_data } = useSelector((state) => state.auth);
+  const { data: profileData } = useSelector((state) => state.profile);
 
-  // Fetch subscription stats (demo data if no vendor)
+  // ✅ vendorId resolves AFTER redux hydrates
+  console.log("📋 VendorDashboard received props:", vendorId);
+  console.log("📋 Profile data from Redux:", profileData);
+
+  const vendorIdForApi = vendorId ?? profileData?.user?.vendor_id;
+  console.log("📋 vendorIdForApi value:", vendorIdForApi);
+  console.log("📋 vendorIdForApi type:", typeof vendorIdForApi);
+
+  // Ensure vendorId is always a string
+  const validVendorId =
+    typeof vendorIdForApi === "string" ? vendorIdForApi : null;
+  console.log("📋 validVendorId:", validVendorId);
+
+  // ---------------- Queries ----------------
+
   const {
-    data: stats,
-    isLoading: statsLoading,
+    data: statsRaw,
+    isFetching: statsFetching,
     error: statsError,
   } = useQuery({
-    queryKey: ["subscriptionStats", vendorIdToUse || "demo"],
-    queryFn: () =>
-      vendorIdToUse
-        ? fetchSubscriptionStats(vendorIdToUse)
-        : Promise.resolve({
-            activeSubs: 0,
-            revenue: "0.00",
-            pending: 0,
-          }),
-    enabled: true,
+    queryKey: ["subscriptionStats", validVendorId],
+    queryFn: async () => {
+      console.log(" Fetching subscription stats with vendorId:", validVendorId);
+      const result = await fetchSubscriptionStats(validVendorId);
+      console.log(" Subscription stats result:", result);
+      return result;
+    },
+    enabled: Boolean(validVendorId),
   });
 
-  // Fetch recent subscriptions (empty array if no vendor)
   const {
-    data: subscriptions,
-    isLoading: subscriptionsLoading,
+    data: plansData,
+    isFetching: subscriptionsFetching,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: ["recentSubscriptions", vendorIdToUse || "demo"],
-    queryFn: () =>
-      vendorIdToUse
-        ? fetchRecentSubscriptions(vendorIdToUse)
-        : Promise.resolve([]),
-    enabled: true,
+    queryKey: ["vendorSubscriptionPlans", validVendorId, currentPage, pageSize],
+    queryFn: async () => {
+      console.log(
+        "🔍 Fetching vendor subscription plans with vendorId:",
+        validVendorId,
+      );
+      const result = await fetchVendorSubscriptionPlans(validVendorId, {
+        page: currentPage,
+        page_size: pageSize,
+      });
+      console.log(" Vendor subscription plans result:", result);
+      return result;
+    },
+    enabled: Boolean(validVendorId),
   });
 
-  // Event handlers
-  const handleBack = () => {
-    navigate(-1); // Go back in history
+  // Extract results from paginated response
+  const subscriptions =
+    plansData?.results || (Array.isArray(plansData) ? plansData : []);
+
+  const totalCount = plansData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const pagination = {
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
   };
 
-  const handleHelp = () => {
-    // Implement help functionality
-    console.log("Help clicked");
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
-  const handleEditProfile = () => {
-    // Navigate to edit profile page
-    navigate("/editProfile");
-  };
+  // ---------------- Derived data ----------------
 
-  const handleManagePlans = () => {
-    // Navigate to manage plans page
-    navigate("/subscription/manage");
-  };
+  const vendorProfile = profileData?.user
+    ? {
+        id: user_data?.vendor_id || profileData?.user?.vendor_id,
+        username: profileData.user.username,
+        profile_pic: profileData.user.profile_pic,
+        verified: profileData.user.verified,
+      }
+    : null;
+  console.log(" VendorDashboard statsRaw:", statsRaw);
+  const stats = statsRaw
+    ? {
+        activeSubs: Number(statsRaw.activeSubs ?? 0),
+        revenue: Number(statsRaw.revenue ?? 0),
+        pending: Number(statsRaw.pending ?? 0),
+      }
+    : null;
 
-  const handleViewAllSubscriptions = () => {
-    // Navigate to all subscriptions page
-    navigate("/subscriptions");
-  };
+  // ---------------- Handlers ----------------
 
-  const handleTabChange = (tabId) => {
-    // Handle bottom navigation tab changes
-    switch (tabId) {
-      case "home":
-        navigate("/feed");
-        break;
-      case "orders":
-        navigate("/orders");
-        break;
-      case "add":
-        // Handle add new item
-        console.log("Add new item");
-        break;
-      case "dashboard":
-        // Already on dashboard
-        break;
-      case "profile":
-        navigate("/profile");
-        break;
-      default:
-        break;
-    }
-  };
+  const handleBack = () => navigate(-1);
+  const handleHelp = () => console.log("Help clicked");
+  const handleEditProfile = () => navigate("/editProfile");
+  const handleManagePlans = () =>
+    navigate("/vendor/plans", { state: { vendorId: vendorProfile.id } });
+  const handleViewAllSubscriptions = () => navigate("/subscriptions");
 
-  // Loading state
-  if (profileLoading || statsLoading || subscriptionsLoading) {
+  // ---------------- Loading / Error ----------------
+
+  if (statsFetching || subscriptionsFetching) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
-        <div className="text-[#111813]  dark:text-text-main-dark">
+        <div className="text-[#111813] dark:text-text-main-dark">
           Loading...
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (profileError || statsError || subscriptionsError) {
+  if (statsError || subscriptionsError) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-red-500">
@@ -149,24 +142,31 @@ const VendorDashboard = ({ vendorId }) => {
     );
   }
 
+  // ---------------- Render ----------------
+
   return (
     <div className="relative w-full max-w-md bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex flex-col shadow-2xl overflow-hidden">
       <DashboardHeader onBack={handleBack} onHelp={handleHelp} />
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24 space-y-6 px-4 pt-6">
-        <ProfileSection profile={profile} onEditProfile={handleEditProfile} />
+        {vendorProfile && (
+          <ProfileSection
+            profile={vendorProfile}
+            onEditProfile={handleEditProfile}
+          />
+        )}
 
-        <QuickStats stats={stats} />
+        {stats && <QuickStats stats={stats} />}
 
         <ManagePlansCard onManagePlans={handleManagePlans} />
 
         <SubscriptionList
           subscriptions={subscriptions}
           onViewAll={handleViewAllSubscriptions}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       </main>
-
-      {/* <BottomNavigation activeTab="dashboard" onTabChange={handleTabChange} /> */}
     </div>
   );
 };

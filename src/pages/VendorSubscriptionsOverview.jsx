@@ -6,7 +6,6 @@ import SubscriptionStats from "../components/subscription/SubscriptionStats";
 import SubscriptionTabs from "../components/subscription/SubscriptionTabs";
 import FullSubscriptionList from "../components/subscription/FullSubscriptionList";
 import { fetchAllSubscriptions } from "../services/subscriptionApi";
-import { getCurrentUserId } from "../services/supabase";
 import { Plus } from "lucide-react";
 
 /**
@@ -15,19 +14,41 @@ import { Plus } from "lucide-react";
 const VendorSubscriptionsOverview = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
-  const vendorId = getCurrentUserId();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const vendorId = "test-vendor";
 
   // Fetch all subscriptions for the vendor (or demo data if no vendor)
   const {
-    data: subscriptions,
+    data: paginatedData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["allSubscriptions", vendorId || "demo"],
+    queryKey: ["allSubscriptions", vendorId || "demo", currentPage, pageSize],
     queryFn: () =>
-      vendorId ? fetchAllSubscriptions(vendorId) : Promise.resolve([]),
+      vendorId
+        ? fetchAllSubscriptions(vendorId, {
+            page: currentPage,
+            page_size: pageSize,
+          })
+        : Promise.resolve({ results: [], count: 0 }),
     enabled: true,
   });
+
+  const subscriptions = paginatedData?.results || [];
+  const totalCount = paginatedData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const pagination = {
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   // Event handlers
   const handleBack = () => {
@@ -44,12 +65,14 @@ const VendorSubscriptionsOverview = () => {
   };
 
   // Calculate stats
+  // Note: Stats are calculated based on all data, not just current page
+  // In a real app, you might want to fetch separate stats data
   const activeSubscriptions =
     subscriptions?.filter((sub) => sub.status.toLowerCase() !== "past") || [];
   const activeCount = activeSubscriptions.length;
   const weeklyAmount = activeSubscriptions.reduce(
     (total, sub) => total + parseFloat(sub.amount || 0),
-    0
+    0,
   );
 
   // Loading state
@@ -87,6 +110,8 @@ const VendorSubscriptionsOverview = () => {
         <FullSubscriptionList
           subscriptions={subscriptions || []}
           activeTab={activeTab}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       </main>
 

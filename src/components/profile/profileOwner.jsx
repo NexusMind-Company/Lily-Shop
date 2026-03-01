@@ -73,7 +73,7 @@ const ProfileOwner = () => {
 
           // Merge and sort by newest first
           const allPosts = [...products, ...contents].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            (a, b) => new Date(b.created_at) - new Date(a.created_at),
           );
 
           setUserPosts(allPosts);
@@ -114,7 +114,7 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
-  console.log("Profile User  Data:", user);
+  console.log("Profile User Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -280,7 +280,11 @@ const ProfileOwner = () => {
           <div className="flex gap-5 items-center mb-3 justify-center">
             <div className="flex flex-col items-center">
               <span className="font-bold text-2xl">
-                {user.post_count || data.post_count || data.product_count || userPosts.length || 0}
+                {user.post_count ||
+                  data.post_count ||
+                  data.product_count ||
+                  userPosts.length ||
+                  0}
               </span>
               <p>Posts</p>
             </div>
@@ -299,14 +303,17 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
-          <div className="flex items-center justify-center"> <Link to="/vendor-dashboard">
-            <button className="px-4 py-2 mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold text-md">
-              Food Subscription
-            </button>
-          </Link>
-
+          <div className="flex flex-col items-center md:flex-row gap-2">
+            {/* Show Food Subscription button only for vendors (users with vendor_id) */}
+            {user?.vendor_id && (
+              <Link to="/vendor-dashboard">
+                <button className="px-4 py-2 md:mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold md:text-[16px]">
+                  Food Subscription
+                </button>
+              </Link>
+            )}
             <Link to="/editProfile">
-              <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold text-md">
+              <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold md:text-[16px]">
                 Edit Profile
               </button>
             </Link>
@@ -317,22 +324,25 @@ const ProfileOwner = () => {
       {/* Tabs */}
       <div className="flex my-5 w-full justify-evenly">
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 0 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 0 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(0)}
         >
           <Grid size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 1 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 1 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(1)}
         >
           <Megaphone size={30} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${activeTab === 2 ? "border-lily text-lily" : "border-transparent"
-            }`}
+          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
+            activeTab === 2 ? "border-lily text-lily" : "border-transparent"
+          }`}
           onClick={() => setActiveTab(2)}
         >
           <Heart size={30} />
