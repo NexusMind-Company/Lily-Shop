@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -162,22 +163,24 @@ const CartModal = ({ isOpen, onClose }) => {
     return "/feed-image.png";
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          key="cart-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer"
+          className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
           onClick={onClose}
         >
           <motion.div
+            key="cart-panel"
             initial={{ y: "100%", x: 0 }}
             animate={{ y: 0, x: 0 }}
             exit={{ y: "100%", x: 0 }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:mb-0 md:h-[90vh] cursor-default relative overflow-hidden"
+            className="w-full max-w-xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:mb-0 md:h-[90vh] cursor-default relative overflow-hidden pointer-events-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
@@ -357,6 +360,10 @@ const CartModal = ({ isOpen, onClose }) => {
       )}
     </AnimatePresence>
   );
+
+  // Use createPortal to mount the modal directly into the document body
+  if (typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 };
 
 export default CartModal;
