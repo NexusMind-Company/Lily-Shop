@@ -351,7 +351,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             ref={mediaRef}
             src={mediaArray[0]?.src || "/placeholder-image.png"}
             alt={post.name || post.productName || post.caption || "Post"}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             onError={(e) => {
               if (!e.target.src.includes("/feed-image.png")) {
                 e.target.src = "/feed-image.png";
