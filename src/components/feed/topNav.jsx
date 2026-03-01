@@ -93,7 +93,10 @@ const TopNav = ({ activeTab, setActiveTab }) => {
 
       <AnimatePresence>
         {isSearchModalOpen && (
-          <SearchModal onClose={() => setIsSearchModalOpen(false)} />
+          <SearchModal
+            isOpen={isSearchModalOpen}
+            onClose={() => setIsSearchModalOpen(false)}
+          />
         )}
       </AnimatePresence>
     </div>
