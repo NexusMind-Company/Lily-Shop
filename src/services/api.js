@@ -304,6 +304,11 @@ export const recordProductView = async (productId) => {
   return response.data;
 };
 
+export const recordContentView = async (contentId) => {
+  const response = await api.post(`/shops/contents/${contentId}/view/`, {});
+  return response.data;
+};
+
 export const followUser = async (username) => {
   const response = await api.post(
     `/auth/follow/${encodeURIComponent(username)}/`,

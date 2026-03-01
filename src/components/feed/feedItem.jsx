@@ -13,6 +13,7 @@ import {
   likeContent,
   followUser,
   recordProductView,
+  recordContentView,
 } from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
@@ -132,10 +133,10 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     let timer;
     if (isActive && !hasViewed) {
       timer = setTimeout(() => {
-        if (isProduct) {
-          setViewCount((prev) => prev + 1);
-          setHasViewed(true);
+        setViewCount((prev) => prev + 1);
+        setHasViewed(true);
 
+        if (isProduct) {
           recordProductView(post.id)
             .then(() => {
               queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
@@ -172,8 +173,41 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               setHasViewed(false);
             });
         } else {
-          // It's a fun content post. No API to record view, but we mark it viewed locally so timer stops.
-          setHasViewed(true);
+          recordContentView(post.id)
+            .then(() => {
+              queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+                if (!oldData || !oldData.pages) return oldData;
+                return {
+                  ...oldData,
+                  pages: oldData.pages.map((page) => ({
+                    ...page,
+                    items:
+                      page.items?.map((item) => {
+                        if (item.id === post.id) {
+                          const currentViews = Number(
+                            item.views ||
+                              item.view_count ||
+                              item.visit_count ||
+                              0,
+                          );
+                          return {
+                            ...item,
+                            views: currentViews + 1,
+                            view_count: currentViews + 1,
+                            visit_count: currentViews + 1,
+                          };
+                        }
+                        return item;
+                      }) || [],
+                  })),
+                };
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+              setViewCount((prev) => Math.max(0, prev - 1));
+              setHasViewed(false);
+            });
         }
       }, 2000);
     }
@@ -499,7 +533,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               <span className="text-xs font-semibold">Message</span>
             </button>
 
-            {/* This block handles showing views for ALL content types now */}
             <button className="flex flex-col items-center">
               <img src="/icons/eye.svg" alt="View" />
               <span className="text-xs font-semibold">
