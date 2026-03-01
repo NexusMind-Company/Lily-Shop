@@ -102,6 +102,7 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
 import LilyChat from "./components/ai/lilyChat";
+import CreatePost from "./components/content/CreatePost";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -161,6 +162,8 @@ function App() {
             <Route path="/createShop" element={<CreateShop />} />
             <Route path="/my-shop" element={<MyShop />} />
             <Route path="/myShop" element={<MyShop />} />
+            <Route path="/createContent" element={<CreatePost />} />
+            <Route path="/shop/:shopId" element={<ShopDetails />} />
             <Route path="/shop/:shopId" element={<ShopDetails />} />
             <Route path="/rating" element={<Ratings />} />
             <Route path="/edit-shop/:shopId" element={<EditShop />} />

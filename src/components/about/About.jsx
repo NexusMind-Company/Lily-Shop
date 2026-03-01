@@ -241,7 +241,7 @@ This protects users while keeping things simple and fair for vendors.`,
   const navigate = useNavigate();
 
   return (
-    <section className=" min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
+    <section className="min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-x-hidden">
       {/* Header - Matching Wallet styling */}
       <header className="flex items-center justify-center py-4  relative">
         <Link
