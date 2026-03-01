@@ -28,4 +28,26 @@ export const formatDate = (date) => {
   });
 };
 
-// Add other formatting functions here as needed
+/**
+ * Formats a date string into a relative time (e.g., "5m ago", "2h ago", "1d ago")
+ * @param {string | Date} dateString - The date to format.
+ * @returns {string} The relative time string.
+ */
+export const formatTimeAgo = (dateString) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const secondsPast = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (secondsPast < 60) return "Just now";
+  if (secondsPast < 3600) return `${Math.floor(secondsPast / 60)}m ago`;
+  if (secondsPast <= 86400) return `${Math.floor(secondsPast / 3600)}h ago`;
+  if (secondsPast <= 604800) return `${Math.floor(secondsPast / 86400)}d ago`;
+  if (secondsPast <= 2592000) return `${Math.floor(secondsPast / 604800)}w ago`;
+  if (secondsPast <= 31536000)
+    return `${Math.floor(secondsPast / 2592000)}mo ago`;
+  return `${Math.floor(secondsPast / 31536000)}y ago`;
+};

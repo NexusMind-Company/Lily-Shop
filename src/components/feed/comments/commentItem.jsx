@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { formatTimeAgo } from "../../../utils/formatters"; // Import the formatter
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
@@ -24,6 +25,12 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
     comment.comment_text ||
     comment.content ||
     "";
+
+  // Calculate the display time, falling back to "Just now" if no date is found
+  const displayTime =
+    comment.timeAgo ||
+    formatTimeAgo(comment.created_at || comment.date || comment.timestamp) ||
+    "Just now";
 
   const handleReplyClick = (e) => {
     e.stopPropagation();
@@ -52,9 +59,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
         <div className="bg-gray-50 rounded-lg p-2">
           <div className="flex justify-between items-center text-xs">
             <p className="font-semibold text-gray-800">{userName}</p>
-            <span className="text-gray-500">
-              {comment.timeAgo || "Just now"}
-            </span>
+            <span className="text-gray-500">{displayTime}</span>
           </div>
           <p className="text-sm text-gray-700 mt-1">
             {comment.replyingTo && (
