@@ -496,9 +496,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               className="flex flex-col items-center"
             >
               <img src="/icons/share.svg" alt="Share" />
-              <span className="text-xs font-semibold">
-                {formatCount(post.shares || 0)}
-              </span>
             </button>
 
             <button
