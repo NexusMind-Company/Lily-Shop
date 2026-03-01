@@ -369,11 +369,11 @@ const FeedContainer = () => {
         {renderContent()}
 
         {/* Post Counter */}
-        {posts.length > 0 && (
+        {/* {posts.length > 0 && (
           <div className="absolute top-20 right-4 z-30 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
             {currentPostIndex + 1} / {posts.length}
           </div>
-        )}
+        )} */}
       </div>
     </main>
   );
