@@ -68,7 +68,7 @@ import AddAddressPage from "./pages/AddAddressPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
 import OrderSummaryPage from "./pages/OrderSummaryPage";
 import CartPage from "./pages/CartPage";
-import Cart from "./pages/cart"; // This is the alternative cart component
+import Cart from "./pages/cart";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ReceiptPage from "./pages/reciept";
@@ -116,7 +116,6 @@ import VerificationPage from "./pages/VerificationPage";
 import { FeedProvider } from "./context/feedContext";
 import LilyChat from "./components/ai/lilyChat";
 
-// ScrollToTop component
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
 
@@ -164,16 +163,18 @@ const App = () => {
             <Route path="/search" element={<SearchResults />} />
             <Route path="/searchResults" element={<SearchResults />} />
 
-            {/* Product Details (Handling both variations) */}
-            <Route path="/product-details/:id" element={<ProductDetails />} />
-            <Route path="/product/:id" element={<ProductDetails />} />
+            {/* Product Details */}
+            <Route
+              path="/product-details/:id"
+              element={<FeedProductDetails />}
+            />
+            <Route path="/product/:id" element={<FeedProductDetails />} />
 
             {/* Cart & Checkout */}
-            {/* NOTE: Fixed conflict. /checkout goes to checkout page, /cart goes to cart page */}
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
 
-            {/* Shop Routes (Merging kebab-case and CamelCase) */}
+            {/* Shop Routes */}
             <Route path="/create-shop" element={<CreateShop />} />
             <Route path="/createShop" element={<CreateShop />} />
 

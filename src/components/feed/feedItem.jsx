@@ -136,79 +136,43 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         setViewCount((prev) => prev + 1);
         setHasViewed(true);
 
-        if (isProduct) {
-          recordProductView(post.id)
-            .then(() => {
-              queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-                if (!oldData || !oldData.pages) return oldData;
-                return {
-                  ...oldData,
-                  pages: oldData.pages.map((page) => ({
-                    ...page,
-                    items:
-                      page.items?.map((item) => {
-                        if (item.id === post.id) {
-                          const currentViews = Number(
-                            item.views ||
-                              item.view_count ||
-                              item.visit_count ||
-                              0,
-                          );
-                          return {
-                            ...item,
-                            views: currentViews + 1,
-                            view_count: currentViews + 1,
-                            visit_count: currentViews + 1,
-                          };
-                        }
-                        return item;
-                      }) || [],
-                  })),
-                };
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              setViewCount((prev) => Math.max(0, prev - 1));
-              setHasViewed(false);
+        const recordView = isProduct ? recordProductView : recordContentView;
+
+        recordView(post.id)
+          .then(() => {
+            queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+              if (!oldData || !oldData.pages) return oldData;
+              return {
+                ...oldData,
+                pages: oldData.pages.map((page) => ({
+                  ...page,
+                  items:
+                    page.items?.map((item) => {
+                      if (item.id === post.id) {
+                        const currentViews = Number(
+                          item.views ||
+                            item.view_count ||
+                            item.visit_count ||
+                            0,
+                        );
+                        return {
+                          ...item,
+                          views: currentViews + 1,
+                          view_count: currentViews + 1,
+                          visit_count: currentViews + 1,
+                        };
+                      }
+                      return item;
+                    }) || [],
+                })),
+              };
             });
-        } else {
-          recordContentView(post.id)
-            .then(() => {
-              queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-                if (!oldData || !oldData.pages) return oldData;
-                return {
-                  ...oldData,
-                  pages: oldData.pages.map((page) => ({
-                    ...page,
-                    items:
-                      page.items?.map((item) => {
-                        if (item.id === post.id) {
-                          const currentViews = Number(
-                            item.views ||
-                              item.view_count ||
-                              item.visit_count ||
-                              0,
-                          );
-                          return {
-                            ...item,
-                            views: currentViews + 1,
-                            view_count: currentViews + 1,
-                            visit_count: currentViews + 1,
-                          };
-                        }
-                        return item;
-                      }) || [],
-                  })),
-                };
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              setViewCount((prev) => Math.max(0, prev - 1));
-              setHasViewed(false);
-            });
-        }
+          })
+          .catch((err) => {
+            console.error(err);
+            setViewCount((prev) => Math.max(0, prev - 1));
+            setHasViewed(false);
+          });
       }, 2000);
     }
     return () => clearTimeout(timer);
@@ -349,6 +313,14 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   };
 
+  const sharePath = isProduct ? "product" : "content";
+  const shareId = isProduct
+    ? post.id
+    : hasLinkedProduct
+      ? post.product.id
+      : post.id;
+  const shareUrl = `${window.location.origin}/${sharePath}/${shareId}`;
+
   return (
     <div
       className="relative w-full h-full bg-lily text-white"
@@ -378,9 +350,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             }}
           />
         )}
-        <div className="hidden absolute inset-0 items-center justify-center bg-gray-900 text-gray-500">
-          <p>Image Unavailable</p>
-        </div>
       </div>
 
       <AnimatePresence>
@@ -479,9 +448,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2">
                 <Link
-                  to={`/product-details/${
-                    isProduct ? post.id : post.product.id
-                  }`}
+                  to={`/product/${isProduct ? post.id : post.product.id}`}
                   className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
                 >
                   <span>
@@ -559,9 +526,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            postUrl={`https://phantomclips.com/${
-              isProduct ? "product" : "content"
-            }/${post.id}`}
+            postUrl={shareUrl}
             postCaption={post.caption}
           />
         )}
