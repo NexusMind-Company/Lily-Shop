@@ -13,7 +13,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   const cartItems = useSelector((state) => state.cart?.items || EMPTY_ARRAY);
   const cartItemCount = cartItems.reduce(
     (total, item) => total + (item.quantity || 1),
-    0
+    0,
   );
 
   const location = useLocation();
@@ -30,8 +30,6 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   return (
     <div className="flex items-center h-16 px-4 md:px-8 bg-transparent fixed top-0 left-0 right-0 md:left-64 z-50 pointer-events-none">
       <div className="relative flex items-center justify-center w-full max-w-4xl mx-auto h-full pointer-events-auto">
-        
-        {/* CENTER TABS */}
         <div className="flex gap-6">
           <button
             onClick={() => setActiveTab("nearby")}
@@ -41,9 +39,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${
-                activeTab === "nearby"
-                  ? "pb-1 border-b-2 border-b-lily"
-                  : ""
+                activeTab === "nearby" ? "pb-1 border-b-2 border-b-lily" : ""
               }`}
             >
               Nearby
@@ -57,9 +53,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <span
               className={`text-sm ${
-                activeTab === "forYou"
-                  ? "pb-1 border-b-2 border-b-lily"
-                  : ""
+                activeTab === "forYou" ? "pb-1 border-b-2 border-b-lily" : ""
               }`}
             >
               For you
@@ -67,9 +61,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           </button>
         </div>
 
-        {/* RIGHT ICONS - Absolutely positioned, but hidden on desktop (md:hidden) */}
         <div className="absolute right-0 flex md:hidden items-center gap-4">
-          {/* Search Icon / Button */}
           <button
             className="cursor-pointer"
             onClick={() => setIsSearchModalOpen(true)}
@@ -77,11 +69,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
             <img src="/icons/search-icon.svg" alt="Search" />
           </button>
 
-          {/* Cart Icon / Button */}
-          <button
-            className="cursor-pointer relative"
-            onClick={handleOpenCart}
-          >
+          <button className="cursor-pointer relative" onClick={handleOpenCart}>
             <img
               src="./icons/cart.svg"
               alt="Cart"
@@ -98,15 +86,10 @@ const TopNav = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
 
-      {/* RENDER THE MODALS (Only visible on mobile from TopNav now) */}
-      <AnimatePresence>
-        {showCartModal && (
-          <CartModal
-            isOpen={showCartModal}
-            onClose={() => setShowCartModal(false)}
-          />
-        )}
-      </AnimatePresence>
+      <CartModal
+        isOpen={showCartModal}
+        onClose={() => setShowCartModal(false)}
+      />
 
       <AnimatePresence>
         {isSearchModalOpen && (
