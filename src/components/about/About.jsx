@@ -241,17 +241,17 @@ This protects users while keeping things simple and fair for vendors.`,
   const navigate = useNavigate();
 
   return (
-    <section className="min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-x-hidden">
+    <section className="h-screen w-full overflow-y-auto flex flex-col px-4 md:px-7 pb-24 gap-8 max-w-4xl mx-auto overflow-x-hidden">
       {/* Header - Matching Wallet styling */}
-      <header className="flex items-center justify-center py-4  relative">
-        <Link
+      <header className="flex items-center justify-center py-4 relative shrink-0">
+        <button
           onClick={() => {
             navigate(-1);
           }}
-          className="absolute left-4 top-4"
+          className="absolute left-0 top-4 p-2"
         >
           <ChevronLeft className="w-8 h-8 text-gray-700" />
-        </Link>
+        </button>
         <h1 className="text-lg font-semibold text-gray-800">About Us</h1>
       </header>
 
@@ -261,18 +261,18 @@ This protects users while keeping things simple and fair for vendors.`,
         {aboutContent.sections.map((section, index) => (
           <div
             key={index}
-            className="shadow border cursor-pointer rounded-2xl bg-white"
+            className="shadow border cursor-pointer rounded-2xl bg-white shrink-0"
           >
             <button
               onClick={() => toggleSection(section.title)}
-              className="w-full flex items-center gap-6 px-5 py-4 text-left"
+              className="w-full flex items-center justify-between gap-6 px-5 py-4 text-left"
             >
               <div className="flex-1">
                 <h3 className="font-bold text-base text-gray-800">
                   {section.title}
                 </h3>
               </div>
-              <div>
+              <div className="shrink-0">
                 {expandedSections[section.title] ? (
                   <ChevronUp className="h-5 w-5 text-gray-500" />
                 ) : (
@@ -292,7 +292,7 @@ This protects users while keeping things simple and fair for vendors.`,
         ))}
 
         {/* Contact Info Section - Same styling as others */}
-        <div className="shadow border rounded-2xl bg-white px-5 py-4">
+        <div className="shadow border rounded-2xl bg-white px-5 py-4 shrink-0">
           <h3 className="font-bold text-base text-gray-800 mb-2">
             Need More Help?
           </h3>
