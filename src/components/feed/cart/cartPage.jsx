@@ -77,7 +77,8 @@ const CartPage = () => {
   const subtotal = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) =>
+        total + (item.price || item.product?.price || 0) * item.quantity,
       0,
     );
   }, [itemsToCheckout]);
@@ -291,15 +292,16 @@ const CartPage = () => {
               <div key={item.id} className="flex items-center space-x-3">
                 <div className="flex flex-col gap-2 items-start">
                   <p className="text-sm text-gray-500">
-                    {item.product?.shop?.name || item.username || "Vendor"}
+                    {item.username || item.product?.shop?.name || "Vendor"}
                   </p>
                   <img
                     src={
+                      item.mediaSrc ||
                       item.product?.image_url ||
                       item.product?.media_url ||
                       "/placeholder-image.png"
                     }
-                    alt={item.product?.name || "Product"}
+                    alt={item.productName || item.product?.name || "Product"}
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                     onError={(e) => {
                       e.target.onerror = null;
@@ -309,12 +311,12 @@ const CartPage = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-800">
-                    {item.product?.name || "Product"}
+                    {item.productName || item.product?.name || "Product"}
                   </p>
                   <p className="text-sm font-semibold text-pink">
                     N
                     {formatPrice(
-                      (item.product?.price || item.price || 0) * item.quantity,
+                      (item.price || item.product?.price || 0) * item.quantity,
                     )}
                   </p>
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
