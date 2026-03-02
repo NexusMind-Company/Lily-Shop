@@ -199,9 +199,24 @@ const ProductItem = ({ product }) => {
     toggleFollow();
   };
 
-  const handleAddToCart = () => {
-    setIsAddedToCart(true);
-    dispatch(addToCart({ product_id: product.id, quantity }));
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      return navigate("/login");
+    }
+
+    try {
+      await dispatch(addToCart({ product_id: product.id, quantity })).unwrap();
+      setIsAddedToCart(true);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      setIsAddedToCart(false);
+      // Alert the user with the specific API error message if available
+      alert(
+        error?.quantity ||
+          error?.message ||
+          (typeof error === "string" ? error : "Failed to add to cart."),
+      );
+    }
   };
 
   const handleCheckout = () => {
