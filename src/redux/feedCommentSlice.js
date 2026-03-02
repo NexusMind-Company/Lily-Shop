@@ -25,11 +25,11 @@ const nestComments = (comments) => {
   const commentMap = {};
   const roots = [];
 
-  // 1. Initialize map and explicitly ENFORCE replies as an array (API returns a string)
+  // 1. Initialize map and explicitly ENFORCE replies as a new array
   uniqueComments.forEach((c) => {
     commentMap[c.id] = {
       ...c,
-      replies: Array.isArray(c.replies) ? c.replies : [],
+      replies: Array.isArray(c.replies) ? [...c.replies] : [],
     };
   });
 
@@ -39,7 +39,7 @@ const nestComments = (comments) => {
     if (parentId && commentMap[parentId]) {
       const parent = commentMap[parentId];
       // Prevent adding the same reply multiple times
-      if (!parent.replies.find((r) => r.id === c.id)) {
+      if (!parent.replies.some((r) => r.id === c.id)) {
         parent.replies.push(commentMap[c.id]);
       }
     } else {
@@ -58,7 +58,7 @@ const findCommentAndAddReply = (comments, newComment) => {
         comment.replies = [];
       }
       // CHECK: Prevent duplicates before pushing
-      const exists = comment.replies.find((r) => r.id === newComment.id);
+      const exists = comment.replies.some((r) => r.id === newComment.id);
       if (!exists) {
         comment.replies.push(newComment);
       }
@@ -220,7 +220,7 @@ const feedSlice = createSlice({
         findCommentAndAddReply(state.comments, newComment);
       } else {
         // CHECK: Prevent duplicates at root level
-        const exists = state.comments.find((c) => c.id === newComment.id);
+        const exists = state.comments.some((c) => c.id === newComment.id);
         if (!exists) {
           state.comments.unshift(newComment);
         }
