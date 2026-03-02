@@ -3,7 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchProfile } from "../../redux/profileSlice";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
@@ -23,6 +24,7 @@ const formatCount = (num) =>
 const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   const rawMedia =
     post.all_media_urls?.length > 0
@@ -279,11 +281,61 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     onMutate: async () => {
       if (!isAuthenticated) return;
       const previousIsFollowed = isFollowed;
-      setIsFollowed(!previousIsFollowed);
+      const newIsFollowed = !previousIsFollowed;
+
+      setIsFollowed(newIsFollowed);
+
+      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+        if (!oldData || !oldData.pages) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            items:
+              page.items?.map((item) => {
+                if (item.user_id === profileId || item.userId === profileId) {
+                  return {
+                    ...item,
+                    is_followed: newIsFollowed,
+                    has_followed: newIsFollowed,
+                  };
+                }
+                return item;
+              }) || [],
+          })),
+        };
+      });
+
       return { previousIsFollowed };
     },
+    onSuccess: () => {
+      dispatch(fetchProfile());
+    },
     onError: (err, variables, context) => {
-      if (context) setIsFollowed(context.previousIsFollowed);
+      if (context) {
+        setIsFollowed(context.previousIsFollowed);
+
+        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
+          if (!oldData || !oldData.pages) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              items:
+                page.items?.map((item) => {
+                  if (item.user_id === profileId || item.userId === profileId) {
+                    return {
+                      ...item,
+                      is_followed: context.previousIsFollowed,
+                      has_followed: context.previousIsFollowed,
+                    };
+                  }
+                  return item;
+                }) || [],
+            })),
+          };
+        });
+      }
     },
   });
 
@@ -298,7 +350,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     toggleLike();
   };
 
-  const handleFollow = () => {
+  const handleFollow = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (!isAuthenticated) return navigate("/login");
     toggleFollow();
   };
@@ -395,7 +451,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               {!isOwnPost && (
                 <button
                   onClick={handleFollow}
-                  className="absolute top-[80%] left-3"
+                  className="absolute top-[80%] left-3 z-10"
                 >
                   <img
                     src={
@@ -496,6 +552,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               className="flex flex-col items-center"
             >
               <img src="/icons/share.svg" alt="Share" />
+              <span className="text-xs font-semibold">
+                {formatCount(post.shares || 0)}
+              </span>
             </button>
 
             <button
