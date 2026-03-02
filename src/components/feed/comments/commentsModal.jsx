@@ -31,9 +31,10 @@ const CommentsModal = ({
   const dispatch = useDispatch();
   const textareaRef = useRef(null);
 
-  const { user_data: currentUser, isAuthenticated } = useSelector(
-    (state) => state.auth,
-  );
+  const authState = useSelector((state) => state.auth);
+  const currentUser =
+    authState?.user_data || authState?.user || authState?.profile || null;
+  const isAuthenticated = authState?.isAuthenticated;
 
   const rawComments = useSelector((state) => state.feedComments.comments);
   const commentsStatus = useSelector(
@@ -118,12 +119,20 @@ const CommentsModal = ({
         : trimmedText;
 
     const currentUserName =
-      currentUser?.name || currentUser?.username || "User";
+      currentUser?.username ||
+      currentUser?.name ||
+      currentUser?.email ||
+      currentUser?.first_name ||
+      "User";
 
     const newComment = {
       id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       user_name: currentUserName,
-      userpic: currentUser?.userpic || currentUser?.profile_pic || null,
+      userpic:
+        currentUser?.userpic ||
+        currentUser?.profile_pic ||
+        currentUser?.image ||
+        null,
       comment_text: finalCommentText,
       timeAgo: "Just now",
       like_count: 0,
@@ -236,9 +245,15 @@ const CommentsModal = ({
               )}
               <div className="flex items-end space-x-2">
                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                  {currentUser?.profile_pic && (
+                  {(currentUser?.profile_pic ||
+                    currentUser?.userpic ||
+                    currentUser?.image) && (
                     <img
-                      src={currentUser.profile_pic}
+                      src={
+                        currentUser.profile_pic ||
+                        currentUser.userpic ||
+                        currentUser.image
+                      }
                       alt="You"
                       className="w-full h-full rounded-full object-cover"
                     />

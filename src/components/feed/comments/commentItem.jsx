@@ -66,7 +66,17 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
   if (!comment) return null;
 
   const userName =
-    comment.user_name || comment.username || comment.user || "User";
+    comment.user_name ||
+    comment.username ||
+    comment.author?.username ||
+    comment.author?.name ||
+    comment.user?.username ||
+    comment.user?.name ||
+    (typeof comment.user === "string" && comment.user.length < 30
+      ? comment.user
+      : null) ||
+    "User";
+
   const initials = getInitials(userName);
 
   const hasHydratedReplies =
