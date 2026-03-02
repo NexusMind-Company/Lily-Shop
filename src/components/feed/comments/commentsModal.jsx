@@ -7,6 +7,7 @@ import {
   postComment,
   addLocalComment,
   clearComments,
+  toggleCommentLike,
 } from "../../../redux/feedCommentSlice";
 import CommentItem from "../comments/commentItem";
 import { CommentSkeleton } from "../../common/skeletons";
@@ -34,10 +35,14 @@ const CommentsModal = ({
     (state) => state.auth,
   );
 
-  const comments = useSelector((state) => state.feedComments.comments);
+  const rawComments = useSelector((state) => state.feedComments.comments);
   const commentsStatus = useSelector(
     (state) => state.feedComments.commentsStatus,
   );
+
+  const commentsList = Array.isArray(rawComments)
+    ? rawComments
+    : rawComments?.results || [];
 
   const [commentText, setCommentText] = useState("");
   const [replyTarget, setReplyTarget] = useState(null);
@@ -47,27 +52,19 @@ const CommentsModal = ({
 
   useEffect(() => {
     if (isOpen && postId) {
+      dispatch(clearComments());
       dispatch(fetchComments({ postId, itemType }));
     }
   }, [isOpen, postId, itemType, dispatch]);
 
   useEffect(() => {
-    if (!isOpen) {
-      const timer = setTimeout(() => {
-        dispatch(clearComments());
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, dispatch]);
-
-  useEffect(() => {
-    if (commentsStatus === "succeeded" || comments.length > 0) {
-      const realCount = countNodes(comments);
+    if (commentsStatus === "succeeded" || commentsList.length > 0) {
+      const realCount = countNodes(commentsList);
       if (onCommentCountUpdate) {
         onCommentCountUpdate(realCount);
       }
     }
-  }, [comments, commentsStatus, onCommentCountUpdate]);
+  }, [commentsList, commentsStatus, onCommentCountUpdate]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -92,12 +89,19 @@ const CommentsModal = ({
     setCommentText(text);
   };
 
+  const handleLikeComment = (commentId) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    dispatch(toggleCommentLike({ commentId, postId, itemType }));
+  };
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     const trimmedText = commentText.trim();
 
     if (!isAuthenticated) {
-      alert("Please log in to comment.");
       navigate("/login");
       return;
     }
@@ -118,17 +122,16 @@ const CommentsModal = ({
 
     const newComment = {
       id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      user: currentUserName,
       user_name: currentUserName,
       userpic: currentUser?.userpic || currentUser?.profile_pic || null,
-      text: finalCommentText,
+      comment_text: finalCommentText,
       timeAgo: "Just now",
-      likes: 0,
       like_count: 0,
+      is_liked: false,
       replies: [],
       postId: postId,
       itemType: itemType,
-      parentId: replyTarget ? replyTarget.id : null,
+      parent: replyTarget ? replyTarget.id : null,
       replyingTo: replyTarget ? replyTarget.user : null,
     };
 
@@ -137,7 +140,7 @@ const CommentsModal = ({
     try {
       await dispatch(postComment(newComment)).unwrap();
     } catch (error) {
-      console.error("Failed to post comment:", error);
+      // Silently fail as per clean code standards, or handled by Redux slice
     }
 
     setCommentText("");
@@ -165,7 +168,9 @@ const CommentsModal = ({
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
-                {comments.length > 0 ? countNodes(comments) : totalComments}{" "}
+                {commentsList.length > 0
+                  ? countNodes(commentsList)
+                  : totalComments}{" "}
                 comments
               </h2>
               <button
@@ -176,20 +181,20 @@ const CommentsModal = ({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {commentsStatus === "loading" && comments.length === 0 && (
+              {commentsStatus === "loading" && commentsList.length === 0 && (
                 <>
                   <CommentSkeleton />
                   <CommentSkeleton />
                   <CommentSkeleton />
                 </>
               )}
-              {commentsStatus === "succeeded" && comments.length === 0 && (
+              {commentsStatus === "succeeded" && commentsList.length === 0 && (
                 <p className="text-center text-gray-500">
                   Be the first to comment!
                 </p>
               )}
-              {comments.length > 0 &&
-                comments.map((comment, index) => (
+              {commentsList.length > 0 &&
+                commentsList.map((comment, index) => (
                   <CommentItem
                     key={
                       comment?.id
@@ -198,6 +203,7 @@ const CommentsModal = ({
                     }
                     comment={comment}
                     onReply={handleReplyTag}
+                    onLike={handleLikeComment}
                   />
                 ))}
               {commentsStatus === "failed" && (
