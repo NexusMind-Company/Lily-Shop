@@ -9,6 +9,7 @@ import {
   VolumeX,
   Volume2,
   Heart,
+  MoreVertical,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -28,25 +29,31 @@ import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
+// Utility to format large numbers (e.g., 1500 -> 1.5k)
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
+// --- Sub-component: Video Player for Carousel ---
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Sync React state with HTML video element mute property
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
   }, [isMuted]);
 
+  // Track play/pause state for UI overlay rendering
   useEffect(() => {
     const videoNode = videoRef.current;
     if (!videoNode) return;
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
+
     videoNode.addEventListener("play", onPlay);
     videoNode.addEventListener("pause", onPause);
+
     return () => {
       videoNode.removeEventListener("play", onPlay);
       videoNode.removeEventListener("pause", onPause);
@@ -54,7 +61,7 @@ const CarouselVideoPlayer = ({ src, poster }) => {
   }, []);
 
   const handlePlayPause = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent swiper from triggering a slide change
     if (videoRef.current?.paused) videoRef.current?.play();
     else videoRef.current?.pause();
   };
@@ -94,16 +101,21 @@ const CarouselVideoPlayer = ({ src, poster }) => {
   );
 };
 
+// --- Main Component: Product Details Item ---
 const ProductItem = ({ product }) => {
+  // Variant selections
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
 
+  // UI interaction states
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
 
+  // Social & Engagement states (initialized from product props)
   const [isLiked, setIsLiked] = useState(
     product.is_liked === true ||
       product.is_liked === "true" ||
@@ -114,20 +126,23 @@ const ProductItem = ({ product }) => {
       product.is_followed === "true" ||
       product.has_followed === true,
   );
-
   const [viewCount, setViewCount] = useState(
     Number(product.visit_count || product.view_count || product.views || 0),
   );
 
+  // Hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
+  // --- Data Normalization ---
+  // Handle varying backend media structures (string vs array)
   const rawMedia =
     product.all_media_urls?.length > 0
       ? product.all_media_urls
       : product.media || product.media_url || product.image_url;
 
+  // Format media into a consistent array of objects with type checking
   const mediaArray = Array.isArray(rawMedia)
     ? rawMedia.map((item) => ({
         src: typeof item === "string" ? item : item.src || item,
@@ -151,6 +166,17 @@ const ProductItem = ({ product }) => {
 
   const displayPrice = product.price_in_naira || product.price || 0;
 
+  // Dynamic API Data Mapping
+  const vendorDescription =
+    product.shop_description ||
+    product.vendorDetail ||
+    product.shop?.description ||
+    "No description provided by the vendor.";
+  const productRating = product.rating || product.avg_rating || "0.0";
+  const productReviewsCount = product.reviews || product.comment_count || "0";
+
+  // --- Side Effects ---
+  // Record a "view" only after the user has been on the page for 2 seconds
   useEffect(() => {
     let timer;
     if (!hasViewed && product?.id) {
@@ -160,6 +186,7 @@ const ProductItem = ({ product }) => {
 
         recordProductView(product.id).catch((err) => {
           console.log(err);
+          // Rollback view count on failure
           setViewCount((prev) => Math.max(0, prev - 1));
           setHasViewed(false);
         });
@@ -168,13 +195,14 @@ const ProductItem = ({ product }) => {
     return () => clearTimeout(timer);
   }, [product?.id, hasViewed]);
 
+  // --- API Mutations ---
   const { mutate: toggleLike } = useMutation({
     mutationFn: () => likeProduct(product.id),
     onMutate: () => {
       if (!isAuthenticated) return;
-      setIsLiked((prev) => !prev);
+      setIsLiked((prev) => !prev); // Optimistic UI update
     },
-    onError: () => setIsLiked((prev) => !prev),
+    onError: () => setIsLiked((prev) => !prev), // Revert on error
   });
 
   const { mutate: toggleFollow } = useMutation({
@@ -184,11 +212,12 @@ const ProductItem = ({ product }) => {
       ),
     onMutate: () => {
       if (!isAuthenticated) return;
-      setIsFollowed((prev) => !prev);
+      setIsFollowed((prev) => !prev); // Optimistic UI update
     },
-    onError: () => setIsFollowed((prev) => !prev),
+    onError: () => setIsFollowed((prev) => !prev), // Revert on error
   });
 
+  // --- Handlers ---
   const handleLike = () => {
     if (!isAuthenticated) return navigate("/login");
     toggleLike();
@@ -200,17 +229,17 @@ const ProductItem = ({ product }) => {
   };
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      return navigate("/login");
-    }
+    if (!isAuthenticated) return navigate("/login");
 
+    setIsAddingToCart(true);
     try {
       await dispatch(addToCart({ product_id: product.id, quantity })).unwrap();
       setIsAddedToCart(true);
+      setIsAddingToCart(false);
     } catch (error) {
       console.error("Failed to add to cart:", error);
       setIsAddedToCart(false);
-      // Alert the user with the specific API error message if available
+      setIsAddingToCart(false);
       alert(
         error?.quantity ||
           error?.message ||
@@ -234,16 +263,16 @@ const ProductItem = ({ product }) => {
     setShowAllReviews((prev) => !prev);
   };
 
-  const formatPrice = (price) => {
-    return Number(price).toLocaleString();
-  };
+  const formatPrice = (price) => Number(price).toLocaleString();
 
+  // Review pagination/display logic
   const reviewsArray = product.reviewsData || [];
   const reviewsToShow = showAllReviews
     ? reviewsArray
     : reviewsArray.slice(0, 3);
   const hasMoreReviews = reviewsArray.length > 3;
 
+  // Vendor profile mapping
   const displayUsername =
     product.shop_name || product.username || product.user || "Unknown Vendor";
   const profileLink = product.shop
@@ -251,104 +280,115 @@ const ProductItem = ({ product }) => {
     : `/profile/${product.user_id || product.userId}`;
 
   return (
-    <div className="relative bg-white w-full md:max-w-xl mx-auto h-full min-h-screen shadow-sm">
-      <div className="p-4 space-y-3 pb-28">
-        <div className="w-full aspect-8/10 relative group bg-gray-100 rounded-lg overflow-hidden">
-          {mediaArray.length > 0 ? (
-            <Swiper
-              modules={[Navigation, Pagination]}
-              slidesPerView={1}
-              spaceBetween={0}
-              loop={mediaArray.length > 1}
-              pagination={{ clickable: true }}
-              navigation={{
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
-              }}
-              className="w-full h-full bg-black rounded-lg"
-            >
-              {mediaArray.map((item, index) => (
-                <SwiperSlide key={index}>
-                  {item.type === "video" ? (
-                    <CarouselVideoPlayer src={item.src} poster={item.poster} />
-                  ) : (
-                    <img
-                      src={item.src}
-                      alt={`Product image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "/placeholder-image.png";
-                      }}
-                    />
-                  )}
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              No Image Available
-            </div>
-          )}
-
-          {mediaArray.length > 1 && (
-            <>
-              <div className="swiper-button-prev absolute top-1/2 left-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
-                <ChevronLeft size={28} />
-              </div>
-              <div className="swiper-button-next absolute top-1/2 right-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
-                <ChevronRight size={28} />
-              </div>
-            </>
-          )}
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-ash/70 absolute top-2 left-2 z-20 rounded-full p-1 cursor-pointer text-white"
+    <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-35 flex flex-col">
+      {/* --- Edge-to-Edge Media Carousel --- */}
+      <div className="w-full aspect-4/5 relative group bg-gray-100 overflow-hidden shrink-0">
+        {mediaArray.length > 0 ? (
+          <Swiper
+            modules={[Navigation, Pagination]}
+            slidesPerView={1}
+            spaceBetween={0}
+            loop={mediaArray.length > 1}
+            pagination={{ clickable: true }}
+            navigation={{
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            }}
+            className="w-full h-full bg-black"
           >
-            <ChevronLeft size={28} />
-          </button>
-        </div>
+            {mediaArray.map((item, index) => (
+              <SwiperSlide key={index}>
+                {item.type === "video" ? (
+                  <CarouselVideoPlayer src={item.src} poster={item.poster} />
+                ) : (
+                  <img
+                    src={item.src}
+                    alt={`Product image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "/placeholder-image.png";
+                    }}
+                  />
+                )}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            No Image Available
+          </div>
+        )}
 
-        <div className="flex justify-between items-start pt-2">
-          <div>
-            <h2 className="font-semibold text-lg text-gray-800">
+        {/* Carousel Navigation Arrows */}
+        {mediaArray.length > 1 && (
+          <>
+            <div className="swiper-button-prev absolute top-1/2 left-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
+              <ChevronLeft size={28} />
+            </div>
+            <div className="swiper-button-next absolute top-1/2 right-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
+              <ChevronRight size={28} />
+            </div>
+          </>
+        )}
+
+        {/* Floating Top Actions */}
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-white/80 absolute top-4 left-4 z-20 rounded-full p-1.5 cursor-pointer text-black hover:bg-white shadow-sm"
+        >
+          <ChevronLeft size={24} strokeWidth={2.5} />
+        </button>
+
+        <button className="bg-white/80 absolute top-4 right-4 z-20 rounded-full p-1.5 cursor-pointer text-black hover:bg-white shadow-sm">
+          <MoreVertical size={24} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* --- Padded Content Section --- */}
+      <div className="p-4 space-y-4 grow">
+        {/* Title, Rating, and Price Header */}
+        <div>
+          <div className="flex justify-between items-start pt-2">
+            <h2 className="font-bold text-lg text-gray-800 leading-tight w-3/4">
               {product.productName ||
                 product.title ||
                 product.name ||
                 "Untitled Product"}
             </h2>
-            <span className="text-ash flex items-center mt-1">
+            <div className="flex items-center text-sm font-medium shrink-0 ml-2 pt-1 text-gray-800">
               <img src="/icons/star2.svg" alt="" className="mr-1 w-4 h-4" />
-              {product.rating || 0} ({product.reviews || 0})
-              <span className="mx-2 text-gray-400">•</span>
-              <img
-                src="/icons/eye.svg"
-                alt="Views"
-                className="mr-1 w-4 h-4 opacity-70"
-              />
-              {formatCount(viewCount)}
-            </span>
+              {productRating}{" "}
+              <span className="font-normal text-gray-500 ml-1">
+                ({productReviewsCount})
+              </span>
+            </div>
           </div>
 
-          <button onClick={handleLike} className="p-2">
-            <Heart
-              size={28}
-              fill={isLiked ? "red" : "none"}
-              color={isLiked ? "red" : "black"}
-            />
-          </button>
+          <div className="flex justify-between items-center mt-2">
+            <p className="text-green-500 font-bold text-lg">{`₦${formatPrice(displayPrice)}`}</p>
+            <button onClick={handleLike} className="p-1">
+              <Heart
+                size={26}
+                fill={isLiked ? "red" : "none"}
+                color={isLiked ? "red" : "black"}
+              />
+            </button>
+          </div>
         </div>
 
-        <p className="text-green-600 font-bold text-xl">{`₦${formatPrice(displayPrice)}`}</p>
-
+        {/* Description (Expandable) */}
         {product.caption && (
-          <motion.p layout className="text-sm font-normal text-gray-600">
+          <motion.p
+            layout
+            className="text-sm font-normal text-gray-800 leading-relaxed"
+          >
             {isExpanded
               ? product.caption
               : `${product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
             {product.caption.length > DESCRIPTION_CHAR_LIMIT && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="font-semibold ml-1 opacity-80 text-lily hover:underline"
+                className="font-medium ml-1 text-green-600 hover:underline"
               >
                 {isExpanded ? "...less" : "...see more"}
               </button>
@@ -356,37 +396,39 @@ const ProductItem = ({ product }) => {
           </motion.p>
         )}
 
-        {product.estDelivery && (
-          <p className="font-semibold text-sm">
-            Est delivery:{" "}
-            <span className="font-normal text-gray-600">
+        {/* Logistics Information */}
+        <div className="space-y-1 pt-1">
+          {product.estDelivery && (
+            <p className="text-sm text-gray-800">
+              <span className="font-semibold">Est delivery:</span>{" "}
               {product.estDelivery}
-            </span>
-          </p>
-        )}
+            </p>
+          )}
 
-        {product.deliveryLocation && (
-          <p className="font-semibold text-sm">
-            Delivery Location:{" "}
-            <span className="font-normal text-gray-600">
+          {product.deliveryLocation && (
+            <p className="text-sm text-gray-800">
+              <span className="font-semibold">Delivery locations:</span>{" "}
               {product.deliveryLocation}
-            </span>
-          </p>
-        )}
+            </p>
+          )}
+        </div>
 
-        <div className="flex items-center gap-4 py-2">
-          <span className="font-medium text-gray-700">Quantity</span>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+        {/* --- Variant Selectors (Quantity, Color, Size) --- */}
+        <div className="flex items-center gap-4 py-1">
+          <span className="font-semibold text-gray-800 text-sm w-16">
+            Quantity
+          </span>
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="px-3 py-1 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="w-7 h-7 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center text-gray-600 font-bold text-lg pb-0.5 transition-colors"
             >
               -
             </button>
-            <span className="px-4 py-1 font-medium">{quantity}</span>
+            <span className="font-semibold">{quantity}</span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="px-3 py-1 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="w-7 h-7 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center text-white font-bold text-lg pb-0.5 transition-colors"
             >
               +
             </button>
@@ -394,17 +436,19 @@ const ProductItem = ({ product }) => {
         </div>
 
         {product.colors && product.colors.length > 0 && (
-          <div>
-            <span className="font-medium text-gray-700">Color:</span>
-            <div className="flex gap-2 mt-2">
+          <div className="flex items-center gap-4 pt-1">
+            <span className="font-semibold text-gray-800 text-sm w-16">
+              Color
+            </span>
+            <div className="flex gap-2 flex-wrap">
               {product.colors.map((color) => (
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
+                  className={`px-4 py-1 rounded text-xs font-semibold transition-colors ${
                     selectedColor === color
-                      ? "bg-green-600 text-white border-green-600"
-                      : "hover:border-gray-400"
+                      ? "bg-yellow-200 text-black"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }`}
                 >
                   {color}
@@ -415,17 +459,19 @@ const ProductItem = ({ product }) => {
         )}
 
         {product.sizes && product.sizes.length > 0 && (
-          <div>
-            <span className="font-medium text-gray-700">Size:</span>
-            <div className="flex gap-2 mt-2">
+          <div className="flex items-center gap-4 pt-1">
+            <span className="font-semibold text-gray-800 text-sm w-16">
+              Size
+            </span>
+            <div className="flex gap-2 flex-wrap">
               {product.sizes.map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`px-4 py-1.5 border rounded-full text-sm transition-colors ${
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
                     selectedSize === size
-                      ? "bg-green-600 text-white border-green-600"
-                      : "hover:border-gray-400"
+                      ? "bg-yellow-200 text-black"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }`}
                 >
                   {size}
@@ -435,15 +481,16 @@ const ProductItem = ({ product }) => {
           </div>
         )}
 
+        {/* --- Reviews Section --- */}
         <div className="space-y-4 pt-6">
           <div className="flex justify-between items-center w-full">
-            <h2 className="font-semibold text-lg text-gray-800">
-              Reviews ({product.reviews || 0})
+            <h2 className="font-bold text-md text-gray-900">
+              Reviews ({productReviewsCount})
             </h2>
             {hasMoreReviews && (
               <button
                 onClick={handleViewAll}
-                className="text-lily font-semibold flex items-center hover:underline"
+                className="text-pink-500 text-sm font-medium hover:underline"
               >
                 {showAllReviews ? "Collapse" : "View all"}
               </button>
@@ -461,63 +508,94 @@ const ProductItem = ({ product }) => {
           )}
         </div>
 
-        <div className="pt-6 border-t border-gray-200 space-y-3">
-          <h3 className="font-semibold text-md text-gray-800">
-            Vendor Details
-          </h3>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Link
-                to={profileLink}
-                className="font-bold text-gray-800 hover:underline"
-              >
-                {displayUsername}
-              </Link>
+        {/* --- Vendor Details Section --- */}
+        <div className="pt-6 pb-15 border-t border-gray-200 space-y-3">
+          <h3 className="font-bold text-md text-gray-900">Vendor details</h3>
+          <div className="flex items-center space-x-3 mt-1">
+            <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center overflow-hidden shrink-0">
+              <img
+                src="/icons/user.svg"
+                alt="vendor avatar"
+                className="w-5 h-5 opacity-60"
+              />
+            </div>
+            <div className="flex items-center flex-wrap gap-2">
+              <div className="flex items-center space-x-1">
+                <Link
+                  to={profileLink}
+                  className="font-bold text-gray-900 hover:underline"
+                >
+                  {displayUsername}
+                </Link>
+                <img
+                  src="/icons/verified.svg"
+                  alt="verified"
+                  className="w-4 h-4"
+                />
+              </div>
               <button
                 onClick={handleFollow}
-                className={`${
+                className={`px-3 py-0.5 rounded-full text-xs font-semibold transition-colors border ${
                   isFollowed
-                    ? "bg-lily text-white"
-                    : "text-lily border border-lily hover:bg-green-50"
-                } px-3 py-1 rounded-full text-xs font-medium transition-colors`}
+                    ? "bg-green-600 text-white border-green-600"
+                    : "text-green-600 border-green-600 bg-white hover:bg-green-50"
+                }`}
               >
                 {isFollowed ? "Following" : "Follow"}
               </button>
             </div>
           </div>
-          {product.vendorDetail && (
-            <p className="text-sm text-gray-600">{product.vendorDetail}</p>
-          )}
-          <div className="flex space-x-6 text-sm text-gray-700 pt-2">
-            <button className="flex items-center space-x-2 hover:text-lily transition-colors">
+
+          <p className="text-sm text-gray-800 leading-relaxed pt-1">
+            {vendorDescription}
+          </p>
+
+          <div className="flex space-x-6 text-sm text-gray-800 pt-3 pb-2">
+            <button className="flex items-center space-x-2 hover:text-green-600 transition-colors">
               <img src="/icons/mail2.svg" alt="Message" className="w-5 h-5" />
               <span className="font-medium">Message</span>
             </button>
             {product.vendorNumber && (
               <a
                 href={`tel:${product.vendorNumber}`}
-                className="flex items-center space-x-2 hover:text-lily transition-colors"
+                className="flex items-center space-x-2 hover:text-green-600 transition-colors"
               >
                 <img src="/icons/phone.svg" alt="Call" className="w-5 h-5" />
-                <span className="font-medium">Call Vendor</span>
+                <span className="font-medium">Call {product.vendorNumber}</span>
               </a>
             )}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        <div className="max-w-xl mx-auto p-4">
+      {/* --- Fixed Bottom Call-To-Action Actions --- */}
+      <div className="fixed bottom-0 w-full md:max-w-xl z-30 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="p-4 w-full">
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${
+              disabled={isAddingToCart || isAddedToCart}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center ${
                 isAddedToCart
-                  ? "border-2 border-gray-300 text-gray-500 bg-gray-50"
-                  : "border-2 border-lily text-lily hover:bg-green-50"
+                  ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-not-allowed"
+                  : isAddingToCart
+                    ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-wait"
+                    : "border-2 border-lily text-lily hover:bg-green-50"
               }`}
             >
-              {isAddedToCart ? "Added to cart" : "Add to cart"}
+              {isAddingToCart ? (
+                "Adding..."
+              ) : isAddedToCart ? (
+                <>
+                  <img src="/icons/cart-tick.svg" className="size-8 mr-2" />
+                  Added to cart
+                </>
+              ) : (
+                <>
+                  <img src="/icons/cart-add2.svg" className="size-8 mr-2" />
+                  Add to cart
+                </>
+              )}
             </button>
             <button
               onClick={handleCheckout}
