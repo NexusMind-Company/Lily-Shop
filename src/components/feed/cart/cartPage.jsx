@@ -2,7 +2,11 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import { selectCartItems } from "../../../redux/cartSlice";
+import {
+  selectCartItems,
+  fetchCart,
+  selectCartIsLoading,
+} from "../../../redux/cartSlice";
 import { createOrder } from "../../../redux/orderSlice";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserProfile } from "../../../services/api";
@@ -15,6 +19,7 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const { setPaymentData } = usePayment();
   const allCartItems = useSelector(selectCartItems);
+  const isLoadingCart = useSelector(selectCartIsLoading);
 
   // --- 1. Fix State Persistence (Handle Refresh) ---
   const [selectedItemIds, setSelectedItemIds] = useState(() => {
@@ -32,7 +37,7 @@ const CartPage = () => {
   });
 
   const { creating: isCreatingOrder, createError } = useSelector(
-    (state) => state.orders
+    (state) => state.orders,
   );
 
   const {
@@ -43,6 +48,10 @@ const CartPage = () => {
     queryKey: ["userProfile"],
     queryFn: fetchUserProfile,
   });
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const itemsToCheckout = useMemo(() => {
     if (selectedItemIds && Array.isArray(selectedItemIds)) {
@@ -56,7 +65,7 @@ const CartPage = () => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (sum, item) => sum + (item.deliveryCharge || 0),
-      0
+      0,
     );
   }, [itemsToCheckout]);
 
@@ -69,7 +78,7 @@ const CartPage = () => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (total, item) => total + item.price * item.quantity,
-      0
+      0,
     );
   }, [itemsToCheckout]);
 
@@ -79,10 +88,10 @@ const CartPage = () => {
     }
     try {
       const allMinTimestamps = itemsToCheckout.map((item) =>
-        new Date(item.estimatedDeliveryMinDate || Date.now()).getTime()
+        new Date(item.estimatedDeliveryMinDate || Date.now()).getTime(),
       );
       const allMaxTimestamps = itemsToCheckout.map((item) =>
-        new Date(item.estimatedDeliveryMaxDate || Date.now()).getTime()
+        new Date(item.estimatedDeliveryMaxDate || Date.now()).getTime(),
       );
       const validMinTimestamps = allMinTimestamps.filter((ts) => !isNaN(ts));
       const validMaxTimestamps = allMaxTimestamps.filter((ts) => !isNaN(ts));
@@ -99,7 +108,6 @@ const CartPage = () => {
       if (formattedMin === formattedMax) return formattedMax;
       return `${formattedMin} - ${formattedMax}`;
     } catch (error) {
-      // console.error("Error parsing delivery dates:", error);
       return "N/A";
     }
   }, [itemsToCheckout]);
@@ -114,10 +122,10 @@ const CartPage = () => {
   useEffect(() => {
     if (userProfile) {
       setDeliveryAddress(
-        userProfile.deliveryAddress || "No delivery address set"
+        userProfile.deliveryAddress || "No delivery address set",
       );
       setPickupAddressDisplay(
-        userProfile.pickupAddress || "No preferred pickup set"
+        userProfile.pickupAddress || "No preferred pickup set",
       );
     } else if (profileError) {
       console.error("Failed to load user profile:", profileError);
@@ -129,17 +137,17 @@ const CartPage = () => {
   useEffect(() => {
     if (
       !isLoadingProfile &&
+      !isLoadingCart &&
       (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
     ) {
       const timer = setTimeout(() => {
         if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
-          // console.log("No items to checkout, redirecting...");
           navigate("/");
         }
       }, 500); // Increased timeout slightly
       return () => clearTimeout(timer);
     }
-  }, [itemsToCheckout, isLoadingProfile, navigate]);
+  }, [itemsToCheckout, isLoadingProfile, isLoadingCart, navigate]);
 
   // --- 5. Fix Voucher Logic (Client-side visual only, don't send to backend) ---
   // We calculate this for display, but payload sends strict total.
@@ -237,6 +245,7 @@ const CartPage = () => {
 
   if (
     !isLoadingProfile &&
+    !isLoadingCart &&
     (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
   ) {
     return (
@@ -278,56 +287,19 @@ const CartPage = () => {
             Items ({itemCount})
           </h3>
           <div className="space-y-3">
-            {/* {itemsToCheckout.map((item) => (
-              <div key={item.id} className="flex items-center space-x-3">
-                <div className="flex flex-col gap-2 items-start">
-                  {/* <p className="text-sm text-gray-500">{item.username}</p>  
-
-                  <p className="text-sm text-gray-500">{item.product?.shop?.name || item.username || 'Vendor'}</p>
-                  <img
-                    src={item.product?.image_url || item.product?.media_url || '/placeholder-image.png'}
-                    alt={item.product?.name || 'Product'}
-                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder-image.png";
-                    }}
-                  />
-                </div>
-                <div className="flex-1">
-                  {/* <p className="font-medium text-gray-800">
-                    {item.productName}
-                  </p> 
-                  <p className="font-medium text-gray-800">
-                    {item.product?.name || 'Product'}
-                  </p>
-                  {/* <p className="text-sm font-semibold text-pink">
-                    N{formatPrice(item.price * item.quantity)}
-                  </p> 
-
-                  <p className="text-sm font-semibold text-pink">
-                    N{formatPrice((item.product?.price || item.price) * item.quantity)}
-                  </p>
-                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                  {item.color && (
-                    <p className="text-sm text-gray-500">Color: {item.color}</p>
-                  )}
-                  {item.size && (
-                    <p className="text-xs text-gray-500">Size: {item.size}</p>
-                  )}
-                </div>
-               </div> 
-             ))}  */}
-
-             {itemsToCheckout.map((item) => (
+            {itemsToCheckout.map((item) => (
               <div key={item.id} className="flex items-center space-x-3">
                 <div className="flex flex-col gap-2 items-start">
                   <p className="text-sm text-gray-500">
-                    {item.product?.shop?.name || item.username || 'Vendor'}
+                    {item.product?.shop?.name || item.username || "Vendor"}
                   </p>
                   <img
-                    src={item.product?.image_url || item.product?.media_url || '/placeholder-image.png'}
-                    alt={item.product?.name || 'Product'}
+                    src={
+                      item.product?.image_url ||
+                      item.product?.media_url ||
+                      "/placeholder-image.png"
+                    }
+                    alt={item.product?.name || "Product"}
                     className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                     onError={(e) => {
                       e.target.onerror = null;
@@ -337,10 +309,13 @@ const CartPage = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-800">
-                    {item.product?.name || 'Product'}
+                    {item.product?.name || "Product"}
                   </p>
                   <p className="text-sm font-semibold text-pink">
-                    N{formatPrice((item.product?.price || item.price || 0) * item.quantity)}
+                    N
+                    {formatPrice(
+                      (item.product?.price || item.price || 0) * item.quantity,
+                    )}
                   </p>
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   {item.color && (

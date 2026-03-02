@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import { fetchProfile } from "./redux/profileSlice";
+import { fetchCart } from "./redux/cartSlice";
 
 import FeedLayout from "./layouts/feedLayouts";
 import ScrollToTop from "./components/common/scrollToTop";
@@ -119,6 +120,7 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchProfile());
+    dispatch(fetchCart());
   }, [dispatch]);
 
   return (

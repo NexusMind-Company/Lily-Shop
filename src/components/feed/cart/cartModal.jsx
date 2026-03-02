@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +7,7 @@ import {
   selectCart,
   updateCartItem,
   removeFromCart,
+  fetchCart,
 } from "../../../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -24,6 +24,12 @@ const CartModal = ({ isOpen, onClose }) => {
 
   const areAllSelected =
     cartItems.length > 0 && selectedItems.size === cartItems.length;
+
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(fetchCart());
+    }
+  }, [isOpen, dispatch]);
 
   useEffect(() => {
     setSelectedItems((prevSelected) => {
@@ -163,24 +169,22 @@ const CartModal = ({ isOpen, onClose }) => {
     return "/feed-image.png";
   };
 
-  const modalContent = (
+  return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          key="cart-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
+          className="fixed inset-0 z-50 bg-black/50 flex justify-center items-end"
           onClick={onClose}
         >
           <motion.div
-            key="cart-panel"
-            initial={{ y: "100%", x: 0 }}
-            animate={{ y: 0, x: 0 }}
-            exit={{ y: "100%", x: 0 }}
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "100%" }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:mb-0 md:h-[90vh] cursor-default relative overflow-hidden pointer-events-auto"
+            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
@@ -188,11 +192,8 @@ const CartModal = ({ isOpen, onClose }) => {
                 Cart ({cartItemCount})
               </h2>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800 z-10 p-2"
+                onClick={onClose}
+                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800"
               >
                 <X size={24} />
               </button>
@@ -205,7 +206,7 @@ const CartModal = ({ isOpen, onClose }) => {
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full cursor-pointer"
+                  className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full"
                   checked={areAllSelected}
                   onChange={handleToggleAll}
                   disabled={cartItems.length === 0}
@@ -216,7 +217,7 @@ const CartModal = ({ isOpen, onClose }) => {
               </label>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {cartItems.length === 0 ? (
                 <p className="text-center text-gray-500 mt-8">
                   Your cart is empty.
@@ -316,7 +317,7 @@ const CartModal = ({ isOpen, onClose }) => {
                       <div className="flex flex-col items-center justify-between h-35">
                         <input
                           type="checkbox"
-                          className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full flex-shrink-0 cursor-pointer"
+                          className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full flex-shrink-0"
                           checked={selectedItems.has(item.id)}
                           onChange={() => handleToggleItem(item.id)}
                           disabled={isUpdating}
@@ -325,7 +326,7 @@ const CartModal = ({ isOpen, onClose }) => {
                         <button
                           onClick={() => handleRemoveItem(item.id)}
                           disabled={isUpdating}
-                          className="text-gray-900 hover:text-red-700 p-1 disabled:opacity-50 cursor-pointer"
+                          className="text-gray-900 hover:text-red-700 p-1 disabled:opacity-50"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -349,7 +350,7 @@ const CartModal = ({ isOpen, onClose }) => {
                 <button
                   onClick={handleCheckoutClick}
                   disabled={selectedItems.size === 0}
-                  className="w-[60%] bg-lily text-white py-3 rounded-full text-xl font-semibold hover:bg-darklily transition-colors disabled:bg-ash disabled:cursor-not-allowed cursor-pointer"
+                  className="w-[60%] bg-lily text-white py-3 rounded-full text-xl font-semibold hover:bg-darklily transition-colors disabled:bg-ash disabled:cursor-not-allowed"
                 >
                   Checkout ({selectedItems.size})
                 </button>
@@ -360,10 +361,6 @@ const CartModal = ({ isOpen, onClose }) => {
       )}
     </AnimatePresence>
   );
-
-  // Use createPortal to mount the modal directly into the document body
-  if (typeof document === "undefined") return null;
-  return createPortal(modalContent, document.body);
 };
 
 export default CartModal;
