@@ -104,6 +104,8 @@ import PaymentSuccessPage from "./pages/paymentsSucessPage";
 import About from "./components/about/About";
 import LilyChat from "./components/ai/lilyChat";
 import CreatePost from "./components/content/CreatePost";
+import AddAddressPage from "./pages/AddAddressPage";
+import AddCardPage from "./pages/AddCardPage";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -158,6 +160,8 @@ function App() {
             {/* Cart & Checkout */}
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="add-address" element={<AddAddressPage />} />
+            <Route path="add-card" element={<AddCardPage />} />
 
             {/* Shop Routes */}
             <Route path="/create-shop" element={<CreateShop />} />
