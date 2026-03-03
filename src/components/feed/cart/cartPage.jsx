@@ -31,18 +31,44 @@ const CartPage = () => {
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
 
-  const [selectedItemIds, setSelectedItemIds] = useState(() => {
-    const locStateIds = location.state?.selectedItemIds;
-    if (locStateIds) {
-      sessionStorage.setItem("checkout_ids", JSON.stringify(locStateIds));
-      return locStateIds;
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
+
+  // Intelligently determine if we are checking out a direct item (Buy Now) or cart items
+  const [checkoutMode, setCheckoutMode] = useState(() => {
+    if (location.state?.directItem) {
+      sessionStorage.setItem(
+        "direct_item",
+        JSON.stringify(location.state.directItem),
+      );
+      sessionStorage.removeItem("checkout_ids");
+      return { type: "direct", data: location.state.directItem };
     }
+
+    if (location.state?.selectedItemIds) {
+      sessionStorage.setItem(
+        "checkout_ids",
+        JSON.stringify(location.state.selectedItemIds),
+      );
+      sessionStorage.removeItem("direct_item");
+      return { type: "cart", data: location.state.selectedItemIds };
+    }
+
     try {
-      return JSON.parse(sessionStorage.getItem("checkout_ids")) || [];
-    } catch {
-      return [];
-    }
+      const storedDirect = sessionStorage.getItem("direct_item");
+      if (storedDirect)
+        return { type: "direct", data: JSON.parse(storedDirect) };
+    } catch (e) {}
+
+    try {
+      const storedCart = sessionStorage.getItem("checkout_ids");
+      if (storedCart)
+        return { type: "cart", data: JSON.parse(storedCart) || [] };
+    } catch (e) {}
+
+    return { type: "cart", data: [] };
   });
+
+  const isDirectCheckout = checkoutMode.type === "direct";
 
   const { creating: isCreatingOrder, createError } = useSelector(
     (state) => state.orders,
@@ -58,16 +84,28 @@ const CartPage = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchCart());
-  }, [dispatch]);
+    if (!isDirectCheckout) {
+      dispatch(fetchCart())
+        .unwrap()
+        .catch((error) => console.error("Failed to fetch cart:", error))
+        .finally(() => {
+          setInitialFetchDone(true);
+        });
+    } else {
+      setInitialFetchDone(true);
+    }
+  }, [dispatch, isDirectCheckout]);
 
   const itemsToCheckout = useMemo(() => {
-    if (selectedItemIds && Array.isArray(selectedItemIds)) {
+    if (checkoutMode.type === "direct" && checkoutMode.data) {
+      return [checkoutMode.data];
+    }
+    if (checkoutMode.type === "cart" && Array.isArray(checkoutMode.data)) {
       if (!allCartItems) return [];
-      return allCartItems.filter((item) => selectedItemIds.includes(item.id));
+      return allCartItems.filter((item) => checkoutMode.data.includes(item.id));
     }
     return [];
-  }, [allCartItems, selectedItemIds]);
+  }, [allCartItems, checkoutMode]);
 
   const totalDeliveryCharge = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
@@ -149,7 +187,9 @@ const CartPage = () => {
 
   useEffect(() => {
     if (
+      initialFetchDone &&
       !isLoadingProfile &&
+      !isDirectCheckout &&
       !isLoadingCart &&
       (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
     ) {
@@ -160,7 +200,14 @@ const CartPage = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [itemsToCheckout, isLoadingProfile, isLoadingCart, navigate]);
+  }, [
+    itemsToCheckout,
+    isLoadingProfile,
+    isLoadingCart,
+    initialFetchDone,
+    isDirectCheckout,
+    navigate,
+  ]);
 
   const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
   const backendTotal = subtotal + totalDeliveryCharge;
@@ -203,7 +250,7 @@ const CartPage = () => {
     }
 
     const orderItems = itemsToCheckout.map((item) => ({
-      product_id: item.id,
+      product_id: item.product?.id || item.product_id || item.id,
       quantity: item.quantity,
     }));
 
@@ -244,7 +291,11 @@ const CartPage = () => {
     }
   };
 
-  if (isLoadingProfile) {
+  if (
+    isLoadingProfile ||
+    !initialFetchDone ||
+    (!isDirectCheckout && isLoadingCart && !initialFetchDone)
+  ) {
     return (
       <div className="flex flex-col items-center justify-center h-screen max-w-xl mx-auto bg-white">
         <Loader2 size={32} className="text-lily animate-spin" />
@@ -254,7 +305,9 @@ const CartPage = () => {
   }
 
   if (
+    initialFetchDone &&
     !isLoadingProfile &&
+    !isDirectCheckout &&
     !isLoadingCart &&
     (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
   ) {
@@ -608,7 +661,7 @@ const CartPage = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
+      <div className="fixed bottom-0 left-0 md:left-64 right-0 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <span className="font-medium text-sm text-gray-900">

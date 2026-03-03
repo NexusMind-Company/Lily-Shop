@@ -29,22 +29,18 @@ import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
-// Utility to format large numbers (e.g., 1500 -> 1.5k)
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
-// --- Sub-component: Video Player for Carousel ---
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Sync React state with HTML video element mute property
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
   }, [isMuted]);
 
-  // Track play/pause state for UI overlay rendering
   useEffect(() => {
     const videoNode = videoRef.current;
     if (!videoNode) return;
@@ -61,7 +57,7 @@ const CarouselVideoPlayer = ({ src, poster }) => {
   }, []);
 
   const handlePlayPause = (e) => {
-    e.stopPropagation(); // Prevent swiper from triggering a slide change
+    e.stopPropagation();
     if (videoRef.current?.paused) videoRef.current?.play();
     else videoRef.current?.pause();
   };
@@ -101,21 +97,17 @@ const CarouselVideoPlayer = ({ src, poster }) => {
   );
 };
 
-// --- Main Component: Product Details Item ---
 const ProductItem = ({ product }) => {
-  // Variant selections
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
 
-  // UI interaction states
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
 
-  // Social & Engagement states (initialized from product props)
   const [isLiked, setIsLiked] = useState(
     product.is_liked === true ||
       product.is_liked === "true" ||
@@ -130,19 +122,15 @@ const ProductItem = ({ product }) => {
     Number(product.visit_count || product.view_count || product.views || 0),
   );
 
-  // Hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-  // --- Data Normalization ---
-  // Handle varying backend media structures (string vs array)
   const rawMedia =
     product.all_media_urls?.length > 0
       ? product.all_media_urls
       : product.media || product.media_url || product.image_url;
 
-  // Format media into a consistent array of objects with type checking
   const mediaArray = Array.isArray(rawMedia)
     ? rawMedia.map((item) => ({
         src: typeof item === "string" ? item : item.src || item,
@@ -164,9 +152,8 @@ const ProductItem = ({ product }) => {
         ]
       : [];
 
-  const displayPrice = product.price_in_naira || product.price || 0;
+  const displayPrice = Number(product.price_in_naira || product.price || 0);
 
-  // Dynamic API Data Mapping
   const vendorDescription =
     product.shop_description ||
     product.vendorDetail ||
@@ -175,8 +162,6 @@ const ProductItem = ({ product }) => {
   const productRating = product.rating || product.avg_rating || "0.0";
   const productReviewsCount = product.reviews || product.comment_count || "0";
 
-  // --- Side Effects ---
-  // Record a "view" only after the user has been on the page for 2 seconds
   useEffect(() => {
     let timer;
     if (!hasViewed && product?.id) {
@@ -186,7 +171,6 @@ const ProductItem = ({ product }) => {
 
         recordProductView(product.id).catch((err) => {
           console.log(err);
-          // Rollback view count on failure
           setViewCount((prev) => Math.max(0, prev - 1));
           setHasViewed(false);
         });
@@ -195,14 +179,13 @@ const ProductItem = ({ product }) => {
     return () => clearTimeout(timer);
   }, [product?.id, hasViewed]);
 
-  // --- API Mutations ---
   const { mutate: toggleLike } = useMutation({
     mutationFn: () => likeProduct(product.id),
     onMutate: () => {
       if (!isAuthenticated) return;
-      setIsLiked((prev) => !prev); // Optimistic UI update
+      setIsLiked((prev) => !prev);
     },
-    onError: () => setIsLiked((prev) => !prev), // Revert on error
+    onError: () => setIsLiked((prev) => !prev),
   });
 
   const { mutate: toggleFollow } = useMutation({
@@ -212,12 +195,11 @@ const ProductItem = ({ product }) => {
       ),
     onMutate: () => {
       if (!isAuthenticated) return;
-      setIsFollowed((prev) => !prev); // Optimistic UI update
+      setIsFollowed((prev) => !prev);
     },
-    onError: () => setIsFollowed((prev) => !prev), // Revert on error
+    onError: () => setIsFollowed((prev) => !prev),
   });
 
-  // --- Handlers ---
   const handleLike = () => {
     if (!isAuthenticated) return navigate("/login");
     toggleLike();
@@ -250,11 +232,33 @@ const ProductItem = ({ product }) => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) return navigate("/login");
+
     navigate("/checkout", {
       state: {
-        directBuy: true,
-        product: product,
-        quantity: quantity,
+        directItem: {
+          id: product.id,
+          product: product,
+          quantity: quantity,
+          subtotal_naira: displayPrice * quantity,
+          current_price_kobo: displayPrice * 100,
+          productName:
+            product.productName ||
+            product.title ||
+            product.name ||
+            "Untitled Product",
+          mediaSrc: mediaArray.length > 0 ? mediaArray[0].src : null,
+          username:
+            product.shop?.name ||
+            product.shop_name ||
+            product.username ||
+            product.user ||
+            "Unknown Vendor",
+          deliveryCharge: Number(
+            product.delivery_charge || product.deliveryCharge || 0,
+          ),
+          color: selectedColor,
+          size: selectedSize,
+        },
       },
     });
   };
@@ -265,14 +269,12 @@ const ProductItem = ({ product }) => {
 
   const formatPrice = (price) => Number(price).toLocaleString();
 
-  // Review pagination/display logic
   const reviewsArray = product.reviewsData || [];
   const reviewsToShow = showAllReviews
     ? reviewsArray
     : reviewsArray.slice(0, 3);
   const hasMoreReviews = reviewsArray.length > 3;
 
-  // Vendor profile mapping
   const displayUsername =
     product.shop_name || product.username || product.user || "Unknown Vendor";
   const profileLink = product.shop
@@ -281,7 +283,6 @@ const ProductItem = ({ product }) => {
 
   return (
     <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-35 flex flex-col">
-      {/* --- Edge-to-Edge Media Carousel --- */}
       <div className="w-full aspect-4/5 relative group bg-gray-100 overflow-hidden shrink-0">
         {mediaArray.length > 0 ? (
           <Swiper
@@ -319,7 +320,6 @@ const ProductItem = ({ product }) => {
           </div>
         )}
 
-        {/* Carousel Navigation Arrows */}
         {mediaArray.length > 1 && (
           <>
             <div className="swiper-button-prev absolute top-1/2 left-2 z-10 md:-translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
@@ -331,7 +331,6 @@ const ProductItem = ({ product }) => {
           </>
         )}
 
-        {/* Floating Top Actions */}
         <button
           onClick={() => navigate(-1)}
           className="bg-white/80 absolute top-4 left-4 z-20 rounded-full p-1.5 cursor-pointer text-black hover:bg-white shadow-sm"
@@ -344,9 +343,7 @@ const ProductItem = ({ product }) => {
         </button>
       </div>
 
-      {/* --- Padded Content Section --- */}
       <div className="p-4 space-y-4 grow">
-        {/* Title, Rating, and Price Header */}
         <div>
           <div className="flex justify-between items-start pt-2">
             <h2 className="font-bold text-lg text-gray-800 leading-tight w-3/4">
@@ -376,7 +373,6 @@ const ProductItem = ({ product }) => {
           </div>
         </div>
 
-        {/* Description (Expandable) */}
         {product.caption && (
           <motion.p
             layout
@@ -396,7 +392,6 @@ const ProductItem = ({ product }) => {
           </motion.p>
         )}
 
-        {/* Logistics Information */}
         <div className="space-y-1 pt-1">
           {product.estDelivery && (
             <p className="text-sm text-gray-800">
@@ -413,7 +408,6 @@ const ProductItem = ({ product }) => {
           )}
         </div>
 
-        {/* --- Variant Selectors (Quantity, Color, Size) --- */}
         <div className="flex items-center gap-4 py-1">
           <span className="font-semibold text-gray-800 text-sm w-16">
             Quantity
@@ -481,7 +475,6 @@ const ProductItem = ({ product }) => {
           </div>
         )}
 
-        {/* --- Reviews Section --- */}
         <div className="space-y-4 pt-6">
           <div className="flex justify-between items-center w-full">
             <h2 className="font-bold text-md text-gray-900">
@@ -508,7 +501,6 @@ const ProductItem = ({ product }) => {
           )}
         </div>
 
-        {/* --- Vendor Details Section --- */}
         <div className="pt-6 pb-15 border-t border-gray-200 space-y-3">
           <h3 className="font-bold text-md text-gray-900">Vendor details</h3>
           <div className="flex items-center space-x-3 mt-1">
@@ -568,7 +560,6 @@ const ProductItem = ({ product }) => {
         </div>
       </div>
 
-      {/* --- Fixed Bottom Call-To-Action Actions --- */}
       <div className="fixed bottom-0 w-full md:max-w-xl z-30 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div className="p-4 w-full">
           <div className="flex gap-3">
