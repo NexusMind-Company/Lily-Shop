@@ -280,8 +280,15 @@ export const addProductComment = async (
 ) => {
   const payload = {
     comment_text: commentText,
-    parent: parentId,
+    text: commentText,
+    content: commentText,
+    product: productId,
   };
+
+  // Conditionally add parent to avoid backend silent failures with null
+  if (parentId) {
+    payload.parent = parentId;
+  }
 
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
@@ -307,12 +314,21 @@ export const addContentComment = async (
   commentText,
   parentId = null,
 ) => {
+  const payload = {
+    comment_text: commentText,
+    text: commentText,
+    content: commentText,
+    content_id: contentId,
+  };
+
+  // Conditionally add parent to avoid backend silent failures with null
+  if (parentId) {
+    payload.parent = parentId;
+  }
+
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    {
-      comment_text: commentText,
-      parent: parentId,
-    },
+    payload,
   );
   return response.data;
 };
@@ -331,6 +347,22 @@ export const likeProduct = async (productId) => {
 
 export const likeContent = async (contentId) => {
   const response = await api.post(`/shops/contents/${contentId}/like/`, {});
+  return response.data;
+};
+
+export const likeProductComment = async (commentId) => {
+  const response = await api.post(
+    `/shops/product-comments/${commentId}/like/`,
+    {},
+  );
+  return response.data;
+};
+
+export const likeContentComment = async (commentId) => {
+  const response = await api.post(
+    `/shops/content-comments/${commentId}/like/`,
+    {},
+  );
   return response.data;
 };
 

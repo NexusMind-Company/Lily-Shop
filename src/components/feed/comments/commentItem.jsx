@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Heart } from "lucide-react";
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
-  const parts = fullName.split(" ").filter(Boolean);
+  const parts = String(fullName).split(" ").filter(Boolean);
   if (parts.length === 0) return "";
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -60,28 +60,56 @@ const VerifiedCartIcon = () => (
   </svg>
 );
 
-const CommentItem = ({ comment, onReply, isReply = false }) => {
+const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
   const [showReplies, setShowReplies] = useState(false);
 
+  if (!comment) return null;
+
   const userName =
-    comment.user || comment.user_name || comment.username || "User";
+    comment.user_name ||
+    comment.username ||
+    comment.author?.username ||
+    comment.author?.name ||
+    comment.user?.username ||
+    comment.user?.name ||
+    (typeof comment.user === "string" && comment.user.length < 30
+      ? comment.user
+      : null) ||
+    "User";
+
   const initials = getInitials(userName);
-  const hasReplies = comment.replies && comment.replies.length > 0;
+
+  const hasHydratedReplies =
+    Array.isArray(comment.replies) && comment.replies.length > 0;
 
   const commentBody =
+    comment.comment_text ||
     comment.text ||
     comment.comment ||
-    comment.comment_text ||
     comment.content ||
     "";
 
   const displayTime =
     comment.timeAgo ||
-    formatShortDate(comment.created_at || comment.date || comment.timestamp);
+    formatShortDate(
+      comment.created_at ||
+        comment.updated_at ||
+        comment.date ||
+        comment.timestamp,
+    );
 
   const handleReplyClick = (e) => {
     e.stopPropagation();
-    onReply({ user: userName, id: comment.id });
+    if (onReply) {
+      onReply({ user: userName, id: comment.id });
+    }
+  };
+
+  const handleLikeClick = (e) => {
+    e.stopPropagation();
+    if (onLike) {
+      onLike(comment.id);
+    }
   };
 
   return (
@@ -124,7 +152,10 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
             Reply
           </button>
 
-          <div className="ml-auto flex items-center space-x-1.5 cursor-pointer pr-2">
+          <div
+            className="ml-auto flex items-center space-x-1.5 cursor-pointer pr-2 hover:opacity-80 transition-opacity"
+            onClick={handleLikeClick}
+          >
             {comment.is_liked ? (
               <Heart
                 size={16}
@@ -136,14 +167,18 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
               <Heart size={16} color="#6b7280" />
             )}
             <span
-              className={`text-[13px] ${comment.is_liked ? "text-pink-500 font-semibold" : "text-gray-500"}`}
+              className={`text-[13px] ${
+                comment.is_liked
+                  ? "text-pink-500 font-semibold"
+                  : "text-gray-500"
+              }`}
             >
-              {comment.likes || comment.like_count || 0}
+              {comment.like_count || comment.likes || 0}
             </span>
           </div>
         </div>
 
-        {hasReplies && (
+        {hasHydratedReplies && (
           <div className="mt-3">
             <button
               onClick={() => setShowReplies(!showReplies)}
@@ -172,6 +207,7 @@ const CommentItem = ({ comment, onReply, isReply = false }) => {
                     }
                     comment={reply}
                     onReply={onReply}
+                    onLike={onLike}
                     isReply={true}
                   />
                 ))}
