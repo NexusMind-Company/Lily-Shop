@@ -399,7 +399,7 @@ const CartPage = () => {
               </div>
               <button
                 onClick={() =>
-                  navigate("/add-address", {
+                  navigate("/choose-address", {
                     state: { from: location.pathname },
                   })
                 }
@@ -481,7 +481,14 @@ const CartPage = () => {
                   <Plus size={16} className="mr-1" /> Add new card
                 </button>
               </div>
-              <button className="text-gray-400 mt-2">
+              <button
+                onClick={() =>
+                  navigate("/choose-card", {
+                    state: { from: location.pathname },
+                  })
+                }
+                className="text-gray-400 mt-2"
+              >
                 <ChevronRight size={20} />
               </button>
             </div>

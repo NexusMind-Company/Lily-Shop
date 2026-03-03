@@ -106,6 +106,8 @@ import LilyChat from "./components/ai/lilyChat";
 import CreatePost from "./components/content/CreatePost";
 import AddAddressPage from "./pages/AddAddressPage";
 import AddCardPage from "./pages/AddCardPage";
+import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
+import ChooseCardPage from "./pages/ChooseCardPage";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -162,6 +164,8 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="add-address" element={<AddAddressPage />} />
             <Route path="add-card" element={<AddCardPage />} />
+            <Route path="choose-pickup" element={<ChoosePickupAddressPage />} />
+            <Route path="choose-card" element={<ChooseCardPage />} />
 
             {/* Shop Routes */}
             <Route path="/create-shop" element={<CreateShop />} />
