@@ -31,7 +31,6 @@ const CartPage = () => {
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
 
-  // --- 1. Fix State Persistence (Handle Refresh) ---
   const [selectedItemIds, setSelectedItemIds] = useState(() => {
     const locStateIds = location.state?.selectedItemIds;
     if (locStateIds) {
@@ -85,11 +84,14 @@ const CartPage = () => {
 
   const subtotal = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
-    return itemsToCheckout.reduce(
-      (total, item) =>
-        total + (item.price || item.product?.price || 0) * item.quantity,
-      0,
-    );
+    return itemsToCheckout.reduce((total, item) => {
+      const itemSubtotal =
+        Number(item.subtotal_naira) ||
+        ((Number(item.current_price_kobo) || 0) / 100) * item.quantity ||
+        (Number(item.product?.price_in_naira) || 0) * item.quantity ||
+        0;
+      return total + itemSubtotal;
+    }, 0);
   }, [itemsToCheckout]);
 
   const estimatedDeliveryTime = useMemo(() => {
@@ -274,7 +276,6 @@ const CartPage = () => {
     );
   }
 
-  // Safely extract user properties with fallbacks
   const userFullName =
     userProfile?.first_name && userProfile?.last_name
       ? `${userProfile.first_name} ${userProfile.last_name}`
@@ -283,13 +284,11 @@ const CartPage = () => {
   const userPhone =
     userProfile?.phone_number || userProfile?.phone || "No phone provided";
 
-  // Checking for saved cards (assuming standard Paystack array format or single object)
   const savedCard = userProfile?.cards?.[0] || userProfile?.card;
   const walletBalance = userProfile?.wallet_balance || 0;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50">
-      {/* Header */}
       <div className="relative p-4 border-b border-gray-100 bg-white flex items-center justify-center shrink-0">
         <button
           onClick={() => navigate(-1)}
@@ -300,9 +299,7 @@ const CartPage = () => {
         <h2 className="font-semibold text-lg text-gray-900">Confirm Order</h2>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto pb-24">
-        {/* Items Section */}
         <div className="bg-white p-4 mb-2 border-b border-gray-100">
           <div className="space-y-6">
             {itemsToCheckout.map((item) => (
@@ -332,8 +329,12 @@ const CartPage = () => {
                     <p className="text-sm font-semibold text-pink">
                       ₦
                       {formatPrice(
-                        (item.price || item.product?.price || 0) *
-                          item.quantity,
+                        Number(item.subtotal_naira) ||
+                          ((Number(item.current_price_kobo) || 0) / 100) *
+                            item.quantity ||
+                          (Number(item.product?.price_in_naira) || 0) *
+                            item.quantity ||
+                          0,
                       )}
                     </p>
                     <p className="text-sm text-gray-600">
@@ -357,14 +358,12 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Delivery Address Section */}
         <div className="bg-white p-4 mb-2 border-y border-gray-100">
           <h3 className="font-semibold text-md text-gray-900 mb-4">
             Delivery address
           </h3>
 
           <div className="space-y-5">
-            {/* Default Address Option */}
             <div className="flex items-start">
               <button
                 onClick={() => setDeliveryType("delivery")}
@@ -410,7 +409,6 @@ const CartPage = () => {
               </button>
             </div>
 
-            {/* Pickup Option */}
             <div className="flex items-start">
               <button
                 onClick={() => setDeliveryType("pickup")}
@@ -442,13 +440,11 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Payment Method Section */}
         <div className="bg-white p-4 mb-2 border-y border-gray-100">
           <h3 className="font-semibold text-md text-gray-900 mb-4">
             Payment method
           </h3>
           <div className="space-y-5">
-            {/* Card Option */}
             <div className="flex items-start">
               <button
                 onClick={() => setPaymentMethod("card")}
@@ -490,7 +486,6 @@ const CartPage = () => {
               </button>
             </div>
 
-            {/* Bank Transfer Option */}
             <div
               className="flex items-center cursor-pointer"
               onClick={() => setPaymentMethod("bank")}
@@ -507,7 +502,6 @@ const CartPage = () => {
               </span>
             </div>
 
-            {/* Lily Wallet Option */}
             <div
               className="flex items-start cursor-pointer"
               onClick={() => setPaymentMethod("wallet")}
@@ -529,9 +523,7 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Voucher & Order Summary Section */}
         <div className="bg-white p-4 border-y border-gray-100">
-          {/* Voucher */}
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">
               Voucher code
@@ -559,7 +551,6 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Order Summary Details */}
           <h3 className="font-semibold text-md text-gray-900 mb-4">
             Order summary
           </h3>
@@ -582,7 +573,6 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Legal Notes */}
           <div className="space-y-4">
             <div className="flex items-start space-x-2 text-gray-900">
               <ShieldCheck className="w-5 h-5 hrink-0 mt-0.5" />
@@ -611,7 +601,6 @@ const CartPage = () => {
         </div>
       </div>
 
-      {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
