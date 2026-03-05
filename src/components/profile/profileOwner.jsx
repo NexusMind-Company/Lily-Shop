@@ -1,7 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { fetchProducts, fetchLikedProducts, clearAuthTokens } from "../../services/api";
+import {
+  fetchProducts,
+  fetchLikedProducts,
+  clearAuthTokens,
+} from "../../services/api";
 import { fetchContents } from "../../services/shopApi";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
@@ -114,7 +118,7 @@ const ProfileOwner = () => {
   }, [activeTab]);
 
   const { user = {} } = data || {};
-  console.log("Profile User Data:", user);
+  // console.log("Profile User Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -231,15 +235,12 @@ const ProfileOwner = () => {
           <ChevronLeft size={25} />
         </button>
 
-
         <div className="flex gap-4">
           <Link to="/settings">
             <Settings size={25} className="cursor-pointer" />
           </Link>
           <div className="flex justify-end">
-            <button
-              onClick={handleLogoutClick}
-            >
+            <button onClick={handleLogoutClick}>
               <LogOut className="mr-2 cursor-pointer" />
             </button>
           </div>
@@ -272,7 +273,9 @@ const ProfileOwner = () => {
         </div>
 
         <p className="mt-1 text-sm">
-          {user && user.bio ? user.bio : "Add a bio to let people know more about you and your products!"}
+          {user && user.bio
+            ? user.bio
+            : "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
