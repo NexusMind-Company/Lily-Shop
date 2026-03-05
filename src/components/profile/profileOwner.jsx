@@ -1,12 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import {
-  fetchProducts,
-  fetchLikedProducts,
-  clearAuthTokens,
-} from "../../services/api";
-import { fetchContents } from "../../services/shopApi";
+import { api } from "../../services/api";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
@@ -22,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
+import PageSEO from "../common/PageSEO";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -55,70 +51,90 @@ const ProfileOwner = () => {
     }
   }, [auth?.isAuthenticated, data, dispatch]);
 
-  // 1. Fetch User Posts (Tab 0)
+  // 1. Fetch User Posts (Tab 0) with fault tolerance
   useEffect(() => {
     const loadUserPosts = async () => {
-      const userId = data?.user?.id || data?.id;
-      if (userId && activeTab === 0) {
+      if (activeTab === 0) {
         setPostsLoading(true);
+        let allPosts = [];
+
         try {
-          const [productsRes, contentsRes] = await Promise.all([
-            fetchProducts({ user: userId }),
-            fetchContents({ user: userId }),
-          ]);
-
-          const products = Array.isArray(productsRes)
-            ? productsRes
-            : productsRes.results || [];
-
-          const contents = Array.isArray(contentsRes)
-            ? contentsRes
-            : contentsRes.results || [];
-
-          // Merge and sort by newest first
-          const allPosts = [...products, ...contents].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at),
-          );
-
-          setUserPosts(allPosts);
+          const productsRes = await api.get("/shops/products/me/");
+          const products = Array.isArray(productsRes.data)
+            ? productsRes.data
+            : productsRes.data?.results || [];
+          allPosts = [...allPosts, ...products];
         } catch (err) {
-          console.error("Failed to load user posts:", err);
-        } finally {
-          setPostsLoading(false);
+          console.error("Failed to load user products:", err);
         }
+
+        try {
+          const contentsRes = await api.get("/shops/contents/me/");
+          const contents = Array.isArray(contentsRes.data)
+            ? contentsRes.data
+            : contentsRes.data?.results || [];
+          allPosts = [...allPosts, ...contents];
+        } catch (err) {
+          console.error("Failed to load user contents:", err);
+        }
+
+        // Merge and sort by newest first
+        allPosts.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        );
+        setUserPosts(allPosts);
+        setPostsLoading(false);
       }
     };
 
-    if (data) {
+    if (auth?.isAuthenticated) {
       loadUserPosts();
     }
-  }, [data, activeTab]);
+  }, [activeTab, auth?.isAuthenticated]);
 
-  // 2. Fetch Liked Products (Tab 2 - Heart Icon)
+  // 2. Fetch Liked Products & Contents (Tab 2) with fault tolerance
   useEffect(() => {
     const loadLikedPosts = async () => {
       // Only fetch if we are on the Heart tab
       if (activeTab === 2) {
         setLikedLoading(true);
+        let allLiked = [];
+
         try {
-          const response = await fetchLikedProducts();
-          const likedData = Array.isArray(response)
-            ? response
-            : response.results || [];
-          setLikedPosts(likedData);
+          const productsRes = await api.get("/shops/my-liked-products/");
+          const likedProducts = Array.isArray(productsRes.data)
+            ? productsRes.data
+            : productsRes.data?.results || [];
+          allLiked = [...allLiked, ...likedProducts];
         } catch (err) {
-          console.error("Failed to load liked posts:", err);
-        } finally {
-          setLikedLoading(false);
+          console.error("Failed to load liked products:", err);
         }
+
+        try {
+          const contentsRes = await api.get("/shops/my-liked-contents/");
+          const likedContents = Array.isArray(contentsRes.data)
+            ? contentsRes.data
+            : contentsRes.data?.results || [];
+          allLiked = [...allLiked, ...likedContents];
+        } catch (err) {
+          console.error("Failed to load liked contents:", err);
+        }
+
+        // Merge and sort by newest first
+        allLiked.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        );
+        setLikedPosts(allLiked);
+        setLikedLoading(false);
       }
     };
 
-    loadLikedPosts();
-  }, [activeTab]);
+    if (auth?.isAuthenticated) {
+      loadLikedPosts();
+    }
+  }, [activeTab, auth?.isAuthenticated]);
 
   const { user = {} } = data || {};
-  // console.log("Profile User Data:", user);
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -156,7 +172,6 @@ const ProfileOwner = () => {
     );
 
   // --- REUSABLE GRID RENDERER ---
-  // This ensures the Liked Grid looks IDENTICAL to the Posts Grid
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
       return (
@@ -177,8 +192,9 @@ const ProfileOwner = () => {
     return (
       <div className="grid grid-cols-3 gap-3 my-2 px-4">
         {items.map((post, i) => {
+          // APIs return either image_url (products) or media (contents)
           const mediaSrc =
-            post.image || post.media || post.media_url || "/placeholder.png";
+            post.image_url || post.media || post.image || "/placeholder.png";
           const isVideo =
             post.is_video ||
             (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
@@ -186,7 +202,7 @@ const ProfileOwner = () => {
           return (
             <div
               key={i}
-              className="relative rounded-lg overflow-hidden"
+              className="relative rounded-lg overflow-hidden cursor-pointer"
               onClick={() => navigate(`/product-details/${post.id}`)}
             >
               {isVideo ? (
@@ -208,8 +224,9 @@ const ProfileOwner = () => {
                   <Play size={28} className="text-white" />
                 </div>
               )}
-              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs">
-                <Eye size={15} className="mr-1" /> {post.views || 0}
+              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
+                <Eye size={15} className="mr-1" />{" "}
+                {post.views || post.view_count || post.visit_count || 0}
               </div>
             </div>
           );
@@ -226,6 +243,10 @@ const ProfileOwner = () => {
     dispatch(handleLogout()); // clear tokens, user data, profile, etc.
     navigate("/login"); // redirect to login page
   };
+
+  // Determine post count prioritizing actual fetched array length once loaded
+  const displayPostCount =
+    userPosts.length > 0 ? userPosts.length : data.product_count || 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
@@ -260,41 +281,37 @@ const ProfileOwner = () => {
             }}
           />
           <div>
-            <h3 className="font-semibold">
+            <h3 className="font-semibold text-center">
               {user.username || user.email?.split("@")[0] || "Unnamed User"}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <p className="text-gray-500 text-sm">
                 @{user.username || "unknown"}
               </p>
-              <IconLink size={15} className="cursor-pointer" />
+              <IconLink size={15} className="cursor-pointer text-gray-500" />
             </div>
           </div>
         </div>
 
-        <p className="mt-1 text-sm">
+        <p className="mt-2 text-sm text-center">
           {user && user.bio
             ? user.bio
             : "Add a bio to let people know more about you and your products!"}
         </p>
 
         {/* Stats */}
-        <div className="flex flex-col justify-center items-center">
-          <div className="flex gap-5 items-center mb-3 justify-center">
+        <div className="flex flex-col justify-center items-center mt-4">
+          <div className="flex gap-8 items-center mb-4 justify-center">
             <div className="flex flex-col items-center">
-              <span className="font-bold text-2xl">
-                {user.post_count ||
-                  data.post_count ||
-                  data.product_count ||
-                  userPosts.length ||
-                  0}
-              </span>
-              <p>Posts</p>
+              <span className="font-bold text-2xl">{displayPostCount}</span>
+              <p className="text-sm text-gray-600">Posts</p>
             </div>
             <Link to="/followers">
               <div className="flex flex-col items-center">
-                <p className="font-bold text-2xl">{user.follower_count || 0}</p>
-                <p>Followers</p>
+                <p className="font-bold text-2xl">
+                  {user.followers_count || 0}
+                </p>
+                <p className="text-sm text-gray-600">Followers</p>
               </div>
             </Link>
             <Link to="/following">
@@ -302,21 +319,21 @@ const ProfileOwner = () => {
                 <span className="font-bold text-2xl">
                   {user.following_count || 0}
                 </span>
-                <p>Following</p>
+                <p className="text-sm text-gray-600">Following</p>
               </div>
             </Link>
           </div>
-          <div className="flex flex-col items-center md:flex-row gap-2">
+          <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-[250px] mx-auto">
             {/* Show Food Subscription button only for vendors (users with vendor_id) */}
             {user?.vendor_id && (
-              <Link to="/vendor-dashboard">
-                <button className="px-4 py-2 md:mr-4 border-2 border-orange-400 text-orange-400 rounded-4xl font-bold md:text-[16px]">
+              <Link to="/vendor-dashboard" className="w-full">
+                <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
                   Food Subscription
                 </button>
               </Link>
             )}
-            <Link to="/editProfile">
-              <button className="px-4 py-2 border-2 border-lily text-lily rounded-4xl font-bold md:text-[16px]">
+            <Link to="/editProfile" className="w-full">
+              <button className="w-full px-4 py-2 border-2 border-lily text-lily rounded-3xl font-bold md:text-[16px]">
                 Edit Profile
               </button>
             </Link>
@@ -325,35 +342,41 @@ const ProfileOwner = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex my-5 w-full justify-evenly">
+      <div className="flex my-3 w-full justify-evenly">
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 0 ? "border-lily text-lily" : "border-transparent"
+          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+            activeTab === 0
+              ? "border-lily text-lily"
+              : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(0)}
         >
-          <Grid size={30} />
+          <Grid size={26} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 1 ? "border-lily text-lily" : "border-transparent"
+          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+            activeTab === 1
+              ? "border-lily text-lily"
+              : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(1)}
         >
-          <Megaphone size={30} />
+          <Megaphone size={26} />
         </button>
         <button
-          className={`w-[20%] flex justify-center border-b-[2px] py-1.5 ${
-            activeTab === 2 ? "border-lily text-lily" : "border-transparent"
+          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+            activeTab === 2
+              ? "border-lily text-lily"
+              : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(2)}
         >
-          <Heart size={30} />
+          <Heart size={26} />
         </button>
       </div>
 
       {/* Tab Content */}
-      <div>
+      <div className="w-full">
         {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
         {activeTab === 1 && <AnnouncementsGrid />}
         {activeTab === 2 &&
