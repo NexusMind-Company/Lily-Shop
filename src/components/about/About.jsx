@@ -261,6 +261,7 @@ This protects users while keeping things simple and fair for vendors.`,
         {aboutContent.sections.map((section, index) => (
           <div
             key={index}
+            id={section.title}
             className="shadow border cursor-pointer rounded-2xl bg-white shrink-0"
           >
             <button
@@ -301,7 +302,9 @@ This protects users while keeping things simple and fair for vendors.`,
           </p>
           <div className="flex items-center gap-2 text-blue-600 text-sm">
             <span>📧</span>
-            <span> info.lilyshops@gmail.com</span>
+            <a href="mailto:info.lilyshops@gmail.com">
+              info.lilyshops@gmail.com
+            </a>
           </div>
         </div>
       </div>
