@@ -69,26 +69,36 @@ const ProfileOwner = () => {
 
           allPosts = [
             ...allPosts,
-            ...products.map((p) => ({
-              ...p,
-              itemType: "product",
-              type: "product",
-              username:
-                p.shop?.shop_name ||
-                p.user?.username ||
-                p.username ||
-                user.username ||
-                "Unknown",
-              userpic:
-                p.shop?.logo ||
-                p.user?.profile_pic ||
-                p.userpic ||
-                user.profile_pic ||
-                "/profile-icon.svg",
-              user_id: p.shop?.vendor_id || p.user?.id || p.user_id || user.id,
-              like_count: p.likes_count ?? p.like_count ?? p.likes ?? 0,
-              view_count: p.views ?? p.view_count ?? p.visit_count ?? 0,
-            })),
+            ...products.map((p) => {
+              const item = p.product || p;
+              return {
+                ...item,
+                itemType: "product",
+                type: "product",
+                username:
+                  item.shop?.shop_name ||
+                  item.user?.username ||
+                  item.username ||
+                  user.username ||
+                  "Unknown",
+                userpic:
+                  item.shop?.logo ||
+                  item.user?.profile_pic ||
+                  item.userpic ||
+                  user.profile_pic ||
+                  "/profile-icon.svg",
+                user_id:
+                  item.shop?.vendor_id ||
+                  item.user?.id ||
+                  item.user_id ||
+                  user.id,
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count:
+                  item.comments_count ?? item.comment_count ?? item.comments,
+                is_liked: item.is_liked ?? item.has_liked,
+              };
+            }),
           ];
         } catch (err) {
           console.error("Failed to load user products:", err);
@@ -102,26 +112,36 @@ const ProfileOwner = () => {
 
           allPosts = [
             ...allPosts,
-            ...contents.map((c) => ({
-              ...c,
-              itemType: "content",
-              type: "content",
-              username:
-                c.shop?.shop_name ||
-                c.user?.username ||
-                c.username ||
-                user.username ||
-                "Unknown",
-              userpic:
-                c.shop?.logo ||
-                c.user?.profile_pic ||
-                c.userpic ||
-                user.profile_pic ||
-                "/profile-icon.svg",
-              user_id: c.shop?.vendor_id || c.user?.id || c.user_id || user.id,
-              like_count: c.likes_count ?? c.like_count ?? c.likes ?? 0,
-              view_count: c.views ?? c.view_count ?? c.visit_count ?? 0,
-            })),
+            ...contents.map((c) => {
+              const item = c.content || c;
+              return {
+                ...item,
+                itemType: "content",
+                type: "content",
+                username:
+                  item.shop?.shop_name ||
+                  item.user?.username ||
+                  item.username ||
+                  user.username ||
+                  "Unknown",
+                userpic:
+                  item.shop?.logo ||
+                  item.user?.profile_pic ||
+                  item.userpic ||
+                  user.profile_pic ||
+                  "/profile-icon.svg",
+                user_id:
+                  item.shop?.vendor_id ||
+                  item.user?.id ||
+                  item.user_id ||
+                  user.id,
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count:
+                  item.comments_count ?? item.comment_count ?? item.comments,
+                is_liked: item.is_liked ?? item.has_liked,
+              };
+            }),
           ];
         } catch (err) {
           console.error("Failed to load user contents:", err);
@@ -160,24 +180,30 @@ const ProfileOwner = () => {
 
           allLiked = [
             ...allLiked,
-            ...likedProducts.map((p) => ({
-              ...p,
-              itemType: "product",
-              type: "product",
-              username:
-                p.shop?.shop_name ||
-                p.user?.username ||
-                p.username ||
-                "Unknown",
-              userpic:
-                p.shop?.logo ||
-                p.user?.profile_pic ||
-                p.userpic ||
-                "/profile-icon.svg",
-              user_id: p.shop?.vendor_id || p.user?.id || p.user_id,
-              like_count: p.likes_count ?? p.like_count ?? p.likes ?? 0,
-              view_count: p.views ?? p.view_count ?? p.visit_count ?? 0,
-            })),
+            ...likedProducts.map((p) => {
+              const item = p.product || p;
+              return {
+                ...item,
+                itemType: "product",
+                type: "product",
+                username:
+                  item.shop?.shop_name ||
+                  item.user?.username ||
+                  item.username ||
+                  "Unknown",
+                userpic:
+                  item.shop?.logo ||
+                  item.user?.profile_pic ||
+                  item.userpic ||
+                  "/profile-icon.svg",
+                user_id: item.shop?.vendor_id || item.user?.id || item.user_id,
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count:
+                  item.comments_count ?? item.comment_count ?? item.comments,
+                is_liked: true,
+              };
+            }),
           ];
         } catch (err) {
           console.error("Failed to load liked products:", err);
@@ -191,24 +217,30 @@ const ProfileOwner = () => {
 
           allLiked = [
             ...allLiked,
-            ...likedContents.map((c) => ({
-              ...c,
-              itemType: "content",
-              type: "content",
-              username:
-                c.shop?.shop_name ||
-                c.user?.username ||
-                c.username ||
-                "Unknown",
-              userpic:
-                c.shop?.logo ||
-                c.user?.profile_pic ||
-                c.userpic ||
-                "/profile-icon.svg",
-              user_id: c.shop?.vendor_id || c.user?.id || c.user_id,
-              like_count: c.likes_count ?? c.like_count ?? c.likes ?? 0,
-              view_count: c.views ?? c.view_count ?? c.visit_count ?? 0,
-            })),
+            ...likedContents.map((c) => {
+              const item = c.content || c;
+              return {
+                ...item,
+                itemType: "content",
+                type: "content",
+                username:
+                  item.shop?.shop_name ||
+                  item.user?.username ||
+                  item.username ||
+                  "Unknown",
+                userpic:
+                  item.shop?.logo ||
+                  item.user?.profile_pic ||
+                  item.userpic ||
+                  "/profile-icon.svg",
+                user_id: item.shop?.vendor_id || item.user?.id || item.user_id,
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count:
+                  item.comments_count ?? item.comment_count ?? item.comments,
+                is_liked: true,
+              };
+            }),
           ];
         } catch (err) {
           console.error("Failed to load liked contents:", err);

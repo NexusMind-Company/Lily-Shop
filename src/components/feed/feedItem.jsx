@@ -10,6 +10,7 @@ import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
 import {
+  api,
   likeProduct,
   likeContent,
   followUser,
@@ -101,7 +102,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const profileId = post.user_id || post.userId;
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
-  const isOwnPost = user_data?.username === displayUsername;
+  const isOwnPost =
+    isAuthenticated &&
+    user_data &&
+    (String(user_data.id) === String(profileId) ||
+      (user_data.vendor_id &&
+        String(user_data.vendor_id) === String(profileId)));
 
   const isProduct =
     post.type?.toLowerCase() === "product" ||
@@ -111,6 +117,64 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.productName !== undefined;
 
   const hasLinkedProduct = !isProduct && post.product != null;
+
+  useEffect(() => {
+    const isMissingData =
+      post.is_liked === undefined && post.has_liked === undefined;
+
+    if (isMissingData && isAuthenticated && post.id) {
+      const fetchFullDetails = async () => {
+        try {
+          const endpoint = isProduct
+            ? `/shops/products/${post.id}/`
+            : `/shops/contents/${post.id}/`;
+
+          const res = await api.get(endpoint);
+          const fullPost = res.data?.product || res.data?.content || res.data;
+
+          if (fullPost) {
+            setIsLiked(
+              fullPost.is_liked === true || fullPost.has_liked === true,
+            );
+            setLikeCount(
+              Number(
+                fullPost.likes_count ||
+                  fullPost.like_count ||
+                  fullPost.likes ||
+                  0,
+              ),
+            );
+            setCommentCount(
+              Number(
+                fullPost.comments_count ||
+                  fullPost.comment_count ||
+                  fullPost.comments ||
+                  0,
+              ),
+            );
+            setViewCount((prev) =>
+              Math.max(
+                prev,
+                Number(
+                  fullPost.visit_count ||
+                    fullPost.view_count ||
+                    fullPost.views ||
+                    0,
+                ),
+              ),
+            );
+          }
+        } catch (err) {
+          console.error(
+            `[FeedItem] Failed to fetch full details for post ${post.id}:`,
+            err,
+          );
+        }
+      };
+
+      fetchFullDetails();
+    }
+  }, [post.id, isProduct, isAuthenticated, post.is_liked, post.has_liked]);
 
   useEffect(() => {
     if (post.id !== currentPostId) {
