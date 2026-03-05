@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
-import PageSEO from "../common/PageSEO";
+import ProfileFeedViewer from "./profileFeedViewer";
 
 const API_BASE_URL = "https://lily-shop-backend.onrender.com";
 
@@ -28,14 +28,19 @@ const ProfileOwner = () => {
 
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
+  const { user = {} } = data || {};
 
-  // --- STATES FOR POSTS ---
   const [userPosts, setUserPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState([]); // Store liked posts
+  const [likedPosts, setLikedPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
 
-  // stricter authentication check
+  const [feedOverlay, setFeedOverlay] = useState({
+    isOpen: false,
+    items: [],
+    initialIndex: 0,
+  });
+
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!auth?.isAuthenticated || !token) {
@@ -43,7 +48,6 @@ const ProfileOwner = () => {
     }
   }, [auth?.isAuthenticated, navigate]);
 
-  // fetch profile data
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (auth?.isAuthenticated && token && !data) {
@@ -51,7 +55,6 @@ const ProfileOwner = () => {
     }
   }, [auth?.isAuthenticated, data, dispatch]);
 
-  // 1. Fetch User Posts (Tab 0) with fault tolerance
   useEffect(() => {
     const loadUserPosts = async () => {
       if (activeTab === 0) {
@@ -63,7 +66,30 @@ const ProfileOwner = () => {
           const products = Array.isArray(productsRes.data)
             ? productsRes.data
             : productsRes.data?.results || [];
-          allPosts = [...allPosts, ...products];
+
+          allPosts = [
+            ...allPosts,
+            ...products.map((p) => ({
+              ...p,
+              itemType: "product",
+              type: "product",
+              username:
+                p.shop?.shop_name ||
+                p.user?.username ||
+                p.username ||
+                user.username ||
+                "Unknown",
+              userpic:
+                p.shop?.logo ||
+                p.user?.profile_pic ||
+                p.userpic ||
+                user.profile_pic ||
+                "/profile-icon.svg",
+              user_id: p.shop?.vendor_id || p.user?.id || p.user_id || user.id,
+              like_count: p.likes_count ?? p.like_count ?? p.likes ?? 0,
+              view_count: p.views ?? p.view_count ?? p.visit_count ?? 0,
+            })),
+          ];
         } catch (err) {
           console.error("Failed to load user products:", err);
         }
@@ -73,12 +99,34 @@ const ProfileOwner = () => {
           const contents = Array.isArray(contentsRes.data)
             ? contentsRes.data
             : contentsRes.data?.results || [];
-          allPosts = [...allPosts, ...contents];
+
+          allPosts = [
+            ...allPosts,
+            ...contents.map((c) => ({
+              ...c,
+              itemType: "content",
+              type: "content",
+              username:
+                c.shop?.shop_name ||
+                c.user?.username ||
+                c.username ||
+                user.username ||
+                "Unknown",
+              userpic:
+                c.shop?.logo ||
+                c.user?.profile_pic ||
+                c.userpic ||
+                user.profile_pic ||
+                "/profile-icon.svg",
+              user_id: c.shop?.vendor_id || c.user?.id || c.user_id || user.id,
+              like_count: c.likes_count ?? c.like_count ?? c.likes ?? 0,
+              view_count: c.views ?? c.view_count ?? c.visit_count ?? 0,
+            })),
+          ];
         } catch (err) {
           console.error("Failed to load user contents:", err);
         }
 
-        // Merge and sort by newest first
         allPosts.sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at),
         );
@@ -90,12 +138,16 @@ const ProfileOwner = () => {
     if (auth?.isAuthenticated) {
       loadUserPosts();
     }
-  }, [activeTab, auth?.isAuthenticated]);
+  }, [
+    activeTab,
+    auth?.isAuthenticated,
+    user.username,
+    user.profile_pic,
+    user.id,
+  ]);
 
-  // 2. Fetch Liked Products & Contents (Tab 2) with fault tolerance
   useEffect(() => {
     const loadLikedPosts = async () => {
-      // Only fetch if we are on the Heart tab
       if (activeTab === 2) {
         setLikedLoading(true);
         let allLiked = [];
@@ -105,7 +157,28 @@ const ProfileOwner = () => {
           const likedProducts = Array.isArray(productsRes.data)
             ? productsRes.data
             : productsRes.data?.results || [];
-          allLiked = [...allLiked, ...likedProducts];
+
+          allLiked = [
+            ...allLiked,
+            ...likedProducts.map((p) => ({
+              ...p,
+              itemType: "product",
+              type: "product",
+              username:
+                p.shop?.shop_name ||
+                p.user?.username ||
+                p.username ||
+                "Unknown",
+              userpic:
+                p.shop?.logo ||
+                p.user?.profile_pic ||
+                p.userpic ||
+                "/profile-icon.svg",
+              user_id: p.shop?.vendor_id || p.user?.id || p.user_id,
+              like_count: p.likes_count ?? p.like_count ?? p.likes ?? 0,
+              view_count: p.views ?? p.view_count ?? p.visit_count ?? 0,
+            })),
+          ];
         } catch (err) {
           console.error("Failed to load liked products:", err);
         }
@@ -115,12 +188,32 @@ const ProfileOwner = () => {
           const likedContents = Array.isArray(contentsRes.data)
             ? contentsRes.data
             : contentsRes.data?.results || [];
-          allLiked = [...allLiked, ...likedContents];
+
+          allLiked = [
+            ...allLiked,
+            ...likedContents.map((c) => ({
+              ...c,
+              itemType: "content",
+              type: "content",
+              username:
+                c.shop?.shop_name ||
+                c.user?.username ||
+                c.username ||
+                "Unknown",
+              userpic:
+                c.shop?.logo ||
+                c.user?.profile_pic ||
+                c.userpic ||
+                "/profile-icon.svg",
+              user_id: c.shop?.vendor_id || c.user?.id || c.user_id,
+              like_count: c.likes_count ?? c.like_count ?? c.likes ?? 0,
+              view_count: c.views ?? c.view_count ?? c.visit_count ?? 0,
+            })),
+          ];
         } catch (err) {
           console.error("Failed to load liked contents:", err);
         }
 
-        // Merge and sort by newest first
         allLiked.sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at),
         );
@@ -133,8 +226,6 @@ const ProfileOwner = () => {
       loadLikedPosts();
     }
   }, [activeTab, auth?.isAuthenticated]);
-
-  const { user = {} } = data || {};
 
   const profileImageUrl = useMemo(() => {
     const defaultIcon = "/profile-icon.svg";
@@ -171,7 +262,6 @@ const ProfileOwner = () => {
       </div>
     );
 
-  // --- REUSABLE GRID RENDERER ---
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
       return (
@@ -192,7 +282,6 @@ const ProfileOwner = () => {
     return (
       <div className="grid grid-cols-3 gap-3 my-2 px-4">
         {items.map((post, i) => {
-          // APIs return either image_url (products) or media (contents)
           const mediaSrc =
             post.image_url || post.media || post.image || "/placeholder.png";
           const isVideo =
@@ -203,7 +292,23 @@ const ProfileOwner = () => {
             <div
               key={i}
               className="relative rounded-lg overflow-hidden cursor-pointer"
-              onClick={() => navigate(`/product-details/${post.id}`)}
+              onClick={() => {
+                if (post.itemType === "product") {
+                  navigate(`/product-details/${post.id}`);
+                } else {
+                  const contentItems = items.filter(
+                    (item) => item.itemType === "content",
+                  );
+                  const clickedIndex = contentItems.findIndex(
+                    (item) => item.id === post.id,
+                  );
+                  setFeedOverlay({
+                    isOpen: true,
+                    items: contentItems,
+                    initialIndex: clickedIndex !== -1 ? clickedIndex : 0,
+                  });
+                }
+              }}
             >
               {isVideo ? (
                 <video
@@ -225,8 +330,7 @@ const ProfileOwner = () => {
                 </div>
               )}
               <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
-                <Eye size={15} className="mr-1" />{" "}
-                {post.views || post.view_count || post.visit_count || 0}
+                <Eye size={15} className="mr-1" /> {post.view_count || 0}
               </div>
             </div>
           );
@@ -240,16 +344,24 @@ const ProfileOwner = () => {
   );
 
   const handleLogoutClick = () => {
-    dispatch(handleLogout()); // clear tokens, user data, profile, etc.
-    navigate("/login"); // redirect to login page
+    dispatch(handleLogout());
+    navigate("/login");
   };
 
-  // Determine post count prioritizing actual fetched array length once loaded
   const displayPostCount =
     userPosts.length > 0 ? userPosts.length : data.product_count || 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
+      {/* Dynamic Profile Feed Viewer */}
+      {feedOverlay.isOpen && (
+        <ProfileFeedViewer
+          posts={feedOverlay.items}
+          initialIndex={feedOverlay.initialIndex}
+          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 mt-1">
         <button onClick={() => navigate(-1)}>
@@ -324,7 +436,6 @@ const ProfileOwner = () => {
             </Link>
           </div>
           <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-[250px] mx-auto">
-            {/* Show Food Subscription button only for vendors (users with vendor_id) */}
             {user?.vendor_id && (
               <Link to="/vendor-dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
