@@ -1,8 +1,8 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Copy, Share2, Link as LinkIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// You can replace these with actual SVG icons for the brands if you have them
 const getSocialIcon = (type) => {
   switch (type) {
     case "WhatsApp":
@@ -27,36 +27,34 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
     {
       name: "WhatsApp",
       url: `https://api.whatsapp.com/send?text=${encodeURIComponent(
-        postCaption + "\n" + postUrl
+        postCaption + "\n" + postUrl,
       )}`,
     },
     {
       name: "X",
       url: `https://x.com/intent/tweet?url=${encodeURIComponent(
-        postUrl
+        postUrl,
       )}&text=${encodeURIComponent(postCaption)}`,
     },
     {
       name: "Facebook",
       url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-        postUrl
+        postUrl,
       )}`,
     },
   ];
 
-  // Function to copy the link to the clipboard
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(postUrl);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy link: ", err);
       alert("Failed to copy link.");
     }
   };
 
-  // Function to trigger the device's native share functionality
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
@@ -69,46 +67,47 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
         console.error("Error using native share: ", err);
       }
     } else {
-      // Fallback for browsers that don't support the Web Share API
       handleCopyLink();
       alert("Link copied to clipboard (Share not supported on this browser).");
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          key="share-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] bg-black/50 flex justify-center items-end"
+          className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
           onClick={onClose}
         >
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: "0%" }}
-            exit={{ y: "100%" }}
+            key="share-panel"
+            initial={{ y: "100%", x: 0 }}
+            animate={{ y: 0, x: 0 }}
+            exit={{ y: "100%", x: 0 }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col"
+            className="w-full max-w-xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col mb-15 md:mb-0 cursor-default relative overflow-hidden pointer-events-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="relative p-4 border-b border-gray-200">
               <h2 className="text-center font-bold text-lg text-gray-800">
                 Share Post
               </h2>
               <button
-                onClick={onClose}
-                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800 z-10 p-2"
               >
                 <X size={24} />
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-5 space-y-6">
-              {/* Social Media Shortcuts */}
               <div className="grid grid-cols-4 gap-1 py-4 border-b border-gray-200">
                 {shareOptions.map((option) => (
                   <a
@@ -116,18 +115,16 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
                     href={option.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full gap-1"
+                    className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full gap-1 cursor-pointer"
                   >
                     {getSocialIcon(option.name)}
-                    {/* <span className="text-xs text-gray-800">{option.name}</span> */}
                   </a>
                 ))}
               </div>
-              {/* Primary Actions */}
               <div className="grid grid-cols-4 gap-6">
                 <button
                   onClick={handleNativeShare}
-                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors"
+                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors cursor-pointer"
                 >
                   <Share2 size={24} className="text-gray-700" />
                   <span className="text-xs font-semibold text-gray-800">
@@ -136,7 +133,7 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors"
+                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors cursor-pointer"
                 >
                   <Copy
                     size={24}
@@ -159,6 +156,9 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
       )}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 };
 
 export default ShareModal;

@@ -1,41 +1,64 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useFeed } from "../../../context/feedContext";
 import ProductItem from "./productItem";
-
-// This can be in a separate api.js file, but for now it's here
-const fetchProductById = async (id) => {
-  const res = await fetch(`/api/product/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch product");
-  return res.json();
-};
+import { fetchProductDetails } from "../../../services/api";
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const { posts } = useFeed(); // Get all posts from context
+  const { posts } = useFeed();
+  const navigate = useNavigate();
 
-  //  First, try to find the product in the already-loaded feed data
-  const productFromContext = posts.find((p) => String(p.id) === id);
+  // Try to find the product in the loaded feed data.
+  // It could be a direct product post, OR a content post that links to a product.
+  const productFromContext = posts.find(
+    (p) => String(p.id) === id || String(p.product?.id) === id,
+  );
 
-  // Fallback to fetching if not found in context (e.g., direct navigation)
+  const actualProduct =
+    productFromContext?.type?.toLowerCase() === "product" ||
+    productFromContext?.price_in_naira
+      ? productFromContext
+      : productFromContext?.product;
+
+  // Fetch from real API if not found in context (e.g., direct navigation / page reload)
   const {
     data: productFromApi,
     isLoading,
     error,
   } = useQuery({
     queryKey: ["product", id],
-    queryFn: () => fetchProductById(id),
-    enabled: !productFromContext,
+    queryFn: () => fetchProductDetails(id),
+    enabled: !actualProduct, // Only fetch if we don't already have it
   });
 
-  const product = productFromContext || productFromApi;
+  const product = actualProduct || productFromApi;
 
-  if (isLoading) return <p className="text-center mt-8">Loading...</p>;
-  if (error) return <p className="text-center mt-8">Error loading product.</p>;
-  if (!product) return <p className="text-center mt-8">Product not found.</p>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center w-full min-h-screen bg-white">
+        <div className="w-10 h-10 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full min-h-screen bg-white">
+        <p className="text-gray-500 mb-4">Product not found.</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 bg-lily text-white rounded-lg font-semibold"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex bg-white flex-col items-center">
+    // Added overflow-y-auto to fix the desktop scrolling issue
+    <div className="flex bg-gray-50 flex-col items-center w-full h-full min-h-screen overflow-y-auto">
       <ProductItem product={product} />
     </div>
   );

@@ -1,104 +1,145 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserProfile } from "../services/api"; // To check wallet balance
+import { ChevronLeft, Plus, Loader2, AlertCircle } from "lucide-react";
 import { usePayment } from "../context/paymentContext";
-import { ChevronLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from "lucide-react";
+import api from "../services/api";
+
+const fetchSavedCards = async () => {
+  // Anticipated endpoint to be created by the backend developer
+  const response = await api.get("/wallet/cards/");
+
+  // Assumes the backend returns an array of cards directly or inside a 'data'/'results' property
+  return response.data?.results || response.data || [];
+};
 
 const ChooseCardPage = () => {
   const navigate = useNavigate();
   const { setPaymentData } = usePayment();
-  const [selectedMethod, setSelectedMethod] = useState("paystack"); // Default to Paystack
+  const [selectedCardId, setSelectedCardId] = useState(null);
 
-  // Fetch user profile to get wallet balance
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
+  const {
+    data: savedCards,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["savedCards"],
+    queryFn: fetchSavedCards,
+    onSuccess: (data) => {
+      const defaultCard = data?.find((card) => card.is_default);
+      if (defaultCard && !selectedCardId) {
+        setSelectedCardId(defaultCard.id);
+      }
+    },
+    retry: 1, // Only retry once to avoid long waits on a missing endpoint
   });
 
-  const walletBalance = user?.wallet_balance || 0;
-  
-  // Format currency helper
-  const formatMoney = (amount) => 
-    new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(amount);
-
-  const handleContinue = () => {
-    setPaymentData((prev) => ({ ...prev, selectedPaymentMethod: selectedMethod }));
-    navigate("/order-summary");
+  const handleCardSelection = (card) => {
+    setSelectedCardId(card.id);
+    setPaymentData((prev) => ({
+      ...prev,
+      selectedPaymentMethod: "card",
+      selectedCard: card,
+    }));
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center">
+    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white font-sans text-black">
+      <div className="relative flex items-center p-4 border-b border-gray-100">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 text-gray-600 hover:text-gray-800"
+          className="absolute left-4 p-1 -ml-1 text-black hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={28} strokeWidth={1.5} />
         </button>
-        <h2 className="font-bold text-lg text-gray-800">Payment Method</h2>
+        <h1 className="flex-1 text-center text-[18px] font-medium">
+          Choose card
+        </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <p className="text-gray-500 text-sm mb-2">Select how you want to pay</p>
-
-        {/* Option 1: Paystack */}
-        <div
-          onClick={() => setSelectedMethod("paystack")}
-          className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center space-x-4 ${
-            selectedMethod === "paystack"
-              ? "border-lily bg-pink-50"
-              : "border-gray-100 bg-white hover:border-gray-200"
-          }`}
-        >
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-            <CreditCard size={24} />
+      <div className="flex-1 p-5">
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-10 space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+            <p className="text-gray-500 text-sm">Loading your cards...</p>
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-gray-900">Pay with Paystack</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Cards, Bank Transfer (Titan), USSD
+        )}
+
+        {isError && (
+          <div className="flex flex-col items-center justify-center py-10 space-y-3 text-red-500 bg-red-50 rounded-xl p-4">
+            <AlertCircle className="w-8 h-8" />
+            <p className="text-sm font-medium text-center">
+              {error?.response?.data?.message ||
+                error?.message ||
+                "Failed to load saved cards."}
+            </p>
+            <p className="text-xs text-red-400 text-center">
+              Please try again later or contact support if the issue persists.
             </p>
           </div>
-          {selectedMethod === "paystack" && (
-            <CheckCircle2 className="text-lily" size={24} />
-          )}
-        </div>
+        )}
 
-        {/* Option 2: Wallet */}
-        <div
-          onClick={() => setSelectedMethod("wallet")}
-          className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center space-x-4 ${
-            selectedMethod === "wallet"
-              ? "border-lily bg-pink-50"
-              : "border-gray-100 bg-white hover:border-gray-200"
-          }`}
-        >
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-            <Wallet size={24} />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-gray-900">Lily Wallet</h3>
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin mt-1 text-gray-400" />
-            ) : (
-              <p className="text-sm font-medium text-green-700 mt-1">
-                Balance: {formatMoney(walletBalance)}
+        {!isLoading && !isError && (
+          <div className="space-y-6">
+            {!savedCards || savedCards.length === 0 ? (
+              <p className="text-gray-500 text-center py-6">
+                You have no saved cards.
               </p>
+            ) : (
+              savedCards.map((card) => (
+                <div
+                  key={card.id}
+                  onClick={() => handleCardSelection(card)}
+                  className="flex items-start space-x-4 cursor-pointer group"
+                >
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full border-[1.5px] border-black flex items-center justify-center bg-white transition-all">
+                      {(selectedCardId === card.id ||
+                        (!selectedCardId && card.is_default)) && (
+                        <div className="w-3.5 h-3.5 rounded-full bg-black" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col space-y-1.5">
+                    <span className="text-[16px] leading-none">
+                      {card.card_holder_name || "Card Holder"}
+                    </span>
+
+                    <div className="flex items-center text-[15px] leading-none">
+                      <span className="tracking-widest">
+                        {card.masked_pan || "**** **** **** ****"}
+                      </span>
+                      {card.is_default && (
+                        <>
+                          <span className="mx-2.5 text-gray-400 text-lg leading-none mt-[-2px]">
+                            •
+                          </span>
+                          <span className="text-gray-500 text-[15px] tracking-wide">
+                            Default
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <span className="text-[15px] leading-none pt-0.5">
+                      Exp: {card.expiry_month}/{card.expiry_year}
+                    </span>
+                  </div>
+                </div>
+              ))
             )}
           </div>
-          {selectedMethod === "wallet" && (
-            <CheckCircle2 className="text-lily" size={24} />
-          )}
-        </div>
-      </div>
+        )}
 
-      <div className="p-4 border-t border-gray-200 bg-white">
         <button
-          onClick={handleContinue}
-          className="w-full bg-lily text-white py-3 rounded-lg text-lg font-semibold hover:bg-darklily transition-colors"
+          onClick={() => navigate("/add-card")}
+          className="flex items-center mt-7 text-[#D81B60] hover:text-[#AD1457] transition-colors focus:outline-none disabled:opacity-50"
+          disabled={isLoading}
         >
-          Review Order
+          <Plus size={22} strokeWidth={1.5} className="mr-3" />
+          <span className="text-[15px] font-medium">Add new card</span>
         </button>
       </div>
     </div>

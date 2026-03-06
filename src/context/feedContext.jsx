@@ -13,9 +13,9 @@ const FeedContext = createContext(null);
 
 const FEED_PAGE_SIZE = 20;
 
-// Feed API functions
 const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
-  const endpoint = activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/home/";
+  const endpoint =
+    activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
 
   const response = await api.get(endpoint, {
     params: {
@@ -24,33 +24,33 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
     },
   });
 
-  // Backend returns either:
-  // 1. { feed: [...], total_items: N } - from HomeView
-  // 2. { results: [...], count: N, next, previous } - paginated
-  // 3. [...] - direct array
+  const data = response.data;
 
-  if (response.data.feed) {
+  if (data && data.results) {
     return {
-      items: response.data.feed,
-      nextPage: pageParam + 1,
-      hasMore: response.data.feed.length === FEED_PAGE_SIZE,
+      items: data.results,
+      nextPage: data.next ? pageParam + 1 : null,
+      hasMore: !!data.next,
     };
   }
 
-  if (response.data.results) {
+  if (data && data.feed) {
     return {
-      items: response.data.results,
-      nextPage: response.data.next ? pageParam + 1 : null,
-      hasMore: !!response.data.next,
+      items: data.feed,
+      nextPage: data.feed.length > 0 ? pageParam + 1 : null,
+      hasMore: data.feed.length === FEED_PAGE_SIZE,
     };
   }
 
-  // Direct array
-  return {
-    items: response.data,
-    nextPage: pageParam + 1,
-    hasMore: response.data.length === FEED_PAGE_SIZE,
-  };
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      nextPage: data.length > 0 ? pageParam + 1 : null,
+      hasMore: data.length === FEED_PAGE_SIZE,
+    };
+  }
+
+  return { items: [], nextPage: null, hasMore: false };
 };
 
 export const FeedProvider = ({ children }) => {
@@ -59,7 +59,6 @@ export const FeedProvider = ({ children }) => {
   const scrollPositionRef = useRef(0);
   const lastViewedPostRef = useRef(null);
 
-  // Infinite scroll feed query
   const {
     data,
     fetchNextPage,
@@ -73,40 +72,35 @@ export const FeedProvider = ({ children }) => {
   } = useInfiniteQuery({
     queryKey: ["feed", activeTab],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, activeTab }),
-    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextPage : undefined,
-    staleTime: 0, // Always fetch on mount/refresh
-    gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 10,
   });
 
-  // Flatten paginated posts
   const posts = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.items);
   }, [data]);
 
-  // Load more when reaching bottom
   const loadMore = useCallback(() => {
     if (!isFetchingNextPage && hasNextPage) {
       fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  // Refresh feed
   const refreshFeed = useCallback(async () => {
     await refetch();
   }, [refetch]);
 
-  // Toggle mute
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
   }, []);
 
-  // Save current post for restoration after refresh
   const saveCurrentPost = useCallback((postId) => {
     lastViewedPostRef.current = postId;
   }, []);
 
-  // Get index to scroll to after refresh
   const getRestoreIndex = useCallback(() => {
     if (!lastViewedPostRef.current) return 0;
     const index = posts.findIndex((p) => p.id === lastViewedPostRef.current);
@@ -115,25 +109,18 @@ export const FeedProvider = ({ children }) => {
 
   const value = useMemo(
     () => ({
-      // Data
       posts,
       isLoading,
       isError,
       isFetching,
       error: error?.message,
-
-      // Pagination
       loadMore,
       hasNextPage,
       isFetchingNextPage,
-
-      // Actions
       refreshFeed,
       toggleMute,
       saveCurrentPost,
       getRestoreIndex,
-
-      // State
       isMuted,
       activeTab,
       setActiveTab,
@@ -156,7 +143,7 @@ export const FeedProvider = ({ children }) => {
       activeTab,
       setActiveTab,
       scrollPositionRef,
-    ]
+    ],
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
