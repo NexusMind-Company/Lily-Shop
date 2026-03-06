@@ -97,6 +97,10 @@ export const fetchVendorDetails = async (vendorId) => {
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
+    // Don't crash the page — return null if vendor profile doesn't exist
+    if (error?.response?.status === 500 || error?.response?.status === 404) {
+      return null;
+    }
     throw error;
   }
 };
