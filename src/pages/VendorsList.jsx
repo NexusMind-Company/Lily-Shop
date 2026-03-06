@@ -44,7 +44,7 @@ const VendorCard = ({ vendor, onClick }) => {
       rounded-2xl p-5 flex items-center gap-5 cursor-pointer"
     >
       {/* Avatar */}
-      <div className="w-24 h-24 flex-shrink-0">
+      <div className="w-24 h-24 shrink-0">
         {showImage ? (
           <img
             src={imageUrl}
@@ -68,9 +68,7 @@ const VendorCard = ({ vendor, onClick }) => {
 
       {/* Vendor Info */}
       <div className="flex-1 min-w-0">
-        <h2 className="text-lg font-semibold truncate">
-          {vendor.name}
-        </h2>
+        <h2 className="text-lg font-semibold truncate">{vendor.name}</h2>
         <p className="text-sm text-gray-500 line-clamp-2">
           {vendor.description || "No description available"}
         </p>

@@ -63,7 +63,7 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
         loop
         playsInline
         muted
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
       />
       <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
         {!isPlaying && (
@@ -89,7 +89,7 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
 
 const MediaCarousel = forwardRef(function MediaCarousel(
   { media, isFeedCarousel = false, containerClassName, onDoubleClick },
-  ref
+  ref,
 ) {
   const containerRef = useRef(null);
   const videoRefs = useRef({});
@@ -176,7 +176,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
               <img
                 src={item.src}
                 alt={`Slide ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             )}
           </SwiperSlide>

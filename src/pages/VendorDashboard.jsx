@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
+import { useState } from "react";
 
 import DashboardHeader from "../components/subscription/DashboardHeader";
 import ProfileSection from "../components/subscription/ProfileSection";
@@ -16,6 +17,8 @@ import {
 
 const VendorDashboard = ({ vendorId }) => {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const { user_data } = useSelector((state) => state.auth);
   const { data: profileData } = useSelector((state) => state.profile);
@@ -55,15 +58,15 @@ const VendorDashboard = ({ vendorId }) => {
     isFetching: subscriptionsFetching,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: ["vendorSubscriptionPlans", validVendorId],
+    queryKey: ["vendorSubscriptionPlans", validVendorId, currentPage, pageSize],
     queryFn: async () => {
       console.log(
         "🔍 Fetching vendor subscription plans with vendorId:",
         validVendorId,
       );
       const result = await fetchVendorSubscriptionPlans(validVendorId, {
-        page: 1,
-        page_size: 10,
+        page: currentPage,
+        page_size: pageSize,
       });
       console.log(" Vendor subscription plans result:", result);
       return result;
@@ -74,6 +77,20 @@ const VendorDashboard = ({ vendorId }) => {
   // Extract results from paginated response
   const subscriptions =
     plansData?.results || (Array.isArray(plansData) ? plansData : []);
+
+  const totalCount = plansData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const pagination = {
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   // ---------------- Derived data ----------------
 
@@ -146,6 +163,8 @@ const VendorDashboard = ({ vendorId }) => {
         <SubscriptionList
           subscriptions={subscriptions}
           onViewAll={handleViewAllSubscriptions}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       </main>
     </div>
