@@ -15,17 +15,18 @@ const StickyCTA = ({ totalPrice, onSubscribe }) => {
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Total
           </span>
-          <span className="text-2xl font-black text-slate-900 dark:text-white">
-            ${totalPrice.toFixed(2)}
-          </span>
+         <span className="text-2xl font-black text-slate-900 dark:text-white">
+  ₦{Number(totalPrice || 0).toLocaleString()}
+</span>
         </div>
-        <button
-          onClick={onSubscribe}
-          className="flex-1 bg-[#13ec49] text-green-950 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:brightness-105 active:scale-[0.98] transition-all"
-        >
-          Subscribe Now
-          <ArrowRight />
-        </button>
+       <button
+  onClick={onSubscribe}
+  disabled={!totalPrice}
+  className="flex-1 bg-[#13ec49] text-green-950 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  Subscribe Now
+  <ArrowRight />
+</button>
       </div>
     </div>
   );

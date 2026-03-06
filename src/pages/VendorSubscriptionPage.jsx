@@ -307,7 +307,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const vendorId = propVendorId || paramVendorId;
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
@@ -374,11 +374,17 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const handlePlanChange = (plan) => {
     setSelectedPlan(plan);
-    setSelectedPlanId(null);
+    setSelectedPlanIds([]);
   };
 
   const handlePlanSelect = (planId) => {
-    setSelectedPlanId(planId);
+   setSelectedPlanIds((prev) => {
+    if(prev.includes(planId)){
+      return prev.filter((id) => id !== planId)
+    }
+
+    return[...prev, planId]
+   })
   };
 
   const handleViewAllMenu = () => {
@@ -394,8 +400,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   };
 
   const handleSubscribe = () => {
-    if (!selectedPlanId) {
-      alert("Please select a plan first");
+    if (selectedPlanIds.length === 0) {
+      alert("Please select at least one plan");
       return;
     }
     setIsModalOpen(true);
@@ -405,33 +411,55 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     setIsModalOpen(false);
   };
 
-  const handleConfirmSubscription = () => {
-    if (!selectedPlanId) {
-      alert("Please select a plan first");
-      return;
-    }
+  // const handleConfirmSubscription = () => {
+  //   if (selectedPlanIds.length === 0) {
+  //     alert("Please select at least one plan");
+  //     return;
+  //   }
 
-    setIsModalOpen(false);
+  //   setIsModalOpen(false);
 
-    navigate(`/subscription/payment/${selectedPlanId}`, {
-      state: {
-        plan: plans?.results?.find((p) => p.id === selectedPlanId),
-        vendor: vendor,
-      },
-    });
-  };
+  //   navigate(`/subscription/payment/${selectedPlanId}`, {
+  //     state: {
+  //       plan: plans?.results?.find((p) => p.id === selectedPlanId),
+  //       vendor: vendor,
+  //     },
+  //   });
+  // };
 
   // Filter plans by selected frequency
+
+  const handleConfirmSubscription = () => {
+  if (selectedPlanIds.length === 0) {
+    alert("Please select at least one plan");
+    return;
+  }
+
+  setIsModalOpen(false);
+
+  navigate(`/subscription/payment`, {
+    state: {
+      plans: selectedPlans,
+      vendor: vendor,
+      totalPrice: totalPrice,
+    },
+  });
+};
+  
+  
   const filteredPlans =
     plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
 
   // Selected plan data
-  const selectedPlanData = plans?.results?.find(
-    (plan) => plan.id === selectedPlanId,
-  );
-  const totalPrice = selectedPlanData ? selectedPlanData.price : 0;
+ const selectedPlans = 
+ plans?.results?.filter((plan) => selectedPlanIds.includes(plan.id))  || []
 
-  // ✅ FIX: Safely extract meal items array — handles paginated or plain array response
+ const totalPrice = selectedPlans.reduce(
+  (sum, plan) => sum + Number(plan.price || 0), 0
+ )
+
+
+  // ✅ FIX: Safely extract meal items array — handles paginated or p lain array response
   const menuItems = Array.isArray(mealItemsData)
     ? mealItemsData
     : Array.isArray(mealItemsData?.results)
@@ -491,24 +519,29 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 gap-4 px-4 py-4">
-        {filteredPlans.length > 0 ? (
-          filteredPlans.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              plan={plan}
-              isSelected={selectedPlanId === plan.id}
-              isPopular={plan.popular}
-              onSelect={handlePlanSelect}
-            />
-          ))
-        ) : (
-          <div className="text-center py-8 text-gray-400 text-sm">
-            No {selectedPlan} plans available
-          </div>
-        )}
-      </div>
+    <div className="grid grid-cols-1 gap-4 px-4 py-4">
+  {selectedPlan === "monthly" ? (
+    <div className="mx-auto py-16 w-full md:w-1/2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-6 py-10 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 text-center">
+  <span className="text-xl md:text-3xl font-extrabold">
+    Monthly plans coming soon!
+  </span>
+</div>
+  ) : filteredPlans.length > 0 ? (
+    filteredPlans.map((plan) => (
+      <PricingCard
+        key={plan.id}
+        plan={plan}
+        isSelected={selectedPlanIds.includes(plan.id)}
+        isPopular={plan.popular}
+        onSelect={handlePlanSelect}
+      />
+    ))
+  ) : (
+    <div className="text-center py-8 text-gray-400 text-sm">
+      No {selectedPlan} plans available
+    </div>
+  )}
+</div>
 
       {/* ✅ FIX: pass menuItems (real array) not vendorWithMenu.menus (URL string) */}
       <MenuPreview
@@ -591,7 +624,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmSubscription}
-        selectedPlan={selectedPlanData}
+        selectedPlans={selectedPlans}
         vendor={vendor}
         isLoading={false}
       />
