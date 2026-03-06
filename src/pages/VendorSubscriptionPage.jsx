@@ -282,7 +282,6 @@
 // export default VendorSubscriptionPage;
 
 
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -311,7 +310,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  // Fetch vendor details (for hero section)
+  // Fetch vendor details — non-fatal if 500s (vendor profile may not exist)
   const {
     data: vendor,
     isLoading: vendorLoading,
@@ -320,9 +319,10 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     queryKey: ["vendorDetails", vendorId],
     queryFn: () => fetchVendorDetails(vendorId),
     enabled: !!vendorId,
+    retry: false, // Don't retry 500s
   });
 
-  // Fetch subscription plans
+  // Fetch subscription plans — CRITICAL, page needs this
   const {
     data: plans,
     isLoading: plansLoading,
@@ -333,65 +333,53 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     enabled: !!vendorId,
   });
 
-  // Fetch vendor profile (used for hero extras if needed)
-  // NOTE: vendorWithMenu.menus is a URL string, NOT an array — do not pass to MenuPreview
+  // Fetch vendor profile for extra info — non-fatal
+  // NOTE: .menus field is a URL string, not an array — do NOT pass to MenuPreview
   const {
     data: vendorWithMenu,
     isLoading: vendorWithMenuLoading,
-    error: vendorWithMenuError,
   } = useQuery({
     queryKey: ["vendorWithMenu", vendorId],
     queryFn: () => fetchFoodVendor(vendorId),
     enabled: !!vendorId,
+    retry: false,
   });
 
-  // ✅ FIX: Fetch actual meal items from the correct endpoint
-  // GET /foods/meals/vendors/{vendor_id}/ → returns paginated meal items (real array)
+  // Fetch actual meal items from correct endpoint — non-fatal
   const { data: mealItemsData } = useQuery({
     queryKey: ["mealItems", vendorId],
     queryFn: () => fetchMealsByVendor(vendorId),
     enabled: !!vendorId,
+    retry: false,
   });
 
-  // Fetch vendor reviews
+  // Fetch vendor reviews — non-fatal
   const {
     data: reviews,
     isLoading: reviewsLoading,
-    error: reviewsError,
   } = useQuery({
     queryKey: ["reviews", vendorId],
     queryFn: () => fetchReviewsForVendor(vendorId),
     enabled: !!vendorId,
+    retry: false,
   });
 
   // --- Event Handlers ---
 
   const handleBack = () => navigate(-1);
-
-  const handleMore = () => {
-    console.log("More options");
-  };
+  const handleMore = () => console.log("More options");
 
   const handlePlanChange = (plan) => {
     setSelectedPlan(plan);
     setSelectedPlanId(null);
   };
 
-  const handlePlanSelect = (planId) => {
-    setSelectedPlanId(planId);
-  };
+  const handlePlanSelect = (planId) => setSelectedPlanId(planId);
 
-  const handleViewAllMenu = () => {
-    navigate(`/vendor/${vendorId}/menu`);
-  };
+  const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
 
-  const handleMealClick = (meal) => {
-    setSelectedMeal(meal);
-  };
-
-  const handleCloseMealDetails = () => {
-    setSelectedMeal(null);
-  };
+  const handleMealClick = (meal) => setSelectedMeal(meal);
+  const handleCloseMealDetails = () => setSelectedMeal(null);
 
   const handleSubscribe = () => {
     if (!selectedPlanId) {
@@ -401,18 +389,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  const handleCloseModal = () => setIsModalOpen(false);
 
   const handleConfirmSubscription = () => {
     if (!selectedPlanId) {
       alert("Please select a plan first");
       return;
     }
-
     setIsModalOpen(false);
-
     navigate(`/subscription/payment/${selectedPlanId}`, {
       state: {
         plan: plans?.results?.find((p) => p.id === selectedPlanId),
@@ -431,15 +415,15 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   );
   const totalPrice = selectedPlanData ? selectedPlanData.price : 0;
 
-  // ✅ FIX: Safely extract meal items array — handles paginated or plain array response
+  // Safely extract meal items — handles paginated or plain array
   const menuItems = Array.isArray(mealItemsData)
     ? mealItemsData
     : Array.isArray(mealItemsData?.results)
     ? mealItemsData.results
     : [];
 
-  // Loading state
-  if (vendorLoading || plansLoading || vendorWithMenuLoading || reviewsLoading) {
+  // Only block on plans loading — everything else renders progressively
+  if (plansLoading || vendorLoading || vendorWithMenuLoading || reviewsLoading) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
         <div className="text-[#111813] dark:text-text-main-dark">Loading...</div>
@@ -447,21 +431,30 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     );
   }
 
-  // Error state
-  if (vendorError || plansError || vendorWithMenuError || reviewsError) {
-    console.error("Error details:", {
-      vendorError: vendorError?.message,
-      plansError: plansError?.message,
-      vendorWithMenuError: vendorWithMenuError?.message,
-      reviewsError: reviewsError?.message,
-    });
+  // Only plans error is fatal — vendor/reviews/menu errors degrade silently
+  if (plansError) {
+    console.error("Fatal: could not load subscription plans:", plansError?.message);
     return (
-      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
-        <div className="text-red-500">
-          Error loading subscription page. Please try again.
+      <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center p-6 text-center">
+        <div>
+          <p className="text-red-500 font-semibold mb-2">
+            Could not load subscription plans.
+          </p>
+          <p className="text-gray-400 text-sm mb-4">Please check your connection and try again.</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-[#13ec49] text-[#111813] font-bold px-6 py-3 rounded-xl"
+          >
+            Go Back
+          </button>
         </div>
       </div>
     );
+  }
+
+  // Non-fatal vendor error — log but continue rendering
+  if (vendorError) {
+    console.warn("Vendor details unavailable (500/404), rendering without vendor info");
   }
 
   return (
@@ -487,7 +480,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         </div>
       </div>
 
-      <VendorHero vendor={vendor} reviews={reviews?.results || []} />
+      {/* VendorHero handles null vendor gracefully */}
+      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} />
 
       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
 
@@ -510,7 +504,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         )}
       </div>
 
-      {/* ✅ FIX: pass menuItems (real array) not vendorWithMenu.menus (URL string) */}
+      {/* menuItems = real meal objects from fetchMealsByVendor, NOT vendorWithMenu.menus */}
       <MenuPreview
         menuItems={menuItems}
         onViewAll={handleViewAllMenu}
@@ -523,9 +517,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
           <div className="bg-white dark:bg-background-dark rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
               <h2 className="text-lg font-bold">
-                {typeof selectedMeal === "object"
-                  ? selectedMeal.name
-                  : selectedMeal}
+                {typeof selectedMeal === "object" ? selectedMeal.name : selectedMeal}
               </h2>
               <button
                 onClick={handleCloseMealDetails}
@@ -538,14 +530,12 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
             </div>
             <div className="p-4">
               {typeof selectedMeal === "object" && selectedMeal.description && (
-                <div className="mb-4">
-                  <p className="text-slate-600 dark:text-slate-300 text-sm">
-                    {selectedMeal.description}
-                  </p>
-                </div>
+                <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                  {selectedMeal.description}
+                </p>
               )}
               {typeof selectedMeal === "object" && selectedMeal.price && (
-                <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <span className="text-slate-500 text-sm">Price</span>
                   <span className="font-bold text-[#111813]">
                     ₦{Number(selectedMeal.price).toLocaleString()}
