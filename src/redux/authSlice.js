@@ -15,7 +15,7 @@ export const loginUser = createAsyncThunk(
         password: credentials.password,
       };
 
-      console.log("Sending Login Payload:", payload); // Debugging log
+      // console.log("Sending Login Payload:", payload); // Debugging log
 
       const response = await api.post("/auth/login/", payload);
       const data = response.data;
@@ -80,11 +80,11 @@ export const registerUser = createAsyncThunk(
       });
       return rejectWithValue(
         error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.response?.data?.["Invalid registration"]?.[0] ||
-        error.response?.data?.email_or_phonenumber?.[0] ||
-        error.response?.data?.password?.[0] ||
-        "Registration failed."
+          error.response?.data?.message ||
+          error.response?.data?.["Invalid registration"]?.[0] ||
+          error.response?.data?.email_or_phonenumber?.[0] ||
+          error.response?.data?.password?.[0] ||
+          "Registration failed.",
       );
     }
   },

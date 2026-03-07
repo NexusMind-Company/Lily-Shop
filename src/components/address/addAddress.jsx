@@ -209,7 +209,7 @@ const AddAddressPage = () => {
         </section>
 
         {/* Fixed Bottom Button Area */}
-        <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-100">
+        <div className="fixed bottom-0 left-0 md:left-64 right-0 p-5 bg-white border-t border-gray-100">
           <button
             type="submit"
             className="w-full bg-[#4CAF50] hover:bg-green-600 text-white font-medium text-base rounded-full py-4 transition-colors focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"

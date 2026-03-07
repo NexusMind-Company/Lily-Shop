@@ -31,6 +31,10 @@ const CartPage = () => {
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
 
+  const isDirectBuy = location.state?.directBuy;
+  const directProduct = location.state?.product;
+  const directQuantity = location.state?.quantity || 1;
+
   const [selectedItemIds, setSelectedItemIds] = useState(() => {
     const locStateIds = location.state?.selectedItemIds;
     if (locStateIds) {
@@ -58,16 +62,53 @@ const CartPage = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchCart());
-  }, [dispatch]);
+    // Only fetch cart if not doing a direct buy to avoid unnecessary state shifts
+    if (!isDirectBuy) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, isDirectBuy]);
 
   const itemsToCheckout = useMemo(() => {
+    if (isDirectBuy && directProduct) {
+      return [
+        {
+          id: directProduct.id,
+          product_id: directProduct.id,
+          product: directProduct,
+          productName: directProduct.name,
+          quantity: directQuantity,
+          current_price_kobo:
+            directProduct.price_in_kobo ||
+            (directProduct.price_in_naira
+              ? directProduct.price_in_naira * 100
+              : 0),
+          subtotal_naira:
+            (directProduct.price_in_naira ||
+              (directProduct.price_in_kobo
+                ? directProduct.price_in_kobo / 100
+                : 0)) * directQuantity,
+          mediaSrc: directProduct.image_url || directProduct.media_url,
+          username:
+            directProduct.shop?.name ||
+            directProduct.user?.username ||
+            "Vendor",
+          deliveryCharge: directProduct.deliveryCharge || 0,
+        },
+      ];
+    }
+
     if (selectedItemIds && Array.isArray(selectedItemIds)) {
       if (!allCartItems) return [];
       return allCartItems.filter((item) => selectedItemIds.includes(item.id));
     }
     return [];
-  }, [allCartItems, selectedItemIds]);
+  }, [
+    allCartItems,
+    selectedItemIds,
+    isDirectBuy,
+    directProduct,
+    directQuantity,
+  ]);
 
   const totalDeliveryCharge = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
@@ -148,6 +189,9 @@ const CartPage = () => {
   }, [userProfile, profileError]);
 
   useEffect(() => {
+    // Prevent redirecting back to home if directBuy items are populated
+    if (isDirectBuy && directProduct) return;
+
     if (
       !isLoadingProfile &&
       !isLoadingCart &&
@@ -160,7 +204,14 @@ const CartPage = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [itemsToCheckout, isLoadingProfile, isLoadingCart, navigate]);
+  }, [
+    itemsToCheckout,
+    isLoadingProfile,
+    isLoadingCart,
+    navigate,
+    isDirectBuy,
+    directProduct,
+  ]);
 
   const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
   const backendTotal = subtotal + totalDeliveryCharge;
@@ -203,7 +254,7 @@ const CartPage = () => {
     }
 
     const orderItems = itemsToCheckout.map((item) => ({
-      product_id: item.id,
+      product_id: item.product?.id || item.product_id || item.id,
       quantity: item.quantity,
     }));
 
@@ -256,7 +307,8 @@ const CartPage = () => {
   if (
     !isLoadingProfile &&
     !isLoadingCart &&
-    (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
+    (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) &&
+    !isDirectBuy
   ) {
     return (
       <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
@@ -593,14 +645,14 @@ const CartPage = () => {
               <p className="text-xs leading-relaxed">
                 Orders may be returned within <strong>48 hrs</strong> of
                 purchase. Learn more about our{" "}
-                <a href="#" className="text-pink hover:underline">
+                <a href="/about" className="text-pink hover:underline">
                   return policy
                 </a>
               </p>
             </div>
             <p className="text-xs text-gray-900 leading-relaxed mt-4">
               By clicking "proceed", you confirm you have read and agree to our{" "}
-              <a href="#" className="text-pink hover:underline">
+              <a href="/about" className="text-pink hover:underline">
                 terms of services
               </a>
             </p>
@@ -608,9 +660,9 @@ const CartPage = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
+      <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
+        <div className="flex items-center">
+          <div className="flex flex-col min-w-40">
             <span className="font-medium text-sm text-gray-900">
               Total Payment
             </span>
@@ -620,7 +672,7 @@ const CartPage = () => {
           </div>
           <button
             onClick={handleProceedToPayment}
-            className="bg-lily text-white px-10 py-3.5 rounded-full text-md font-medium hover:bg-opacity-90 transition-opacity flex items-center justify-center min-w-35"
+            className="bg-lily w-full text-white px-10 py-3.5 rounded-full text-md font-medium hover:bg-opacity-90 transition-opacity flex items-center justify-center"
             disabled={
               !itemsToCheckout ||
               itemsToCheckout.length === 0 ||
