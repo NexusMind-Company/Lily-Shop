@@ -10,7 +10,6 @@ import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
 import {
-  api,
   likeProduct,
   likeContent,
   followUser,
@@ -98,16 +97,26 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
-  const displayUsername = post.username || post.user || "Unknown User";
-  const profileId = post.user_id || post.userId;
+  const resolvedUser = typeof post.user === "object" ? post.user : null;
+  const displayUsername =
+    post.username ||
+    post.author_name ||
+    resolvedUser?.username ||
+    resolvedUser?.full_name ||
+    (typeof post.user === "string" ? post.user : "Unknown User");
+
+  const profileId =
+    post.user_id ||
+    post.userId ||
+    post.author_id ||
+    resolvedUser?.id ||
+    post.shop?.user_id ||
+    post.shop_id ||
+    displayUsername;
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const isOwnPost =
-    isAuthenticated &&
-    user_data &&
-    (String(user_data.id) === String(profileId) ||
-      (user_data.vendor_id &&
-        String(user_data.vendor_id) === String(profileId)));
+    user_data?.username === displayUsername || user_data?.id === profileId;
 
   const isProduct =
     post.type?.toLowerCase() === "product" ||
@@ -117,64 +126,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.productName !== undefined;
 
   const hasLinkedProduct = !isProduct && post.product != null;
-
-  useEffect(() => {
-    const isMissingData =
-      post.is_liked === undefined && post.has_liked === undefined;
-
-    if (isMissingData && isAuthenticated && post.id) {
-      const fetchFullDetails = async () => {
-        try {
-          const endpoint = isProduct
-            ? `/shops/products/${post.id}/`
-            : `/shops/contents/${post.id}/`;
-
-          const res = await api.get(endpoint);
-          const fullPost = res.data?.product || res.data?.content || res.data;
-
-          if (fullPost) {
-            setIsLiked(
-              fullPost.is_liked === true || fullPost.has_liked === true,
-            );
-            setLikeCount(
-              Number(
-                fullPost.likes_count ||
-                  fullPost.like_count ||
-                  fullPost.likes ||
-                  0,
-              ),
-            );
-            setCommentCount(
-              Number(
-                fullPost.comments_count ||
-                  fullPost.comment_count ||
-                  fullPost.comments ||
-                  0,
-              ),
-            );
-            setViewCount((prev) =>
-              Math.max(
-                prev,
-                Number(
-                  fullPost.visit_count ||
-                    fullPost.view_count ||
-                    fullPost.views ||
-                    0,
-                ),
-              ),
-            );
-          }
-        } catch (err) {
-          console.error(
-            `[FeedItem] Failed to fetch full details for post ${post.id}:`,
-            err,
-          );
-        }
-      };
-
-      fetchFullDetails();
-    }
-  }, [post.id, isProduct, isAuthenticated, post.is_liked, post.has_liked]);
 
   useEffect(() => {
     if (post.id !== currentPostId) {
@@ -420,6 +371,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       e.preventDefault();
     }
     if (!isAuthenticated) return navigate("/login");
+    if (!profileId) return;
     toggleFollow();
   };
 
@@ -502,29 +454,33 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             <div className="relative gap-3 flex items-center">
-              <Link to={profileLink} className="relative block">
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+              <div className="relative block">
+                <Link
+                  to={profileLink}
+                  className="block w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden"
+                >
                   <img
                     src={post.userpic || "/profile-icon.svg"}
                     alt={displayUsername}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              </Link>
+                </Link>
 
-              {!isOwnPost && (
-                <button
-                  onClick={handleFollow}
-                  className="absolute top-[80%] left-3 z-10"
-                >
-                  <img
-                    src={
-                      isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                    }
-                    alt={`Follow ${displayUsername}`}
-                  />
-                </button>
-              )}
+                {!isOwnPost && (
+                  <button
+                    onClick={handleFollow}
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform"
+                  >
+                    <img
+                      src={
+                        isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                      }
+                      alt={`Follow ${displayUsername}`}
+                      className="w-4 h-4 object-contain"
+                    />
+                  </button>
+                )}
+              </div>
 
               <Link to={profileLink} className="flex items-center space-x-2">
                 <h1 className="font-bold">{displayUsername}</h1>
