@@ -130,6 +130,12 @@ const ProductItem = ({ product }) => {
     Number(product.visit_count || product.view_count || product.views || 0),
   );
 
+  // Stock status logic
+  const isOutOfStock =
+    product.in_stock === false ||
+    product.in_stock === "false" ||
+    Number(product.quantity_available) <= 0;
+
   // Hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -364,6 +370,14 @@ const ProductItem = ({ product }) => {
             </div>
           </div>
 
+          {isOutOfStock && (
+            <div className="mt-1">
+              <span className="inline-block px-2 py-1 bg-pink/10 text-pink rounded text-xs font-semibold">
+                Out of Stock
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between items-center mt-2">
             <p className="text-green-500 font-bold text-lg">{`₦${formatPrice(displayPrice)}`}</p>
             <button onClick={handleLike} className="p-1">
@@ -574,13 +588,15 @@ const ProductItem = ({ product }) => {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={isAddingToCart || isAddedToCart}
+              disabled={isAddingToCart || isAddedToCart || isOutOfStock}
               className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center ${
-                isAddedToCart
-                  ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-not-allowed"
-                  : isAddingToCart
-                    ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-wait"
-                    : "border-2 border-lily text-lily hover:bg-green-50"
+                isOutOfStock
+                  ? "border-2 border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : isAddedToCart
+                    ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-not-allowed"
+                    : isAddingToCart
+                      ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-wait"
+                      : "border-2 border-lily text-lily hover:bg-green-50"
               }`}
             >
               {isAddingToCart ? (
@@ -599,7 +615,12 @@ const ProductItem = ({ product }) => {
             </button>
             <button
               onClick={handleCheckout}
-              className="flex-1 bg-lily text-white py-3 rounded-xl font-semibold shadow-md hover:bg-green-700 hover:shadow-lg transition-all"
+              disabled={isOutOfStock}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                isOutOfStock
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-lily text-white shadow-md hover:bg-green-700 hover:shadow-lg"
+              }`}
             >
               Buy Now
             </button>

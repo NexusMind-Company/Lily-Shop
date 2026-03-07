@@ -97,11 +97,26 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
 
-  const displayUsername = post.username || post.user || "Unknown User";
-  const profileId = post.user_id || post.userId;
+  const resolvedUser = typeof post.user === "object" ? post.user : null;
+  const displayUsername =
+    post.username ||
+    post.author_name ||
+    resolvedUser?.username ||
+    resolvedUser?.full_name ||
+    (typeof post.user === "string" ? post.user : "Unknown User");
+
+  const profileId =
+    post.user_id ||
+    post.userId ||
+    post.author_id ||
+    resolvedUser?.id ||
+    post.shop?.user_id ||
+    post.shop_id ||
+    displayUsername;
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
-  const isOwnPost = user_data?.username === displayUsername;
+  const isOwnPost =
+    user_data?.username === displayUsername || user_data?.id === profileId;
 
   const isProduct =
     post.type?.toLowerCase() === "product" ||
@@ -356,6 +371,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       e.preventDefault();
     }
     if (!isAuthenticated) return navigate("/login");
+    if (!profileId) return;
     toggleFollow();
   };
 
@@ -438,29 +454,33 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         <div className="flex justify-between items-end">
           <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
             <div className="relative gap-3 flex items-center">
-              <Link to={profileLink} className="relative block">
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden">
+              <div className="relative block">
+                <Link
+                  to={profileLink}
+                  className="block w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden"
+                >
                   <img
                     src={post.userpic || "/profile-icon.svg"}
                     alt={displayUsername}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              </Link>
+                </Link>
 
-              {!isOwnPost && (
-                <button
-                  onClick={handleFollow}
-                  className="absolute top-[80%] left-3 z-10"
-                >
-                  <img
-                    src={
-                      isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
-                    }
-                    alt={`Follow ${displayUsername}`}
-                  />
-                </button>
-              )}
+                {!isOwnPost && (
+                  <button
+                    onClick={handleFollow}
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform"
+                  >
+                    <img
+                      src={
+                        isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                      }
+                      alt={`Follow ${displayUsername}`}
+                      className="w-4 h-4 object-contain"
+                    />
+                  </button>
+                )}
+              </div>
 
               <Link to={profileLink} className="flex items-center space-x-2">
                 <h1 className="font-bold">{displayUsername}</h1>

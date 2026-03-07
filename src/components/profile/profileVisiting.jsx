@@ -60,6 +60,7 @@ const ProfileVisiting = () => {
           user: {
             ...result,
             ...result.user,
+            id: result.id || result.user?.id || profileIdentifier,
             full_name:
               result.full_name ||
               result.user?.full_name ||
@@ -77,8 +78,17 @@ const ProfileVisiting = () => {
             result.products || result.posts || result.user?.products || [],
         };
 
+        const checkIsFollowing =
+          result.is_following === true ||
+          result.is_following === "true" ||
+          result.is_followed === true ||
+          result.is_followed === "true" ||
+          result.has_followed === true ||
+          result.user?.is_following === true ||
+          result.user?.is_followed === true;
+
         setData(normalizedData);
-        setIsFollowing(result.is_following || false);
+        setIsFollowing(checkIsFollowing);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -91,7 +101,9 @@ const ProfileVisiting = () => {
   }, [profileIdentifier, user_data, navigate]);
 
   const handleFollow = async () => {
-    if (!data?.user?.id || followLoading) return;
+    const targetId =
+      data?.user?.id || data?.user?.username || profileIdentifier;
+    if (!targetId || followLoading) return;
 
     setFollowLoading(true);
     const previousState = isFollowing;
@@ -103,12 +115,15 @@ const ProfileVisiting = () => {
       ...prev,
       user: {
         ...prev.user,
-        followers_count: prev.user.followers_count + (newState ? 1 : -1),
+        followers_count: Math.max(
+          0,
+          (prev.user.followers_count || 0) + (newState ? 1 : -1),
+        ),
       },
     }));
 
     try {
-      await followUser(data.user.id);
+      await followUser(targetId);
       dispatch(fetchProfile());
     } catch (err) {
       console.error("Follow failed", err);
@@ -117,7 +132,10 @@ const ProfileVisiting = () => {
         ...prev,
         user: {
           ...prev.user,
-          followers_count: prev.user.followers_count + (previousState ? 1 : -1),
+          followers_count: Math.max(
+            0,
+            (prev.user.followers_count || 0) + (previousState ? 1 : -1),
+          ),
         },
       }));
     } finally {

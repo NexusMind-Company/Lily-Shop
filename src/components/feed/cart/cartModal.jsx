@@ -187,7 +187,7 @@ const CartModal = ({ isOpen, onClose }) => {
             className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="relative p-4 border-b border-gray-200 shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
                 Cart ({cartItemCount})
               </h2>
@@ -199,7 +199,7 @@ const CartModal = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
               <p className="text-center font-bold text-lg text-gray-800">
                 Items ({selectedItems.size} selected)
               </p>
@@ -236,8 +236,8 @@ const CartModal = ({ isOpen, onClose }) => {
                         isUpdating ? "opacity-50 pointer-events-none" : ""
                       }`}
                     >
-                      <div className="flex flex-col gap-2 w-30 flex-shrink-0">
-                        <p className="text-sm text-gray-500 break-words">
+                      <div className="flex flex-col gap-2 w-30 shrink-0">
+                        <p className="text-sm text-gray-500 wrap-break-word">
                           {item.product?.user ||
                             item.product?.shop_name ||
                             "Seller"}
@@ -245,7 +245,7 @@ const CartModal = ({ isOpen, onClose }) => {
                         <img
                           src={getProductImage(item.product)}
                           alt={item.product?.name || "Product"}
-                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                          className="w-20 h-20 object-cover rounded-lg shrink-0"
                           onError={(e) => {
                             if (!e.target.src.includes("/feed-image.png")) {
                               e.target.src = "/feed-image.png";
@@ -317,7 +317,7 @@ const CartModal = ({ isOpen, onClose }) => {
                       <div className="flex flex-col items-center justify-between h-35">
                         <input
                           type="checkbox"
-                          className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full flex-shrink-0"
+                          className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full shrink-0"
                           checked={selectedItems.has(item.id)}
                           onChange={() => handleToggleItem(item.id)}
                           disabled={isUpdating}
@@ -338,7 +338,7 @@ const CartModal = ({ isOpen, onClose }) => {
             </div>
 
             {cartItems.length > 0 && (
-              <div className="flex gap-4 items-center p-4 border-t border-gray-200 bg-white flex-shrink-0">
+              <div className="flex gap-4 items-center p-4 border-t border-gray-200 bg-white shrink-0">
                 <div className="flex flex-col items-start mb-4 w-[40%]">
                   <span className="text-lg font-bold text-gray-800">
                     Total Payment:
