@@ -306,46 +306,34 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const vendorId = propVendorId || paramVendorId;
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  // Fetch vendor details — non-fatal if 500s (vendor profile may not exist)
-  const {
-    data: vendor,
-    isLoading: vendorLoading,
-    error: vendorError,
-  } = useQuery({
+  // Fetch vendor details
+  const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
     queryKey: ["vendorDetails", vendorId],
     queryFn: () => fetchVendorDetails(vendorId),
     enabled: !!vendorId,
-    retry: false, // Don't retry 500s
+    retry: false,
   });
 
-  // Fetch subscription plans — CRITICAL, page needs this
-  const {
-    data: plans,
-    isLoading: plansLoading,
-    error: plansError,
-  } = useQuery({
+  // Fetch subscription plans 
+  const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
     queryKey: ["mealPlans", vendorId],
     queryFn: () => fetchMealPlansByVendor(vendorId),
     enabled: !!vendorId,
   });
 
-  // Fetch vendor profile for extra info — non-fatal
-  // NOTE: .menus field is a URL string, not an array — do NOT pass to MenuPreview
-  const {
-    data: vendorWithMenu,
-    isLoading: vendorWithMenuLoading,
-  } = useQuery({
+  // Fetch vendor profile for extra info 
+  const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
     queryKey: ["vendorWithMenu", vendorId],
     queryFn: () => fetchFoodVendor(vendorId),
     enabled: !!vendorId,
     retry: false,
   });
 
-  // Fetch actual meal items from correct endpoint — non-fatal
+  // Fetch meal items 
   const { data: mealItemsData } = useQuery({
     queryKey: ["mealItems", vendorId],
     queryFn: () => fetchMealsByVendor(vendorId),
@@ -353,37 +341,55 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     retry: false,
   });
 
-  // Fetch vendor reviews — non-fatal
-  const {
-    data: reviews,
-    isLoading: reviewsLoading,
-  } = useQuery({
+  // Fetch reviews 
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
     queryKey: ["reviews", vendorId],
     queryFn: () => fetchReviewsForVendor(vendorId),
     enabled: !!vendorId,
     retry: false,
   });
 
-  // --- Event Handlers ---
+  //  Derived state 
+  const filteredPlans = plans?.results?.filter(plan => plan.frequency === selectedPlan) || [];
 
+  const selectedPlans =
+    plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
+
+  const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0);
+
+  console.log("Selected Plan IDs:", selectedPlanIds);
+  console.log("Selected Plans objects:", selectedPlans);
+  console.log("Total price:", totalPrice);
+
+  const menuItems = Array.isArray(mealItemsData)
+    ? mealItemsData
+    : Array.isArray(mealItemsData?.results)
+    ? mealItemsData.results
+    : [];
+
+  //  Handlers
   const handleBack = () => navigate(-1);
   const handleMore = () => console.log("More options");
 
   const handlePlanChange = (plan) => {
     setSelectedPlan(plan);
-    setSelectedPlanId(null);
+    setSelectedPlanIds([]);
   };
 
-  const handlePlanSelect = (planId) => setSelectedPlanId(planId);
+  const handlePlanSelect = (planId) => {
+    setSelectedPlanIds((prev) => {
+      if (prev.includes(planId)) return prev.filter(id => id !== planId);
+      return [...prev, planId];
+    });
+  };
 
   const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
-
   const handleMealClick = (meal) => setSelectedMeal(meal);
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
   const handleSubscribe = () => {
-    if (!selectedPlanId) {
-      alert("Please select a plan first");
+    if (selectedPlanIds.length === 0) {
+      alert("Please select at least one plan");
       return;
     }
     setIsModalOpen(true);
@@ -392,37 +398,23 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleConfirmSubscription = () => {
-    if (!selectedPlanId) {
-      alert("Please select a plan first");
+    if (selectedPlanIds.length === 0) {
+      alert("Please select at least one plan");
       return;
     }
+
     setIsModalOpen(false);
-    navigate(`/subscription/payment/${selectedPlanId}`, {
+
+    navigate(`/subscription/payment`, {
       state: {
-        plan: plans?.results?.find((p) => p.id === selectedPlanId),
-        vendor: vendor,
+        plans: selectedPlans,
+        vendor,
+        totalPrice,
       },
     });
   };
 
-  // Filter plans by selected frequency
-  const filteredPlans =
-    plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
-
-  // Selected plan data
-  const selectedPlanData = plans?.results?.find(
-    (plan) => plan.id === selectedPlanId,
-  );
-  const totalPrice = selectedPlanData ? selectedPlanData.price : 0;
-
-  // Safely extract meal items — handles paginated or plain array
-  const menuItems = Array.isArray(mealItemsData)
-    ? mealItemsData
-    : Array.isArray(mealItemsData?.results)
-    ? mealItemsData.results
-    : [];
-
-  // Only block on plans loading — everything else renders progressively
+  //  Loading 
   if (plansLoading || vendorLoading || vendorWithMenuLoading || reviewsLoading) {
     return (
       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
@@ -431,7 +423,6 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     );
   }
 
-  // Only plans error is fatal — vendor/reviews/menu errors degrade silently
   if (plansError) {
     console.error("Fatal: could not load subscription plans:", plansError?.message);
     return (
@@ -452,14 +443,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     );
   }
 
-  // Non-fatal vendor error — log but continue rendering
   if (vendorError) {
     console.warn("Vendor details unavailable (500/404), rendering without vendor info");
   }
 
+ 
   return (
     <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen pb-32">
-      {/* Top App Bar */}
+      {/* App Bar */}
       <div className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
         <div className="flex items-center p-4 justify-between">
           <button
@@ -480,19 +471,22 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         </div>
       </div>
 
-      {/* VendorHero handles null vendor gracefully */}
       <VendorHero vendor={vendor || null} reviews={reviews?.results || []} />
-
       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
 
-      {/* Pricing Cards */}
       <div className="grid grid-cols-1 gap-4 px-4 py-4">
-        {filteredPlans.length > 0 ? (
+        {selectedPlan === "monthly" ? (
+          <div className="mx-auto py-16 w-full md:w-1/2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-6 py-10 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 text-center">
+            <span className="text-xl md:text-3xl font-extrabold">
+              Monthly plans coming soon!
+            </span>
+          </div>
+        ) : filteredPlans.length > 0 ? (
           filteredPlans.map((plan) => (
             <PricingCard
               key={plan.id}
               plan={plan}
-              isSelected={selectedPlanId === plan.id}
+              isSelected={selectedPlanIds.includes(plan.id)}
               isPopular={plan.popular}
               onSelect={handlePlanSelect}
             />
@@ -504,76 +498,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         )}
       </div>
 
-      {/* menuItems = real meal objects from fetchMealsByVendor, NOT vendorWithMenu.menus */}
       <MenuPreview
         menuItems={menuItems}
         onViewAll={handleViewAllMenu}
         onMealClick={handleMealClick}
       />
-
-      {/* Meal Details Modal */}
-      {selectedMeal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-background-dark rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="text-lg font-bold">
-                {typeof selectedMeal === "object" ? selectedMeal.name : selectedMeal}
-              </h2>
-              <button
-                onClick={handleCloseMealDetails}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              {typeof selectedMeal === "object" && selectedMeal.description && (
-                <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
-                  {selectedMeal.description}
-                </p>
-              )}
-              {typeof selectedMeal === "object" && selectedMeal.price && (
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-slate-500 text-sm">Price</span>
-                  <span className="font-bold text-[#111813]">
-                    ₦{Number(selectedMeal.price).toLocaleString()}
-                  </span>
-                </div>
-              )}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-                  Available Subscription Plans
-                </h3>
-                <div className="space-y-2">
-                  {plans?.results?.map((plan) => (
-                    <div key={plan.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{plan.plan_name}</span>
-                        <span className="text-sm font-bold">
-                          ₦{Number(plan.price).toLocaleString()}
-                        </span>
-                      </div>
-                      {plan.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          {plan.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={handleCloseMealDetails}
-                className="w-full bg-[#13ec49] text-white py-3 rounded-xl font-bold hover:bg-[#10d440] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 
@@ -581,7 +510,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmSubscription}
-        selectedPlan={selectedPlanData}
+        selectedPlans={selectedPlans}
         vendor={vendor}
         isLoading={false}
       />
