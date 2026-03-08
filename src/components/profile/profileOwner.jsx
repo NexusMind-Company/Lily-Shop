@@ -60,8 +60,12 @@ const ProfileOwner = () => {
     const fetchFollowingCount = async () => {
       if (!user?.id) return;
 
-      if (user.following_count !== undefined) {
-        setFollowingCount(user.following_count);
+      const currentCount = user.following_count || 0;
+
+      // If the count is explicitly greater than 0, trust the initial data.
+      // Otherwise, run the fallback fetch to ensure accuracy.
+      if (currentCount > 0) {
+        setFollowingCount(currentCount);
         return;
       }
 
@@ -73,6 +77,7 @@ const ProfileOwner = () => {
         setFollowingCount(followingData.length);
       } catch (err) {
         console.error("Failed to fetch following count fallback", err);
+        setFollowingCount(0);
       }
     };
 
