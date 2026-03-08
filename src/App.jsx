@@ -109,6 +109,8 @@ import AddCardPage from "./pages/AddCardPage";
 import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
+import CreateSubscriptionVendor from "./components/subscription/CreateSubscriptionVendor";
+import VendorDashboard from "./pages/VendorDashboard";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -189,7 +191,10 @@ function App() {
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
             />
-
+ <Route
+              path="/vendor-dashboard"
+              element={<VendorDashboard />} />
+            
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<ProfileVisiting />} />
@@ -233,6 +238,10 @@ function App() {
             <Route
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
+            />
+             <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendor />}
             />
             <Route
               path="/subscription-success"
