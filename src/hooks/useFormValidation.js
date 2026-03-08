@@ -1,53 +1,66 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 const useFormValidation = (initialState, validationRules) => {
+  if (!initialState || typeof initialState !== 'object') {
+    throw new Error('useFormValidation: initialState must be an object');
+  }
+
+  if (!validationRules || typeof validationRules !== 'object') {
+    throw new Error('useFormValidation: validationRules must be an object');
+  }
+
   const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false); // Optional: track submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = useCallback(
     (fieldValues = values) => {
       const tempErrors = {};
+      
       for (const field in validationRules) {
+        if (!validationRules.hasOwnProperty(field)) continue;
+        
         const rules = validationRules[field];
         const value = fieldValues[field];
-        // Example rule: required
-        if (rules.required && !value) {
-          tempErrors[field] = rules.requiredMessage || "This field is required";
-          continue; // Stop checking other rules for this field if required fails
-        }
-        // Example rule: pattern (regex)
-        if (rules.pattern && value && !rules.pattern.test(value)) {
-          // Check if value exists before testing pattern
-          tempErrors[field] = rules.patternMessage || "Invalid format";
+
+        // Required field check
+        if (rules.required && (!value || value.toString().trim() === '')) {
+          tempErrors[field] = rules.requiredMessage || 'This field is required';
           continue;
         }
-        // Example rule: minLength
-        if (rules.minLength && value && value.length < rules.minLength) {
-          // Check if value exists before checking length
-          tempErrors[field] =
-            rules.minLengthMessage || `Minimum length is ${rules.minLength}`;
-          continue;
-        }
-        // Example rule: maxLength
-        if (rules.maxLength && value && value.length > rules.maxLength) {
-          // Check if value exists before checking length
-          tempErrors[field] =
-            rules.maxLengthMessage || `Maximum length is ${rules.maxLength}`;
-          continue;
-        }
-        // Example rule: email
+
+        // Email format check
         if (rules.email && value) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
-            tempErrors[field] = rules.invalidMessage || "Invalid email format";
+            tempErrors[field] = rules.invalidMessage || 'Invalid email format';
             continue;
           }
         }
-        // Add more rules as needed (custom function, etc.)
+
+        // Pattern matching
+        if (rules.pattern && value) {
+          if (!rules.pattern.test(value)) {
+            tempErrors[field] = rules.patternMessage || 'Invalid format';
+            continue;
+          }
+        }
+
+        // Min length check
+        if (rules.minLength && value && value.length < rules.minLength) {
+          tempErrors[field] = rules.minLengthMessage || `Minimum length is ${rules.minLength}`;
+          continue;
+        }
+
+        // Max length check
+        if (rules.maxLength && value && value.length > rules.maxLength) {
+          tempErrors[field] = rules.maxLengthMessage || `Maximum length is ${rules.maxLength}`;
+          continue;
+        }
       }
+
       setErrors(tempErrors);
-      return Object.keys(tempErrors).length === 0; // Return true if no errors
+      return Object.keys(tempErrors).length === 0;
     },
     [values, validationRules],
   );
@@ -55,25 +68,21 @@ const useFormValidation = (initialState, validationRules) => {
   const handleChange = useCallback(
     (event) => {
       const { name, value, type, checked } = event.target;
-      const newValue = type === "checkbox" ? checked : value;
+      const newValue = type === 'checkbox' ? checked : value;
 
-      setValues((prevValues) => ({
-        ...prevValues,
-        [name]: newValue,
-      }));
-
-      // Optional: Validate on change after first submit or on blur
-      // Consider validating only if the field previously had an error
-      if (errors[name]) {
-        validate({ ...values, [name]: newValue });
-      }
+      setValues((prevValues) => {
+        const updatedValues = { ...prevValues, [name]: newValue };
+        if (errors[name]) {
+          validate(updatedValues);
+        }
+        return updatedValues;
+      });
     },
-    [validate, values, errors],
-  ); // Added dependencies
+    [validate, errors],
+  );
 
   const handleBlur = useCallback(
     (event) => {
-      // Validate on blur to give immediate feedback
       const { name } = event.target;
       if (validationRules[name]) {
         validate(values);
@@ -86,18 +95,17 @@ const useFormValidation = (initialState, validationRules) => {
     (callback) => async (event) => {
       event.preventDefault();
       setIsSubmitting(true);
+      
       if (validate()) {
         try {
-          await callback(values); // Execute the provided submit function
+          await callback(values);
         } catch (error) {
-          // Handle potential errors from the callback (e.g., API errors)
-          console.error("Submission error:", error);
-          // Optionally set form-level errors here
+          console.error('Submission error:', error);
         } finally {
           setIsSubmitting(false);
         }
       } else {
-        setIsSubmitting(false); // Ensure isSubmitting is reset if validation fails
+        setIsSubmitting(false);
       }
     },
     [validate, values],
@@ -117,8 +125,8 @@ const useFormValidation = (initialState, validationRules) => {
     handleBlur,
     handleSubmit,
     resetForm,
-    setErrors, // Allow manual setting of backend errors
-    validate, // Expose validate function if needed externally
+    setErrors,
+    validate,
   };
 };
 

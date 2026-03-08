@@ -25,7 +25,7 @@ const PlanDetailsPage = () => {
     price: "",
     trial_days: 0,
     description: "",
-    meal_per_cycle: 0,
+    meals_per_cycle: 0,
     media: null,
   });
   const [errors, setErrors] = useState({});
@@ -49,8 +49,8 @@ const PlanDetailsPage = () => {
           price: data.price || "",
           trial_days: data.trial_days || 0,
           description: data.description || "",
-          meal_per_cycle: data.meal_per_cycle || 0,
-          media: data.media || null,
+          meals_per_cycle: data.meals_per_cycle || 0,
+          media: data.all_media_urls || null,
         });
       } catch (err) {
         console.error("Failed to load plan:", err);
@@ -114,7 +114,7 @@ const PlanDetailsPage = () => {
         price: formData.price,
         trial_days: formData.trial_days,
         description: formData.description,
-        meal_per_cycle: formData.meal_per_cycle,
+        meals_per_cycle: formData.meals_per_cycle,
       };
 
       if (formData.media instanceof File) {
@@ -138,7 +138,7 @@ const PlanDetailsPage = () => {
     }
   };
 
-  const handleCancel = () => {
+   const handleCancel = () => {
     if (editMode && plan) {
       // Reset form data to original plan data
       setFormData({
@@ -146,8 +146,8 @@ const PlanDetailsPage = () => {
         price: plan.price || "",
         trial_days: plan.trial_days || 0,
         description: plan.description || "",
-        meal_per_cycle: plan.meal_per_cycle || 0,
-        media: plan.media || null,
+        meals_per_cycle: plan.meals_per_cycle || 0,
+        media: plan.all_media_urls || null,
       });
     }
     setEditMode(false);
@@ -194,9 +194,9 @@ const PlanDetailsPage = () => {
               alt={formData.plan_name}
               className="w-full h-full object-cover"
             />
-          ) : formData.media ? (
+          ) : formData.media && formData.media.length > 0 ? (
             <img
-              src={formData.media}
+              src={formData.media[0]}
               alt={formData.plan_name}
               className="w-full h-full object-cover"
             />
@@ -306,8 +306,8 @@ const PlanDetailsPage = () => {
             {editMode ? (
               <input
                 type="number"
-                name="meal_per_cycle"
-                value={formData.meal_per_cycle}
+                name="meals_per_cycle"
+                value={formData.meals_per_cycle}
                 onChange={handleInputChange}
                 min="0"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#111813] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#13ec49] focus:border-transparent"
@@ -315,7 +315,7 @@ const PlanDetailsPage = () => {
               />
             ) : (
               <p className="text-lg font-medium text-[#111813] dark:text-white">
-                {formData.meal_per_cycle || 0} meals
+                {formData.meals_per_cycle || 0} meals
               </p>
             )}
           </div>

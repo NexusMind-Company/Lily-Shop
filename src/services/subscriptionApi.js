@@ -97,6 +97,10 @@ export const fetchVendorDetails = async (vendorId) => {
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
+    // Don't crash the page — return null if vendor profile doesn't exist
+    if (error?.response?.status === 500 || error?.response?.status === 404) {
+      return null;
+    }
     throw error;
   }
 };
@@ -122,13 +126,19 @@ export const partialUpdatePlan = async (planId, planData) => {
 };
 
 /**
- * Fetch all subscriptions for a vendor (for overview page)
+ * Fetch all subscriptions for a vendor (for overview page) with pagination
  * @param {string} vendorId - The vendor's unique ID (would come from auth context)
- * @returns {Promise<Array>} Array of all subscription objects
+ * @param {Object} params - Pagination parameters
+ * @param {number} params.page - Page number (default 1)
+ * @param {number} params.page_size - Number of results per page (default 10)
+ * @returns {Promise<Object>} Paginated response with count, next, previous, and results
  */
-export const fetchAllSubscriptions = async (vendorId) => {
+export const fetchAllSubscriptions = async (
+  vendorId,
+  { page = 1, page_size = 10 } = {},
+) => {
   try {
-    const data = await apiFetchAllSubscriptions(vendorId);
+    const data = await apiFetchAllSubscriptions(vendorId, { page, page_size });
     return data;
   } catch (error) {
     console.error("Error fetching all subscriptions:", error);
@@ -477,7 +487,7 @@ export const fetchSubscriptionsToVendor = async (vendorId) => {
  * @returns {Promise<Object>} Updated meal plan data
  */
 export const updateMealPlan = async (id, payload) => {
-  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
     payload;
 
   // If media is a file, use FormData; otherwise use JSON
@@ -501,17 +511,21 @@ export const updateMealPlan = async (id, payload) => {
       formData.append("description", description);
     }
 
-    if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
-      formData.append("meal_per_cycle", meal_per_cycle.toString());
+    if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
+      formData.append("meals_per_cycle", meals_per_cycle.toString());
     }
 
     formData.append("media", media);
 
-    const response = await api.patch(`/foods/subscriptions/${id}/`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
+    const response = await api.patch(
+      `/foods/subscriptions/${id}/update/`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    });
+    );
 
     return response.data;
   }

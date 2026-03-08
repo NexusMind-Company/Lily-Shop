@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Info, X } from "lucide-react";
+import { ArrowRight, Info, X } from "lucide-react";
 import PropTypes from "prop-types";
 
 /**
@@ -21,10 +21,10 @@ const SubscriptionConfirmationModal = ({
 }) => {
   if (!isOpen) return null;
 
-  const totalPrice = (selectedPlans || []).reduce(
-  (sum, plan) => sum + Number(plan.price || 0),
+const totalPrice = selectedPlans?.reduce(
+  (sum, plan) => sum + Number(plan?.price || 0),
   0
-);
+) ?? 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -38,7 +38,7 @@ const SubscriptionConfirmationModal = ({
             onClick={onClose}
             className="flex size-8 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-           <X/>
+            <X />
           </button>
         </div>
 
@@ -69,18 +69,20 @@ const SubscriptionConfirmationModal = ({
             <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold text-slate-900 dark:text-white">
-                  {selectedPlan.name}
+                  {selectedPlan.plan_name ||
+                    selectedPlan.name ||
+                    "Unnamed Plan"}
                 </h4>
                 <span className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">
-                  {selectedPlan.period}
+                  {selectedPlan.frequency || selectedPlan.period || "month"}
                 </span>
               </div>
               <div className="flex items-baseline gap-1 mb-3">
                 <span className="text-2xl font-black text-slate-900 dark:text-white">
-                  ${selectedPlan.price}
+                  ₦{selectedPlan.price?.toLocaleString() || "0"}
                 </span>
                 <span className="text-sm font-medium text-slate-500">
-                  /{selectedPlan.period}
+                  /{selectedPlan.frequency || selectedPlan.period || "month"}
                 </span>
               </div>
               <div className="space-y-2">
@@ -89,14 +91,18 @@ const SubscriptionConfirmationModal = ({
                     key={index}
                     className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                   >
-                      <CheckCircle/>
+                    <CheckCircle />
                     {feature}
                   </div>
-                ))}
+                )) || (
+                  <div className="text-sm text-slate-500 dark:text-slate-400">
+                    No features listed for this plan
+                  </div>
+                )}
               </div>
             </div>
           )} */}
-{selectedPlans?.length > 0 && (
+{selectedPlans?.length ? (
   <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-4">
     <h4 className="font-bold text-slate-900 dark:text-white">
       Selected Plans
@@ -116,22 +122,23 @@ const SubscriptionConfirmationModal = ({
             ₦{Number(plan.price).toLocaleString()}
           </span>
         </div>
-
-        {plan.description && (
-          <p className="text-sm text-slate-500">{plan.description}</p>
-        )}
       </div>
     ))}
   </div>
+) : (
+  <p className="text-sm text-slate-500">
+    No subscription plans selected.
+  </p>
 )}
           {/* Billing Info */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Info/>
+              <Info />
               <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
                 Billing Information
               </span>
             </div>
+
             {/* <p className="text-sm text-blue-800 dark:text-blue-200">
               You will be charged ₦{Number(totalPrice).toLocaleString()} for the{" "}
               {selectedPlan?.period} plan. Subscription will auto-renew unless
@@ -143,6 +150,7 @@ const SubscriptionConfirmationModal = ({
   selected subscription plans. Subscription will auto-renew unless
   cancelled.
 </p>
+
           </div>
 
           {/* Terms */}

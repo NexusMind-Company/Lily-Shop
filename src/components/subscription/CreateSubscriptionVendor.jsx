@@ -175,7 +175,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="cuisine"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Cuisine (Optional)
+            Cuisine 
           </label>
           <input
             type="text"
@@ -224,7 +224,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="contact_email"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Contact Email (Optional)
+            Contact Email 
           </label>
           <input
             type="email"
@@ -250,7 +250,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="contact_phone"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Contact Phone (Optional)
+            Contact Phone 
           </label>
           <input
             type="tel"
@@ -276,7 +276,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="media"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Media (Optional)
+            Media 
           </label>
           <input
             type="file"

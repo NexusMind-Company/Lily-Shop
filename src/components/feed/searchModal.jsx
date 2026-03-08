@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllFeed, fetchProducts } from "../../services/api";
@@ -42,14 +43,13 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
-const SearchModal = ({ onClose }) => {
+const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Top");
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // 1. Search Products via API (Replaced shops logic)
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
     queryKey: ["searchProducts", debouncedSearchTerm],
     queryFn: () => fetchProducts({ search: debouncedSearchTerm }),
@@ -57,14 +57,13 @@ const SearchModal = ({ onClose }) => {
     enabled: !!debouncedSearchTerm,
   });
 
-  // 2. Fetch Feed for "Top" suggestions (Default view)
   const {
     data: topContent,
     isLoading: isLoadingTop,
     error: topError,
   } = useQuery({
     queryKey: ["feed", "forYou"],
-    queryFn: fetchAllFeed, 
+    queryFn: fetchAllFeed,
     select: (data) => (Array.isArray(data) ? data : data.results || []),
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });
@@ -100,8 +99,6 @@ const SearchModal = ({ onClose }) => {
     saveRecentSearches(newSearches);
   };
 
-  // --- Renderers ---
-
   const renderSearchResults = () => (
     <div className="space-y-4">
       <h3 className="font-semibold text-gray-800">Products</h3>
@@ -110,7 +107,6 @@ const SearchModal = ({ onClose }) => {
           No products found for "{debouncedSearchTerm}"
         </p>
       )}
-      {/* Updated to display Product items instead of Shop items */}
       {productResults?.slice(0, 5).map((product) => (
         <div
           key={product.id}
@@ -233,7 +229,7 @@ const SearchModal = ({ onClose }) => {
                 </span>
                 <button
                   onClick={() => removeRecent(term)}
-                  className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -253,84 +249,105 @@ const SearchModal = ({ onClose }) => {
     }
   };
 
-  return (
-    <motion.div
-      className="fixed inset-0 z-[100] flex flex-col bg-white"
-      initial={{ x: "100%" }}
-      animate={{ x: 0 }}
-      exit={{ x: "100%" }}
-      transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-    >
-      <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
-        <button
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="search-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] bg-white md:bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
           onClick={onClose}
-          className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full"
         >
-          <ChevronLeft size={24} />
-        </button>
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search products"
-            className="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-lily/50 text-gray-800 placeholder:text-gray-400 transition-all"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            autoFocus
-          />
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-            <Search size={18} />
-          </span>
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X size={18} />
-            </button>
-          )}
-        </form>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4">
-        {isSearchingProducts ? (
-          <div className="space-y-3">
-            <SearchSuggestionSkeleton />
-            <SearchSuggestionSkeleton />
-            <SearchSuggestionSkeleton />
-          </div>
-        ) : debouncedSearchTerm ? (
-          renderSearchResults()
-        ) : (
-          <div className="space-y-6">
-            <div className="flex space-x-6 border-b border-gray-200">
-              {["Top", "Recent", "Users"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`pb-3 font-semibold text-sm transition-colors relative ${
-                    activeTab === tab
-                      ? "text-lily"
-                      : "text-gray-500 hover:text-gray-800"
-                  }`}
-                >
-                  {tab}
-                  {activeTab === tab && (
-                    <motion.div
-                      layoutId="activeTabIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
-                    />
-                  )}
-                </button>
-              ))}
+          <motion.div
+            key="search-panel"
+            initial={{ y: "100%", x: 0 }}
+            animate={{ y: 0, x: 0 }}
+            exit={{ y: "100%", x: 0 }}
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
+            className="w-full h-full md:max-w-xl bg-white md:rounded-3xl shadow-none md:shadow-2xl flex flex-col md:h-[90vh] cursor-default relative overflow-hidden pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full cursor-pointer z-10"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <form onSubmit={handleSearchSubmit} className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search products"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-lily/50 text-gray-800 placeholder:text-gray-400 transition-all"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  autoFocus
+                />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Search size={18} />
+                </span>
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </form>
             </div>
 
-            <div className="animate-fadeIn">{renderTabContent()}</div>
-          </div>
-        )}
-      </div>
-    </motion.div>
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              {isSearchingProducts ? (
+                <div className="space-y-3">
+                  <SearchSuggestionSkeleton />
+                  <SearchSuggestionSkeleton />
+                  <SearchSuggestionSkeleton />
+                </div>
+              ) : debouncedSearchTerm ? (
+                renderSearchResults()
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex space-x-6 border-b border-gray-200">
+                    {["Top", "Recent", "Users"].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-3 font-semibold text-sm transition-colors relative cursor-pointer ${
+                          activeTab === tab
+                            ? "text-lily"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
+                      >
+                        {tab}
+                        {activeTab === tab && (
+                          <motion.div
+                            layoutId="activeTabIndicator"
+                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="animate-fadeIn">{renderTabContent()}</div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 };
 
 export default SearchModal;

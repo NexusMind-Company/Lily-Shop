@@ -7,12 +7,12 @@ import {
   postComment,
   addLocalComment,
   clearComments,
+  toggleCommentLike,
 } from "../../../redux/feedCommentSlice";
 import CommentItem from "../comments/commentItem";
 import { CommentSkeleton } from "../../common/skeletons";
 import { useNavigate } from "react-router-dom";
 
-// Helper to count comments and nested replies recursively
 const countNodes = (nodes) => {
   if (!Array.isArray(nodes)) return 0;
   return nodes.reduce((acc, node) => {
@@ -26,19 +26,24 @@ const CommentsModal = ({
   postId,
   itemType,
   totalComments,
-  onCommentCountUpdate, // NEW: Prop to sync count back to FeedItem
+  onCommentCountUpdate,
 }) => {
   const dispatch = useDispatch();
   const textareaRef = useRef(null);
 
-  const { user_data: currentUser, isAuthenticated } = useSelector(
-    (state) => state.auth
+  const authState = useSelector((state) => state.auth);
+  const currentUser =
+    authState?.user_data || authState?.user || authState?.profile || null;
+  const isAuthenticated = authState?.isAuthenticated;
+
+  const rawComments = useSelector((state) => state.feedComments.comments);
+  const commentsStatus = useSelector(
+    (state) => state.feedComments.commentsStatus,
   );
 
-  const comments = useSelector((state) => state.feedComments.comments);
-  const commentsStatus = useSelector(
-    (state) => state.feedComments.commentsStatus
-  );
+  const commentsList = Array.isArray(rawComments)
+    ? rawComments
+    : rawComments?.results || [];
 
   const [commentText, setCommentText] = useState("");
   const [replyTarget, setReplyTarget] = useState(null);
@@ -48,29 +53,19 @@ const CommentsModal = ({
 
   useEffect(() => {
     if (isOpen && postId) {
+      dispatch(clearComments());
       dispatch(fetchComments({ postId, itemType }));
     }
   }, [isOpen, postId, itemType, dispatch]);
 
   useEffect(() => {
-    if (!isOpen) {
-      const timer = setTimeout(() => {
-        dispatch(clearComments());
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, dispatch]);
-
-  // NEW: Sync the real count to the parent component
-  useEffect(() => {
-    if (commentsStatus === "succeeded" || comments.length > 0) {
-      const realCount = countNodes(comments);
-      // Only update if it's different to prevent loops, or blindly update if simple
+    if (commentsStatus === "succeeded" || commentsList.length > 0) {
+      const realCount = countNodes(commentsList);
       if (onCommentCountUpdate) {
         onCommentCountUpdate(realCount);
       }
     }
-  }, [comments, commentsStatus, onCommentCountUpdate]);
+  }, [commentsList, commentsStatus, onCommentCountUpdate]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -95,12 +90,19 @@ const CommentsModal = ({
     setCommentText(text);
   };
 
+  const handleLikeComment = (commentId) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    dispatch(toggleCommentLike({ commentId, postId, itemType }));
+  };
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     const trimmedText = commentText.trim();
 
     if (!isAuthenticated) {
-      alert("Please log in to comment.");
       navigate("/login");
       return;
     }
@@ -116,27 +118,38 @@ const CommentsModal = ({
         ? trimmedText.substring(`@${replyTarget.user} `.length).trim()
         : trimmedText;
 
+    const currentUserName =
+      currentUser?.username ||
+      currentUser?.name ||
+      currentUser?.email ||
+      currentUser?.first_name ||
+      "User";
+
     const newComment = {
-      id: `local_${Date.now()}`,
-      user: currentUser?.name || currentUser?.username || "User",
-      userpic: currentUser?.userpic || currentUser?.profile_pic || null,
-      text: finalCommentText,
+      id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user_name: currentUserName,
+      userpic:
+        currentUser?.userpic ||
+        currentUser?.profile_pic ||
+        currentUser?.image ||
+        null,
+      comment_text: finalCommentText,
       timeAgo: "Just now",
-      likes: 0,
+      like_count: 0,
+      is_liked: false,
       replies: [],
       postId: postId,
       itemType: itemType,
-      parentId: replyTarget ? replyTarget.id : null,
+      parent: replyTarget ? replyTarget.id : null,
       replyingTo: replyTarget ? replyTarget.user : null,
     };
 
-    // Redux update is synchronous, so the useEffect above will catch the change
     dispatch(addLocalComment(newComment));
 
     try {
       await dispatch(postComment(newComment)).unwrap();
     } catch (error) {
-      console.error("Failed to post comment:", error);
+      // Silently fail as per clean code standards, or handled by Redux slice
     }
 
     setCommentText("");
@@ -164,8 +177,9 @@ const CommentsModal = ({
           >
             <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
-                {/* Use the dynamically calculated total from comments if available, else fallback */}
-                {comments.length > 0 ? countNodes(comments) : totalComments}{" "}
+                {commentsList.length > 0
+                  ? countNodes(commentsList)
+                  : totalComments}{" "}
                 comments
               </h2>
               <button
@@ -176,24 +190,29 @@ const CommentsModal = ({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {commentsStatus === "loading" && comments.length === 0 && (
+              {commentsStatus === "loading" && commentsList.length === 0 && (
                 <>
                   <CommentSkeleton />
                   <CommentSkeleton />
                   <CommentSkeleton />
                 </>
               )}
-              {commentsStatus === "succeeded" && comments.length === 0 && (
+              {commentsStatus === "succeeded" && commentsList.length === 0 && (
                 <p className="text-center text-gray-500">
                   Be the first to comment!
                 </p>
               )}
-              {comments.length > 0 &&
-                comments.map((comment) => (
+              {commentsList.length > 0 &&
+                commentsList.map((comment, index) => (
                   <CommentItem
-                    key={comment.id}
+                    key={
+                      comment?.id
+                        ? String(comment.id)
+                        : `comment-${index}-${Date.now()}`
+                    }
                     comment={comment}
                     onReply={handleReplyTag}
+                    onLike={handleLikeComment}
                   />
                 ))}
               {commentsStatus === "failed" && (
@@ -226,9 +245,15 @@ const CommentsModal = ({
               )}
               <div className="flex items-end space-x-2">
                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                  {currentUser?.profile_pic && (
+                  {(currentUser?.profile_pic ||
+                    currentUser?.userpic ||
+                    currentUser?.image) && (
                     <img
-                      src={currentUser.profile_pic}
+                      src={
+                        currentUser.profile_pic ||
+                        currentUser.userpic ||
+                        currentUser.image
+                      }
                       alt="You"
                       className="w-full h-full rounded-full object-cover"
                     />
