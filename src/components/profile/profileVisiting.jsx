@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPublicProfile, followUser } from "../../services/api";
+import { api, fetchPublicProfile, followUser } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -55,12 +55,30 @@ const ProfileVisiting = () => {
       try {
         setLoading(true);
         const result = await fetchPublicProfile(profileIdentifier);
+        const targetId = result.id || result.user?.id || profileIdentifier;
+
+        let actualFollowingCount =
+          result.following_count || result.user?.following_count || 0;
+
+        if (actualFollowingCount === 0) {
+          try {
+            const followingRes = await api.get(`/auth/following/${targetId}/`);
+            const followingData = Array.isArray(followingRes.data)
+              ? followingRes.data
+              : followingRes.data?.following ||
+                followingRes.data?.results ||
+                [];
+            actualFollowingCount = followingData.length;
+          } catch (err) {
+            console.warn("Could not fetch following count fallback", err);
+          }
+        }
 
         const normalizedData = {
           user: {
             ...result,
             ...result.user,
-            id: result.id || result.user?.id || profileIdentifier,
+            id: targetId,
             full_name:
               result.full_name ||
               result.user?.full_name ||
@@ -71,7 +89,7 @@ const ProfileVisiting = () => {
             bio: result.bio || result.user?.bio,
             followers_count:
               result.follower_count || result.followers_count || 0,
-            following_count: result.following_count || 0,
+            following_count: actualFollowingCount,
             verified: result.verified || false,
           },
           products:
@@ -306,11 +324,11 @@ const ProfileVisiting = () => {
               <p className="font-bold text-2xl">{products.length}</p>
               <p className="text-gray-600 text-sm">Posts</p>
             </div>
-            <Link to={`/followers/${user.username}`} className="text-center">
+            <Link to={`/followers/${user.id || ""}`} className="text-center">
               <p className="font-bold text-2xl">{user.followers_count || 0}</p>
               <p className="text-gray-600 text-sm">Followers</p>
             </Link>
-            <Link to={`/following/${user.username}`} className="text-center">
+            <Link to={`/following/${user.id || ""}`} className="text-center">
               <p className="font-bold text-2xl">{user.following_count || 0}</p>
               <p className="text-gray-600 text-sm">Following</p>
             </Link>
