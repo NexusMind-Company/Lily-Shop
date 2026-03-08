@@ -74,6 +74,33 @@ const ProfileVisiting = () => {
           }
         }
 
+        let fetchedPosts = [];
+        let fetchedProducts = [];
+
+        try {
+          const [postsRes, productsRes] = await Promise.all([
+            api.get(`/shops/contents/${targetId}`),
+            api.get(`/shops/products/${targetId}/`),
+          ]);
+          fetchedPosts = postsRes.data?.results || postsRes.data || [];
+          fetchedProducts = productsRes.data?.results || productsRes.data || [];
+        } catch (err) {
+          console.warn(
+            "Could not fetch user contents/products, falling back to profile data",
+            err,
+          );
+          fetchedPosts =
+            result.posted_contents ||
+            result.contents ||
+            result.user?.posted_contents ||
+            [];
+          fetchedProducts =
+            result.posted_products ||
+            result.products ||
+            result.user?.posted_products ||
+            [];
+        }
+
         const normalizedData = {
           user: {
             ...result,
@@ -92,8 +119,8 @@ const ProfileVisiting = () => {
             following_count: actualFollowingCount,
             verified: result.verified || false,
           },
-          products:
-            result.products || result.posts || result.user?.products || [],
+          posts: fetchedPosts,
+          products: fetchedProducts,
         };
 
         const checkIsFollowing =
@@ -185,7 +212,7 @@ const ProfileVisiting = () => {
 
   if (!data) return null;
 
-  const { user = {}, products = [] } = data;
+  const { user = {}, posts = [], products = [] } = data;
 
   const renderGrid = (items, emptyMessage) => {
     if (!items || items.length === 0) {
@@ -203,18 +230,25 @@ const ProfileVisiting = () => {
         animate={{ opacity: 1 }}
         className="grid grid-cols-3 gap-1"
       >
-        {items.map((post, i) => {
+        {items.map((item, i) => {
           const mediaSrc =
-            post.image || post.images?.[0]?.image || "/placeholder.png";
-          const isVideo = post.is_video || post.video;
+            item.image_url ||
+            item.media_url ||
+            item.media ||
+            item.image ||
+            item.images?.[0]?.image ||
+            "/placeholder.png";
+
+          const isVideo =
+            item.is_video || item.video || item.post_type === "VIDEO";
 
           return (
             <motion.div
-              key={i}
+              key={item.id || i}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/product-details/${post.id}`)}
+              onClick={() => navigate(`/product-details/${item.id}`)}
               className="relative aspect-square overflow-hidden cursor-pointer group"
             >
               <img
@@ -227,11 +261,13 @@ const ProfileVisiting = () => {
                 <div className="flex items-center gap-4 text-white">
                   <div className="flex items-center gap-1">
                     <Heart size={20} className="fill-white" />
-                    <span className="font-semibold">{post.likes || 0}</span>
+                    <span className="font-semibold">
+                      {item.like_count || item.likes || 0}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Eye size={20} />
-                    <span className="font-semibold">{post.views || 0}</span>
+                    <span className="font-semibold">{item.views || 0}</span>
                   </div>
                 </div>
               </div>
@@ -321,7 +357,7 @@ const ProfileVisiting = () => {
 
           <div className="flex items-center justify-around py-4 border-t border-b border-gray-200">
             <div className="text-center">
-              <p className="font-bold text-2xl">{products.length}</p>
+              <p className="font-bold text-2xl">{posts.length}</p>
               <p className="text-gray-600 text-sm">Posts</p>
             </div>
             <Link to={`/followers/${user.id || ""}`} className="text-center">
@@ -408,7 +444,7 @@ const ProfileVisiting = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              {renderGrid(products, "No posts yet")}
+              {renderGrid(posts, "No posts yet")}
             </motion.div>
           )}
           {activeTab === "products" && (
