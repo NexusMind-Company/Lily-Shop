@@ -176,7 +176,6 @@ function App() {
             <Route path="/myShop" element={<MyShop />} />
             <Route path="/createContent" element={<CreatePost />} />
             <Route path="/shop/:shopId" element={<ShopDetails />} />
-            <Route path="/shop/:shopId" element={<ShopDetails />} />
             <Route path="/rating" element={<Ratings />} />
             <Route path="/edit-shop/:shopId" element={<EditShop />} />
             <Route
@@ -202,6 +201,10 @@ function App() {
               path="/profile/:userId/following"
               element={<FollowingPage />}
             />
+            <Route path="/followers" element={<FollowersPage />} />
+            <Route path="/followers/:id" element={<FollowersPage />} />
+            <Route path="/following" element={<FollowingPage />} />
+            <Route path="/following/:id" element={<FollowingPage />} />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/editProfile" element={<EditProfile />} />
