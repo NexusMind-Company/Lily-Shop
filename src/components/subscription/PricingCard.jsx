@@ -132,6 +132,8 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
         id={`plan_${plan.id}`}
         name="plans"
         type="checkbox"
+
+      
         checked={isSelected}
         onChange={() => onSelect(plan.id)}
       />
@@ -139,8 +141,10 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
         className={`flex flex-col gap-4 rounded-2xl border-2 p-5 shadow-sm transition-all cursor-pointer ${isSelected
             ? "border-[#13ec49] bg-[#ffffff] dark:bg-surface-dark shadow-[0_4px_20px_-4px_rgba(19,236,73,0.15)]"
             : "border-transparent bg-[#ffffff] dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-opacity-80"
+
           }`}
         htmlFor={`plan_${plan.id}`}
+
       >
         {isPopular && (
           <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">

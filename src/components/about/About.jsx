@@ -4,7 +4,10 @@
 
 
 
+
 // src/components/settings/About.jsx
+
+
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -33,7 +36,8 @@ const About = () => {
          Our mission is to make commerce social, fun and available to everyone 
          Our vision is to be the biggest social commerce in the world`,
 
-         
+
+
       },
       {
         title: "Privacy Policy",
@@ -250,17 +254,17 @@ This protects users while keeping things simple and fair for vendors.`,
   const navigate = useNavigate();
 
   return (
-    <section className=" min-h-screen flex flex-col px-4 md:px-7 gap-8 max-w-4xl mx-auto overflow-hidden">
+    <section className="h-screen w-full overflow-y-auto flex flex-col px-4 md:px-7 pb-24 gap-8 max-w-4xl mx-auto overflow-x-hidden">
       {/* Header - Matching Wallet styling */}
-      <header className="flex items-center justify-center py-4  relative">
-        <Link
+      <header className="flex items-center justify-center py-4 relative shrink-0">
+        <button
           onClick={() => {
             navigate(-1);
           }}
-          className="absolute left-4 top-4"
+          className="absolute left-0 top-4 p-2"
         >
           <ChevronLeft className="w-8 h-8 text-gray-700" />
-        </Link>
+        </button>
         <h1 className="text-lg font-semibold text-gray-800">About Us</h1>
       </header>
 
@@ -270,18 +274,19 @@ This protects users while keeping things simple and fair for vendors.`,
         {aboutContent.sections.map((section, index) => (
           <div
             key={index}
-            className="shadow border cursor-pointer rounded-2xl bg-white"
+            id={section.title}
+            className="shadow border cursor-pointer rounded-2xl bg-white shrink-0"
           >
             <button
               onClick={() => toggleSection(section.title)}
-              className="w-full flex items-center gap-6 px-5 py-4 text-left"
+              className="w-full flex items-center justify-between gap-6 px-5 py-4 text-left"
             >
               <div className="flex-1">
                 <h3 className="font-bold text-base text-gray-800">
                   {section.title}
                 </h3>
               </div>
-              <div>
+              <div className="shrink-0">
                 {expandedSections[section.title] ? (
                   <ChevronUp className="h-5 w-5 text-gray-500" />
                 ) : (
@@ -301,7 +306,7 @@ This protects users while keeping things simple and fair for vendors.`,
         ))}
 
         {/* Contact Info Section - Same styling as others */}
-        <div className="shadow border rounded-2xl bg-white px-5 py-4">
+        <div className="shadow border rounded-2xl bg-white px-5 py-4 shrink-0">
           <h3 className="font-bold text-base text-gray-800 mb-2">
             Need More Help?
           </h3>
@@ -310,7 +315,9 @@ This protects users while keeping things simple and fair for vendors.`,
           </p>
           <div className="flex items-center gap-2 text-blue-600 text-sm">
             <span>📧</span>
-            <span> info.lilyshops@gmail.com</span>
+            <a href="mailto:info.lilyshops@gmail.com">
+              info.lilyshops@gmail.com
+            </a>
           </div>
         </div>
       </div>
@@ -324,22 +331,4 @@ export default About;
 
 
 
-  {/* Pricing Cards */}
-      <div className="grid grid-cols-1 gap-4 px-4 py-4">
-        {filteredPlans.length > 0 ? (
-          filteredPlans.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              plan={plan}
-              isSelected={selectedPlanId === plan.id}
-              isPopular={plan.popular}
-              onSelect={handlePlanSelect}
-            />
-          ))
-        ) : (
-          <div className="text-center py-8 text-gray-400 text-sm">
-            No {selectedPlan} plans available
-          </div>
-        )}
-      </div>
-
+ 

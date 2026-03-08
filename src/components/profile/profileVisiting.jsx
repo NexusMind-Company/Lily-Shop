@@ -1,12 +1,23 @@
-// src/components/profile/profileVisiting.jsx
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { fetchPublicProfile, followUser } from "../../services/api";
+import { fetchProfile } from "../../redux/profileSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Grid3x3, Heart, Eye, EllipsisVertical, ChevronLeft,
-  MessageCircle, Flag, Ban, Play, Package, CheckCircle2,
-  UserPlus, UserCheck, Share2
+  Grid3x3,
+  Heart,
+  Eye,
+  EllipsisVertical,
+  ChevronLeft,
+  MessageCircle,
+  Flag,
+  Ban,
+  Play,
+  Package,
+  CheckCircle2,
+  UserPlus,
+  UserCheck,
+  Share2,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
@@ -20,22 +31,19 @@ const ProfileVisiting = () => {
   const [followLoading, setFollowLoading] = useState(false);
 
   const navigate = useNavigate();
-  
-  // FIX: Destructure both potential parameter names
+  const dispatch = useDispatch();
+
   const { userId, username } = useParams();
-  // Use whichever parameter is present in the URL
   const profileIdentifier = userId || username;
 
   const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    // Guard clause: if no ID/username found, don't attempt fetch
     if (!profileIdentifier) return;
 
     if (user_data) {
-      // Check if visiting own profile (comparing both ID and Username)
       if (
-        String(user_data.id) === String(profileIdentifier) || 
+        String(user_data.id) === String(profileIdentifier) ||
         user_data.username === profileIdentifier
       ) {
         navigate("/profile");
@@ -46,26 +54,41 @@ const ProfileVisiting = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        // Pass the resolved identifier to the API
         const result = await fetchPublicProfile(profileIdentifier);
-        
+
         const normalizedData = {
           user: {
             ...result,
             ...result.user,
-            full_name: result.full_name || result.user?.full_name || result.username || "User",
+            id: result.id || result.user?.id || profileIdentifier,
+            full_name:
+              result.full_name ||
+              result.user?.full_name ||
+              result.username ||
+              "User",
             username: result.username || result.user?.username,
             profile_pic: result.profile_pic || result.user?.profile_pic,
             bio: result.bio || result.user?.bio,
-            followers_count: result.follower_count || result.followers_count || 0,
+            followers_count:
+              result.follower_count || result.followers_count || 0,
             following_count: result.following_count || 0,
             verified: result.verified || false,
           },
-          products: result.products || result.posts || result.user?.products || [],
+          products:
+            result.products || result.posts || result.user?.products || [],
         };
 
+        const checkIsFollowing =
+          result.is_following === true ||
+          result.is_following === "true" ||
+          result.is_followed === true ||
+          result.is_followed === "true" ||
+          result.has_followed === true ||
+          result.user?.is_following === true ||
+          result.user?.is_followed === true;
+
         setData(normalizedData);
-        setIsFollowing(result.is_following || false);
+        setIsFollowing(checkIsFollowing);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -78,41 +101,69 @@ const ProfileVisiting = () => {
   }, [profileIdentifier, user_data, navigate]);
 
   const handleFollow = async () => {
-    if (!data?.user?.username || followLoading) return;
-    
+    const targetId =
+      data?.user?.id || data?.user?.username || profileIdentifier;
+    if (!targetId || followLoading) return;
+
     setFollowLoading(true);
     const previousState = isFollowing;
-    setIsFollowing(!isFollowing);
+    const newState = !isFollowing;
+
+    setIsFollowing(newState);
+
+    setData((prev) => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        followers_count: Math.max(
+          0,
+          (prev.user.followers_count || 0) + (newState ? 1 : -1),
+        ),
+      },
+    }));
 
     try {
-      await followUser(data.user.username);
+      await followUser(targetId);
+      dispatch(fetchProfile());
     } catch (err) {
       console.error("Follow failed", err);
       setIsFollowing(previousState);
+      setData((prev) => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          followers_count: Math.max(
+            0,
+            (prev.user.followers_count || 0) + (previousState ? 1 : -1),
+          ),
+        },
+      }));
     } finally {
       setFollowLoading(false);
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lily"></div>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <p className="text-red-500 mb-4">{error}</p>
-        <button 
-          onClick={() => navigate(-1)}
-          className="text-lily font-semibold"
-        >
-          Go Back
-        </button>
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lily"></div>
       </div>
-    </div>
-  );
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="text-lily font-semibold"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
 
   if (!data) return null;
 
@@ -129,13 +180,14 @@ const ProfileVisiting = () => {
     }
 
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="grid grid-cols-3 gap-1"
       >
         {items.map((post, i) => {
-          const mediaSrc = post.image || post.images?.[0]?.image || "/placeholder.png";
+          const mediaSrc =
+            post.image || post.images?.[0]?.image || "/placeholder.png";
           const isVideo = post.is_video || post.video;
 
           return (
@@ -153,7 +205,6 @@ const ProfileVisiting = () => {
                 className="w-full h-full object-cover transition-transform group-hover:scale-105"
               />
 
-              {/* Hover Overlay */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <div className="flex items-center gap-4 text-white">
                   <div className="flex items-center gap-1">
@@ -181,7 +232,6 @@ const ProfileVisiting = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <button onClick={() => navigate(-1)}>
@@ -194,7 +244,7 @@ const ProfileVisiting = () => {
             <button onClick={() => setDropdownOpen(!dropdownOpen)}>
               <EllipsisVertical size={24} />
             </button>
-            
+
             <AnimatePresence>
               {dropdownOpen && (
                 <motion.div
@@ -216,10 +266,8 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      {/* Profile Header */}
       <div className="bg-white pb-4">
         <div className="px-4 pt-6">
-          {/* Profile Pic & Basic Info */}
           <div className="flex items-center gap-4 mb-4">
             <div className="relative">
               <img
@@ -249,12 +297,10 @@ const ProfileVisiting = () => {
             </div>
           </div>
 
-          {/* Bio */}
           <p className="text-gray-700 text-sm leading-relaxed mb-4">
             {user.bio || "No bio yet."}
           </p>
 
-          {/* Stats */}
           <div className="flex items-center justify-around py-4 border-t border-b border-gray-200">
             <div className="text-center">
               <p className="font-bold text-2xl">{products.length}</p>
@@ -270,7 +316,6 @@ const ProfileVisiting = () => {
             </Link>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 mt-4">
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -309,7 +354,6 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="sticky top-[57px] z-30 bg-white border-b border-gray-200">
         <div className="flex">
           <button
@@ -337,7 +381,6 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="bg-white">
         <AnimatePresence mode="wait">
           {activeTab === "posts" && (
