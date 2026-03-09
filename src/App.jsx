@@ -100,6 +100,22 @@ import VerifyTransaction from "./components/ads/verifyTransaction";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import PaymentSuccessPage from "./pages/paymentsSucessPage";
 
+/* ---------------- VENDOR DASHBOARD ---------------- */
+import VendorDashboardOverview from "./pages/vendor/VendorDashboardOverview";
+import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
+import VendorSubscriptionsPage from "./pages/vendor/VendorSubscriptionsPage";
+import VendorMenuPage from "./pages/vendor/VendorMenuPage";
+import VendorAvailabilityPage from "./pages/vendor/VendorAvailabilityPage";
+import VendorCutoffPage from "./pages/vendor/VendorCutoffPage";
+import VendorPauseShopPage from "./pages/vendor/VendorPauseShopPage";
+import VendorEarningsPage from "./pages/vendor/VendorEarningsPage";
+import VendorAddonsPage from "./pages/vendor/VendorAddonsPage";
+import VendorMessagesPage from "./pages/vendor/VendorMessagesPage";
+import VendorBroadcastPage from "./pages/vendor/VendorBroadcastPage";
+import VendorRatingsPage from "./pages/vendor/VendorRatingsPage";
+import VendorChurnPage from "./pages/vendor/VendorChurnPage";
+import VendorAnalyticsPage from "./pages/vendor/VendorAnalyticsPage";
+
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
 import LilyChat from "./components/ai/lilyChat";
@@ -264,6 +280,23 @@ function App() {
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
+
+            {/* ── NEW: Vendor Dashboard ── */}
+            <Route path="/vendor/dashboard" element={<VendorDashboardOverview />} />
+            <Route path="/vendor/dashboard/orders" element={<VendorOrdersPage />} />
+            <Route path="/vendor/dashboard/subscriptions" element={<VendorSubscriptionsPage />} />
+            <Route path="/vendor/dashboard/menu" element={<VendorMenuPage />} />
+            <Route path="/vendor/dashboard/availability" element={<VendorAvailabilityPage />} />
+            <Route path="/vendor/dashboard/cutoff" element={<VendorCutoffPage />} />
+            <Route path="/vendor/dashboard/pause" element={<VendorPauseShopPage />} />
+            <Route path="/vendor/dashboard/earnings" element={<VendorEarningsPage />} />
+            <Route path="/vendor/dashboard/addons" element={<VendorAddonsPage />} />
+            <Route path="/vendor/dashboard/messages" element={<VendorMessagesPage />} />
+            <Route path="/vendor/dashboard/broadcast" element={<VendorBroadcastPage />} />
+            <Route path="/vendor/dashboard/ratings" element={<VendorRatingsPage />} />
+            <Route path="/vendor/dashboard/churn" element={<VendorChurnPage />} />
+            <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
+
             <Route
               path="/vendor/subscriptions"
               element={<VendorSubscriptionsOverview />}
