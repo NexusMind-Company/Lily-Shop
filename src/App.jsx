@@ -125,6 +125,8 @@ import AddCardPage from "./pages/AddCardPage";
 import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
+import CreateSubscriptionVendor from "./components/subscription/CreateSubscriptionVendor";
+import VendorDashboard from "./pages/VendorDashboard";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -192,7 +194,6 @@ function App() {
             <Route path="/myShop" element={<MyShop />} />
             <Route path="/createContent" element={<CreatePost />} />
             <Route path="/shop/:shopId" element={<ShopDetails />} />
-            <Route path="/shop/:shopId" element={<ShopDetails />} />
             <Route path="/rating" element={<Ratings />} />
             <Route path="/edit-shop/:shopId" element={<EditShop />} />
             <Route
@@ -206,7 +207,10 @@ function App() {
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
             />
-
+ <Route
+              path="/vendor-dashboard"
+              element={<VendorDashboard />} />
+            
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<ProfileVisiting />} />
@@ -218,6 +222,10 @@ function App() {
               path="/profile/:userId/following"
               element={<FollowingPage />}
             />
+            <Route path="/followers" element={<FollowersPage />} />
+            <Route path="/followers/:id" element={<FollowersPage />} />
+            <Route path="/following" element={<FollowingPage />} />
+            <Route path="/following/:id" element={<FollowingPage />} />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/editProfile" element={<EditProfile />} />
@@ -246,6 +254,10 @@ function App() {
             <Route
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
+            />
+             <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendor />}
             />
             <Route
               path="/subscription-success"

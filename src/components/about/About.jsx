@@ -1,3 +1,13 @@
+
+
+
+
+
+
+
+// src/components/settings/About.jsx
+
+
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -25,6 +35,9 @@ const About = () => {
          
          Our mission is to make commerce social, fun and available to everyone 
          Our vision is to be the biggest social commerce in the world`,
+
+
+
       },
       {
         title: "Privacy Policy",
@@ -313,3 +326,9 @@ This protects users while keeping things simple and fair for vendors.`,
 };
 
 export default About;
+
+
+
+
+
+ 

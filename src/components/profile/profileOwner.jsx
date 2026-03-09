@@ -34,6 +34,7 @@ const ProfileOwner = () => {
   const [likedPosts, setLikedPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -54,6 +55,36 @@ const ProfileOwner = () => {
       dispatch(fetchProfile());
     }
   }, [auth?.isAuthenticated, data, dispatch]);
+
+  useEffect(() => {
+    const fetchFollowingCount = async () => {
+      if (!user?.id) return;
+
+      const currentCount = user.following_count || 0;
+
+      // If the count is explicitly greater than 0, trust the initial data.
+      // Otherwise, run the fallback fetch to ensure accuracy.
+      if (currentCount > 0) {
+        setFollowingCount(currentCount);
+        return;
+      }
+
+      try {
+        const res = await api.get(`/auth/following/${user.id}/`);
+        const followingData = Array.isArray(res.data)
+          ? res.data
+          : res.data?.following || res.data?.results || [];
+        setFollowingCount(followingData.length);
+      } catch (err) {
+        console.error("Failed to fetch following count fallback", err);
+        setFollowingCount(0);
+      }
+    };
+
+    if (auth?.isAuthenticated) {
+      fetchFollowingCount();
+    }
+  }, [user?.id, user?.following_count, auth?.isAuthenticated]);
 
   useEffect(() => {
     const loadUserPosts = async () => {
@@ -450,7 +481,7 @@ const ProfileOwner = () => {
               <span className="font-bold text-2xl">{displayPostCount}</span>
               <p className="text-sm text-gray-600">Posts</p>
             </div>
-            <Link to="/followers">
+            <Link to={`/followers/${user.id || ""}`}>
               <div className="flex flex-col items-center">
                 <p className="font-bold text-2xl">
                   {user.followers_count || 0}
@@ -458,11 +489,9 @@ const ProfileOwner = () => {
                 <p className="text-sm text-gray-600">Followers</p>
               </div>
             </Link>
-            <Link to="/following">
+            <Link to={`/following/${user.id || ""}`}>
               <div className="flex flex-col items-center">
-                <span className="font-bold text-2xl">
-                  {user.following_count || 0}
-                </span>
+                <span className="font-bold text-2xl">{followingCount}</span>
                 <p className="text-sm text-gray-600">Following</p>
               </div>
             </Link>
