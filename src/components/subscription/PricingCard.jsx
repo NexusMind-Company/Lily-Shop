@@ -116,7 +116,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
   const planDescription = plan.description || '';
   const planFrequency = plan.frequency || 'week';
   const mealsPerCycle = plan.meals_per_cycle || plan.meal_per_cycle || 0;
-  
+
   // Generate features from available data
   const features = [
     `${mealsPerCycle} meals per ${planFrequency}`,
@@ -129,19 +129,22 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
     <div className="relative group cursor-pointer">
       <input
         className="peer sr-only"
-        id={`plan_${safePlan.id}`}
-        name="plan"
-        type="radio"
+        id={`plan_${plan.id}`}
+        name="plans"
+        type="checkbox"
+
+      
         checked={isSelected}
-        onChange={() => onSelect(safePlan.id)}
+        onChange={() => onSelect(plan.id)}
       />
       <label
-        className={`flex flex-col gap-4 rounded-2xl border-2 p-5 shadow-sm transition-all ${
-          isSelected
+        className={`flex flex-col gap-4 rounded-2xl border-2 p-5 shadow-sm transition-all cursor-pointer ${isSelected
             ? "border-[#13ec49] bg-[#ffffff] dark:bg-surface-dark shadow-[0_4px_20px_-4px_rgba(19,236,73,0.15)]"
             : "border-transparent bg-[#ffffff] dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-opacity-80"
-        }`}
-        htmlFor={`plan_${safePlan.id}`}
+
+          }`}
+        htmlFor={`plan_${plan.id}`}
+
       >
         {isPopular && (
           <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
@@ -160,11 +163,10 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
             )}
           </div>
           <div
-            className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0 ml-2 ${
-              isSelected
+            className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ml-2 ${isSelected
                 ? "border-[#13ec49] bg-[#13ec49]"
                 : "border-slate-300 dark:border-slate-600"
-            }`}
+              }`}
           >
             {isSelected && <Check className="w-4 h-4 text-white" />}
           </div>
@@ -196,7 +198,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
 
 PricingCard.propTypes = {
   plan: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+   id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     plan_name: PropTypes.string,
     name: PropTypes.string,
     description: PropTypes.string,
