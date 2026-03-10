@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAllFeed, fetchProducts, searchShops } from "../../services/api";
+import {
+  fetchAllFeed,
+  fetchProducts,
+  searchShops,
+  searchContents,
+} from "../../services/api";
 import {
   SearchSuggestionSkeleton,
   SearchGridItemSkeleton,
@@ -43,6 +48,14 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
+const extractArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.results)) return data.results;
+  if (Array.isArray(data.feed)) return data.feed;
+  return [];
+};
+
 const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,23 +63,32 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Query for Products
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
     queryKey: ["searchProducts", debouncedSearchTerm],
     queryFn: () => fetchProducts({ search: debouncedSearchTerm }),
-    select: (data) => data.results || [],
-    enabled: activeTab === "Top" && !!debouncedSearchTerm,
+    select: extractArray,
+    enabled:
+      (activeTab === "Top" || activeTab === "Products") &&
+      !!debouncedSearchTerm,
   });
 
-  // Query for Users/Shops
-  const { data: userResults, isLoading: isSearchingUsers } = useQuery({
-    queryKey: ["searchUsers", debouncedSearchTerm],
+  const { data: shopResults, isLoading: isSearchingShops } = useQuery({
+    queryKey: ["searchShops", debouncedSearchTerm],
     queryFn: () => searchShops(debouncedSearchTerm),
-    select: (data) => data.results || [],
-    enabled: activeTab === "Users" && !!debouncedSearchTerm,
+    select: extractArray,
+    enabled:
+      (activeTab === "Top" || activeTab === "Shops") && !!debouncedSearchTerm,
   });
 
-  // Query for Default Top Feed
+  const { data: contentResults, isLoading: isSearchingContents } = useQuery({
+    queryKey: ["searchContents", debouncedSearchTerm],
+    queryFn: () => searchContents(debouncedSearchTerm),
+    select: extractArray,
+    enabled:
+      (activeTab === "Top" || activeTab === "Contents") &&
+      !!debouncedSearchTerm,
+  });
+
   const {
     data: topContent,
     isLoading: isLoadingTop,
@@ -74,7 +96,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   } = useQuery({
     queryKey: ["feed", "forYou"],
     queryFn: fetchAllFeed,
-    select: (data) => (Array.isArray(data) ? data : data.results || []),
+    select: extractArray,
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });
 
@@ -109,26 +131,21 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     saveRecentSearches(newSearches);
   };
 
-  const renderProductSearchResults = () => {
-    if (isSearchingProducts) {
-      return (
-        <div className="space-y-3">
-          <SearchSuggestionSkeleton />
-          <SearchSuggestionSkeleton />
-          <SearchSuggestionSkeleton />
-        </div>
-      );
+  const renderProductList = (products, limit = 5, showHeader = true) => {
+    if (!Array.isArray(products) || products.length === 0) {
+      return showHeader ? (
+        <p className="text-gray-500 text-center py-4 text-sm">
+          No products found for "{debouncedSearchTerm}"
+        </p>
+      ) : null;
     }
 
     return (
       <div className="space-y-4">
-        <h3 className="font-semibold text-gray-800">Products</h3>
-        {productResults?.length === 0 && (
-          <p className="text-gray-500 text-center">
-            No products found for "{debouncedSearchTerm}"
-          </p>
+        {showHeader && (
+          <h3 className="font-semibold text-gray-800">Products</h3>
         )}
-        {productResults?.slice(0, 5).map((product) => (
+        {products.slice(0, limit).map((product) => (
           <div
             key={product.id}
             className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
@@ -140,7 +157,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             <img
               src={
                 Array.isArray(product.media)
-                  ? product.media[0]?.src
+                  ? product.media[0]?.src || product.media[0]
                   : product.image_url || product.media || "/shop.png"
               }
               alt={product.name}
@@ -154,44 +171,45 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 {product.name}
               </span>
               <p className="text-xs text-gray-500 truncate">
-                {product.description || "No description"}
+                {product.price_in_naira
+                  ? `₦${product.price_in_naira}`
+                  : "Price unavailable"}{" "}
+                • {product.shop_name || "Shop"}
               </p>
             </div>
           </div>
         ))}
-
-        {productResults?.length > 0 && (
+        {showHeader && products.length > limit && (
           <div
             className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
-            onClick={handleSearchSubmit}
+            onClick={() => setActiveTab("Products")}
           >
             <Search size={16} />
-            See all results for "{debouncedSearchTerm}"
+            See all product results
           </div>
         )}
       </div>
     );
   };
 
-  const renderUserSearchResults = () => {
-    if (isSearchingUsers) {
-      return (
-        <div className="space-y-3">
-          <SearchSuggestionSkeleton />
-          <SearchSuggestionSkeleton />
+  const renderShopList = (shops, limit = 5, showHeader = true) => {
+    if (!Array.isArray(shops) || shops.length === 0) {
+      return showHeader ? (
+        <div className="text-center py-4">
+          <p className="text-gray-500 text-sm">
+            No shops found for "{debouncedSearchTerm}"
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Hint: Try searching by Shop Name instead of username.
+          </p>
         </div>
-      );
+      ) : null;
     }
 
     return (
       <div className="space-y-4">
-        <h3 className="font-semibold text-gray-800">Shops & Vendors</h3>
-        {userResults?.length === 0 && (
-          <p className="text-gray-500 text-center">
-            No users or shops found for "{debouncedSearchTerm}"
-          </p>
-        )}
-        {userResults?.slice(0, 5).map((shop) => (
+        {showHeader && <h3 className="font-semibold text-gray-800">Shops</h3>}
+        {shops.slice(0, limit).map((shop) => (
           <div
             key={shop.id}
             className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
@@ -201,7 +219,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             }}
           >
             <img
-              src={shop.image_url || "/user.png"}
+              src={shop.image_url || shop.image || "/user.png"}
               alt={shop.name}
               className="w-12 h-12 rounded-full bg-gray-200 object-cover border border-gray-100"
               onError={(e) => {
@@ -213,12 +231,87 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 {shop.name}
               </span>
               <p className="text-xs text-gray-500 truncate">
+                {shop.owner && shop.owner.username
+                  ? `@${shop.owner.username} • `
+                  : ""}
                 {shop.category || "Vendor"} • {shop.follower_count || 0}{" "}
                 followers
               </p>
             </div>
           </div>
         ))}
+        {showHeader && shops.length > limit && (
+          <div
+            className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
+            onClick={() => setActiveTab("Shops")}
+          >
+            <Search size={16} />
+            See all shop results
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderContentList = (contents, limit = 6, showHeader = true) => {
+    if (!Array.isArray(contents) || contents.length === 0) {
+      return showHeader ? (
+        <p className="text-gray-500 text-center py-4 text-sm">
+          No contents found for "{debouncedSearchTerm}"
+        </p>
+      ) : null;
+    }
+
+    return (
+      <div className="space-y-4">
+        {showHeader && (
+          <h3 className="font-semibold text-gray-800">Contents</h3>
+        )}
+        <div className="grid grid-cols-2 gap-4">
+          {contents.slice(0, limit).map((content) => (
+            <div
+              key={content.id}
+              className="cursor-pointer group"
+              onClick={() => {
+                navigate(`/contents/${content.id}`);
+                onClose();
+              }}
+            >
+              <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-square">
+                {content.media || content.image_url ? (
+                  <img
+                    src={
+                      Array.isArray(content.media)
+                        ? content.media[0]?.src || content.media[0]
+                        : content.media || content.image_url
+                    }
+                    alt={content.caption || "Content"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                    No Image
+                  </div>
+                )}
+              </div>
+              <p className="mt-1 text-sm font-medium truncate text-gray-800">
+                {content.caption || "Untitled"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                @{content.user?.username || content.user_name || "user"}
+              </p>
+            </div>
+          ))}
+        </div>
+        {showHeader && contents.length > limit && (
+          <div
+            className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
+            onClick={() => setActiveTab("Contents")}
+          >
+            <Search size={16} />
+            See all content results
+          </div>
+        )}
       </div>
     );
   };
@@ -234,17 +327,23 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     }
     if (topError) {
       return (
-        <p className="text-red-500 text-center py-4">Failed to load content.</p>
+        <p className="text-red-500 text-center py-4">
+          Failed to load top feed.
+        </p>
       );
     }
     return (
       <div className="grid grid-cols-2 gap-4">
-        {topContent?.slice(0, 6).map((post) => (
+        {topContent?.slice(0, 10).map((post) => (
           <div
             key={post.id}
             className="cursor-pointer group"
             onClick={() => {
-              navigate(`/product-details/${post.id}`);
+              navigate(
+                post.price
+                  ? `/product-details/${post.id}`
+                  : `/contents/${post.id}`,
+              );
               onClose();
             }}
           >
@@ -253,14 +352,14 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 <img
                   src={
                     Array.isArray(post.media)
-                      ? post.media[0]?.src
+                      ? post.media[0]?.src || post.media[0]
                       : post.media || post.image_url
                   }
-                  alt={post.name || "Post"}
+                  alt={post.name || post.caption || "Post"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
                   No Image
                 </div>
               )}
@@ -269,10 +368,61 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               {post.name || post.caption || "Untitled"}
             </p>
             <p className="text-xs text-gray-500 truncate">
-              {post.username || "Vendor"}
+              {post.shop_name || post.user?.username || "Vendor"}
             </p>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderTopSearchResults = () => {
+    if (isSearchingProducts || isSearchingShops || isSearchingContents) {
+      return (
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <SearchSuggestionSkeleton />
+            <SearchSuggestionSkeleton />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <SearchGridItemSkeleton />
+            <SearchGridItemSkeleton />
+          </div>
+        </div>
+      );
+    }
+
+    const hasAnyResults =
+      (Array.isArray(productResults) && productResults.length > 0) ||
+      (Array.isArray(shopResults) && shopResults.length > 0) ||
+      (Array.isArray(contentResults) && contentResults.length > 0);
+
+    if (!hasAnyResults) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10 text-gray-400 px-4 text-center">
+          <Search size={40} className="mb-2 opacity-50" />
+          <p className="text-sm font-medium text-gray-600">
+            No results found for "{debouncedSearchTerm}"
+          </p>
+          <p className="text-xs mt-2 text-gray-500">
+            Hint: Usernames are currently not searchable. Try searching by the
+            exact Shop Name or Product Name.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-8 pb-4">
+        {Array.isArray(shopResults) &&
+          shopResults.length > 0 &&
+          renderShopList(shopResults, 3, true)}
+        {Array.isArray(productResults) &&
+          productResults.length > 0 &&
+          renderProductList(productResults, 3, true)}
+        {Array.isArray(contentResults) &&
+          contentResults.length > 0 &&
+          renderContentList(contentResults, 4, true)}
       </div>
     );
   };
@@ -315,20 +465,58 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "Top":
-        return debouncedSearchTerm
-          ? renderProductSearchResults()
-          : renderTopFeed();
-      case "Recent":
-        return renderRecentTab();
-      case "Users":
+        return debouncedSearchTerm ? renderTopSearchResults() : renderTopFeed();
+      case "Products":
         return debouncedSearchTerm ? (
-          renderUserSearchResults()
+          isSearchingProducts ? (
+            <div className="space-y-3">
+              <SearchSuggestionSkeleton />
+              <SearchSuggestionSkeleton />
+              <SearchSuggestionSkeleton />
+            </div>
+          ) : (
+            renderProductList(productResults, 20, false)
+          )
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
+            <p className="text-sm">Search for products.</p>
+            <p className="text-xs mt-1">Start typing to find products.</p>
+          </div>
+        );
+      case "Contents":
+        return debouncedSearchTerm ? (
+          isSearchingContents ? (
+            <div className="grid grid-cols-2 gap-4">
+              <SearchGridItemSkeleton />
+              <SearchGridItemSkeleton />
+            </div>
+          ) : (
+            renderContentList(contentResults, 20, false)
+          )
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
+            <p className="text-sm">Search for contents and posts.</p>
+            <p className="text-xs mt-1">Start typing to find contents.</p>
+          </div>
+        );
+      case "Shops":
+        return debouncedSearchTerm ? (
+          isSearchingShops ? (
+            <div className="space-y-3">
+              <SearchSuggestionSkeleton />
+              <SearchSuggestionSkeleton />
+            </div>
+          ) : (
+            renderShopList(shopResults, 20, false)
+          )
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
             <p className="text-sm">Search for shops and vendors.</p>
-            <p className="text-xs mt-1">Start typing to find users.</p>
+            <p className="text-xs mt-1">Start typing to find shops.</p>
           </div>
         );
+      case "Recent":
+        return renderRecentTab();
       default:
         return null;
     }
@@ -367,7 +555,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               <form onSubmit={handleSearchSubmit} className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search products or vendors"
+                  placeholder="Search products, contents, or shops"
                   className="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-lily/50 text-gray-800 placeholder:text-gray-400 transition-all"
                   value={searchTerm}
                   onChange={handleSearchChange}
@@ -390,26 +578,28 @@ const SearchModal = ({ isOpen = true, onClose }) => {
 
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
               <div className="space-y-6">
-                <div className="flex space-x-6 border-b border-gray-200">
-                  {["Top", "Recent", "Users"].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-3 font-semibold text-sm transition-colors relative cursor-pointer ${
-                        activeTab === tab
-                          ? "text-lily"
-                          : "text-gray-500 hover:text-gray-800"
-                      }`}
-                    >
-                      {tab}
-                      {activeTab === tab && (
-                        <motion.div
-                          layoutId="activeTabIndicator"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
-                        />
-                      )}
-                    </button>
-                  ))}
+                <div className="flex space-x-6 border-b border-gray-200 overflow-x-auto no-scrollbar">
+                  {["Top", "Products", "Contents", "Shops", "Recent"].map(
+                    (tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-3 font-semibold text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
+                          activeTab === tab
+                            ? "text-lily"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
+                      >
+                        {tab}
+                        {activeTab === tab && (
+                          <motion.div
+                            layoutId="activeTabIndicator"
+                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
+                          />
+                        )}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 <div className="animate-fadeIn">{renderTabContent()}</div>

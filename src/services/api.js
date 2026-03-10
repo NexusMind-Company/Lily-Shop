@@ -268,6 +268,13 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
+export const searchContents = async (searchTerm) => {
+  const response = await api.get("/shops/feed/", {
+    params: { search: searchTerm },
+  });
+  return response.data;
+};
+
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
