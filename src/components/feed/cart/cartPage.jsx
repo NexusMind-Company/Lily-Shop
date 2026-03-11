@@ -62,7 +62,6 @@ const CartPage = () => {
   });
 
   useEffect(() => {
-    // Only fetch cart if not doing a direct buy to avoid unnecessary state shifts
     if (!isDirectBuy) {
       dispatch(fetchCart());
     }
@@ -189,7 +188,6 @@ const CartPage = () => {
   }, [userProfile, profileError]);
 
   useEffect(() => {
-    // Prevent redirecting back to home if directBuy items are populated
     if (isDirectBuy && directProduct) return;
 
     if (
@@ -381,11 +379,13 @@ const CartPage = () => {
                     <p className="text-sm font-semibold text-pink">
                       ₦
                       {formatPrice(
-                        Number(item.subtotal_naira) ||
-                          ((Number(item.current_price_kobo) || 0) / 100) *
-                            item.quantity ||
-                          (Number(item.product?.price_in_naira) || 0) *
-                            item.quantity ||
+                        (Number(item.current_price_kobo)
+                          ? Number(item.current_price_kobo) / 100
+                          : 0) ||
+                          Number(item.product?.price_in_naira) ||
+                          (Number(item.subtotal_naira)
+                            ? Number(item.subtotal_naira) / (item.quantity || 1)
+                            : 0) ||
                           0,
                       )}
                     </p>
