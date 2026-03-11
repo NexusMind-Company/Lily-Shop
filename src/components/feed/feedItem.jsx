@@ -92,7 +92,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [hasViewed, setHasViewed] = useState(false);
 
   const navigate = useNavigate();
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
@@ -130,7 +129,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   useEffect(() => {
     if (post.id !== currentPostId) {
       setCurrentPostId(post.id);
-      setHasViewed(false);
       setViewCount(
         Number(post.visit_count || post.view_count || post.views || 0),
       );
@@ -163,10 +161,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   useEffect(() => {
     let timer;
-    if (isActive && !hasViewed) {
+    if (isActive) {
       timer = setTimeout(() => {
         setViewCount((prev) => prev + 1);
-        setHasViewed(true);
 
         const recordView = isProduct ? recordProductView : recordContentView;
 
@@ -203,12 +200,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
           .catch((err) => {
             console.error(err);
             setViewCount((prev) => Math.max(0, prev - 1));
-            setHasViewed(false);
           });
       }, 2000);
     }
     return () => clearTimeout(timer);
-  }, [isActive, post.id, isProduct, hasViewed, queryClient]);
+  }, [isActive, post.id, isProduct, queryClient]);
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
