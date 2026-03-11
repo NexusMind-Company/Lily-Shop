@@ -16,6 +16,8 @@ import {
   Link as IconLink,
   Trash2,
   MoreVertical,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
@@ -517,8 +519,11 @@ const ProfileOwner = () => {
             }}
           />
           <div>
-            <h3 className="font-semibold text-center">
-              {user.username || user.email?.split("@")[0] || "Unnamed User"}
+            <h3 className="font-semibold text-center text-lg">
+              {user.name ||
+                user.username ||
+                user.email?.split("@")[0] ||
+                "Unnamed User"}
             </h3>
             <div className="flex items-center justify-center gap-2">
               <p className="text-gray-500 text-sm">
@@ -534,6 +539,33 @@ const ProfileOwner = () => {
             ? user.bio
             : "Add a bio to let people know more about you and your products!"}
         </p>
+
+        {/* METADATA ROW: Birthday and Location */}
+        {(user.location || user.birthdate || user.birthday) && (
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-3 text-xs text-gray-500">
+            {user.location && (
+              <div className="flex items-center gap-1">
+                <MapPin size={14} />
+                <span>{user.location}</span>
+              </div>
+            )}
+            {(user.birthdate || user.birthday) && (
+              <div className="flex items-center gap-1">
+                <Calendar size={14} />
+                <span>
+                  Born{" "}
+                  {new Date(user.birthdate || user.birthday).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "long",
+                      day: "numeric",
+                    },
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col justify-center items-center mt-4">
           <div className="flex gap-8 items-center mb-4 justify-center">
@@ -556,7 +588,7 @@ const ProfileOwner = () => {
               </div>
             </Link>
           </div>
-          <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-[250px] mx-auto">
+          <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-62.5 mx-auto">
             {user?.vendor_id && (
               <Link to="/vendor-dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
@@ -575,7 +607,7 @@ const ProfileOwner = () => {
 
       <div className="flex my-3 w-full justify-evenly">
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 0
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
@@ -585,7 +617,7 @@ const ProfileOwner = () => {
           <Grid size={26} />
         </button>
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 1
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
@@ -595,7 +627,7 @@ const ProfileOwner = () => {
           <Megaphone size={26} />
         </button>
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 2
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"

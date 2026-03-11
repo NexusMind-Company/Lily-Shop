@@ -186,7 +186,7 @@ const CommentsModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] bg-black/50 flex justify-center items-end"
+          className="fixed inset-0 z-60 bg-black/50 flex justify-center items-end"
           onClick={onClose}
         >
           <motion.div
@@ -197,7 +197,7 @@ const CommentsModal = ({
             className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl h-[70vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="relative p-4 border-b border-gray-200 shrink-0">
               <h2 className="text-center font-bold text-lg text-gray-800">
                 {commentsList.length > 0
                   ? countNodes(commentsList)
@@ -247,7 +247,7 @@ const CommentsModal = ({
             </div>
             <form
               onSubmit={handleSubmitComment}
-              className="p-4 border-t border-gray-200 bg-white flex-shrink-0"
+              className="p-4 border-t border-gray-200 bg-white shrink-0"
             >
               {replyTarget && (
                 <div className="text-sm text-gray-600 mb-2 flex items-center">
@@ -268,7 +268,7 @@ const CommentsModal = ({
                 </div>
               )}
               <div className="flex items-end space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gray-300 shrink-0">
                   {(currentUser?.profile_pic ||
                     currentUser?.userpic ||
                     currentUser?.image) && (
@@ -295,7 +295,7 @@ const CommentsModal = ({
                 <button
                   type="submit"
                   disabled={!commentText.trim() || isPosting}
-                  className="p-2 rounded-full transition-colors flex-shrink-0 disabled:bg-gray-200 disabled:text-gray-500 bg-lily text-white"
+                  className="p-2 rounded-full transition-colors shrink-0 disabled:bg-gray-200 disabled:text-gray-500 bg-lily text-white"
                 >
                   {isPosting ? (
                     <span className="animate-spin inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full"></span>

@@ -150,7 +150,7 @@ const CommentItem = ({
 
   return (
     <div className={`flex space-x-3 py-3 ${isReply ? "ml-8 mt-1" : "mt-2"}`}>
-      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E8F0FE] text-[#1967D2] flex items-center justify-center font-semibold text-sm border border-gray-100">
+      <div className="shrink-0 w-10 h-10 rounded-full bg-[#E8F0FE] text-[#1967D2] flex items-center justify-center font-semibold text-sm border border-gray-100">
         {comment.userpic || comment.profile_pic ? (
           <img
             src={comment.userpic || comment.profile_pic}
@@ -235,7 +235,7 @@ const CommentItem = ({
           </div>
         </div>
 
-        <p className="text-[15px] text-gray-800 leading-snug mt-1 break-words pr-2">
+        <p className="text-[15px] text-gray-800 leading-snug mt-1 wrap-break-word pr-2">
           {commentBody}
         </p>
 
