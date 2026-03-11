@@ -86,10 +86,6 @@ import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
 import Settings from "./pages/settings";
 import ChangePasswordPage from "./pages/ChangePassword";
 import DeleteAccountPage from "./pages/DeleteAccount";
-import ChangeDOBPage from "./pages/ChangeDOB";
-import ChangePhonePage from "./pages/ChangePhone";
-import ConfirmPhonePage from "./pages/ConfirmPhone";
-import ChangeUsernamePage from "./pages/ChangeUsername";
 import PasswordModalPage from "./pages/PasswordModalPage";
 
 /* ---------------- ADS & PAYMENTS ---------------- */
@@ -191,10 +187,8 @@ function App() {
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
             />
- <Route
-              path="/vendor-dashboard"
-              element={<VendorDashboard />} />
-            
+            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<ProfileVisiting />} />
@@ -239,7 +233,7 @@ function App() {
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
             />
-             <Route
+            <Route
               path="/create-vendor"
               element={<CreateSubscriptionVendor />}
             />
@@ -272,6 +266,13 @@ function App() {
 
             {/* Extras */}
             <Route path="/settings" element={<Settings />} />
+
+            {/* ================= GENERAL ACCOUNT ROUTES ================= */}
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+            <Route path="/password" element={<PasswordModalPage />} />
           </Route>
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
@@ -298,21 +299,6 @@ function App() {
               path="/subscription/create-meal-plan/:planId"
               element={<EditPlanPage />}
             />
-
-            {/* Settings & Account Management */}
-            <Route path="/change-password" element={<ChangePasswordPage />} />
-            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
-            <Route path="/delete-account" element={<DeleteAccountPage />} />
-            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
-            <Route path="/change-dob" element={<ChangeDOBPage />} />
-            <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
-            <Route path="/change-phone" element={<ChangePhonePage />} />
-            <Route path="/ChangePhone" element={<ChangePhonePage />} />
-            <Route path="/confirm-phone" element={<ConfirmPhonePage />} />
-            <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
-            <Route path="/change-username" element={<ChangeUsernamePage />} />
-            <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
-            <Route path="/password" element={<PasswordModalPage />} />
 
             {/* Ads Management */}
             <Route path="/ads" element={<PurchaseAds />} />

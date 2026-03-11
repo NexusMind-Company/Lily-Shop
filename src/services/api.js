@@ -924,4 +924,17 @@ export const cancelUserSubscription = async () => {
   return response.data;
 };
 
+export const changeUserPassword = async (old_password, new_password) => {
+  const response = await api.post("/auth/password-change/request/", {
+    old_password,
+    new_password,
+  });
+  return response.data;
+};
+
+export const deleteUserAccount = async () => {
+  const response = await api.delete("/auth/users/me/");
+  return response.data;
+};
+
 export default api;
