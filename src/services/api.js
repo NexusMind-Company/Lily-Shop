@@ -268,6 +268,13 @@ export const searchShops = async (searchTerm) => {
   return response.data;
 };
 
+export const searchContents = async (searchTerm) => {
+  const response = await api.get("/shops/feed/", {
+    params: { search: searchTerm },
+  });
+  return response.data;
+};
+
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;
@@ -285,7 +292,6 @@ export const addProductComment = async (
     product: productId,
   };
 
-  // Conditionally add parent to avoid backend silent failures with null
   if (parentId) {
     payload.parent = parentId;
   }
@@ -321,7 +327,6 @@ export const addContentComment = async (
     content_id: contentId,
   };
 
-  // Conditionally add parent to avoid backend silent failures with null
   if (parentId) {
     payload.parent = parentId;
   }
@@ -337,6 +342,16 @@ export const deleteContentComment = async (commentId) => {
   const response = await api.delete(
     `/shops/contents/comments/${commentId}/delete/`,
   );
+  return response.data;
+};
+
+export const deleteContentPost = async (contentId) => {
+  const response = await api.delete(`/shops/contents/${contentId}/delete/`);
+  return response.data;
+};
+
+export const deleteProductPost = async (productId) => {
+  const response = await api.delete(`/shops/products/${productId}/delete/`);
   return response.data;
 };
 
@@ -367,12 +382,12 @@ export const likeContentComment = async (commentId) => {
 };
 
 export const recordProductView = async (productId) => {
-  const response = await api.post(`/shops/products/${productId}/view/`, {});
+  const response = await api.post(`/shops/products/${productId}/views/`, {});
   return response.data;
 };
 
 export const recordContentView = async (contentId) => {
-  const response = await api.post(`/shops/contents/${contentId}/view/`, {});
+  const response = await api.post(`/shops/contents/${contentId}/views/`, {});
   return response.data;
 };
 
@@ -906,6 +921,19 @@ export const fetchUserSubscriptionStatus = async () => {
 
 export const cancelUserSubscription = async () => {
   const response = await api.post("/subscriptions/user/cancel/");
+  return response.data;
+};
+
+export const changeUserPassword = async (old_password, new_password) => {
+  const response = await api.post("/auth/password-change/request/", {
+    old_password,
+    new_password,
+  });
+  return response.data;
+};
+
+export const deleteUserAccount = async () => {
+  const response = await api.delete("/auth/users/me/");
   return response.data;
 };
 
