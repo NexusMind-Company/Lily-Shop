@@ -233,6 +233,10 @@ function App() {
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
             />
+             <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendor />}
+            />
             <Route
               path="/create-vendor"
               element={<CreateSubscriptionVendor />}
