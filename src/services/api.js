@@ -382,12 +382,12 @@ export const likeContentComment = async (commentId) => {
 };
 
 export const recordProductView = async (productId) => {
-  const response = await api.post(`/shops/products/${productId}/view/`, {});
+  const response = await api.post(`/shops/products/${productId}/views/`, {});
   return response.data;
 };
 
 export const recordContentView = async (contentId) => {
-  const response = await api.post(`/shops/contents/${contentId}/view/`, {});
+  const response = await api.post(`/shops/contents/${contentId}/views/`, {});
   return response.data;
 };
 

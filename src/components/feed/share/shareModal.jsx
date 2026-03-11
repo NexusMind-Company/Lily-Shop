@@ -124,7 +124,7 @@ const ShareModal = ({ isOpen, onClose, postUrl, postCaption }) => {
               <div className="grid grid-cols-4 gap-6">
                 <button
                   onClick={handleNativeShare}
-                  className="flex flex-col items-center justify-center size-17 bg-lily hover:bg-ash rounded-full transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center min-w-17 min-h-17 bg-lily hover:bg-ash rounded-full transition-colors cursor-pointer"
                 >
                   <Share2 size={24} className="text-gray-700" />
                   <span className="text-xs font-semibold text-gray-800">
