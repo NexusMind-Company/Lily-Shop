@@ -74,6 +74,33 @@ const ProfileVisiting = () => {
           }
         }
 
+        let fetchedPosts = [];
+        let fetchedProducts = [];
+
+        try {
+          const [postsRes, productsRes] = await Promise.all([
+            api.get(`/shops/contents/${targetId}`),
+            api.get(`/shops/products/${targetId}/`),
+          ]);
+          fetchedPosts = postsRes.data?.results || postsRes.data || [];
+          fetchedProducts = productsRes.data?.results || productsRes.data || [];
+        } catch (err) {
+          console.warn(
+            "Could not fetch user contents/products, falling back to profile data",
+            err,
+          );
+          fetchedPosts =
+            result.posted_contents ||
+            result.contents ||
+            result.user?.posted_contents ||
+            [];
+          fetchedProducts =
+            result.posted_products ||
+            result.products ||
+            result.user?.posted_products ||
+            [];
+        }
+
         const normalizedData = {
           user: {
             ...result,
@@ -92,18 +119,18 @@ const ProfileVisiting = () => {
             following_count: actualFollowingCount,
             verified: result.verified || false,
           },
-          products:
-            result.products || result.posts || result.user?.products || [],
+          posts: fetchedPosts,
+          products: fetchedProducts,
         };
 
+        // Robust parsing to catch strings, booleans, and nested payload variations
         const checkIsFollowing =
           result.is_following === true ||
-          result.is_following === "true" ||
-          result.is_followed === true ||
-          result.is_followed === "true" ||
-          result.has_followed === true ||
+          String(result.is_following).toLowerCase() === "true" ||
           result.user?.is_following === true ||
-          result.user?.is_followed === true;
+          String(result.user?.is_following).toLowerCase() === "true" ||
+          result.is_followed === true ||
+          String(result.is_followed).toLowerCase() === "true";
 
         setData(normalizedData);
         setIsFollowing(checkIsFollowing);
@@ -127,8 +154,8 @@ const ProfileVisiting = () => {
     const previousState = isFollowing;
     const newState = !isFollowing;
 
+    // Optimistic Update
     setIsFollowing(newState);
-
     setData((prev) => ({
       ...prev,
       user: {
@@ -141,10 +168,48 @@ const ProfileVisiting = () => {
     }));
 
     try {
-      await followUser(targetId);
+      const response = await followUser(targetId);
+
+      const responseMsg = response?.message?.toLowerCase() || "";
+
+      // Hard-sync: If backend successfully unfollowed but our optimistic UI is true
+      if (responseMsg.includes("unfollow") && newState === true) {
+        setIsFollowing(false);
+        setData((prev) => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            followers_count: Math.max(0, (prev.user.followers_count || 0) - 2),
+          },
+        }));
+      }
+      // Hard-sync: If backend successfully followed but our optimistic UI is false
+      else if (
+        responseMsg.includes("follow") &&
+        !responseMsg.includes("unfollow") &&
+        newState === false
+      ) {
+        setIsFollowing(true);
+        setData((prev) => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            followers_count: (prev.user.followers_count || 0) + 2,
+          },
+        }));
+      }
+      // Fallback to explicit flag if message check fails
+      else if (response && typeof response.is_following !== "undefined") {
+        setIsFollowing(
+          response.is_following === true ||
+            String(response.is_following).toLowerCase() === "true",
+        );
+      }
+
       dispatch(fetchProfile());
     } catch (err) {
       console.error("Follow failed", err);
+      // Revert Optimistic Update on error
       setIsFollowing(previousState);
       setData((prev) => ({
         ...prev,
@@ -185,7 +250,7 @@ const ProfileVisiting = () => {
 
   if (!data) return null;
 
-  const { user = {}, products = [] } = data;
+  const { user = {}, posts = [], products = [] } = data;
 
   const renderGrid = (items, emptyMessage) => {
     if (!items || items.length === 0) {
@@ -203,18 +268,25 @@ const ProfileVisiting = () => {
         animate={{ opacity: 1 }}
         className="grid grid-cols-3 gap-1"
       >
-        {items.map((post, i) => {
+        {items.map((item, i) => {
           const mediaSrc =
-            post.image || post.images?.[0]?.image || "/placeholder.png";
-          const isVideo = post.is_video || post.video;
+            item.image_url ||
+            item.media_url ||
+            item.media ||
+            item.image ||
+            item.images?.[0]?.image ||
+            "/placeholder.png";
+
+          const isVideo =
+            item.is_video || item.video || item.post_type === "VIDEO";
 
           return (
             <motion.div
-              key={i}
+              key={item.id || i}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/product-details/${post.id}`)}
+              onClick={() => navigate(`/product-details/${item.id}`)}
               className="relative aspect-square overflow-hidden cursor-pointer group"
             >
               <img
@@ -227,11 +299,15 @@ const ProfileVisiting = () => {
                 <div className="flex items-center gap-4 text-white">
                   <div className="flex items-center gap-1">
                     <Heart size={20} className="fill-white" />
-                    <span className="font-semibold">{post.likes || 0}</span>
+                    <span className="font-semibold">
+                      {item.like_count || item.likes || 0}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Eye size={20} />
-                    <span className="font-semibold">{post.views || 0}</span>
+                    <span className="font-semibold">
+                      {item.views || item.view_count || item.visit_count || 0}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -321,7 +397,7 @@ const ProfileVisiting = () => {
 
           <div className="flex items-center justify-around py-4 border-t border-b border-gray-200">
             <div className="text-center">
-              <p className="font-bold text-2xl">{products.length}</p>
+              <p className="font-bold text-2xl">{posts.length}</p>
               <p className="text-gray-600 text-sm">Posts</p>
             </div>
             <Link to={`/followers/${user.id || ""}`} className="text-center">
@@ -408,7 +484,7 @@ const ProfileVisiting = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              {renderGrid(products, "No posts yet")}
+              {renderGrid(posts, "No posts yet")}
             </motion.div>
           )}
           {activeTab === "products" && (

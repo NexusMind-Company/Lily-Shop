@@ -1,17 +1,23 @@
 import { useNavigate } from "react-router-dom";
-import { Phone, Mail, User, Key, Calendar, Trash2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Key, Trash2, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Acc = () => {
   const navigate = useNavigate();
 
   const items = [
-    { icon: <Phone size={30} />, text: "Phone number", sub: "", to: "/ChangePhone" },
-    { icon: <Mail size={30} />, text: "Email", sub: "", },
-    { icon: <User size={30} />, text: "Username", sub: "", to: "/ChangeUsername" },
-    { icon: <Key size={30} />, text: "Change password", sub: "Change your password", to: "/ChangePassword" },
-    { icon: <Calendar size={30} />, text: "Date of birth", sub: "", to: "/ChangeDOB" },
-    { icon: <Trash2 size={30} />, text: "Delete account", sub: "Delete your account", to: "/DeleteAccount" },
+    {
+      icon: <Key size={30} />,
+      text: "Change password",
+      sub: "Change your password",
+      to: "/ChangePassword",
+    },
+    {
+      icon: <Trash2 size={30} />,
+      text: "Delete account",
+      sub: "Delete your account",
+      to: "/DeleteAccount",
+    },
   ];
 
   return (
@@ -26,11 +32,7 @@ const Acc = () => {
       <div className="mt-4">
         {items.map((item, i) =>
           item.to ? (
-            <Link
-              to={item.to}
-              key={i}
-              className="flex px-4 py-3 items-center"
-            >
+            <Link to={item.to} key={i} className="flex px-4 py-3 items-center">
               <div className="mr-3">{item.icon}</div>
               <div className="flex-1">
                 <p className="pb-1">{item.text}</p>
@@ -39,17 +41,14 @@ const Acc = () => {
               <ChevronRight size={30} />
             </Link>
           ) : (
-            <div
-              key={i}
-              className="flex px-4 py-3 items-center"
-            >
+            <div key={i} className="flex px-4 py-3 items-center">
               <div className="mr-3">{item.icon}</div>
               <div className="flex-1">
                 <p className="pb-1">{item.text}</p>
                 <p className="">{item.sub}</p>
               </div>
             </div>
-          )
+          ),
         )}
       </div>
     </div>
