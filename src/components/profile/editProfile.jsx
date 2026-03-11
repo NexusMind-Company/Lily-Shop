@@ -14,6 +14,8 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { fetchProfile } from "../../redux/profileSlice";
 import {
   fetchUserProfile,
   updateUsername,
@@ -79,6 +81,7 @@ const EditProfile = () => {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   const { data: user, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
@@ -140,6 +143,7 @@ const EditProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["userProfile"]);
+      dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
       navigate(-1);
     },

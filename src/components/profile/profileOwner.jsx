@@ -32,7 +32,7 @@ const ProfileOwner = () => {
 
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
-  const { user = {} } = data || {};
+  const user = data?.user || data || {};
 
   const [userPosts, setUserPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
@@ -57,10 +57,10 @@ const ProfileOwner = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (auth?.isAuthenticated && token && !data) {
+    if (auth?.isAuthenticated && token) {
       dispatch(fetchProfile());
     }
-  }, [auth?.isAuthenticated, data, dispatch]);
+  }, [auth?.isAuthenticated, dispatch]);
 
   useEffect(() => {
     const fetchFollowingCount = async () => {
@@ -339,7 +339,7 @@ const ProfileOwner = () => {
 
   if (!auth?.isAuthenticated) return null;
 
-  if (loading)
+  if (loading && !data)
     return (
       <div className="flex items-center justify-center min-h-screen w-full">
         <LoaderSd />
@@ -478,7 +478,7 @@ const ProfileOwner = () => {
   };
 
   const displayPostCount =
-    userPosts.length > 0 ? userPosts.length : data.product_count || 0;
+    userPosts.length > 0 ? userPosts.length : data?.product_count || 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
