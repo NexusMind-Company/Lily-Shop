@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Heart, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Heart,
+  Trash2,
+  MoreVertical,
+  Edit2,
+  Flag,
+} from "lucide-react";
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
@@ -69,6 +77,7 @@ const CommentItem = ({
   isReply = false,
 }) => {
   const [showReplies, setShowReplies] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   if (!comment) return null;
 
@@ -128,6 +137,7 @@ const CommentItem = ({
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
+    setShowMenu(false);
     if (onDelete) {
       const confirmDelete = window.confirm(
         "Are you sure you want to delete this comment?",
@@ -152,17 +162,77 @@ const CommentItem = ({
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <div className="flex items-center flex-wrap">
-          <p className="font-semibold text-[15px] text-gray-900">{userName}</p>
-          {comment.is_buyer && <VerifiedCartIcon />}
+      <div className="flex-1 min-w-0 flex flex-col justify-center relative">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center flex-wrap pr-6">
+            <p className="font-semibold text-[15px] text-gray-900">
+              {userName}
+            </p>
+            {comment.is_buyer && <VerifiedCartIcon />}
 
-          {comment.replyingTo && (
-            <span className="flex items-center text-gray-500 text-[15px] mx-1">
-              <span className="mx-1 text-gray-400 font-light">&gt;</span>
-              <span className="text-gray-700">{comment.replyingTo}</span>
-            </span>
-          )}
+            {comment.replyingTo && (
+              <span className="flex items-center text-gray-500 text-[15px] mx-1">
+                <span className="mx-1 text-gray-400 font-light">&gt;</span>
+                <span className="text-gray-700">{comment.replyingTo}</span>
+              </span>
+            )}
+          </div>
+
+          <div className="absolute right-0 top-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                  }}
+                ></div>
+                <div className="absolute right-0 top-6 mt-1 w-32 bg-white rounded-md shadow-lg overflow-hidden py-1 z-20 border border-gray-100">
+                  {isOwner && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          alert("Edit functionality coming soon!");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Edit2 size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={handleDeleteClick}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2 font-medium"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      alert("Report submitted.");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <Flag size={14} /> Report
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <p className="text-[15px] text-gray-800 leading-snug mt-1 break-words pr-2">
@@ -177,15 +247,6 @@ const CommentItem = ({
           >
             Reply
           </button>
-
-          {isOwner && onDelete && (
-            <button
-              onClick={handleDeleteClick}
-              className="font-semibold text-red-500 hover:text-red-700 transition-colors ml-4 flex items-center"
-            >
-              <Trash2 size={13} className="mr-1" /> Delete
-            </button>
-          )}
 
           <div
             className="ml-auto flex items-center space-x-1.5 cursor-pointer pr-2 hover:opacity-80 transition-opacity"

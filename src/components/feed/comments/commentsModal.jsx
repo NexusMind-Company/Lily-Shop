@@ -12,6 +12,10 @@ import {
 import CommentItem from "../comments/commentItem";
 import { CommentSkeleton } from "../../common/skeletons";
 import { useNavigate } from "react-router-dom";
+import {
+  deleteProductComment,
+  deleteContentComment,
+} from "../../../services/api";
 
 const countNodes = (nodes) => {
   if (!Array.isArray(nodes)) return 0;
@@ -32,8 +36,12 @@ const CommentsModal = ({
   const textareaRef = useRef(null);
 
   const authState = useSelector((state) => state.auth);
-  const currentUser =
-    authState?.user_data || authState?.user || authState?.profile || null;
+  const profileState = useSelector((state) => state.profile);
+
+  // Clean, exact data targeting based on your slices
+  const currentUserId =
+    profileState?.data?.user?.id || authState?.user_data?.id;
+  const currentUser = profileState?.data?.user || authState?.user_data || null;
   const isAuthenticated = authState?.isAuthenticated;
 
   const rawComments = useSelector((state) => state.feedComments.comments);
@@ -98,6 +106,22 @@ const CommentsModal = ({
     dispatch(toggleCommentLike({ commentId, postId, itemType }));
   };
 
+  const handleDeleteComment = async (commentId, isReply) => {
+    if (!isAuthenticated) return;
+
+    try {
+      if (itemType === "product") {
+        await deleteProductComment(commentId);
+      } else {
+        await deleteContentComment(commentId);
+      }
+      dispatch(fetchComments({ postId, itemType }));
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
+      alert("Failed to delete comment. Please try again.");
+    }
+  };
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     const trimmedText = commentText.trim();
@@ -120,17 +144,17 @@ const CommentsModal = ({
 
     const currentUserName =
       currentUser?.username ||
+      currentUser?.full_name ||
       currentUser?.name ||
       currentUser?.email ||
-      currentUser?.first_name ||
       "User";
 
     const newComment = {
       id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       user_name: currentUserName,
       userpic:
-        currentUser?.userpic ||
         currentUser?.profile_pic ||
+        currentUser?.userpic ||
         currentUser?.image ||
         null,
       comment_text: finalCommentText,
@@ -148,9 +172,7 @@ const CommentsModal = ({
 
     try {
       await dispatch(postComment(newComment)).unwrap();
-    } catch (error) {
-      // Silently fail as per clean code standards, or handled by Redux slice
-    }
+    } catch (error) {}
 
     setCommentText("");
     setReplyTarget(null);
@@ -213,6 +235,8 @@ const CommentsModal = ({
                     comment={comment}
                     onReply={handleReplyTag}
                     onLike={handleLikeComment}
+                    onDelete={handleDeleteComment}
+                    currentUserId={currentUserId}
                   />
                 ))}
               {commentsStatus === "failed" && (
