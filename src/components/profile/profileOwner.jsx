@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { api } from "../../services/api";
+import { api, deleteContentPost, deleteProductPost } from "../../services/api";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   Link as IconLink,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
@@ -62,8 +63,6 @@ const ProfileOwner = () => {
 
       const currentCount = user.following_count || 0;
 
-      // If the count is explicitly greater than 0, trust the initial data.
-      // Otherwise, run the fallback fetch to ensure accuracy.
       if (currentCount > 0) {
         setFollowingCount(currentCount);
         return;
@@ -305,6 +304,33 @@ const ProfileOwner = () => {
     return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
 
+  const handleDeletePost = async (e, post) => {
+    e.stopPropagation();
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this post?",
+    );
+    if (!confirmDelete) return;
+
+    try {
+      if (post.itemType === "product") {
+        await deleteProductPost(post.id);
+      } else {
+        await deleteContentPost(post.id);
+      }
+
+      setUserPosts((prev) => prev.filter((p) => p.id !== post.id));
+      if (feedOverlay.isOpen) {
+        setFeedOverlay((prev) => ({
+          ...prev,
+          items: prev.items.filter((p) => p.id !== post.id),
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to delete post", error);
+      alert("Failed to delete post. Please try again.");
+    }
+  };
+
   if (!auth?.isAuthenticated) return null;
 
   if (loading)
@@ -353,8 +379,8 @@ const ProfileOwner = () => {
 
           return (
             <div
-              key={i}
-              className="relative rounded-lg overflow-hidden cursor-pointer"
+              key={post.id || i}
+              className="relative rounded-lg overflow-hidden cursor-pointer group"
               onClick={() => {
                 if (post.itemType === "product") {
                   navigate(`/product-details/${post.id}`);
@@ -395,6 +421,15 @@ const ProfileOwner = () => {
               <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
                 <Eye size={15} className="mr-1" /> {post.view_count || 0}
               </div>
+
+              {activeTab === 0 && (
+                <button
+                  onClick={(e) => handleDeletePost(e, post)}
+                  className="absolute top-1 right-1 bg-black/50 p-1.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80 z-10"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           );
         })}
@@ -416,7 +451,6 @@ const ProfileOwner = () => {
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
-      {/* Dynamic Profile Feed Viewer */}
       {feedOverlay.isOpen && (
         <ProfileFeedViewer
           posts={feedOverlay.items}
@@ -425,7 +459,6 @@ const ProfileOwner = () => {
         />
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 mt-1">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
@@ -443,7 +476,6 @@ const ProfileOwner = () => {
         </div>
       </div>
 
-      {/* Profile Info */}
       <div className="px-4 py-3 border-b border-gray-300">
         <div className="flex flex-col gap-2 items-center justify-center">
           <img
@@ -474,7 +506,6 @@ const ProfileOwner = () => {
             : "Add a bio to let people know more about you and your products!"}
         </p>
 
-        {/* Stats */}
         <div className="flex flex-col justify-center items-center mt-4">
           <div className="flex gap-8 items-center mb-4 justify-center">
             <div className="flex flex-col items-center">
@@ -513,7 +544,6 @@ const ProfileOwner = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex my-3 w-full justify-evenly">
         <button
           className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
@@ -547,7 +577,6 @@ const ProfileOwner = () => {
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="w-full">
         {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
         {activeTab === 1 && <AnnouncementsGrid />}

@@ -123,14 +123,14 @@ const ProfileVisiting = () => {
           products: fetchedProducts,
         };
 
+        // Robust parsing to catch strings, booleans, and nested payload variations
         const checkIsFollowing =
           result.is_following === true ||
-          result.is_following === "true" ||
-          result.is_followed === true ||
-          result.is_followed === "true" ||
-          result.has_followed === true ||
+          String(result.is_following).toLowerCase() === "true" ||
           result.user?.is_following === true ||
-          result.user?.is_followed === true;
+          String(result.user?.is_following).toLowerCase() === "true" ||
+          result.is_followed === true ||
+          String(result.is_followed).toLowerCase() === "true";
 
         setData(normalizedData);
         setIsFollowing(checkIsFollowing);
@@ -154,8 +154,8 @@ const ProfileVisiting = () => {
     const previousState = isFollowing;
     const newState = !isFollowing;
 
+    // Optimistic Update
     setIsFollowing(newState);
-
     setData((prev) => ({
       ...prev,
       user: {
@@ -168,10 +168,48 @@ const ProfileVisiting = () => {
     }));
 
     try {
-      await followUser(targetId);
+      const response = await followUser(targetId);
+
+      const responseMsg = response?.message?.toLowerCase() || "";
+
+      // Hard-sync: If backend successfully unfollowed but our optimistic UI is true
+      if (responseMsg.includes("unfollow") && newState === true) {
+        setIsFollowing(false);
+        setData((prev) => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            followers_count: Math.max(0, (prev.user.followers_count || 0) - 2),
+          },
+        }));
+      }
+      // Hard-sync: If backend successfully followed but our optimistic UI is false
+      else if (
+        responseMsg.includes("follow") &&
+        !responseMsg.includes("unfollow") &&
+        newState === false
+      ) {
+        setIsFollowing(true);
+        setData((prev) => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            followers_count: (prev.user.followers_count || 0) + 2,
+          },
+        }));
+      }
+      // Fallback to explicit flag if message check fails
+      else if (response && typeof response.is_following !== "undefined") {
+        setIsFollowing(
+          response.is_following === true ||
+            String(response.is_following).toLowerCase() === "true",
+        );
+      }
+
       dispatch(fetchProfile());
     } catch (err) {
       console.error("Follow failed", err);
+      // Revert Optimistic Update on error
       setIsFollowing(previousState);
       setData((prev) => ({
         ...prev,
@@ -267,7 +305,9 @@ const ProfileVisiting = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Eye size={20} />
-                    <span className="font-semibold">{item.views || 0}</span>
+                    <span className="font-semibold">
+                      {item.views || item.view_count || item.visit_count || 0}
+                    </span>
                   </div>
                 </div>
               </div>
