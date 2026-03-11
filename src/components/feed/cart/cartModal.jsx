@@ -97,7 +97,22 @@ const CartModal = ({ isOpen, onClose }) => {
   const selectedTotal = useMemo(() => {
     return cartItems.reduce((total, item) => {
       if (selectedItems.has(item.id)) {
-        return total + Number(item.subtotal_naira || 0);
+        const unitPrice =
+          Number(item.price_naira) ||
+          Number(item.product?.price_in_naira) ||
+          (Number(item.total_price_naira)
+            ? Number(item.total_price_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.subtotal_naira)
+            ? Number(item.subtotal_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.price_kobo) ? Number(item.price_kobo) / 100 : 0) ||
+          (Number(item.current_price_kobo)
+            ? Number(item.current_price_kobo) / 100
+            : 0) ||
+          0;
+
+        return total + unitPrice * item.quantity;
       }
       return total;
     }, 0);
@@ -225,9 +240,38 @@ const CartModal = ({ isOpen, onClose }) => {
               ) : (
                 cartItems.map((item) => {
                   const isUpdating = updatingItems.has(item.id);
+
+                  // 1. Establish the rock-solid current unit price based on strict fallbacks
+                  const unitPrice =
+                    Number(item.price_naira) ||
+                    Number(item.product?.price_in_naira) ||
+                    (Number(item.total_price_naira)
+                      ? Number(item.total_price_naira) / (item.quantity || 1)
+                      : 0) ||
+                    (Number(item.subtotal_naira)
+                      ? Number(item.subtotal_naira) / (item.quantity || 1)
+                      : 0) ||
+                    (Number(item.price_kobo)
+                      ? Number(item.price_kobo) / 100
+                      : 0) ||
+                    (Number(item.current_price_kobo)
+                      ? Number(item.current_price_kobo) / 100
+                      : 0) ||
+                    0;
+
+                  // 2. Derive the original snapshot price securely (falling back to 0 if not present)
+                  const snapshotPrice =
+                    Number(item.price_naira_snapshot) ||
+                    (Number(item.price_kobo_snapshot)
+                      ? Number(item.price_kobo_snapshot) / 100
+                      : 0);
+
+                  // 3. Only trigger the warning if we have a valid snapshot AND it differs from the current true unit price
                   const priceChanged =
                     item.price_changed ||
-                    item.price_kobo_snapshot !== item.current_price_kobo;
+                    (snapshotPrice > 0 && snapshotPrice !== unitPrice);
+
+                  const derivedSubtotal = unitPrice * item.quantity;
 
                   return (
                     <div
@@ -259,13 +303,12 @@ const CartModal = ({ isOpen, onClose }) => {
                         </h3>
 
                         <p className="text-sm text-gray-600">
-                          ₦{formatPrice(item.current_price_kobo / 100)}
+                          ₦{formatPrice(unitPrice)}
                         </p>
 
-                        {priceChanged && (
+                        {priceChanged && snapshotPrice > 0 && (
                           <p className="text-xs text-amber-600">
-                            ⚠️ Price changed from ₦
-                            {formatPrice(item.price_kobo_snapshot / 100)}
+                            ⚠️ Price changed from ₦{formatPrice(snapshotPrice)}
                           </p>
                         )}
 
@@ -311,7 +354,7 @@ const CartModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <p className="text-sm font-semibold text-gray-800 mt-1">
-                          Subtotal: ₦{formatPrice(item.subtotal_naira)}
+                          Subtotal: ₦{formatPrice(derivedSubtotal)}
                         </p>
                       </div>
                       <div className="flex flex-col items-center justify-between h-35">
