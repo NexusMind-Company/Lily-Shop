@@ -15,6 +15,7 @@ import {
   LogOut,
   Link as IconLink,
   Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
@@ -36,6 +37,8 @@ const ProfileOwner = () => {
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -306,6 +309,7 @@ const ProfileOwner = () => {
 
   const handleDeletePost = async (e, post) => {
     e.stopPropagation();
+    setOpenMenuId(null);
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this post?",
     );
@@ -380,7 +384,7 @@ const ProfileOwner = () => {
           return (
             <div
               key={post.id || i}
-              className="relative rounded-lg overflow-hidden cursor-pointer group"
+              className="relative rounded-lg overflow-hidden cursor-pointer"
               onClick={() => {
                 if (post.itemType === "product") {
                   navigate(`/product-details/${post.id}`);
@@ -423,12 +427,37 @@ const ProfileOwner = () => {
               </div>
 
               {activeTab === 0 && (
-                <button
-                  onClick={(e) => handleDeletePost(e, post)}
-                  className="absolute top-1 right-1 bg-black/50 p-1.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80 z-10"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="absolute top-1 right-1 z-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === post.id ? null : post.id);
+                    }}
+                    className="bg-black/50 p-1 rounded-full text-white hover:bg-black/70 transition-colors shadow-sm"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+
+                  {openMenuId === post.id && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(null);
+                        }}
+                      ></div>
+                      <div className="absolute right-0 top-8 mt-1 w-28 bg-white rounded-md shadow-lg overflow-hidden py-1 z-20">
+                        <button
+                          onClick={(e) => handleDeletePost(e, post)}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 font-medium"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           );
