@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Heart } from "lucide-react";
+import { ChevronDown, ChevronUp, Heart, Trash2 } from "lucide-react";
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
@@ -60,7 +60,14 @@ const VerifiedCartIcon = () => (
   </svg>
 );
 
-const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
+const CommentItem = ({
+  comment,
+  onReply,
+  onLike,
+  onDelete,
+  currentUserId,
+  isReply = false,
+}) => {
   const [showReplies, setShowReplies] = useState(false);
 
   if (!comment) return null;
@@ -98,6 +105,13 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
         comment.timestamp,
     );
 
+  const isOwner =
+    currentUserId &&
+    (comment.user_id === currentUserId ||
+      comment.userId === currentUserId ||
+      comment.author?.id === currentUserId ||
+      comment.user?.id === currentUserId);
+
   const handleReplyClick = (e) => {
     e.stopPropagation();
     if (onReply) {
@@ -109,6 +123,18 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
     e.stopPropagation();
     if (onLike) {
       onLike(comment.id);
+    }
+  };
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    if (onDelete) {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this comment?",
+      );
+      if (confirmDelete) {
+        onDelete(comment.id, isReply);
+      }
     }
   };
 
@@ -151,6 +177,15 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
           >
             Reply
           </button>
+
+          {isOwner && onDelete && (
+            <button
+              onClick={handleDeleteClick}
+              className="font-semibold text-red-500 hover:text-red-700 transition-colors ml-4 flex items-center"
+            >
+              <Trash2 size={13} className="mr-1" /> Delete
+            </button>
+          )}
 
           <div
             className="ml-auto flex items-center space-x-1.5 cursor-pointer pr-2 hover:opacity-80 transition-opacity"
@@ -208,6 +243,8 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
                     comment={reply}
                     onReply={onReply}
                     onLike={onLike}
+                    onDelete={onDelete}
+                    currentUserId={currentUserId}
                     isReply={true}
                   />
                 ))}

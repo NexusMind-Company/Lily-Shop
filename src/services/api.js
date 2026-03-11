@@ -292,7 +292,6 @@ export const addProductComment = async (
     product: productId,
   };
 
-  // Conditionally add parent to avoid backend silent failures with null
   if (parentId) {
     payload.parent = parentId;
   }
@@ -328,7 +327,6 @@ export const addContentComment = async (
     content_id: contentId,
   };
 
-  // Conditionally add parent to avoid backend silent failures with null
   if (parentId) {
     payload.parent = parentId;
   }
@@ -344,6 +342,16 @@ export const deleteContentComment = async (commentId) => {
   const response = await api.delete(
     `/shops/contents/comments/${commentId}/delete/`,
   );
+  return response.data;
+};
+
+export const deleteContentPost = async (contentId) => {
+  const response = await api.delete(`/shops/contents/${contentId}/delete/`);
+  return response.data;
+};
+
+export const deleteProductPost = async (productId) => {
+  const response = await api.delete(`/shops/products/${productId}/delete/`);
   return response.data;
 };
 
