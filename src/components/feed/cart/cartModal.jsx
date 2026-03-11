@@ -199,7 +199,7 @@ const CartModal = ({ isOpen, onClose }) => {
             animate={{ y: "0%" }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:rounded-3xl"
+            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative p-4 border-b border-gray-200 shrink-0">
@@ -259,18 +259,6 @@ const CartModal = ({ isOpen, onClose }) => {
                       : 0) ||
                     0;
 
-                  // 2. Derive the original snapshot price securely (falling back to 0 if not present)
-                  const snapshotPrice =
-                    Number(item.price_naira_snapshot) ||
-                    (Number(item.price_kobo_snapshot)
-                      ? Number(item.price_kobo_snapshot) / 100
-                      : 0);
-
-                  // 3. Only trigger the warning if we have a valid snapshot AND it differs from the current true unit price
-                  const priceChanged =
-                    item.price_changed ||
-                    (snapshotPrice > 0 && snapshotPrice !== unitPrice);
-
                   const derivedSubtotal = unitPrice * item.quantity;
 
                   return (
@@ -305,12 +293,6 @@ const CartModal = ({ isOpen, onClose }) => {
                         <p className="text-sm text-gray-600">
                           ₦{formatPrice(unitPrice)}
                         </p>
-
-                        {priceChanged && snapshotPrice > 0 && (
-                          <p className="text-xs text-amber-600">
-                            ⚠️ Price changed from ₦{formatPrice(snapshotPrice)}
-                          </p>
-                        )}
 
                         {!item.product?.in_stock && (
                           <p className="text-xs text-red-600 font-semibold">
