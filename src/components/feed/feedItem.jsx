@@ -21,6 +21,119 @@ const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
 
+// --- Helper Functions for Robust Cache Updates ---
+// These ensure we successfully update Infinite Queries (pages), Paginated Data (results), and Flat Arrays.
+
+const feedQueryPredicate = (query) => {
+  const keys = query.queryKey;
+  if (!Array.isArray(keys)) return false;
+  return keys.some(
+    (k) =>
+      typeof k === "string" &&
+      ["feed", "nearby", "search", "products", "profile"].includes(k),
+  );
+};
+
+const updateItemViews = (oldData, postId, incrementBy = 1) => {
+  if (!oldData) return oldData;
+
+  const updateItem = (item) => {
+    if (item.id === postId) {
+      const currentViews = Number(
+        item.views || item.view_count || item.visit_count || 0,
+      );
+      const newViews = currentViews + incrementBy;
+      return {
+        ...item,
+        views: newViews,
+        view_count: newViews,
+        visit_count: newViews,
+      };
+    }
+    return item;
+  };
+
+  if (oldData.pages) {
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page) => ({
+        ...page,
+        items: page.items ? page.items.map(updateItem) : [],
+        results: page.results ? page.results.map(updateItem) : [],
+      })),
+    };
+  }
+  if (oldData.results && Array.isArray(oldData.results)) {
+    return { ...oldData, results: oldData.results.map(updateItem) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.map(updateItem);
+  }
+  return oldData;
+};
+
+const updateItemLikes = (oldData, postId, newIsLiked, newLikeCount) => {
+  if (!oldData) return oldData;
+
+  const updateItem = (item) => {
+    if (item.id === postId) {
+      return { ...item, is_liked: newIsLiked, like_count: newLikeCount };
+    }
+    return item;
+  };
+
+  if (oldData.pages) {
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page) => ({
+        ...page,
+        items: page.items ? page.items.map(updateItem) : [],
+        results: page.results ? page.results.map(updateItem) : [],
+      })),
+    };
+  }
+  if (oldData.results && Array.isArray(oldData.results)) {
+    return { ...oldData, results: oldData.results.map(updateItem) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.map(updateItem);
+  }
+  return oldData;
+};
+
+const updateItemFollows = (oldData, profileId, newIsFollowed) => {
+  if (!oldData) return oldData;
+
+  const updateItem = (item) => {
+    if (item.user_id === profileId || item.userId === profileId) {
+      return {
+        ...item,
+        is_followed: newIsFollowed,
+        has_followed: newIsFollowed,
+      };
+    }
+    return item;
+  };
+
+  if (oldData.pages) {
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page) => ({
+        ...page,
+        items: page.items ? page.items.map(updateItem) : [],
+        results: page.results ? page.results.map(updateItem) : [],
+      })),
+    };
+  }
+  if (oldData.results && Array.isArray(oldData.results)) {
+    return { ...oldData, results: oldData.results.map(updateItem) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.map(updateItem);
+  }
+  return oldData;
+};
+
 const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
   const queryClient = useQueryClient();
@@ -169,33 +282,10 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
         recordView(post.id)
           .then(() => {
-            queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-              if (!oldData || !oldData.pages) return oldData;
-              return {
-                ...oldData,
-                pages: oldData.pages.map((page) => ({
-                  ...page,
-                  items:
-                    page.items?.map((item) => {
-                      if (item.id === post.id) {
-                        const currentViews = Number(
-                          item.views ||
-                            item.view_count ||
-                            item.visit_count ||
-                            0,
-                        );
-                        return {
-                          ...item,
-                          views: currentViews + 1,
-                          view_count: currentViews + 1,
-                          visit_count: currentViews + 1,
-                        };
-                      }
-                      return item;
-                    }) || [],
-                })),
-              };
-            });
+            queryClient.setQueriesData(
+              { predicate: feedQueryPredicate },
+              (oldData) => updateItemViews(oldData, post.id, 1),
+            );
           })
           .catch((err) => {
             console.error(err);
@@ -227,26 +317,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       setIsLiked(newIsLiked);
       setLikeCount(newLikeCount);
 
-      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            items:
-              page.items?.map((item) => {
-                if (item.id === post.id) {
-                  return {
-                    ...item,
-                    is_liked: newIsLiked,
-                    like_count: newLikeCount,
-                  };
-                }
-                return item;
-              }) || [],
-          })),
-        };
-      });
+      queryClient.setQueriesData({ predicate: feedQueryPredicate }, (oldData) =>
+        updateItemLikes(oldData, post.id, newIsLiked, newLikeCount),
+      );
 
       return { previousIsLiked, previousLikeCount };
     },
@@ -260,26 +333,16 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
 
-        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              items:
-                page.items?.map((item) => {
-                  if (item.id === post.id) {
-                    return {
-                      ...item,
-                      is_liked: context.previousIsLiked,
-                      like_count: context.previousLikeCount,
-                    };
-                  }
-                  return item;
-                }) || [],
-            })),
-          };
-        });
+        queryClient.setQueriesData(
+          { predicate: feedQueryPredicate },
+          (oldData) =>
+            updateItemLikes(
+              oldData,
+              post.id,
+              context.previousIsLiked,
+              context.previousLikeCount,
+            ),
+        );
       }
       console.error(`[Post ${post.id}] Like error:`, err);
     },
@@ -296,26 +359,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
       setIsFollowed(newIsFollowed);
 
-      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            items:
-              page.items?.map((item) => {
-                if (item.user_id === profileId || item.userId === profileId) {
-                  return {
-                    ...item,
-                    is_followed: newIsFollowed,
-                    has_followed: newIsFollowed,
-                  };
-                }
-                return item;
-              }) || [],
-          })),
-        };
-      });
+      queryClient.setQueriesData({ predicate: feedQueryPredicate }, (oldData) =>
+        updateItemFollows(oldData, profileId, newIsFollowed),
+      );
 
       return { previousIsFollowed };
     },
@@ -326,26 +372,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       if (context) {
         setIsFollowed(context.previousIsFollowed);
 
-        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              items:
-                page.items?.map((item) => {
-                  if (item.user_id === profileId || item.userId === profileId) {
-                    return {
-                      ...item,
-                      is_followed: context.previousIsFollowed,
-                      has_followed: context.previousIsFollowed,
-                    };
-                  }
-                  return item;
-                }) || [],
-            })),
-          };
-        });
+        queryClient.setQueriesData(
+          { predicate: feedQueryPredicate },
+          (oldData) =>
+            updateItemFollows(oldData, profileId, context.previousIsFollowed),
+        );
       }
     },
   });
