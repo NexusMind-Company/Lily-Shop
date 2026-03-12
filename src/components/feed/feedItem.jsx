@@ -484,7 +484,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               <div className="relative block">
                 <Link
                   to={profileLink}
-                  className="block w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden"
+                  className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden"
                 >
                   <img
                     src={post.userpic || "/profile-icon.svg"}
