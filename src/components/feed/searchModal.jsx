@@ -56,6 +56,32 @@ const extractArray = (data) => {
   return [];
 };
 
+const extractProducts = (data) => {
+  const arr = extractArray(data);
+  return arr.filter(
+    (item) =>
+      item.type?.toLowerCase() === "product" ||
+      item.price_in_naira !== undefined ||
+      item.price !== undefined ||
+      item.name !== undefined ||
+      item.productName !== undefined,
+  );
+};
+
+const extractContents = (data) => {
+  const arr = extractArray(data);
+  return arr.filter(
+    (item) =>
+      !(
+        item.type?.toLowerCase() === "product" ||
+        item.price_in_naira !== undefined ||
+        item.price !== undefined ||
+        item.name !== undefined ||
+        item.productName !== undefined
+      ),
+  );
+};
+
 const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +92,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
     queryKey: ["searchProducts", debouncedSearchTerm],
     queryFn: () => fetchProducts({ search: debouncedSearchTerm }),
-    select: extractArray,
+    select: extractProducts,
     enabled:
       (activeTab === "Top" || activeTab === "Products") &&
       !!debouncedSearchTerm,
@@ -83,7 +109,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
     queryKey: ["searchContents", debouncedSearchTerm],
     queryFn: () => searchContents(debouncedSearchTerm),
-    select: extractArray,
+    select: extractContents,
     enabled:
       (activeTab === "Top" || activeTab === "Contents") &&
       !!debouncedSearchTerm,
@@ -116,7 +142,9 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       setRecentSearches(newSearches);
       saveRecentSearches(newSearches);
 
-      navigate(`/searchResults?q=${encodeURIComponent(trimmedTerm)}`);
+      navigate(
+        `/searchResults?q=${encodeURIComponent(trimmedTerm)}&tab=${activeTab}`,
+      );
       onClose();
     }
   };
@@ -340,7 +368,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             className="cursor-pointer group"
             onClick={() => {
               navigate(
-                post.price
+                post.price !== undefined || post.price_in_naira !== undefined
                   ? `/product-details/${post.id}`
                   : `/contents/${post.id}`,
               );
