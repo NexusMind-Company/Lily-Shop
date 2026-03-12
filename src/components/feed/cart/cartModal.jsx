@@ -97,7 +97,22 @@ const CartModal = ({ isOpen, onClose }) => {
   const selectedTotal = useMemo(() => {
     return cartItems.reduce((total, item) => {
       if (selectedItems.has(item.id)) {
-        return total + Number(item.subtotal_naira || 0);
+        const unitPrice =
+          Number(item.price_naira) ||
+          Number(item.product?.price_in_naira) ||
+          (Number(item.total_price_naira)
+            ? Number(item.total_price_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.subtotal_naira)
+            ? Number(item.subtotal_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.price_kobo) ? Number(item.price_kobo) / 100 : 0) ||
+          (Number(item.current_price_kobo)
+            ? Number(item.current_price_kobo) / 100
+            : 0) ||
+          0;
+
+        return total + unitPrice * item.quantity;
       }
       return total;
     }, 0);
@@ -184,7 +199,7 @@ const CartModal = ({ isOpen, onClose }) => {
             animate={{ y: "0%" }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:rounded-3xl"
+            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative p-4 border-b border-gray-200 shrink-0">
@@ -225,9 +240,26 @@ const CartModal = ({ isOpen, onClose }) => {
               ) : (
                 cartItems.map((item) => {
                   const isUpdating = updatingItems.has(item.id);
-                  const priceChanged =
-                    item.price_changed ||
-                    item.price_kobo_snapshot !== item.current_price_kobo;
+
+                  // 1. Establish the rock-solid current unit price based on strict fallbacks
+                  const unitPrice =
+                    Number(item.price_naira) ||
+                    Number(item.product?.price_in_naira) ||
+                    (Number(item.total_price_naira)
+                      ? Number(item.total_price_naira) / (item.quantity || 1)
+                      : 0) ||
+                    (Number(item.subtotal_naira)
+                      ? Number(item.subtotal_naira) / (item.quantity || 1)
+                      : 0) ||
+                    (Number(item.price_kobo)
+                      ? Number(item.price_kobo) / 100
+                      : 0) ||
+                    (Number(item.current_price_kobo)
+                      ? Number(item.current_price_kobo) / 100
+                      : 0) ||
+                    0;
+
+                  const derivedSubtotal = unitPrice * item.quantity;
 
                   return (
                     <div
@@ -259,15 +291,8 @@ const CartModal = ({ isOpen, onClose }) => {
                         </h3>
 
                         <p className="text-sm text-gray-600">
-                          ₦{formatPrice(item.current_price_kobo / 100)}
+                          ₦{formatPrice(unitPrice)}
                         </p>
-
-                        {priceChanged && (
-                          <p className="text-xs text-amber-600">
-                            ⚠️ Price changed from ₦
-                            {formatPrice(item.price_kobo_snapshot / 100)}
-                          </p>
-                        )}
 
                         {!item.product?.in_stock && (
                           <p className="text-xs text-red-600 font-semibold">
@@ -311,7 +336,7 @@ const CartModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <p className="text-sm font-semibold text-gray-800 mt-1">
-                          Subtotal: ₦{formatPrice(item.subtotal_naira)}
+                          Subtotal: ₦{formatPrice(derivedSubtotal)}
                         </p>
                       </div>
                       <div className="flex flex-col items-center justify-between h-35">

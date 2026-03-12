@@ -33,10 +33,7 @@ export const addToCart = createAsyncThunk(
         quantity: quantity || 1,
         quantity_grams: quantity_grams || 0,
       };
-
-      console.log("🛒 Attempting to add to cart:", payload);
       const response = await api.post("/orders/carts/add/", payload);
-      console.log("✅ Cart response:", response.data);
 
       // Crucial: Fetch the updated cart state immediately after adding
       dispatch(fetchCart());
