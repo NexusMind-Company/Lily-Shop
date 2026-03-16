@@ -381,15 +381,35 @@ export const likeContentComment = async (commentId) => {
   return response.data;
 };
 
+// ==================== STRICT API DOCUMENTATION VIEWS FIX ====================
+
+// 1. Record the view (POST)
 export const recordProductView = async (productId) => {
-  const response = await api.post(`/shops/products/${productId}/views/`, {});
+  const response = await api.post(`/shops/products/${productId}/views/`, {
+    view_count: 1,
+  });
   return response.data;
 };
 
 export const recordContentView = async (contentId) => {
-  const response = await api.post(`/shops/contents/${contentId}/views/`, {});
+  const response = await api.post(`/shops/contents/${contentId}/views/`, {
+    view_count: 1,
+  });
   return response.data;
 };
+
+// 2. Fetch the authoritative view count (GET)
+export const fetchProductViewCount = async (productId) => {
+  const response = await api.get(`/shops/products/${productId}/views/`);
+  return response.data;
+};
+
+export const fetchContentViewCount = async (contentId) => {
+  const response = await api.get(`/shops/contents/${contentId}/views/`);
+  return response.data;
+};
+
+// ============================================================================
 
 export const followUser = async (userId) => {
   const response = await api.post(`/auth/follow/${userId}/`, {});
@@ -421,50 +441,44 @@ export const shareProductToChat = async (productId, recipientId) => {
 };
 
 export const fetchDeliveryAddresses = async () => {
-  const response = await api.get("/auth/profile/me/");
-  const deliveryAddress = response.data.deliveryAddress;
-
-  return deliveryAddress ? [{ id: 1, address: deliveryAddress }] : [];
+  const response = await api.get("/users/me/addresses/");
+  return response.data;
 };
 
 export const addNewAddress = async (addressData) => {
-  const address =
-    typeof addressData === "string"
-      ? addressData
-      : addressData.address || addressData.deliveryAddress;
+  const response = await api.post("/users/me/addresses/", addressData);
+  return response.data;
+};
 
-  const response = await api.patch("/auth/profile/update/", {
-    deliveryAddress: address,
+export const setDefaultAddress = async (addressId) => {
+  const response = await api.patch(`/users/me/addresses/${addressId}/`, {
+    is_default: true,
   });
-
   return response.data;
 };
 
 export const fetchPickupLocations = async () => {
-  const response = await api.get("/pickup-locations");
+  const response = await api.get("/pickup-locations/");
   return response.data;
 };
 
 export const fetchSavedCards = async () => {
-  const response = await api.get("/user/cards");
+  const response = await api.get("/users/me/cards/");
   return response.data;
 };
 
 export const addNewCard = async (cardData) => {
-  const response = await api.post("/user/cards", cardData);
+  const response = await api.post("/users/me/cards/", cardData);
   return response.data;
 };
 
-export const createOrder = async ({
-  items,
-  total_amount_kobo,
-  payment_method,
-}) => {
-  const response = await api.post("/orders/create/", {
-    items,
-    total_amount_kobo,
-    payment_method,
-  });
+export const calculateCheckout = async (checkoutData) => {
+  const response = await api.post("/orders/calculate-checkout/", checkoutData);
+  return response.data;
+};
+
+export const createOrder = async (orderData) => {
+  const response = await api.post("/orders/create/", orderData);
   return response.data;
 };
 
@@ -588,11 +602,6 @@ export const fetchVendorSubscriptionPlans = async (
   vendorId,
   { page = 1, page_size = 10 } = {},
 ) => {
-  console.log("📡 fetchVendorSubscriptionPlans received vendorId:", vendorId);
-  console.log(
-    "📡 fetchVendorSubscriptionPlans vendorId type:",
-    typeof vendorId,
-  );
   if (!vendorId || typeof vendorId !== "string") {
     console.error(
       "❌ fetchVendorSubscriptionPlans: vendorId must be a valid string",
@@ -607,7 +616,6 @@ export const fetchVendorSubscriptionPlans = async (
         params: { page, page_size },
       },
     );
-    console.log(" API fetchVendorSubscriptionPlans response:", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ API Error fetching vendor subscription plans:", error);
@@ -622,7 +630,6 @@ export const fetchCustomerSubscriptions = async () => {
 
 export const fetchMealsByVendor = async (vendorId) => {
   const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
-  console.log(" API fetchMealsByVendor response:", response.data);
   return response.data;
 };
 
@@ -636,7 +643,6 @@ export const fetchMealPlansByVendor = async (vendorId) => {
     const response = await api.get(
       `/foods/subscriptions/vendors/${vendorId}/plans/`,
     );
-    console.log(" API fetchMealPlansByVendor response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching meal plans by vendor:", error);
@@ -646,7 +652,6 @@ export const fetchMealPlansByVendor = async (vendorId) => {
 
 export const createMealPlan = async (mealPlanData) => {
   const response = await api.post("/foods/subscriptions/create/", mealPlanData);
-  console.log(" API createMealPlan response:", response.data);
   return response.data;
 };
 
@@ -683,7 +688,6 @@ export const createFoodVendor = async (vendorData) => {
 
 export const fetchFoodVendor = async (vendorId) => {
   const response = await api.get(`/foods/food-vendors/${vendorId}/`);
-  console.log(" API fetchFoodVendor response:", response.data);
   return response.data;
 };
 

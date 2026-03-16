@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -15,11 +15,86 @@ import {
   followUser,
   recordProductView,
   recordContentView,
+  fetchProductViewCount,
+  fetchContentViewCount,
 } from "../../services/api";
 
 const DESCRIPTION_CHAR_LIMIT = 30;
 const formatCount = (num) =>
   num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
+
+// --- Helper Functions for Robust Cache Updates ---
+const feedQueryPredicate = (query) => {
+  const keys = query.queryKey;
+  if (!Array.isArray(keys)) return false;
+  return keys.some(
+    (k) =>
+      typeof k === "string" &&
+      ["feed", "nearby", "search", "products", "profile"].includes(k),
+  );
+};
+
+const updateItemLikes = (oldData, postId, newIsLiked, newLikeCount) => {
+  if (!oldData) return oldData;
+
+  const updateItem = (item) => {
+    if (item.id === postId) {
+      return { ...item, is_liked: newIsLiked, like_count: newLikeCount };
+    }
+    return item;
+  };
+
+  if (oldData.pages) {
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page) => ({
+        ...page,
+        items: page.items ? page.items.map(updateItem) : [],
+        results: page.results ? page.results.map(updateItem) : [],
+      })),
+    };
+  }
+  if (oldData.results && Array.isArray(oldData.results)) {
+    return { ...oldData, results: oldData.results.map(updateItem) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.map(updateItem);
+  }
+  return oldData;
+};
+
+const updateItemFollows = (oldData, profileId, newIsFollowed) => {
+  if (!oldData) return oldData;
+
+  const updateItem = (item) => {
+    if (item.user_id === profileId || item.userId === profileId) {
+      return {
+        ...item,
+        is_followed: newIsFollowed,
+        has_followed: newIsFollowed,
+      };
+    }
+    return item;
+  };
+
+  if (oldData.pages) {
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page) => ({
+        ...page,
+        items: page.items ? page.items.map(updateItem) : [],
+        results: page.results ? page.results.map(updateItem) : [],
+      })),
+    };
+  }
+  if (oldData.results && Array.isArray(oldData.results)) {
+    return { ...oldData, results: oldData.results.map(updateItem) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.map(updateItem);
+  }
+  return oldData;
+};
 
 const FeedItem = ({ post, onVideoInit, isActive }) => {
   const mediaRef = useRef(null);
@@ -85,6 +160,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     Number(post.comment_count || post.comments_count || post.comments || 0),
   );
 
+  // Initial fallback count from feed API (usually 0)
   const [viewCount, setViewCount] = useState(
     Number(post.visit_count || post.view_count || post.views || 0),
   );
@@ -114,8 +190,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     displayUsername;
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
+  const currentUserId = user_data?.id || user_data?.user?.id;
+  const currentUsername = user_data?.username || user_data?.user?.username;
+
   const isOwnPost =
-    user_data?.username === displayUsername || user_data?.id === profileId;
+    (currentUsername && currentUsername === displayUsername) ||
+    (currentUserId && currentUserId === profileId);
 
   const isProduct =
     post.type?.toLowerCase() === "product" ||
@@ -126,19 +206,36 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   const hasLinkedProduct = !isProduct && post.product != null;
 
+  // ==================== PREFETCHING ====================
+  // This runs immediately when the component renders (even off-screen).
+  // By the time the user scrolls to it, we already have the real number!
+  const { data: prefetchedViews } = useQuery({
+    queryKey: ["viewCount", isProduct ? "product" : "content", post.id],
+    queryFn: () =>
+      isProduct
+        ? fetchProductViewCount(post.id)
+        : fetchContentViewCount(post.id),
+    staleTime: 1000 * 60 * 5, // Keep cached for 5 minutes
+    retry: 1,
+  });
+
+  // Sync prefetched data silently into UI
+  useEffect(() => {
+    if (prefetchedViews && prefetchedViews.view_count !== undefined) {
+      setViewCount(Number(prefetchedViews.view_count));
+    }
+  }, [prefetchedViews]);
+  // ===================================================
+
   useEffect(() => {
     if (post.id !== currentPostId) {
       setCurrentPostId(post.id);
-      setViewCount(
-        Number(post.visit_count || post.view_count || post.views || 0),
-      );
-    } else {
-      setViewCount((prev) => {
-        const incomingCount = Number(
-          post.visit_count || post.view_count || post.views || 0,
+      // We only fallback to the post object if we haven't prefetched it
+      if (!prefetchedViews) {
+        setViewCount(
+          Number(post.visit_count || post.view_count || post.views || 0),
         );
-        return incomingCount > prev ? incomingCount : prev;
-      });
+      }
     }
 
     setIsLiked(
@@ -157,54 +254,32 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     setCommentCount(
       Number(post.comment_count || post.comments_count || post.comments || 0),
     );
-  }, [post, currentPostId]);
+  }, [post, currentPostId, prefetchedViews]);
 
+  // ==================== THE BAM! EFFECT ====================
   useEffect(() => {
-    let timer;
-    if (isActive) {
-      timer = setTimeout(() => {
-        setViewCount((prev) => prev + 1);
+    // We use a ref so we don't accidentally fire the view multiple times
+    // if the component unmounts and remounts quickly.
+    let hasViewed = false;
 
-        const recordView = isProduct ? recordProductView : recordContentView;
+    if (isActive && !hasViewed) {
+      hasViewed = true;
 
-        recordView(post.id)
-          .then(() => {
-            queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-              if (!oldData || !oldData.pages) return oldData;
-              return {
-                ...oldData,
-                pages: oldData.pages.map((page) => ({
-                  ...page,
-                  items:
-                    page.items?.map((item) => {
-                      if (item.id === post.id) {
-                        const currentViews = Number(
-                          item.views ||
-                            item.view_count ||
-                            item.visit_count ||
-                            0,
-                        );
-                        return {
-                          ...item,
-                          views: currentViews + 1,
-                          view_count: currentViews + 1,
-                          visit_count: currentViews + 1,
-                        };
-                      }
-                      return item;
-                    }) || [],
-                })),
-              };
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-            setViewCount((prev) => Math.max(0, prev - 1));
-          });
-      }, 2000);
+      // 1. INSTANT OPTIMISTIC UI: Add 1 instantly
+      setViewCount((prev) => prev + 1);
+
+      // 2. BACKGROUND FIRE-AND-FORGET: Send POST to backend silently
+      const recordView = isProduct ? recordProductView : recordContentView;
+      recordView(post.id).catch((err) => {
+        console.error(`[Post ${post.id}] Background view record failed:`, err);
+      });
     }
-    return () => clearTimeout(timer);
-  }, [isActive, post.id, isProduct, queryClient]);
+
+    return () => {
+      hasViewed = false; // Reset when post goes off screen
+    };
+  }, [isActive, post.id, isProduct]);
+  // ==========================================================
 
   const { mutate: toggleLike } = useMutation({
     mutationFn: async () => {
@@ -227,26 +302,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       setIsLiked(newIsLiked);
       setLikeCount(newLikeCount);
 
-      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            items:
-              page.items?.map((item) => {
-                if (item.id === post.id) {
-                  return {
-                    ...item,
-                    is_liked: newIsLiked,
-                    like_count: newLikeCount,
-                  };
-                }
-                return item;
-              }) || [],
-          })),
-        };
-      });
+      queryClient.setQueriesData({ predicate: feedQueryPredicate }, (oldData) =>
+        updateItemLikes(oldData, post.id, newIsLiked, newLikeCount),
+      );
 
       return { previousIsLiked, previousLikeCount };
     },
@@ -260,26 +318,16 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         setIsLiked(context.previousIsLiked);
         setLikeCount(context.previousLikeCount);
 
-        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              items:
-                page.items?.map((item) => {
-                  if (item.id === post.id) {
-                    return {
-                      ...item,
-                      is_liked: context.previousIsLiked,
-                      like_count: context.previousLikeCount,
-                    };
-                  }
-                  return item;
-                }) || [],
-            })),
-          };
-        });
+        queryClient.setQueriesData(
+          { predicate: feedQueryPredicate },
+          (oldData) =>
+            updateItemLikes(
+              oldData,
+              post.id,
+              context.previousIsLiked,
+              context.previousLikeCount,
+            ),
+        );
       }
       console.error(`[Post ${post.id}] Like error:`, err);
     },
@@ -296,26 +344,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
       setIsFollowed(newIsFollowed);
 
-      queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            items:
-              page.items?.map((item) => {
-                if (item.user_id === profileId || item.userId === profileId) {
-                  return {
-                    ...item,
-                    is_followed: newIsFollowed,
-                    has_followed: newIsFollowed,
-                  };
-                }
-                return item;
-              }) || [],
-          })),
-        };
-      });
+      queryClient.setQueriesData({ predicate: feedQueryPredicate }, (oldData) =>
+        updateItemFollows(oldData, profileId, newIsFollowed),
+      );
 
       return { previousIsFollowed };
     },
@@ -326,26 +357,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       if (context) {
         setIsFollowed(context.previousIsFollowed);
 
-        queryClient.setQueriesData({ queryKey: ["feed"] }, (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              items:
-                page.items?.map((item) => {
-                  if (item.user_id === profileId || item.userId === profileId) {
-                    return {
-                      ...item,
-                      is_followed: context.previousIsFollowed,
-                      has_followed: context.previousIsFollowed,
-                    };
-                  }
-                  return item;
-                }) || [],
-            })),
-          };
-        });
+        queryClient.setQueriesData(
+          { predicate: feedQueryPredicate },
+          (oldData) =>
+            updateItemFollows(oldData, profileId, context.previousIsFollowed),
+        );
       }
     },
   });
@@ -432,7 +448,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       <AnimatePresence>
         {showLikeAnimation && (
           <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1.5, opacity: 1 }}
             exit={{ scale: 1, opacity: 0 }}
@@ -446,14 +462,14 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-5 left-0 right-0 p-4 pb-20 md:pb-5 text-white z-5 pointer-events-none">
-        <div className="flex justify-between items-end">
-          <div className="flex-1 space-y-2 max-w-[calc(100%-60px)] pointer-events-auto">
-            <div className="relative gap-3 flex items-center">
-              <div className="relative block">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 md:pb-6 text-white z-10 pointer-events-none bg-linear-to-t from-black/80 via-black/40 to-transparent">
+        <div className="flex justify-between items-end gap-2">
+          <div className="flex-1 flex flex-col justify-end space-y-2.5 min-w-0 pr-2 pointer-events-auto">
+            <div className="relative gap-3 flex items-center shrink-0">
+              <div className="relative block shrink-0">
                 <Link
                   to={profileLink}
-                  className="block w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden"
+                  className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden shrink-0"
                 >
                   <img
                     src={post.userpic || "/profile-icon.svg"}
@@ -465,7 +481,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 {!isOwnPost && (
                   <button
                     onClick={handleFollow}
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform"
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform pointer-events-auto"
                   >
                     <img
                       src={
@@ -478,12 +494,15 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 )}
               </div>
 
-              <Link to={profileLink} className="flex items-center space-x-2">
-                <h1 className="font-bold">{displayUsername}</h1>
+              <Link
+                to={profileLink}
+                className="flex items-center space-x-2 truncate"
+              >
+                <h1 className="font-bold truncate">{displayUsername}</h1>
               </Link>
             </div>
 
-            <h2 className="font-bold text-lg">
+            <h2 className="font-bold text-lg truncate">
               {post.name ||
                 post.productName ||
                 post.caption?.slice(0, 30) ||
@@ -504,14 +523,17 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
 
             {post.caption && (
-              <motion.p layout className="text-sm font-light">
+              <motion.p
+                layout
+                className={`text-sm font-light wrap-break-word whitespace-pre-wrap ${isExpanded ? "max-h-[30vh] overflow-y-auto no-scrollbar pointer-events-auto" : ""}`}
+              >
                 {isExpanded
                   ? post.caption
                   : `${post.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
                 {post.caption.length > DESCRIPTION_CHAR_LIMIT && (
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="font-semibold ml-1 opacity-80"
+                    className="font-semibold ml-1 opacity-80 pointer-events-auto hover:opacity-100"
                   >
                     {isExpanded ? "...less" : "...see more"}
                   </button>
@@ -519,18 +541,20 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </motion.p>
             )}
 
-            <p className="font-light flex items-center gap-1">
-              <span>
-                <img src="/icons/music.svg" alt="" />
+            <p className="font-light flex items-center gap-1 truncate">
+              <span className="shrink-0">
+                <img src="/icons/music.svg" alt="" className="w-4 h-4" />
               </span>
-              {post.musicTrack || "Original Audio"}
+              <span className="truncate">
+                {post.musicTrack || "Original Audio"}
+              </span>
             </p>
 
             {(isProduct || hasLinkedProduct) && (
-              <div className="flex items-center space-x-2 pt-2">
+              <div className="flex items-center space-x-2 pt-2 shrink-0">
                 <Link
                   to={`/product/${isProduct ? post.id : post.product.id}`}
-                  className="bg-white text-black flex items-center font-normal p-2 gap-1 rounded-full text-sm"
+                  className="bg-white text-black inline-flex w-fit items-center font-normal p-2 gap-1 rounded-full text-sm"
                 >
                   <span>
                     <img src="/icons/bag-2.svg" alt="" />
@@ -541,52 +565,69 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
           </div>
 
-          <div className="flex flex-col items-center space-y-4 pointer-events-auto">
-            <button onClick={handleLike} className="flex flex-col items-center">
+          <div className="flex flex-col items-center space-y-4 pointer-events-auto shrink-0 pb-1">
+            <button
+              onClick={handleLike}
+              className="flex flex-col items-center group"
+            >
               <img
                 src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
                 alt="Like"
-                className={isLiked ? "size-9" : ""}
+                className={`transition-transform group-hover:scale-110 ${isLiked ? "size-9" : ""}`}
               />
-              <span className="text-xs font-semibold">
+              <span className="text-xs font-semibold drop-shadow-md">
                 {formatCount(likeCount)}
               </span>
             </button>
 
             <button
               onClick={handleOpenComments}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center group"
             >
-              <img src="/icons/message-alt.svg" alt="Comment" />
-              <span className="text-xs font-semibold">
+              <img
+                src="/icons/message-alt.svg"
+                alt="Comment"
+                className="transition-transform group-hover:scale-110"
+              />
+              <span className="text-xs font-semibold drop-shadow-md">
                 {formatCount(commentCount)}
               </span>
             </button>
 
             <button
               onClick={handleOpenShare}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center group"
             >
-              <img src="/icons/share.svg" alt="Share" />
-              <span className="text-xs font-semibold">
+              <img
+                src="/icons/share.svg"
+                alt="Share"
+                className="transition-transform group-hover:scale-110"
+              />
+              <span className="text-xs font-semibold drop-shadow-md">
                 {formatCount(post.shares || 0)}
               </span>
             </button>
 
             <button
               onClick={handleOpenMessage}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center group"
             >
-              <img src="/icons/send-alt.svg" alt="Message" />
-              <span className="text-xs font-semibold">Message</span>
-            </button>
-
-            <button className="flex flex-col items-center">
-              <img src="/icons/eye.svg" alt="View" />
-              <span className="text-xs font-semibold">
-                {formatCount(viewCount)}
+              <img
+                src="/icons/send-alt.svg"
+                alt="Message"
+                className="transition-transform group-hover:scale-110"
+              />
+              <span className="text-xs font-semibold drop-shadow-md">
+                Message
               </span>
             </button>
+
+            <div className="flex flex-col items-center">
+              <img src="/icons/eye.svg" alt="View" />
+              <span className="text-xs font-semibold drop-shadow-md">
+                {formatCount(viewCount)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
