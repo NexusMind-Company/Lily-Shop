@@ -1,129 +1,157 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPickupLocations } from "../services/api";
+import { usePayment } from "../context/paymentContext";
+import {
+  ChevronLeft,
+  MapPin,
+  Check,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { formatPrice } from "../utils/formatters";
 
 const ChoosePickupAddressPage = () => {
   const navigate = useNavigate();
-  const [addresses, setAddresses] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { paymentData, setPaymentData } = usePayment();
+  const selectedPickupId = paymentData?.selectedPickup?.id;
 
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      try {
-        setIsLoading(true);
+  const { data, isLoading, isError, refetch, error } = useQuery({
+    queryKey: ["pickupLocations"],
+    queryFn: fetchPickupLocations,
+    retry: 1,
+  });
 
-        const response = await api.get("/api/addresses/pickup/");
-
-        const fetchedAddresses = response.data.results || response.data;
-
-        setAddresses(fetchedAddresses);
-
-        if (fetchedAddresses && fetchedAddresses.length > 0) {
-          setSelectedId(fetchedAddresses[0].id);
-        }
-      } catch (error) {
-        console.error("Failed to fetch pickup addresses:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAddresses();
-  }, []);
-
-  const handleSelect = (id) => {
-    setSelectedId(id);
+  const handleSelect = (pickupLocation) => {
+    setPaymentData((prev) => ({
+      ...prev,
+      selectedPickup: pickupLocation,
+      deliveryType: "pickup",
+    }));
+    navigate(-1);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white max-w-xl mx-auto">
+        <div className="w-10 h-10 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">
+          Failed to load pickup locations
+        </h3>
+        <p className="text-gray-500 mb-6 max-w-xs">
+          {error?.message ||
+            "There was a problem retrieving available pickup stations."}
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="flex items-center gap-2 px-6 py-3 bg-lily text-white rounded-xl font-semibold hover:bg-opacity-90 transition-opacity"
+        >
+          <RefreshCw size={20} />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Handle paginated response ({ count, results: [...] }) or direct array
+  const locationsList = data?.results || data || [];
+
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <div className="flex items-center px-4 py-4 border-b border-gray-100">
+    <div className="min-h-screen bg-gray-50 font-sans max-w-xl mx-auto">
+      <div className="sticky top-0 bg-white z-10 px-4 py-4 flex items-center justify-center border-b border-gray-100 shrink-0">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 -ml-2 text-black hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800 focus:outline-none"
           aria-label="Go back"
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
+          <ChevronLeft size={24} />
         </button>
-        <h1 className="flex-1 text-center text-lg font-medium pr-8 text-black">
-          Choose pickup address
-        </h1>
+        <h2 className="font-semibold text-lg text-gray-900">
+          Choose Pickup Station
+        </h2>
       </div>
 
-      <div className="flex flex-col">
-        {isLoading ? (
-          <div className="p-8 text-center text-sm text-gray-500">
-            Loading addresses...
-          </div>
-        ) : addresses.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">
-            No pickup addresses found.
-          </div>
-        ) : (
-          addresses.map((addr) => (
+      <div className="p-4 space-y-4 pb-24">
+        {locationsList && locationsList.length > 0 ? (
+          locationsList.map((item) => (
             <div
-              key={addr.id}
-              onClick={() => handleSelect(addr.id)}
-              className="flex items-start p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+              key={item.id}
+              onClick={() => handleSelect(item)}
+              className={`bg-white rounded-2xl p-5 border-2 cursor-pointer transition-all ${
+                selectedPickupId === item.id
+                  ? "border-lily"
+                  : "border-transparent hover:border-gray-200"
+              }`}
             >
-              <div className="mr-4 mt-0.5 shrink-0">
-                {selectedId === addr.id ? (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle cx="12" cy="12" r="10" fill="#48C774" />
-                    <path
-                      d="M8 12.5L11 15.5L16 9"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="#374151"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base font-medium text-black mb-1">
-                  {addr.type || "Pickup"}
-                </span>
-                <span className="text-sm text-gray-800 leading-snug pr-4">
-                  {addr.address}
-                </span>
+              <div className="flex items-start gap-4">
+                <div className="mt-1 shrink-0 text-pink">
+                  <MapPin size={24} />
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <p className="font-bold text-gray-900 text-base pr-4">
+                      {item.name}
+                    </p>
+                    {selectedPickupId === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-lily flex items-center justify-center text-white shrink-0">
+                        <Check size={14} strokeWidth={4} />
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {item.address}, {item.city}, {item.state}
+                  </p>
+
+                  <div className="flex flex-col gap-1 pt-2 border-t border-gray-100 mt-3">
+                    <p className="text-xs text-gray-500">
+                      <span className="font-semibold text-gray-700">
+                        Hours:
+                      </span>{" "}
+                      {item.operating_hours || "9AM - 6PM"}
+                    </p>
+                    {item.contact_phone && (
+                      <p className="text-xs text-gray-500">
+                        <span className="font-semibold text-gray-700">
+                          Contact:
+                        </span>{" "}
+                        {item.contact_phone}
+                      </p>
+                    )}
+                    <p className="text-xs font-semibold text-pink mt-1">
+                      {Number(item.pickup_fee_naira) > 0
+                        ? `Pickup Fee: ₦${formatPrice(item.pickup_fee_naira)}`
+                        : "Free Pickup"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           ))
+        ) : (
+          <div className="py-12 text-center bg-white rounded-2xl border border-gray-100">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin size={24} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              No stations available
+            </h3>
+            <p className="text-gray-500 text-sm">
+              There are no pickup locations in your area right now.
+            </p>
+          </div>
         )}
       </div>
     </div>

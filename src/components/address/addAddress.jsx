@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { addNewAddress } from "../../services/api";
 
 const AddAddressPage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
+    countryCode: "+234",
     phone: "",
     address: "",
     city: "",
@@ -14,6 +16,9 @@ const AddAddressPage = () => {
     landmark: "",
     description: "",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,18 +30,57 @@ const AddAddressPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-    // NOTE: As per the current Lily Shop API.yaml, there is no endpoint for user addresses.
-    // Once the backend supports it, replace this console.log with your API POST request.
-    // Example: await api.post('/user/addresses/', formData);
-    console.log("Ready to submit address payload:", formData);
+    try {
+      // 1. Format the description into the street address
+      const streetAddress = formData.description
+        ? `${formData.address} (${formData.description})`
+        : formData.address;
 
-    // navigate(-1); // Navigate back upon successful submission
+      // 2. Format the phone number strictly for the backend
+      let rawPhone = formData.phone.replace(/\D/g, ""); // Strip non-numeric characters
+
+      // Auto-remove leading zero for Nigerian numbers
+      if (formData.countryCode === "+234" && rawPhone.startsWith("0")) {
+        rawPhone = rawPhone.substring(1);
+      }
+
+      const formattedPhoneNumber = `${formData.countryCode}${rawPhone}`;
+
+      // 3. Construct payload matching API.yaml schema
+      const payload = {
+        label: formData.landmark || "Home",
+        street_address: streetAddress,
+        city: formData.city,
+        state: formData.state,
+        country: "Nigeria",
+        postal_code: formData.zipCode,
+        phone_number: formattedPhoneNumber,
+        is_default: true,
+      };
+
+      await addNewAddress(payload);
+      navigate(-1);
+    } catch (err) {
+      console.error("Error adding address:", err);
+      // Display backend validation error if available, else fallback
+      if (err.response?.data?.phone_number) {
+        setError(`Phone Number Error: ${err.response.data.phone_number[0]}`);
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Failed to add address. Please check your inputs and try again.",
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 pb-24">
-      {/* Header */}
       <div className="flex items-center justify-center relative px-4 py-4 border-b border-gray-100">
         <button
           onClick={() => navigate(-1)}
@@ -63,7 +107,12 @@ const AddAddressPage = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 mt-6 space-y-8">
-        {/* Contact Info Section */}
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">Contact info</h2>
 
@@ -84,23 +133,38 @@ const AddAddressPage = () => {
 
           <div className="space-y-1">
             <label htmlFor="phone" className="text-sm text-gray-700">
-              Phone no
+              Phone no*
             </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+234 80X XXX XXXX"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
-            />
+            <div className="flex space-x-2">
+              <select
+                name="countryCode"
+                value={formData.countryCode}
+                onChange={handleChange}
+                className="w-1/3 bg-gray-50 border border-transparent rounded-full px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              >
+                <option value="+234">NG (+234)</option>
+                <option value="+1">US (+1)</option>
+                <option value="+44">UK (+44)</option>
+                <option value="+233">GH (+233)</option>
+                <option value="+27">ZA (+27)</option>
+                <option value="+254">SA (+254)</option>
+              </select>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                placeholder="80X XXX XXXX"
+                className="w-2/3 bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              />
+            </div>
           </div>
         </section>
 
         <div className="h-px w-full bg-gray-100"></div>
 
-        {/* Delivery Address Section */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">Delivery address</h2>
 
@@ -186,7 +250,6 @@ const AddAddressPage = () => {
 
         <div className="h-px w-full bg-gray-100"></div>
 
-        {/* Description Section */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">
             Describe your location as simple as possible
@@ -208,13 +271,17 @@ const AddAddressPage = () => {
           </div>
         </section>
 
-        {/* Fixed Bottom Button Area */}
         <div className="fixed bottom-0 left-0 md:left-64 right-0 p-5 bg-white border-t border-gray-100">
           <button
             type="submit"
-            className="w-full bg-[#4CAF50] hover:bg-green-600 text-white font-medium text-base rounded-full py-4 transition-colors focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+            disabled={isLoading}
+            className={`w-full font-medium text-base rounded-full py-4 transition-colors focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50 ${
+              isLoading
+                ? "bg-green-400 cursor-not-allowed text-white"
+                : "bg-[#4CAF50] hover:bg-green-600 text-white"
+            }`}
           >
-            Add address
+            {isLoading ? "Saving..." : "Add address"}
           </button>
         </div>
       </form>

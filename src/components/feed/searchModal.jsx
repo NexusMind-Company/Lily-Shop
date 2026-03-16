@@ -56,6 +56,32 @@ const extractArray = (data) => {
   return [];
 };
 
+const extractProducts = (data) => {
+  const arr = extractArray(data);
+  return arr.filter(
+    (item) =>
+      item.type?.toLowerCase() === "product" ||
+      item.price_in_naira !== undefined ||
+      item.price !== undefined ||
+      item.name !== undefined ||
+      item.productName !== undefined,
+  );
+};
+
+const extractContents = (data) => {
+  const arr = extractArray(data);
+  return arr.filter(
+    (item) =>
+      !(
+        item.type?.toLowerCase() === "product" ||
+        item.price_in_naira !== undefined ||
+        item.price !== undefined ||
+        item.name !== undefined ||
+        item.productName !== undefined
+      ),
+  );
+};
+
 const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +92,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
     queryKey: ["searchProducts", debouncedSearchTerm],
     queryFn: () => fetchProducts({ search: debouncedSearchTerm }),
-    select: extractArray,
+    select: extractProducts,
     enabled:
       (activeTab === "Top" || activeTab === "Products") &&
       !!debouncedSearchTerm,
@@ -83,7 +109,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
     queryKey: ["searchContents", debouncedSearchTerm],
     queryFn: () => searchContents(debouncedSearchTerm),
-    select: extractArray,
+    select: extractContents,
     enabled:
       (activeTab === "Top" || activeTab === "Contents") &&
       !!debouncedSearchTerm,
@@ -116,7 +142,9 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       setRecentSearches(newSearches);
       saveRecentSearches(newSearches);
 
-      navigate(`/searchResults?q=${encodeURIComponent(trimmedTerm)}`);
+      navigate(
+        `/searchResults?q=${encodeURIComponent(trimmedTerm)}&tab=${activeTab}`,
+      );
       onClose();
     }
   };
@@ -340,7 +368,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             className="cursor-pointer group"
             onClick={() => {
               navigate(
-                post.price
+                post.price !== undefined || post.price_in_naira !== undefined
                   ? `/product-details/${post.id}`
                   : `/contents/${post.id}`,
               );
@@ -530,7 +558,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-white md:bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
+          className="fixed inset-0 z-9999 bg-white md:bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
           onClick={onClose}
         >
           <motion.div
@@ -542,7 +570,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             className="w-full h-full md:max-w-xl bg-white md:rounded-3xl shadow-none md:shadow-2xl flex flex-col md:h-[90vh] cursor-default relative overflow-hidden pointer-events-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex-shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
+            <div className="shrink-0 flex items-center p-4 border-b border-gray-200 gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
