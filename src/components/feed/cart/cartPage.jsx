@@ -16,10 +16,11 @@ import {
   selectCartItems,
   fetchCart,
   selectCartIsLoading,
+  selectCartId,
 } from "../../../redux/cartSlice";
 import { createOrder } from "../../../redux/orderSlice";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserProfile } from "../../../services/api";
+import { fetchUserProfile, calculateCheckout } from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 
@@ -31,6 +32,8 @@ const CartPage = () => {
 
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
+
+  const cartId = useSelector(selectCartId);
 
   const isDirectBuy = location.state?.directBuy;
   const directProduct = location.state?.product;
@@ -50,7 +53,7 @@ const CartPage = () => {
   });
 
   const { creating: isCreatingOrder, createError } = useSelector(
-    (state) => state.orders,
+    (state) => state.orders || state.order || {},
   );
 
   const {
@@ -68,8 +71,29 @@ const CartPage = () => {
     }
   }, [dispatch, isDirectBuy]);
 
+  // Helper to reliably get the exact unit price without random multiplication
+  const getUnitPrice = (item) => {
+    return (
+      Number(item.price_naira) ||
+      Number(item.product?.price_in_naira) ||
+      Number(item.product?.price) ||
+      (Number(item.total_price_naira)
+        ? Number(item.total_price_naira) / (item.quantity || 1)
+        : 0) ||
+      (Number(item.subtotal_naira)
+        ? Number(item.subtotal_naira) / (item.quantity || 1)
+        : 0) ||
+      Number(item.current_price_kobo) ||
+      0
+    );
+  };
+
   const itemsToCheckout = useMemo(() => {
     if (isDirectBuy && directProduct) {
+      const unitPrice =
+        Number(directProduct.price_in_naira) ||
+        Number(directProduct.price) ||
+        0;
       return [
         {
           id: directProduct.id,
@@ -77,16 +101,9 @@ const CartPage = () => {
           product: directProduct,
           productName: directProduct.name,
           quantity: directQuantity,
-          current_price_kobo:
-            directProduct.price_in_kobo ||
-            (directProduct.price_in_naira
-              ? directProduct.price_in_naira * 100
-              : 0),
-          subtotal_naira:
-            (directProduct.price_in_naira ||
-              (directProduct.price_in_kobo
-                ? directProduct.price_in_kobo / 100
-                : 0)) * directQuantity,
+          // No more * 100 multiplication!
+          current_price_kobo: unitPrice,
+          subtotal_naira: unitPrice * directQuantity,
           mediaSrc: directProduct.image_url || directProduct.media_url,
           username:
             directProduct.shop?.name ||
@@ -110,8 +127,8 @@ const CartPage = () => {
     directQuantity,
   ]);
 
-  // Frontend Calculations
-  const totalDeliveryCharge = useMemo(() => {
+  // Fallback Local Calculations
+  const localDeliveryCharge = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (sum, item) => sum + (item.deliveryCharge || 0),
@@ -124,19 +141,15 @@ const CartPage = () => {
     return itemsToCheckout.reduce((count, item) => count + item.quantity, 0);
   }, [itemsToCheckout]);
 
-  const subtotal = useMemo(() => {
+  const localSubtotal = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce((total, item) => {
-      const itemSubtotal =
-        Number(item.subtotal_naira) ||
-        ((Number(item.current_price_kobo) || 0) / 100) * item.quantity ||
-        (Number(item.product?.price_in_naira) || 0) * item.quantity ||
-        0;
-      return total + itemSubtotal;
+      const unitPrice = getUnitPrice(item);
+      return total + unitPrice * item.quantity;
     }, 0);
   }, [itemsToCheckout]);
 
-  const estimatedDeliveryTime = useMemo(() => {
+  const localEstimatedDeliveryTime = useMemo(() => {
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       return "Calculating...";
     }
@@ -175,6 +188,10 @@ const CartPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+
+  // Authoritative backend calculation states
+  const [checkoutDetails, setCheckoutDetails] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const selectedDelivery = paymentData?.selectedAddress;
   const selectedPickup = paymentData?.selectedPickup;
@@ -231,14 +248,61 @@ const CartPage = () => {
     directProduct,
   ]);
 
+  // Fetch authoritative checkout details from the backend
+  useEffect(() => {
+    const fetchCheckoutDetails = async () => {
+      // Don't fetch if cart is empty or if it's a direct buy
+      if (!itemsToCheckout || itemsToCheckout.length === 0 || isDirectBuy)
+        return;
+
+      // Ensure cartId exists before making the request
+      if (!cartId) return;
+
+      // Only fetch if we have the necessary routing IDs
+      if (deliveryType === "delivery" && !selectedDelivery?.id) return;
+      if (deliveryType === "pickup" && !selectedPickup?.id) return;
+
+      setIsCalculating(true);
+      try {
+        const payload = {
+          cart_id: cartId,
+          delivery_type: deliveryType,
+        };
+
+        if (deliveryType === "delivery") {
+          payload.delivery_address_id = selectedDelivery.id;
+        } else {
+          payload.pickup_location_id = selectedPickup.id;
+        }
+
+        const data = await calculateCheckout(payload);
+        setCheckoutDetails(data);
+      } catch (error) {
+        console.error("Failed to calculate checkout details:", error);
+      } finally {
+        setIsCalculating(false);
+      }
+    };
+
+    fetchCheckoutDetails();
+  }, [
+    cartId,
+    deliveryType,
+    selectedDelivery,
+    selectedPickup,
+    isDirectBuy,
+    itemsToCheckout,
+  ]);
+
   const handleDeliveryTypeSelect = (type) => {
     setDeliveryType(type);
     setPaymentData((prev) => ({ ...prev, deliveryType: type }));
   };
 
   const handleApplyVoucher = () => {
+    const targetSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
     if (voucherCode === "SAVE10") {
-      setAppliedDiscount(subtotal * 0.1);
+      setAppliedDiscount(targetSubtotal * 0.1);
       alert("Voucher Applied!");
     } else {
       setAppliedDiscount(0);
@@ -246,8 +310,23 @@ const CartPage = () => {
     }
   };
 
-  const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
-  const backendTotalKobo = Math.round(estimatedTotal * 100);
+  // Resolve final values (Prefer Backend -> Fallback to Local)
+  const finalSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
+  const finalDeliveryFee =
+    checkoutDetails?.delivery_fee_naira !== undefined
+      ? checkoutDetails.delivery_fee_naira
+      : localDeliveryCharge;
+  const finalPlatformFee = checkoutDetails?.platform_fee_naira || 0;
+  const finalEstimatedTime =
+    checkoutDetails?.estimated_delivery_time || localEstimatedDeliveryTime;
+
+  // Calculate Grand Total
+  const estimatedTotal = checkoutDetails?.total_naira
+    ? checkoutDetails.total_naira - appliedDiscount
+    : finalSubtotal + finalDeliveryFee + finalPlatformFee - appliedDiscount;
+
+  // EXACT value passed directly
+  const backendTotal = estimatedTotal;
 
   const handleProceedToPayment = async () => {
     if (deliveryType === "delivery") {
@@ -279,13 +358,24 @@ const CartPage = () => {
       apiPaymentMethod = "wallet";
     }
 
-    // STRICT API COMPLIANCE: Sending only items, total_amount_kobo, and payment_method.
-    // Removing delivery_address_id and fees to bypass the 500 Integrity Error.
     const orderData = {
       items: orderItems,
-      total_amount_kobo: backendTotalKobo,
+      total_amount_kobo: backendTotal,
       payment_method: apiPaymentMethod,
+      delivery_type: deliveryType,
+      delivery_fee_naira: finalDeliveryFee,
+      platform_fee_naira: finalPlatformFee,
     };
+
+    if (deliveryType === "delivery") {
+      orderData.delivery_address_id = selectedDelivery?.id;
+    } else if (deliveryType === "pickup") {
+      orderData.pickup_location_id = selectedPickup?.id;
+    }
+
+    if (cartId) {
+      orderData.cart_id = cartId;
+    }
 
     try {
       const actionResult = await dispatch(createOrder(orderData)).unwrap();
@@ -313,8 +403,10 @@ const CartPage = () => {
       console.error("Failed to create order:", err);
       if (err.response?.status === 500) {
         alert(
-          "The server encountered an error (500). Please notify the backend developer to check the error logs for POST /orders/create/",
+          "The server encountered an error (500). The backend rejected the payload. Please ensure you have selected a valid address.",
         );
+      } else {
+        alert(err.message || "Failed to initiate payment. Please try again.");
       }
     }
   };
@@ -383,61 +475,53 @@ const CartPage = () => {
       <div className="flex-1 overflow-y-auto pb-28">
         <div className="bg-white p-4 mb-2 border-b border-gray-100">
           <div className="space-y-6">
-            {itemsToCheckout.map((item) => (
-              <div key={item.id} className="flex flex-col">
-                <p className="text-sm font-medium text-gray-600 mb-3">
-                  {item.username || item.product?.shop?.name || "Vendor"}
-                </p>
-                <div className="flex space-x-4">
-                  <img
-                    src={
-                      item.mediaSrc ||
-                      item.product?.image_url ||
-                      item.product?.media_url ||
-                      "/placeholder-image.png"
-                    }
-                    alt={item.productName || item.product?.name || "Product"}
-                    className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder-image.png";
-                    }}
-                  />
-                  <div className="flex-1 space-y-1">
-                    <p className="font-medium text-gray-900">
-                      {item.productName || item.product?.name || "Product"}
-                    </p>
-                    <p className="text-sm font-semibold text-pink">
-                      ₦
-                      {formatPrice(
-                        (Number(item.current_price_kobo)
-                          ? Number(item.current_price_kobo) / 100
-                          : 0) ||
-                          Number(item.product?.price_in_naira) ||
-                          (Number(item.subtotal_naira)
-                            ? Number(item.subtotal_naira) / (item.quantity || 1)
-                            : 0) ||
-                          0,
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Qty: {item.quantity}
-                    </p>
-                    {item.color && (
-                      <p className="text-sm text-gray-600">
-                        Color: {item.color}
+            {itemsToCheckout.map((item) => {
+              const unitPrice = getUnitPrice(item);
+              return (
+                <div key={item.id} className="flex flex-col">
+                  <p className="text-sm font-medium text-gray-600 mb-3">
+                    {item.username || item.product?.shop?.name || "Vendor"}
+                  </p>
+                  <div className="flex space-x-4">
+                    <img
+                      src={
+                        item.mediaSrc ||
+                        item.product?.image_url ||
+                        item.product?.media_url ||
+                        "/placeholder-image.png"
+                      }
+                      alt={item.productName || item.product?.name || "Product"}
+                      className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/placeholder-image.png";
+                      }}
+                    />
+                    <div className="flex-1 space-y-1">
+                      <p className="font-medium text-gray-900">
+                        {item.productName || item.product?.name || "Product"}
                       </p>
-                    )}
-                    {item.size && (
-                      <p className="text-sm text-gray-600">Size: {item.size}</p>
-                    )}
-                    <p className="text-sm text-gray-600">
-                      Delivery fee: ₦{formatPrice(item.deliveryCharge || 0)}
-                    </p>
+                      <p className="text-sm font-semibold text-pink">
+                        ₦{formatPrice(unitPrice)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
+                      {item.color && (
+                        <p className="text-sm text-gray-600">
+                          Color: {item.color}
+                        </p>
+                      )}
+                      {item.size && (
+                        <p className="text-sm text-gray-600">
+                          Size: {item.size}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -656,7 +740,11 @@ const CartPage = () => {
           <div className="space-y-3 text-sm mb-8">
             <div className="flex justify-between text-gray-800">
               <span>Item's total ({itemCount})</span>
-              <span>₦{formatPrice(subtotal)}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(finalSubtotal)}</span>
+              )}
             </div>
             {appliedDiscount > 0 && (
               <div className="flex justify-between text-green-600">
@@ -666,15 +754,37 @@ const CartPage = () => {
             )}
             <div className="flex justify-between text-gray-800">
               <span>Delivery fee</span>
-              <span>₦{formatPrice(totalDeliveryCharge)}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(finalDeliveryFee)}</span>
+              )}
             </div>
+            {finalPlatformFee > 0 && (
+              <div className="flex justify-between text-gray-800">
+                <span>Platform fee</span>
+                {isCalculating ? (
+                  <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
+                ) : (
+                  <span>₦{formatPrice(finalPlatformFee)}</span>
+                )}
+              </div>
+            )}
             <div className="flex justify-between text-gray-900 font-bold border-t border-gray-100 pt-3 mt-1">
               <span>Total</span>
-              <span>₦{formatPrice(estimatedTotal)}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-20 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(estimatedTotal)}</span>
+              )}
             </div>
             <div className="flex justify-between text-gray-500 pt-2">
               <span>Estimated Delivery Time</span>
-              <span>{estimatedDeliveryTime}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-24 rounded"></span>
+              ) : (
+                <span>{finalEstimatedTime}</span>
+              )}
             </div>
           </div>
 
@@ -719,7 +829,11 @@ const CartPage = () => {
               Total Payment
             </span>
             <span className="font-bold text-xl text-gray-900">
-              ₦{formatPrice(estimatedTotal)}
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-6 w-24 rounded inline-block mt-1"></span>
+              ) : (
+                `₦${formatPrice(estimatedTotal)}`
+              )}
             </span>
           </div>
           <button
@@ -728,10 +842,11 @@ const CartPage = () => {
             disabled={
               !itemsToCheckout ||
               itemsToCheckout.length === 0 ||
-              isCreatingOrder
+              isCreatingOrder ||
+              isCalculating
             }
           >
-            {isCreatingOrder ? (
+            {isCreatingOrder || isCalculating ? (
               <Loader2 size={24} className="animate-spin" />
             ) : (
               "Proceed"

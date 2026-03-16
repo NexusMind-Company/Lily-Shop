@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { usePayment } from "../../context/paymentContext";
 import { useQuery } from "@tanstack/react-query";
-import { fetchDeliveryAddresses } from "../../services/api";
+import { fetchDeliveryAddresses, setDefaultAddress } from "../../services/api";
 import { ChevronLeft, Plus, Check, AlertCircle, RefreshCw } from "lucide-react";
 
 const ChooseAddress = () => {
@@ -10,19 +10,21 @@ const ChooseAddress = () => {
   const { paymentData, setPaymentData } = usePayment();
   const { selectedAddressId } = paymentData;
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    error,
-  } = useQuery({
+  const { data, isLoading, isError, refetch, error } = useQuery({
     queryKey: ["deliveryAddresses"],
     queryFn: fetchDeliveryAddresses,
     retry: 1,
   });
 
-  const handleSelect = (address) => {
+  const handleSelect = async (address) => {
+    try {
+      // Tell the backend to set this address as the default
+      await setDefaultAddress(address.id);
+    } catch (err) {
+      console.error("Failed to set default address on backend:", err);
+    }
+
+    // Update local state so the rest of the app knows about the selection
     setPaymentData((prev) => ({
       ...prev,
       selectedAddress: address,
@@ -107,7 +109,9 @@ const ChooseAddress = () => {
                   <p className="font-bold text-gray-900 text-lg">
                     {item.label || "Address"}
                     {item.phone_number && (
-                      <span className="font-normal ml-1">{item.phone_number}</span>
+                      <span className="font-normal ml-1">
+                        {item.phone_number}
+                      </span>
                     )}
                   </p>
                   <p className="text-gray-900 text-lg leading-relaxed max-w-[90%]">
