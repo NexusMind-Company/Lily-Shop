@@ -421,37 +421,39 @@ export const shareProductToChat = async (productId, recipientId) => {
 };
 
 export const fetchDeliveryAddresses = async () => {
-  const response = await api.get("/auth/profile/me/");
-  const deliveryAddress = response.data.deliveryAddress;
-
-  return deliveryAddress ? [{ id: 1, address: deliveryAddress }] : [];
+  const response = await api.get("/users/me/addresses/");
+  return response.data;
 };
 
 export const addNewAddress = async (addressData) => {
-  const address =
-    typeof addressData === "string"
-      ? addressData
-      : addressData.address || addressData.deliveryAddress;
+  const response = await api.post("/users/me/addresses/", addressData);
+  return response.data;
+};
 
-  const response = await api.patch("/auth/profile/update/", {
-    deliveryAddress: address,
+export const setDefaultAddress = async (addressId) => {
+  const response = await api.patch(`/users/me/addresses/${addressId}/`, {
+    is_default: true,
   });
-
   return response.data;
 };
 
 export const fetchPickupLocations = async () => {
-  const response = await api.get("/pickup-locations");
+  const response = await api.get("/pickup-locations/");
   return response.data;
 };
 
 export const fetchSavedCards = async () => {
-  const response = await api.get("/user/cards");
+  const response = await api.get("/users/me/cards/");
   return response.data;
 };
 
 export const addNewCard = async (cardData) => {
-  const response = await api.post("/user/cards", cardData);
+  const response = await api.post("/users/me/cards/", cardData);
+  return response.data;
+};
+
+export const calculateCheckout = async (checkoutData) => {
+  const response = await api.post("/orders/calculate-checkout/", checkoutData);
   return response.data;
 };
 

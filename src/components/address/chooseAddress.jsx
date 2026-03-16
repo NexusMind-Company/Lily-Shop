@@ -11,7 +11,7 @@ const ChooseAddress = () => {
   const { selectedAddressId } = paymentData;
 
   const {
-    data: addresses,
+    data,
     isLoading,
     isError,
     refetch,
@@ -63,6 +63,8 @@ const ChooseAddress = () => {
     );
   }
 
+  const addressList = data?.results || data || [];
+
   return (
     <div className="min-h-screen bg-white font-sans">
       <div className="sticky top-0 bg-white z-10 px-4 py-6 flex items-center border-b border-gray-50">
@@ -78,11 +80,11 @@ const ChooseAddress = () => {
       </div>
 
       <div className="p-4">
-        {addresses && addresses.length > 0 ? (
+        {addressList && addressList.length > 0 ? (
           <div className="space-y-8">
-            {addresses.map((item, index) => (
+            {addressList.map((item) => (
               <div
-                key={item.id || index}
+                key={item.id}
                 onClick={() => handleSelect(item)}
                 className="flex items-start gap-4 cursor-pointer group"
               >
@@ -97,19 +99,19 @@ const ChooseAddress = () => {
                 </div>
 
                 <div className="flex-1 space-y-1">
-                  {index === 0 && (
+                  {item.is_default && (
                     <p className="text-sm text-gray-500 font-medium tracking-tight">
                       Default Address
                     </p>
                   )}
                   <p className="font-bold text-gray-900 text-lg">
-                    {item.name || "Recipient"}
-                    {item.phone && (
-                      <span className="font-normal ml-1">{item.phone}</span>
+                    {item.label || "Address"}
+                    {item.phone_number && (
+                      <span className="font-normal ml-1">{item.phone_number}</span>
                     )}
                   </p>
                   <p className="text-gray-900 text-lg leading-relaxed max-w-[90%]">
-                    {item.address}
+                    {item.street_address}, {item.city}, {item.state}
                   </p>
                 </div>
               </div>
