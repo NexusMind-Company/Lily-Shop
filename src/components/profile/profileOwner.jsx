@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import ProfileFeedViewer from "./profileFeedViewer";
 
-const API_BASE_URL = "https://lily-shop-backend.onrender.com";
+const API_BASE_URL = "//api.lilyshops.com";
 
 const ProfileOwner = () => {
   const [activeTab, setActiveTab] = useState(0);
