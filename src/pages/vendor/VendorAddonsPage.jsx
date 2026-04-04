@@ -6,12 +6,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchAddons, createAddon, updateAddon, deleteAddon } from "../../services/vendorDashboardApi";
 
-const mockAddons = [
-  { id: "A001", name: "Zobo Drink", price: 500, description: "Chilled hibiscus drink", is_available: true },
-  { id: "A002", name: "Cake Slice", price: 700, description: "Chef's daily bake", is_available: true },
-  { id: "A003", name: "Fruit Salad", price: 600, description: "Mixed seasonal fruits", is_available: false },
-];
-
 const AddonForm = ({ addon, onSave, onCancel, isSaving }) => {
   const [form, setForm] = useState({ name: addon?.name ?? "", price: addon?.price ?? "", description: addon?.description ?? "" });
 
@@ -61,8 +55,6 @@ const VendorAddonsPage = () => {
   const { data: addons, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["vendorAddons"],
     queryFn: fetchAddons,
-    placeholderData: mockAddons,
-    retry: 2,
   });
 
   const { mutate: add, isPending: adding } = useMutation({
@@ -90,7 +82,7 @@ const VendorAddonsPage = () => {
   if (isLoading && !addons) return <VendorLayout title="Add-ons"><VendorPageLoader /></VendorLayout>;
   if (isError && !addons) return <VendorLayout title="Add-ons"><VendorPageError message={getErrorMessage(error)} onRetry={refetch} /></VendorLayout>;
 
-  const addonList = addons ?? mockAddons;
+  const addonList = Array.isArray(addons) ? addons : addons?.results ?? [];
 
   return (
     <VendorLayout title="Add-ons">

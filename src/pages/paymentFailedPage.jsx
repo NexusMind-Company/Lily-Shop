@@ -5,7 +5,7 @@ const PaymentFailedPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
           onClick={() => navigate("/checkout")} // Go back to cart

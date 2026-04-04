@@ -6,12 +6,10 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchShopStatus, pauseShop, resumeShop } from "../../services/vendorDashboardApi";
 
-const mockStatus = { is_paused: false, paused_at: null, pause_reason: null, resume_date: null, pause_existing_subscriptions: false };
 const PAUSE_REASONS = [
-  { key: "equipment", label: "Equipment Issue", icon: Wrench },
-  { key: "emergency", label: "Family Emergency", icon: AlertTriangle },
-  { key: "travel", label: "Travel / Vacation", icon: Plane },
-  { key: "ingredients", label: "Ingredient Shortage", icon: ShoppingBag },
+  { key: "vacation", label: "Going on Vacation", icon: Plane },
+  { key: "maintenance", label: "Kitchen Maintenance", icon: Wrench },
+  { key: "low_stock", label: "Low Stock / Supplies", icon: ShoppingBag },
   { key: "rest", label: "Taking a Break", icon: Coffee },
 ];
 
@@ -25,8 +23,6 @@ const VendorPauseShopPage = () => {
   const { data: status, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["shopStatus"],
     queryFn: fetchShopStatus,
-    placeholderData: mockStatus,
-    retry: 2,
     staleTime: 1000 * 30,
   });
 

@@ -16,11 +16,6 @@ const SIZE_COLORS = {
   medium: "bg-green-50 text-green-700 border-green-100",
   large: "bg-purple-50 text-purple-700 border-purple-100",
 };
-const mockMenu = [
-  { id: "M001", name: "Jollof Rice + Chicken", price: "2500", size_category: "medium", image_url: null, is_available: true },
-  { id: "M002", name: "Egusi Soup + Pounded Yam", price: "3800", size_category: "large", image_url: null, is_available: true },
-  { id: "M003", name: "Chin-Chin (100g)", price: "1200", size_category: "small", image_url: null, is_available: false },
-];
 
 const PriceGuide = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -216,8 +211,6 @@ const VendorMenuPage = () => {
   } = useQuery({
     queryKey: ["vendorMenu"],
     queryFn: fetchVendorMenu,
-    placeholderData: mockMenu,
-    retry: 2,
     staleTime: 1000 * 60 * 2,
   });
 
@@ -241,7 +234,7 @@ const VendorMenuPage = () => {
     onSettled: () => setDeletingId(null),
   });
 
-  const menuData = menu ?? mockMenu;
+  const menuData = Array.isArray(menu) ? menu : menu?.results ?? [];
 
   if (isLoading && !menu) return <VendorLayout title="Menu"><VendorPageLoader /></VendorLayout>;
   if (isError && !menu) return <VendorLayout title="Menu"><VendorPageError message={getErrorMessage(error)} onRetry={refetch} /></VendorLayout>;

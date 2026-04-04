@@ -81,6 +81,7 @@ import UserSubscriptionSuccessPage from "./pages/UserSubscriptionSuccessPage";
 import UserSubscriptionCallbackPage from "./pages/UserSubscriptionCallbackPage";
 import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
 import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
+import MealSelectionPage from "./pages/MealSelectionPage";
 
 /* ---------------- SETTINGS & ACCOUNT ---------------- */
 import Settings from "./pages/settings";
@@ -115,6 +116,7 @@ import VendorBroadcastPage from "./pages/vendor/VendorBroadcastPage";
 import VendorRatingsPage from "./pages/vendor/VendorRatingsPage";
 import VendorChurnPage from "./pages/vendor/VendorChurnPage";
 import VendorAnalyticsPage from "./pages/vendor/VendorAnalyticsPage";
+import VendorPackagesPage from "./pages/vendor/VendorPackagesPage";
 
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
@@ -271,6 +273,18 @@ function App() {
               path="/subscription/payment/:planId"
               element={<SubscriptionPaymentPage />}
             />
+            <Route
+              path="/subscription/processing"
+              element={<SubscriptionProcessingPage />}
+            />
+            <Route
+              path="/subscription/success"
+              element={<SubscriptionSuccessPage />}
+            />
+            <Route
+              path="/meal-selection/:subscriptionId"
+              element={<MealSelectionPage />}
+            />
 
             {/* User Premium */}
             <Route
@@ -308,6 +322,7 @@ function App() {
             <Route path="/vendor/dashboard/ratings" element={<VendorRatingsPage />} />
             <Route path="/vendor/dashboard/churn" element={<VendorChurnPage />} />
             <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
+            <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
 
             <Route
               path="/vendor/subscriptions"

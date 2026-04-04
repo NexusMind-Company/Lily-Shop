@@ -6,17 +6,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchVendorConversations, fetchConversationMessages, sendMessageToCustomer } from "../../services/vendorDashboardApi";
 
-const mockConversations = [
-  { id: "C001", customer_name: "Amaka Obi", customer_avatar: null, last_message: "Can I swap the chicken for fish?", last_message_time: "2min ago", unread_count: 2 },
-  { id: "C002", customer_name: "Chukwudi Eze", customer_avatar: null, last_message: "The food was amazing today!", last_message_time: "1hr ago", unread_count: 0 },
-  { id: "C003", customer_name: "Fatima Bello", customer_avatar: null, last_message: "My delivery hasn't arrived yet", last_message_time: "2hr ago", unread_count: 1 },
-];
-const mockMessages = [
-  { id: "MSG1", sender: "customer", text: "Can I swap the chicken for fish?", timestamp: "10:23 AM", is_read: false },
-  { id: "MSG2", sender: "vendor", text: "Of course! I'll note that for your next delivery.", timestamp: "10:25 AM", is_read: true },
-  { id: "MSG3", sender: "customer", text: "Thank you so much!", timestamp: "10:26 AM", is_read: false },
-];
-
 const ChatView = ({ conversation, onBack }) => {
   const [text, setText] = useState("");
   const queryClient = useQueryClient();
@@ -24,9 +13,7 @@ const ChatView = ({ conversation, onBack }) => {
   const { data: messages, isLoading, isError, refetch } = useQuery({
     queryKey: ["conversationMessages", conversation.id],
     queryFn: () => fetchConversationMessages(conversation.id),
-    placeholderData: { results: mockMessages },
     refetchInterval: 5000, // poll every 5 seconds for new messages
-    retry: 1,
   });
 
   const { mutate: send, isPending: sending } = useMutation({
@@ -99,8 +86,6 @@ const VendorMessagesPage = () => {
   const { data: conversations, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["vendorConversations"],
     queryFn: fetchVendorConversations,
-    placeholderData: mockConversations,
-    retry: 2,
     refetchInterval: 15000,
   });
 
@@ -114,7 +99,7 @@ const VendorMessagesPage = () => {
     );
   }
 
-  const convos = conversations ?? mockConversations;
+  const convos = Array.isArray(conversations) ? conversations : (conversations?.results ?? []);
 
   return (
     <VendorLayout title="Messages">

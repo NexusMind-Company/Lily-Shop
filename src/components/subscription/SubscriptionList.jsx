@@ -56,10 +56,10 @@ const SubscriptionList = ({ subscriptions, onViewAll, pagination, onPageChange }
 SubscriptionList.propTypes = {
   subscriptions: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       plan_name: PropTypes.string.isRequired,
-      price: PropTypes.string.isRequired,
-      subscribers: PropTypes.string,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      subscribers: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       subscription_date: PropTypes.string,
       trial_days: PropTypes.number,
       trial_end_date: PropTypes.string,
@@ -68,7 +68,7 @@ SubscriptionList.propTypes = {
       next_payment_date: PropTypes.string,
     }),
   ),
-  onViewAll: PropTypes.func.isRequired,
+  onViewAll: PropTypes.func,
   pagination: PropTypes.shape({
     currentPage: PropTypes.number.isRequired,
     totalPages: PropTypes.number.isRequired,

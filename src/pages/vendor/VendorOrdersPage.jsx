@@ -19,18 +19,6 @@ const STATUS_LABELS = {
 };
 const STATUS_FLOW = ["preparing", "ready", "out_for_delivery", "delivered"];
 
-const mockOrders = [
-  { id: "ORD001", customer_name: "Amaka Obi", phone: "08012345678", delivery_address: "12 Banana Island, Lagos", delivery_time: "12:00 PM", meal_plan: "Weekly – Medium", status: "preparing", created_at: "2024-01-15" },
-  { id: "ORD002", customer_name: "Chukwudi Eze", phone: "08087654321", delivery_address: "45 Victoria Island, Lagos", delivery_time: "1:00 PM", meal_plan: "Monthly – Large", status: "ready", created_at: "2024-01-15" },
-  { id: "ORD003", customer_name: "Fatima Bello", phone: "08055559999", delivery_address: "3 Surulere Street, Lagos", delivery_time: "2:00 PM", meal_plan: "Weekly – Small", status: "out_for_delivery", created_at: "2024-01-15" },
-  { id: "ORD004", customer_name: "Tunde Adeyemi", phone: "08011112222", delivery_address: "89 Ikeja GRA, Lagos", delivery_time: "3:00 PM", meal_plan: "Weekly – Medium", status: "delivered", created_at: "2024-01-15" },
-];
-const mockPrepList = [
-  { meal_name: "Jollof Rice", quantity: 18, meal_plan: "Weekly – Medium", customer_count: 18 },
-  { meal_name: "Egusi Soup + Pounded Yam", quantity: 12, meal_plan: "Monthly – Large", customer_count: 12 },
-  { meal_name: "Fried Rice + Chicken", quantity: 9, meal_plan: "Weekly – Small", customer_count: 9 },
-];
-
 const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
   const [open, setOpen] = useState(false);
   const currentIndex = STATUS_FLOW.indexOf(order.status);
@@ -96,8 +84,6 @@ const VendorOrdersPage = () => {
   } = useQuery({
     queryKey: ["vendorOrders", filterStatus],
     queryFn: () => fetchVendorOrders({ status: filterStatus !== "all" ? filterStatus : undefined }),
-    placeholderData: { results: mockOrders },
-    retry: 2,
     staleTime: 1000 * 30,
   });
 
@@ -110,9 +96,7 @@ const VendorOrdersPage = () => {
   } = useQuery({
     queryKey: ["dailyPrepList"],
     queryFn: fetchDailyPrepList,
-    placeholderData: mockPrepList,
     enabled: activeTab === "prep",
-    retry: 2,
     staleTime: 1000 * 60,
   });
 
@@ -130,6 +114,7 @@ const VendorOrdersPage = () => {
   });
 
   const orders = ordersData?.results ?? [];
+  const prepItems = Array.isArray(prepList) ? prepList : (prepList?.results ?? []);
   const filtered = orders.filter((o) =>
     searchTerm ? o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) : true
   );
@@ -197,7 +182,7 @@ const VendorOrdersPage = () => {
                 </p>
               </div>
 
-              {(prepList ?? []).map((item, i) => (
+              {prepItems.map((item, i) => (
                 <div key={i} className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
                     <Package size={18} className="text-orange-600" />
@@ -216,7 +201,7 @@ const VendorOrdersPage = () => {
               <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
                 <p className="text-xs text-gray-500 font-medium">Total portions to prepare:</p>
                 <p className="text-2xl font-bold text-[#111813] dark:text-white mt-1">
-                  {(prepList ?? []).reduce((sum, i) => sum + (i.quantity ?? 0), 0)}
+                  {prepItems.reduce((sum, i) => sum + (i.quantity ?? 0), 0)}
                 </p>
               </div>
             </div>

@@ -6,10 +6,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { sendBroadcastMessage, fetchBroadcastHistory } from "../../services/vendorDashboardApi";
 
-const mockHistory = [
-  { id: "B001", title: "Weekend Special", message: "Fresh Pepper Soup added as a bonus today! 🍲", recipients_count: 87, sent_at: "2024-01-13 10:00" },
-  { id: "B002", title: "Delivery Notice", message: "Slight delay today due to traffic. Deliveries by 3PM.", recipients_count: 87, sent_at: "2024-01-10 08:00" },
-];
 const TEMPLATES = [
   "Fresh [meal] added as a bonus today! 🎉",
   "Deliveries for today are on schedule. Enjoy! 😋",
@@ -25,8 +21,6 @@ const VendorBroadcastPage = () => {
   const { data: history, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["broadcastHistory"],
     queryFn: fetchBroadcastHistory,
-    placeholderData: mockHistory,
-    retry: 2,
   });
 
   const { mutate: broadcast, isPending } = useMutation({

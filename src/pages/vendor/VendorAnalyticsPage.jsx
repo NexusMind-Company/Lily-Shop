@@ -6,28 +6,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchVendorAnalytics } from "../../services/vendorDashboardApi";
 
-const mockAnalytics = {
-  subscriber_growth_rate: 12.5,
-  retention_rate: 78,
-  churn_rate: 22,
-  meal_popularity: [
-    { meal_name: "Jollof Rice", order_count: 145, percentage: 38 },
-    { meal_name: "Egusi Soup", order_count: 98, percentage: 26 },
-    { meal_name: "Fried Rice", order_count: 76, percentage: 20 },
-    { meal_name: "Pepper Soup", order_count: 61, percentage: 16 },
-  ],
-  ingredient_insights: [
-    { ingredient: "Onions", removal_rate: 80 },
-    { ingredient: "Pepper", removal_rate: 45 },
-    { ingredient: "Fish", removal_rate: 30 },
-  ],
-  top_performing_plans: [
-    { plan_name: "Weekly – Medium", subscribers: 45, revenue: 112500 },
-    { plan_name: "Monthly – Large", subscribers: 22, revenue: 110000 },
-    { plan_name: "Weekly – Small", subscribers: 20, revenue: 30000 },
-  ],
-};
-
 const COLORS = ["#4eb75e", "#3da64d", "#6dd47e", "#9be8a8", "#c6f5ce"];
 const PERIODS = [{ key: "weekly", label: "Weekly" }, { key: "monthly", label: "Monthly" }, { key: "quarterly", label: "Quarterly" }];
 
@@ -37,15 +15,13 @@ const VendorAnalyticsPage = () => {
   const { data: analytics, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["vendorAnalytics", period],
     queryFn: () => fetchVendorAnalytics(period),
-    placeholderData: mockAnalytics,
-    retry: 2,
     staleTime: 1000 * 60 * 5,
   });
 
   if (isLoading && !analytics) return <VendorLayout title="Analytics"><VendorPageLoader /></VendorLayout>;
   if (isError && !analytics) return <VendorLayout title="Analytics"><VendorPageError message={getErrorMessage(error)} onRetry={refetch} /></VendorLayout>;
 
-  const a = analytics ?? mockAnalytics;
+  const a = analytics;
 
   return (
     <VendorLayout title="Analytics">

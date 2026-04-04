@@ -5,7 +5,7 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
   const location = useLocation();
 
   const { isAuthenticated, user_data } = useSelector((state) => state.auth);
-  const { data: profileData } = useSelector((state) => state.profile);
+  const { data: profileData, loading: profileLoading } = useSelector((state) => state.profile);
 
   // Backend truth: vendor_id exists => vendor
   const isVendor = Boolean(
@@ -18,9 +18,16 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2️⃣ Vendor-only route
+  // 2️⃣ Wait for profile to finish loading before making role decisions.
+  // This prevents a race condition on refresh where profileData is null
+  // (async fetch not complete yet) causing vendors to be wrongly redirected.
+  if (requiredRole === "vendor" && profileLoading && !profileData) {
+    return null; // render nothing briefly while profile loads
+  }
+
+  // 3️⃣ Vendor-only route — only redirect once we know the profile
   if (requiredRole === "vendor" && !isVendor) {
-    return <Navigate to="/vendor-dashboard" replace />;
+    return <Navigate to="/create-vendor" replace />;
   }
 
   return children ? children : <Outlet />;

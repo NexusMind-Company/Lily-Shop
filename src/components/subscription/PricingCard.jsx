@@ -1,3 +1,6 @@
+import { Check, CheckCircle } from "lucide-react";
+import PropTypes from "prop-types";
+
 // import { Check, CheckCircle } from "lucide-react";
 // import PropTypes from "prop-types";
 
@@ -98,8 +101,6 @@
 // export default PricingCard;
 
 
-import { Check, CheckCircle } from "lucide-react";
-import PropTypes from "prop-types";
 
 /**
  * PricingCard component for displaying meal plan options

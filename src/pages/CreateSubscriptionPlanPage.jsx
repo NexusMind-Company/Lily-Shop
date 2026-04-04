@@ -57,7 +57,7 @@ const CreateSubscriptionPlanPage = () => {
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased overflow-x-hidden transition-colors duration-300">
       <TopAppBar title="Create Subscription" onBackClick={handleBackClick} />
       {/* Main Content */}
-      <main className="flex-1 flex flex-col w-full max-w-md mx-auto p-4 md:p-6 pb-24">
+      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto p-4 md:p-6 pb-24">
         {/* Headline Section */}
         <div className="mb-8 mt-2 animate-fade-in-up">
           <h2 className="text-[#111813] dark:text-white tracking-tight text-[32px] font-extrabold leading-tight mb-2">

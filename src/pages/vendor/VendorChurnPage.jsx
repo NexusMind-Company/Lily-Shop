@@ -6,17 +6,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchChurnedCustomers, sendWinbackOffer } from "../../services/vendorDashboardApi";
 
-const mockChurned = {
-  count: 5,
-  results: [
-    { id: "CH001", customer_name: "Musa Ibrahim", last_plan: "Weekly – Medium", cancelled_at: "2024-01-10", days_since_cancel: 5 },
-    { id: "CH002", customer_name: "Chinedu Obi", last_plan: "Monthly – Large", cancelled_at: "2024-01-08", days_since_cancel: 7 },
-    { id: "CH003", customer_name: "Aisha Mohammed", last_plan: "Weekly – Small", cancelled_at: "2024-01-05", days_since_cancel: 10 },
-    { id: "CH004", customer_name: "Emeka Nweke", last_plan: "Weekly – Medium", cancelled_at: "2024-01-02", days_since_cancel: 13 },
-    { id: "CH005", customer_name: "Grace Adeleke", last_plan: "Monthly – Medium", cancelled_at: "2023-12-28", days_since_cancel: 18 },
-  ],
-};
-
 const DiscountModal = ({ customer, onSend, onClose, isSending }) => {
   const [discount, setDiscount] = useState(10);
   const [msg, setMsg] = useState(`Hey ${customer.customer_name?.split(" ")[0] ?? "there"}, we miss you! Come back with a special discount just for you 💚`);
@@ -78,8 +67,6 @@ const VendorChurnPage = () => {
   const { data: churnData, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["churnedCustomers", period],
     queryFn: () => fetchChurnedCustomers({ period }),
-    placeholderData: mockChurned,
-    retry: 2,
   });
 
   const { mutate: sendOffer, isPending: sendingOffer } = useMutation({

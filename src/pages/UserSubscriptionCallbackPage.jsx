@@ -43,7 +43,7 @@ const UserSubscriptionCallbackPage = () => {
       />
 
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           {status === "success" ? (
             <>
               <CheckCircle className="mx-auto mb-4 text-green-500" size={64} />

@@ -17,23 +17,6 @@ import {
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
 
-const mockOverview = {
-  today_orders: 12, meals_to_prepare: 34, active_subscriptions: 87,
-  total_earnings: 284500, weekly_revenue: 45200,
-  new_subscribers_this_week: 9, cancelled_subscriptions: 2, net_growth: 7,
-};
-const mockGrowth = {
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  new_subscribers: [3, 5, 2, 8, 4, 6, 9],
-  lost_subscribers: [1, 0, 1, 2, 0, 1, 2],
-};
-const mockActivity = [
-  { id: 1, customer_name: "Amaka Obi", action: "subscribed", meal_plan: "Weekly Plan – Medium", timestamp: "2min ago" },
-  { id: 2, customer_name: "Chukwudi Eze", action: "renewed", meal_plan: "Monthly Plan – Large", timestamp: "14min ago" },
-  { id: 3, customer_name: "Fatima Bello", action: "cancelled", meal_plan: "Weekly Plan – Small", timestamp: "1hr ago" },
-  { id: 4, customer_name: "Tunde Adeyemi", action: "subscribed", meal_plan: "Weekly Plan – Medium", timestamp: "2hr ago" },
-];
-
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
     <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
@@ -99,10 +82,7 @@ const VendorDashboardOverview = () => {
   } = useQuery({
     queryKey: ["vendorDashboardOverview"],
     queryFn: fetchVendorDashboardOverview,
-    placeholderData: mockOverview,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2,
   });
 
   const {
@@ -111,8 +91,6 @@ const VendorDashboardOverview = () => {
   } = useQuery({
     queryKey: ["subscriberGrowth", "weekly"],
     queryFn: () => fetchSubscriberGrowth("weekly"),
-    placeholderData: mockGrowth,
-    retry: 1,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -122,8 +100,6 @@ const VendorDashboardOverview = () => {
   } = useQuery({
     queryKey: ["recentActivity"],
     queryFn: fetchRecentActivity,
-    placeholderData: mockActivity,
-    retry: 1,
     staleTime: 1000 * 30,
   });
 
@@ -141,9 +117,9 @@ const VendorDashboardOverview = () => {
     );
   }
 
-  const o = overview ?? mockOverview;
-  const g = growth ?? mockGrowth;
-  const a = activity ?? mockActivity;
+  const o = overview ?? {};
+  const g = growth ?? {};
+  const a = activity;
 
   const chartData = (g?.labels ?? []).map((label, i) => ({
     name: label,
