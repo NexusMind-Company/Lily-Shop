@@ -178,7 +178,7 @@ const PlanDetailsPage = () => {
         action={!editMode ? { icon: Edit2, onClick: () => setEditMode(true) } : null}
       />
 
-      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-5xl mx-auto w-full">
         {/* Error Display */}
         {errors.submit && (
           <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">

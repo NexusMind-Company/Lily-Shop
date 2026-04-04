@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import ProfileFeedViewer from "./profileFeedViewer";
 
-const API_BASE_URL = "https://lily-shop-backend.onrender.com";
+const API_BASE_URL = "http://187.124.115.195";
 
 const ProfileOwner = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -497,10 +497,16 @@ const ProfileOwner = () => {
             </Link>
           </div>
           <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-[250px] mx-auto">
-            {user?.vendor_id && (
-              <Link to="/vendor-dashboard" className="w-full">
+            {user?.vendor_id ? (
+              <Link to="/vendor/dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
-                  Food Subscription
+                  Vendor Dashboard
+                </button>
+              </Link>
+            ) : (
+              <Link to="/create-vendor" className="w-full">
+                <button className="w-full px-4 py-2 border-2 border-[#4eb75e] text-[#4eb75e] rounded-3xl font-bold md:text-[16px]">
+                  Become a Vendor
                 </button>
               </Link>
             )}

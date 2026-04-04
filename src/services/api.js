@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
+  import.meta.env.VITE_API_URL || "http://187.124.115.195";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -367,13 +367,21 @@ export const likeContentComment = async (commentId) => {
 };
 
 export const recordProductView = async (productId) => {
-  const response = await api.post(`/shops/products/${productId}/view/`, {});
-  return response.data;
+  try {
+    const response = await api.post(`/shops/products/${productId}/view/`, {});
+    return response.data;
+  } catch {
+    // View tracking is non-critical — silently ignore failures
+  }
 };
 
 export const recordContentView = async (contentId) => {
-  const response = await api.post(`/shops/contents/${contentId}/view/`, {});
-  return response.data;
+  try {
+    const response = await api.post(`/shops/contents/${contentId}/view/`, {});
+    return response.data;
+  } catch {
+    // View tracking is non-critical — silently ignore failures
+  }
 };
 
 export const followUser = async (userId) => {
@@ -552,11 +560,16 @@ export const fetchSubscriptionStats = async (vendorId) => {
 };
 
 export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
-  const response = await api.get(`/foods/subscriptions/vendor/`);
-  const subscriptions = response.data.results || response.data;
-  return subscriptions
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, limit);
+  try {
+    const response = await api.get(`/foods/subscriptions/vendor/`);
+    const subscriptions = response.data.results || response.data || [];
+    return subscriptions
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, limit);
+  } catch (error) {
+    console.error("❌ API Error fetching recent subscriptions:", error);
+    return [];
+  }
 };
 
 export const fetchAllSubscriptions = async (

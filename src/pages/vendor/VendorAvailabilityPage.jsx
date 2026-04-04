@@ -9,12 +9,6 @@ import { fetchAvailability, updateAvailability } from "../../services/vendorDash
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
-const mockAvailability = {
-  working_days: ["monday","tuesday","wednesday","thursday","friday"],
-  delivery_times: ["12:00","18:00"],
-  max_meals_per_day: 50,
-  is_sold_out: false,
-};
 
 const VendorAvailabilityPage = () => {
   const queryClient = useQueryClient();
@@ -22,13 +16,11 @@ const VendorAvailabilityPage = () => {
   const { data: avail, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["vendorAvailability"],
     queryFn: fetchAvailability,
-    placeholderData: mockAvailability,
-    retry: 2,
   });
 
-  const [workingDays, setWorkingDays] = useState(mockAvailability.working_days);
-  const [deliveryTimes, setDeliveryTimes] = useState(mockAvailability.delivery_times);
-  const [maxMeals, setMaxMeals] = useState(mockAvailability.max_meals_per_day);
+  const [workingDays, setWorkingDays] = useState([]);
+  const [deliveryTimes, setDeliveryTimes] = useState([]);
+  const [maxMeals, setMaxMeals] = useState(50);
 
   // Sync state when data loads
   useEffect(() => {

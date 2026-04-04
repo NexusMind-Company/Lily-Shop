@@ -11,16 +11,6 @@ import {
   declineSubscriptionRequest,
 } from "../../services/vendorDashboardApi";
 
-const mockSubscriptions = [
-  { id: "SUB001", customer_name: "Amaka Obi", meal_preferences: "No onions", plan_type: "weekly", start_date: "2024-01-01", end_date: "2024-01-07", status: "active", duration_days: 7 },
-  { id: "SUB002", customer_name: "Chukwudi Eze", meal_preferences: "Extra protein", plan_type: "monthly", start_date: "2024-01-01", end_date: "2024-01-31", status: "active", duration_days: 30 },
-  { id: "SUB003", customer_name: "Fatima Bello", meal_preferences: "Vegetarian", plan_type: "weekly", start_date: "2023-12-25", end_date: "2023-12-31", status: "expired", duration_days: 7 },
-];
-const mockRequests = [
-  { id: "REQ001", customer_name: "Blessing Nwosu", requested_plan: "Monthly – Large", requested_at: "10 min ago", meal_preferences: "No pepper" },
-  { id: "REQ002", customer_name: "Emeka Okafor", requested_plan: "Weekly – Medium", requested_at: "1 hr ago", meal_preferences: "Extra portion" },
-];
-
 const PLAN_TYPE_COLORS = { weekly: "bg-blue-100 text-blue-700", monthly: "bg-purple-100 text-purple-700" };
 const STATUS_COLORS = { active: "bg-green-100 text-green-700", expired: "bg-gray-100 text-gray-500", pending: "bg-orange-100 text-orange-600" };
 
@@ -116,9 +106,7 @@ const VendorSubscriptionsPage = () => {
       status: activeTab !== "requests" ? activeTab : undefined,
       plan_type: planFilter !== "all" ? planFilter : undefined,
     }),
-    placeholderData: { results: mockSubscriptions },
     enabled: activeTab !== "requests",
-    retry: 2,
     staleTime: 1000 * 60,
   });
 
@@ -127,9 +115,7 @@ const VendorSubscriptionsPage = () => {
   } = useQuery({
     queryKey: ["subscriptionRequests"],
     queryFn: fetchSubscriptionRequests,
-    placeholderData: mockRequests,
     enabled: activeTab === "requests",
-    retry: 2,
     staleTime: 1000 * 30,
   });
 

@@ -4,19 +4,6 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import { fetchMealRatings, fetchRatingsSummary } from "../../services/vendorDashboardApi";
 
-const mockSummary = [
-  { meal_id: "M001", meal_name: "Jollof Rice + Chicken", average_rating: 4.5, total_reviews: 32, common_removal: "No onions (80%)" },
-  { meal_id: "M002", meal_name: "Egusi Soup + Pounded Yam", average_rating: 4.8, total_reviews: 28, common_removal: null },
-  { meal_id: "M003", meal_name: "Fried Rice + Chicken", average_rating: 3.2, total_reviews: 15, common_removal: "No pepper (60%)" },
-];
-const mockRatings = {
-  results: [
-    { id: "R001", meal_name: "Jollof Rice + Chicken", rating: 5, review: "Absolutely delicious! Best jollof I've had.", customer_name: "Amaka Obi", created_at: "2024-01-15" },
-    { id: "R002", meal_name: "Egusi Soup + Pounded Yam", rating: 4, review: "Great taste but could use more protein.", customer_name: "Chukwudi Eze", created_at: "2024-01-14" },
-    { id: "R003", meal_name: "Fried Rice + Chicken", rating: 3, review: "Rice was a bit hard today.", customer_name: "Fatima Bello", created_at: "2024-01-13" },
-  ],
-};
-
 const StarRating = ({ rating, size = 14 }) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map((s) => (
@@ -31,8 +18,6 @@ const VendorRatingsPage = () => {
   } = useQuery({
     queryKey: ["ratingsSummary"],
     queryFn: fetchRatingsSummary,
-    placeholderData: mockSummary,
-    retry: 2,
   });
 
   const {
@@ -40,8 +25,6 @@ const VendorRatingsPage = () => {
   } = useQuery({
     queryKey: ["mealRatings"],
     queryFn: fetchMealRatings,
-    placeholderData: mockRatings,
-    retry: 1,
   });
 
   if ((sumLoading && !summary) || (ratLoading && !ratingsData)) {
@@ -51,7 +34,7 @@ const VendorRatingsPage = () => {
     return <VendorLayout title="Ratings & Feedback"><VendorPageError message={getErrorMessage(sumErr)} onRetry={refetchSum} /></VendorLayout>;
   }
 
-  const sumData = summary ?? mockSummary;
+  const sumData = Array.isArray(summary) ? summary : summary?.results ?? [];
   const ratings = ratingsData?.results ?? [];
   const avgRating = sumData.length > 0
     ? (sumData.reduce((s, m) => s + (m.average_rating ?? 0), 0) / sumData.length).toFixed(1)
@@ -103,7 +86,7 @@ const VendorRatingsPage = () => {
         </div>
         {ratError ? (
           <p className="text-xs text-gray-400 text-center py-6">Reviews unavailable</p>
-        ) : ratings.length === 0 ? (
+        ) : !ratings || ratings.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-6">No reviews yet</p>
         ) : (
           ratings.map((r) => (

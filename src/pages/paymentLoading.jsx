@@ -54,7 +54,7 @@ const PaymentLoadingPage = () => {
   // Handle case where orderId is missing from context
   if (!paymentData?.orderId && !isLoading) {
     return (
-      <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
+      <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
         {/* Header */}
         <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
           {/* No back button here usually, maybe a home/cancel button */}
@@ -77,7 +77,7 @@ const PaymentLoadingPage = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
       {/* Header (optional, maybe no back button?) */}
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <h2 className="font-bold text-lg text-gray-800">Checking Payment</h2>

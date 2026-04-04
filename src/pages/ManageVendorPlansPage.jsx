@@ -186,7 +186,7 @@ const ManageVendorPlansPage = () => {
     <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
       <TopAppBar title="Manage Meal Plans" onBackClick={handleBackClick} />
 
-      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-5xl mx-auto w-full">
         {/* Stats */}
         <div className="flex flex-wrap gap-3">
           <StatsCard

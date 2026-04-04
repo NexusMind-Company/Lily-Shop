@@ -16,7 +16,7 @@ const VerificationPage = () => {
   const [success, setSuccess] = useState('');
   const [resending, setResending] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://lily-shop-backend.onrender.com';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://187.124.115.195';
 
   const handleVerify = async (e) => {
     e.preventDefault();

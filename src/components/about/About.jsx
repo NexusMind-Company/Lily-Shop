@@ -1,13 +1,3 @@
-
-
-
-
-
-
-
-// src/components/settings/About.jsx
-
-
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -326,9 +316,3 @@ This protects users while keeping things simple and fair for vendors.`,
 };
 
 export default About;
-
-
-
-
-
- 

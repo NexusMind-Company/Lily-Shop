@@ -58,7 +58,7 @@ const SubscriptionProcessingPage = () => {
   const dots = [0, 1, 2];
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-[#f6f8f6] items-center justify-center p-6">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6] items-center justify-center p-6">
       {/* Animated circle */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
