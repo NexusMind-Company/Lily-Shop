@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Heart } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Heart,
+  Trash2,
+  MoreVertical,
+  Edit2,
+  Flag,
+} from "lucide-react";
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
@@ -60,8 +68,16 @@ const VerifiedCartIcon = () => (
   </svg>
 );
 
-const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
+const CommentItem = ({
+  comment,
+  onReply,
+  onLike,
+  onDelete,
+  currentUserId,
+  isReply = false,
+}) => {
   const [showReplies, setShowReplies] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   if (!comment) return null;
 
@@ -98,6 +114,13 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
         comment.timestamp,
     );
 
+  const isOwner =
+    currentUserId &&
+    (comment.user_id === currentUserId ||
+      comment.userId === currentUserId ||
+      comment.author?.id === currentUserId ||
+      comment.user?.id === currentUserId);
+
   const handleReplyClick = (e) => {
     e.stopPropagation();
     if (onReply) {
@@ -112,9 +135,22 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
     }
   };
 
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    if (onDelete) {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this comment?",
+      );
+      if (confirmDelete) {
+        onDelete(comment.id, isReply);
+      }
+    }
+  };
+
   return (
     <div className={`flex space-x-3 py-3 ${isReply ? "ml-8 mt-1" : "mt-2"}`}>
-      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E8F0FE] text-[#1967D2] flex items-center justify-center font-semibold text-sm border border-gray-100">
+      <div className="shrink-0 w-10 h-10 rounded-full bg-[#E8F0FE] text-[#1967D2] flex items-center justify-center font-semibold text-sm border border-gray-100">
         {comment.userpic || comment.profile_pic ? (
           <img
             src={comment.userpic || comment.profile_pic}
@@ -126,20 +162,80 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <div className="flex items-center flex-wrap">
-          <p className="font-semibold text-[15px] text-gray-900">{userName}</p>
-          {comment.is_buyer && <VerifiedCartIcon />}
+      <div className="flex-1 min-w-0 flex flex-col justify-center relative">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center flex-wrap pr-6">
+            <p className="font-semibold text-[15px] text-gray-900">
+              {userName}
+            </p>
+            {comment.is_buyer && <VerifiedCartIcon />}
 
-          {comment.replyingTo && (
-            <span className="flex items-center text-gray-500 text-[15px] mx-1">
-              <span className="mx-1 text-gray-400 font-light">&gt;</span>
-              <span className="text-gray-700">{comment.replyingTo}</span>
-            </span>
-          )}
+            {comment.replyingTo && (
+              <span className="flex items-center text-gray-500 text-[15px] mx-1">
+                <span className="mx-1 text-gray-400 font-light">&gt;</span>
+                <span className="text-gray-700">{comment.replyingTo}</span>
+              </span>
+            )}
+          </div>
+
+          <div className="absolute right-0 top-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                  }}
+                ></div>
+                <div className="absolute right-0 top-6 mt-1 w-32 bg-white rounded-md shadow-lg overflow-hidden py-1 z-20 border border-gray-100">
+                  {isOwner && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          alert("Edit functionality coming soon!");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Edit2 size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={handleDeleteClick}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2 font-medium"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      alert("Report submitted.");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <Flag size={14} /> Report
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
-        <p className="text-[15px] text-gray-800 leading-snug mt-1 break-words pr-2">
+        <p className="text-[15px] text-gray-800 leading-snug mt-1 wrap-break-word pr-2">
           {commentBody}
         </p>
 
@@ -208,6 +304,8 @@ const CommentItem = ({ comment, onReply, onLike, isReply = false }) => {
                     comment={reply}
                     onReply={onReply}
                     onLike={onLike}
+                    onDelete={onDelete}
+                    currentUserId={currentUserId}
                     isReply={true}
                   />
                 ))}

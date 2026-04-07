@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectCartItems,
@@ -97,7 +96,22 @@ const CartModal = ({ isOpen, onClose }) => {
   const selectedTotal = useMemo(() => {
     return cartItems.reduce((total, item) => {
       if (selectedItems.has(item.id)) {
-        return total + Number(item.subtotal_naira || 0);
+        const unitPrice =
+          Number(item.price_naira) ||
+          Number(item.product?.price_in_naira) ||
+          (Number(item.total_price_naira)
+            ? Number(item.total_price_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.subtotal_naira)
+            ? Number(item.subtotal_naira) / (item.quantity || 1)
+            : 0) ||
+          (Number(item.price_kobo) ? Number(item.price_kobo) / 100 : 0) ||
+          (Number(item.current_price_kobo)
+            ? Number(item.current_price_kobo) / 100
+            : 0) ||
+          0;
+
+        return total + unitPrice * item.quantity;
       }
       return total;
     }, 0);
@@ -169,197 +183,196 @@ const CartModal = ({ isOpen, onClose }) => {
     return "/feed-image.png";
   };
 
+  // Early return prevents the component from rendering any DOM nodes when closed
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/50 flex justify-center items-end"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: "0%" }}
-            exit={{ y: "100%" }}
-            transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            className="w-full max-w-xl bg-white rounded-t-3xl shadow-2xl flex flex-col h-[80vh] mb-15 md:rounded-3xl"
-            onClick={(e) => e.stopPropagation()}
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex justify-center items-end"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-xl bg-white rounded-3xl shadow-2xl flex flex-col h-[80vh] mb-15 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative p-4 border-b border-gray-200 shrink-0">
+          <h2 className="text-center font-bold text-lg text-gray-800">
+            Cart ({cartItemCount})
+          </h2>
+          <button
+            onClick={onClose}
+            className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800"
           >
-            <div className="relative p-4 border-b border-gray-200 shrink-0">
-              <h2 className="text-center font-bold text-lg text-gray-800">
-                Cart ({cartItemCount})
-              </h2>
-              <button
-                onClick={onClose}
-                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-gray-800"
-              >
-                <X size={24} />
-              </button>
-            </div>
+            <X size={24} />
+          </button>
+        </div>
 
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
-              <p className="text-center font-bold text-lg text-gray-800">
-                Items ({selectedItems.size} selected)
-              </p>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full"
-                  checked={areAllSelected}
-                  onChange={handleToggleAll}
-                  disabled={cartItems.length === 0}
-                />
-                <span className="font-bold text-lg text-gray-800">
-                  {areAllSelected ? "Deselect All" : "Select All"}
-                </span>
-              </label>
-            </div>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
+          <p className="text-center font-bold text-lg text-gray-800">
+            Items ({selectedItems.size} selected)
+          </p>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              className="appearance-none border border-gray-400 checked:bg-lily h-5 w-5 text-lily rounded-full"
+              checked={areAllSelected}
+              onChange={handleToggleAll}
+              disabled={cartItems.length === 0}
+            />
+            <span className="font-bold text-lg text-gray-800">
+              {areAllSelected ? "Deselect All" : "Select All"}
+            </span>
+          </label>
+        </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {cartItems.length === 0 ? (
-                <p className="text-center text-gray-500 mt-8">
-                  Your cart is empty.
-                </p>
-              ) : (
-                cartItems.map((item) => {
-                  const isUpdating = updatingItems.has(item.id);
-                  const priceChanged =
-                    item.price_changed ||
-                    item.price_kobo_snapshot !== item.current_price_kobo;
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {cartItems.length === 0 ? (
+            <p className="text-center text-gray-500 mt-8">
+              Your cart is empty.
+            </p>
+          ) : (
+            cartItems.map((item) => {
+              const isUpdating = updatingItems.has(item.id);
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex items-center space-x-3 border-b border-gray-200 pb-4 ${
-                        isUpdating ? "opacity-50 pointer-events-none" : ""
-                      }`}
-                    >
-                      <div className="flex flex-col gap-2 w-30 shrink-0">
-                        <p className="text-sm text-gray-500 wrap-break-word">
-                          {item.product?.user ||
-                            item.product?.shop_name ||
-                            "Seller"}
-                        </p>
-                        <img
-                          src={getProductImage(item.product)}
-                          alt={item.product?.name || "Product"}
-                          className="w-20 h-20 object-cover rounded-lg shrink-0"
-                          onError={(e) => {
-                            if (!e.target.src.includes("/feed-image.png")) {
-                              e.target.src = "/feed-image.png";
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col">
-                        <h3 className="font-semibold text-gray-800">
-                          {item.product?.name || "Product"}
-                        </h3>
+              const unitPrice =
+                Number(item.price_naira) ||
+                Number(item.product?.price_in_naira) ||
+                (Number(item.total_price_naira)
+                  ? Number(item.total_price_naira) / (item.quantity || 1)
+                  : 0) ||
+                (Number(item.subtotal_naira)
+                  ? Number(item.subtotal_naira) / (item.quantity || 1)
+                  : 0) ||
+                (Number(item.price_kobo) ? Number(item.price_kobo) / 100 : 0) ||
+                (Number(item.current_price_kobo)
+                  ? Number(item.current_price_kobo) / 100
+                  : 0) ||
+                0;
 
-                        <p className="text-sm text-gray-600">
-                          ₦{formatPrice(item.current_price_kobo / 100)}
-                        </p>
+              const derivedSubtotal = unitPrice * item.quantity;
 
-                        {priceChanged && (
-                          <p className="text-xs text-amber-600">
-                            ⚠️ Price changed from ₦
-                            {formatPrice(item.price_kobo_snapshot / 100)}
-                          </p>
-                        )}
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center space-x-3 border-b border-gray-200 pb-4 ${
+                    isUpdating ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                >
+                  <div className="flex flex-col gap-2 w-30 shrink-0">
+                    <p className="text-sm text-gray-500 wrap-break-word">
+                      {item.product?.user ||
+                        item.product?.shop_name ||
+                        "Seller"}
+                    </p>
+                    <img
+                      src={getProductImage(item.product)}
+                      alt={item.product?.name || "Product"}
+                      className="w-20 h-20 object-cover rounded-lg shrink-0"
+                      onError={(e) => {
+                        if (!e.target.src.includes("/feed-image.png")) {
+                          e.target.src = "/feed-image.png";
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="font-semibold text-gray-800">
+                      {item.product?.name || "Product"}
+                    </h3>
 
-                        {!item.product?.in_stock && (
-                          <p className="text-xs text-red-600 font-semibold">
-                            Out of stock
-                          </p>
-                        )}
+                    <p className="text-sm text-gray-600">
+                      ₦{formatPrice(unitPrice)}
+                    </p>
 
-                        <div className="flex items-center mt-2 space-x-2">
-                          <div className="flex items-center">
-                            <button
-                              onClick={() =>
-                                handleUpdateQuantity(item.id, item.quantity - 1)
-                              }
-                              disabled={isUpdating}
-                              className="p-1 text-white bg-gray-300 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Minus size={16} />
-                            </button>
-                            <span className="px-2 font-medium text-gray-800">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                handleUpdateQuantity(item.id, item.quantity + 1)
-                              }
-                              disabled={
-                                isUpdating ||
-                                item.quantity >=
-                                  (item.product?.quantity_available || 99)
-                              }
-                              className="p-1 text-white bg-gray-900 rounded-full hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Plus size={16} />
-                            </button>
-                          </div>
-                          {item.product?.quantity_available && (
-                            <span className="text-xs text-gray-500">
-                              ({item.product.quantity_available} available)
-                            </span>
-                          )}
-                        </div>
+                    {!item.product?.in_stock && (
+                      <p className="text-xs text-red-600 font-semibold">
+                        Out of stock
+                      </p>
+                    )}
 
-                        <p className="text-sm font-semibold text-gray-800 mt-1">
-                          Subtotal: ₦{formatPrice(item.subtotal_naira)}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center justify-between h-35">
-                        <input
-                          type="checkbox"
-                          className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full shrink-0"
-                          checked={selectedItems.has(item.id)}
-                          onChange={() => handleToggleItem(item.id)}
-                          disabled={isUpdating}
-                        />
-
+                    <div className="flex items-center mt-2 space-x-2">
+                      <div className="flex items-center">
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
+                          onClick={() =>
+                            handleUpdateQuantity(item.id, item.quantity - 1)
+                          }
                           disabled={isUpdating}
-                          className="text-gray-900 hover:text-red-700 p-1 disabled:opacity-50"
+                          className="p-1 text-white bg-gray-300 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Trash2 size={18} />
+                          <Minus size={16} />
+                        </button>
+                        <span className="px-2 font-medium text-gray-800">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            handleUpdateQuantity(item.id, item.quantity + 1)
+                          }
+                          disabled={
+                            isUpdating ||
+                            item.quantity >=
+                              (item.product?.quantity_available || 99)
+                          }
+                          className="p-1 text-white bg-gray-900 rounded-full hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Plus size={16} />
                         </button>
                       </div>
+                      {item.product?.quantity_available && (
+                        <span className="text-xs text-gray-500">
+                          ({item.product.quantity_available} available)
+                        </span>
+                      )}
                     </div>
-                  );
-                })
-              )}
-            </div>
 
-            {cartItems.length > 0 && (
-              <div className="flex gap-4 items-center p-4 border-t border-gray-200 bg-white shrink-0">
-                <div className="flex flex-col items-start mb-4 w-[40%]">
-                  <span className="text-lg font-bold text-gray-800">
-                    Total Payment:
-                  </span>
-                  <span className="text-lg font-bold text-gray-800">
-                    ₦{formatPrice(selectedTotal)}
-                  </span>
+                    <p className="text-sm font-semibold text-gray-800 mt-1">
+                      Subtotal: ₦{formatPrice(derivedSubtotal)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center justify-between h-35">
+                    <input
+                      type="checkbox"
+                      className="appearance-none checked:bg-lily border border-gray-400 h-5 w-5 text-lily rounded-full shrink-0"
+                      checked={selectedItems.has(item.id)}
+                      onChange={() => handleToggleItem(item.id)}
+                      disabled={isUpdating}
+                    />
+
+                    <button
+                      onClick={() => handleRemoveItem(item.id)}
+                      disabled={isUpdating}
+                      className="text-gray-900 hover:text-red-700 p-1 disabled:opacity-50"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={handleCheckoutClick}
-                  disabled={selectedItems.size === 0}
-                  className="w-[60%] bg-lily text-white py-3 rounded-full text-xl font-semibold hover:bg-darklily transition-colors disabled:bg-ash disabled:cursor-not-allowed"
-                >
-                  Checkout ({selectedItems.size})
-                </button>
-              </div>
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              );
+            })
+          )}
+        </div>
+
+        {cartItems.length > 0 && (
+          <div className="flex gap-4 items-center p-4 border-t border-gray-200 bg-white shrink-0">
+            <div className="flex flex-col items-start mb-4 w-[40%]">
+              <span className="text-lg font-bold text-gray-800">
+                Total Payment:
+              </span>
+              <span className="text-lg font-bold text-gray-800">
+                ₦{formatPrice(selectedTotal)}
+              </span>
+            </div>
+            <button
+              onClick={handleCheckoutClick}
+              disabled={selectedItems.size === 0}
+              className="w-[60%] bg-lily text-white py-3 rounded-full text-xl font-semibold hover:bg-darklily transition-colors disabled:bg-ash disabled:cursor-not-allowed"
+            >
+              Checkout ({selectedItems.size})
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

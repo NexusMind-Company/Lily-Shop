@@ -87,10 +87,6 @@ import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
 import Settings from "./pages/settings";
 import ChangePasswordPage from "./pages/ChangePassword";
 import DeleteAccountPage from "./pages/DeleteAccount";
-import ChangeDOBPage from "./pages/ChangeDOB";
-import ChangePhonePage from "./pages/ChangePhone";
-import ConfirmPhonePage from "./pages/ConfirmPhone";
-import ChangeUsernamePage from "./pages/ChangeUsername";
 import PasswordModalPage from "./pages/PasswordModalPage";
 
 /* ---------------- ADS & PAYMENTS ---------------- */
@@ -110,6 +106,8 @@ import AddCardPage from "./pages/AddCardPage";
 import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
+import CreateSubscriptionVendor from "./components/subscription/CreateSubscriptionVendor";
+import VendorDashboard from "./pages/VendorDashboard";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -177,7 +175,6 @@ function App() {
             <Route path="/myShop" element={<MyShop />} />
             <Route path="/createContent" element={<CreatePost />} />
             <Route path="/shop/:shopId" element={<ShopDetails />} />
-            <Route path="/shop/:shopId" element={<ShopDetails />} />
             <Route path="/rating" element={<Ratings />} />
             <Route path="/edit-shop/:shopId" element={<EditShop />} />
             <Route
@@ -191,6 +188,7 @@ function App() {
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
             />
+            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
 
             <Route path="/subscription/details" element={<SubscriptionDetailsPage />} />
 
@@ -205,6 +203,10 @@ function App() {
               path="/profile/:userId/following"
               element={<FollowingPage />}
             />
+            <Route path="/followers" element={<FollowersPage />} />
+            <Route path="/followers/:id" element={<FollowersPage />} />
+            <Route path="/following" element={<FollowingPage />} />
+            <Route path="/following/:id" element={<FollowingPage />} />
             <Route path="/verify" element={<VerificationPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/editProfile" element={<EditProfile />} />
@@ -233,6 +235,14 @@ function App() {
             <Route
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
+            />
+             <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendor />}
+            />
+            <Route
+              path="/create-vendor"
+              element={<CreateSubscriptionVendor />}
             />
             <Route
               path="/subscription-success"
@@ -263,6 +273,13 @@ function App() {
 
             {/* Extras */}
             <Route path="/settings" element={<Settings />} />
+
+            {/* ================= GENERAL ACCOUNT ROUTES ================= */}
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+            <Route path="/password" element={<PasswordModalPage />} />
           </Route>
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
@@ -289,21 +306,6 @@ function App() {
               path="/subscription/create-meal-plan/:planId"
               element={<EditPlanPage />}
             />
-
-            {/* Settings & Account Management */}
-            <Route path="/change-password" element={<ChangePasswordPage />} />
-            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
-            <Route path="/delete-account" element={<DeleteAccountPage />} />
-            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
-            <Route path="/change-dob" element={<ChangeDOBPage />} />
-            <Route path="/ChangeDOB" element={<ChangeDOBPage />} />
-            <Route path="/change-phone" element={<ChangePhonePage />} />
-            <Route path="/ChangePhone" element={<ChangePhonePage />} />
-            <Route path="/confirm-phone" element={<ConfirmPhonePage />} />
-            <Route path="/ConfirmPhone" element={<ConfirmPhonePage />} />
-            <Route path="/change-username" element={<ChangeUsernamePage />} />
-            <Route path="/ChangeUsername" element={<ChangeUsernamePage />} />
-            <Route path="/password" element={<PasswordModalPage />} />
 
             {/* Ads Management */}
             <Route path="/ads" element={<PurchaseAds />} />
