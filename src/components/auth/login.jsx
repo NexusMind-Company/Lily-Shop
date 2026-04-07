@@ -71,9 +71,7 @@ const Login = () => {
 
       {/* Page Title */}
       <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
-        <span className="border-b-2 border-solid pb-0.5 border-lily">
-          Log
-        </span>{" "}
+        <span className="border-b-2 border-solid pb-0.5 border-lily">Log</span>
         in
       </h2>
 

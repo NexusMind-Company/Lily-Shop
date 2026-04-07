@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
-import { api } from "../../services/api";
+import { api, deleteContentPost, deleteProductPost } from "../../services/api";
 import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import {
@@ -14,12 +14,16 @@ import {
   Settings,
   LogOut,
   Link as IconLink,
+  Trash2,
+  MoreVertical,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import ProfileFeedViewer from "./profileFeedViewer";
 
-const API_BASE_URL = "https://lily-shop-backend.onrender.com";
+const API_BASE_URL = "//api.lilyshops.com";
 
 const ProfileOwner = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -28,12 +32,15 @@ const ProfileOwner = () => {
 
   const auth = useSelector((state) => state.auth);
   const { data, loading, error } = useSelector((state) => state.profile);
-  const { user = {} } = data || {};
+  const user = data?.user || data || {};
 
   const [userPosts, setUserPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -50,10 +57,38 @@ const ProfileOwner = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (auth?.isAuthenticated && token && !data) {
+    if (auth?.isAuthenticated && token) {
       dispatch(fetchProfile());
     }
-  }, [auth?.isAuthenticated, data, dispatch]);
+  }, [auth?.isAuthenticated, dispatch]);
+
+  useEffect(() => {
+    const fetchFollowingCount = async () => {
+      if (!user?.id) return;
+
+      const currentCount = user.following_count || 0;
+
+      if (currentCount > 0) {
+        setFollowingCount(currentCount);
+        return;
+      }
+
+      try {
+        const res = await api.get(`/auth/following/${user.id}/`);
+        const followingData = Array.isArray(res.data)
+          ? res.data
+          : res.data?.following || res.data?.results || [];
+        setFollowingCount(followingData.length);
+      } catch (err) {
+        console.error("Failed to fetch following count fallback", err);
+        setFollowingCount(0);
+      }
+    };
+
+    if (auth?.isAuthenticated) {
+      fetchFollowingCount();
+    }
+  }, [user?.id, user?.following_count, auth?.isAuthenticated]);
 
   useEffect(() => {
     const loadUserPosts = async () => {
@@ -274,9 +309,37 @@ const ProfileOwner = () => {
     return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
 
+  const handleDeletePost = async (e, post) => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this post?",
+    );
+    if (!confirmDelete) return;
+
+    try {
+      if (post.itemType === "product") {
+        await deleteProductPost(post.id);
+      } else {
+        await deleteContentPost(post.id);
+      }
+
+      setUserPosts((prev) => prev.filter((p) => p.id !== post.id));
+      if (feedOverlay.isOpen) {
+        setFeedOverlay((prev) => ({
+          ...prev,
+          items: prev.items.filter((p) => p.id !== post.id),
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to delete post", error);
+      alert("Failed to delete post. Please try again.");
+    }
+  };
+
   if (!auth?.isAuthenticated) return null;
 
-  if (loading)
+  if (loading && !data)
     return (
       <div className="flex items-center justify-center min-h-screen w-full">
         <LoaderSd />
@@ -322,7 +385,7 @@ const ProfileOwner = () => {
 
           return (
             <div
-              key={i}
+              key={post.id || i}
               className="relative rounded-lg overflow-hidden cursor-pointer"
               onClick={() => {
                 if (post.itemType === "product") {
@@ -364,6 +427,40 @@ const ProfileOwner = () => {
               <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
                 <Eye size={15} className="mr-1" /> {post.view_count || 0}
               </div>
+
+              {activeTab === 0 && (
+                <div className="absolute top-1 right-1 z-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === post.id ? null : post.id);
+                    }}
+                    className="bg-black/50 p-1 rounded-full text-white hover:bg-black/70 transition-colors shadow-sm"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+
+                  {openMenuId === post.id && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(null);
+                        }}
+                      ></div>
+                      <div className="absolute right-0 top-8 mt-1 w-28 bg-white rounded-md shadow-lg overflow-hidden py-1 z-20">
+                        <button
+                          onClick={(e) => handleDeletePost(e, post)}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 font-medium"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -381,11 +478,10 @@ const ProfileOwner = () => {
   };
 
   const displayPostCount =
-    userPosts.length > 0 ? userPosts.length : data.product_count || 0;
+    userPosts.length > 0 ? userPosts.length : data?.product_count || 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-10">
-      {/* Dynamic Profile Feed Viewer */}
       {feedOverlay.isOpen && (
         <ProfileFeedViewer
           posts={feedOverlay.items}
@@ -394,7 +490,6 @@ const ProfileOwner = () => {
         />
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 mt-1">
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={25} />
@@ -412,7 +507,6 @@ const ProfileOwner = () => {
         </div>
       </div>
 
-      {/* Profile Info */}
       <div className="px-4 py-3 border-b border-gray-300">
         <div className="flex flex-col gap-2 items-center justify-center">
           <img
@@ -425,8 +519,11 @@ const ProfileOwner = () => {
             }}
           />
           <div>
-            <h3 className="font-semibold text-center">
-              {user.username || user.email?.split("@")[0] || "Unnamed User"}
+            <h3 className="font-semibold text-center text-lg">
+              {user.name ||
+                user.username ||
+                user.email?.split("@")[0] ||
+                "Unnamed User"}
             </h3>
             <div className="flex items-center justify-center gap-2">
               <p className="text-gray-500 text-sm">
@@ -443,14 +540,40 @@ const ProfileOwner = () => {
             : "Add a bio to let people know more about you and your products!"}
         </p>
 
-        {/* Stats */}
+        {/* METADATA ROW: Birthday and Location */}
+        {(user.location || user.birthdate || user.birthday) && (
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-3 text-xs text-gray-500">
+            {user.location && (
+              <div className="flex items-center gap-1">
+                <MapPin size={14} />
+                <span>{user.location}</span>
+              </div>
+            )}
+            {(user.birthdate || user.birthday) && (
+              <div className="flex items-center gap-1">
+                <Calendar size={14} />
+                <span>
+                  Born{" "}
+                  {new Date(user.birthdate || user.birthday).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "long",
+                      day: "numeric",
+                    },
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col justify-center items-center mt-4">
           <div className="flex gap-8 items-center mb-4 justify-center">
             <div className="flex flex-col items-center">
               <span className="font-bold text-2xl">{displayPostCount}</span>
               <p className="text-sm text-gray-600">Posts</p>
             </div>
-            <Link to="/followers">
+            <Link to={`/followers/${user.id || ""}`}>
               <div className="flex flex-col items-center">
                 <p className="font-bold text-2xl">
                   {user.followers_count || 0}
@@ -458,16 +581,14 @@ const ProfileOwner = () => {
                 <p className="text-sm text-gray-600">Followers</p>
               </div>
             </Link>
-            <Link to="/following">
+            <Link to={`/following/${user.id || ""}`}>
               <div className="flex flex-col items-center">
-                <span className="font-bold text-2xl">
-                  {user.following_count || 0}
-                </span>
+                <span className="font-bold text-2xl">{followingCount}</span>
                 <p className="text-sm text-gray-600">Following</p>
               </div>
             </Link>
           </div>
-          <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-[250px] mx-auto">
+          <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-62.5 mx-auto">
             {user?.vendor_id && (
               <Link to="/vendor-dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
@@ -484,10 +605,9 @@ const ProfileOwner = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex my-3 w-full justify-evenly">
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 0
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
@@ -497,7 +617,7 @@ const ProfileOwner = () => {
           <Grid size={26} />
         </button>
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 1
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
@@ -507,7 +627,7 @@ const ProfileOwner = () => {
           <Megaphone size={26} />
         </button>
         <button
-          className={`w-[25%] flex justify-center border-b-[2px] py-2 transition-colors ${
+          className={`w-[25%] flex justify-center border-b-2 py-2 transition-colors ${
             activeTab === 2
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
@@ -518,7 +638,6 @@ const ProfileOwner = () => {
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="w-full">
         {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
         {activeTab === 1 && <AnnouncementsGrid />}

@@ -266,7 +266,9 @@ import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap }
 import { motion } from "framer-motion";
 
 // Import from your api.js — adjust path if needed
-import { getWalletBalance } from "../services/api";
+import { fetchWallet } from "../services/api";
+
+
 
 const formatPrice = (price) =>
   Number(price)
@@ -299,7 +301,7 @@ useEffect(() => {
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
-    queryFn: getWalletBalance,
+    queryFn: fetchWallet,
   });
 const planPrice = parseFloat(totalPrice || 0);
 const walletBalance = parseFloat(wallet?.balance_naira || 0);
