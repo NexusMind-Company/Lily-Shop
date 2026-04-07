@@ -1,287 +1,3 @@
-// import { useState } from "react";
-// import { useQuery } from "@tanstack/react-query";
-// import { useNavigate, useParams } from "react-router-dom";
-// import VendorHero from "../components/subscription/VendorHero";
-// import PlanToggle from "../components/subscription/PlanToggle";
-// import PricingCard from "../components/subscription/PricingCard";
-// import MenuPreview from "../components/subscription/MenuPreview";
-// import StickyCTA from "../components/subscription/StickyCTA";
-// import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
-// import { fetchVendorDetails } from "../services/subscriptionApi";
-// import {
-//   fetchMealPlansByVendor,
-//   fetchFoodVendor,
-// } from "../services/api";
-// import { fetchReviewsForVendor } from "../services/subscriptionApi";
-// import { ArrowLeft, MoreVertical } from "lucide-react";
-
-// /**
-//  * VendorSubscriptionPage component - Page for customers to subscribe to vendor meal plans
-//  */
-// const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
-//   const navigate = useNavigate();
-//   const { vendorId: paramVendorId } = useParams();
-//   const vendorId = propVendorId || paramVendorId;
-
-//   const [selectedPlan, setSelectedPlan] = useState("weekly");
-//   const [selectedPlanId, setSelectedPlanId] = useState(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [selectedMeal, setSelectedMeal] = useState(null);
-
-//   // Fetch vendor details
-//   const {
-//     data: vendor,
-//     isLoading: vendorLoading,
-//     error: vendorError,
-//   } = useQuery({
-//     queryKey: ["vendorDetails", vendorId],
-//     queryFn: () => fetchVendorDetails(vendorId),
-//     enabled: !!vendorId,
-//   });
-
-//   // Fetch meal plans (subscription plans for this vendor)
-//   const {
-//     data: plans,
-//     isLoading: plansLoading,
-//     error: plansError,
-//   } = useQuery({
-//     queryKey: ["mealPlans", vendorId],
-//     queryFn: () => fetchMealPlansByVendor(vendorId),
-//     enabled: !!vendorId,
-//   });
-
-//   // Fetch vendor details with menu items
-//   const {
-//     data: vendorWithMenu,
-//     isLoading: vendorWithMenuLoading,
-//     error: vendorWithMenuError,
-//   } = useQuery({
-//     queryKey: ["vendorWithMenu", vendorId],
-//     queryFn: () => fetchFoodVendor(vendorId),
-//     enabled: !!vendorId,
-//   });
-
-//   // Fetch vendor reviews
-//   const {
-//     data: reviews,
-//     isLoading: reviewsLoading,
-//     error: reviewsError,
-//   } = useQuery({
-//     queryKey: ["reviews", vendorId],
-//     queryFn: () => fetchReviewsForVendor(vendorId),
-//     enabled: !!vendorId,
-//   });
-
-//   // --- Event Handlers ---
-
-//   const handleBack = () => navigate(-1);
-
-//   const handleMore = () => {
-//     console.log("More options");
-//   };
-
-//   const handlePlanChange = (plan) => {
-//     setSelectedPlan(plan);
-//     setSelectedPlanId(null);
-//   };
-
-//   const handlePlanSelect = (planId) => {
-//     setSelectedPlanId(planId);
-//   };
-
-//   const handleViewAllMenu = () => {
-//     navigate(`/vendor/${vendorId}/menu`);
-//   };
-
-//   const handleMealClick = (meal) => {
-//     setSelectedMeal(meal);
-//   };
-
-//   const handleCloseMealDetails = () => {
-//     setSelectedMeal(null);
-//   };
-
-//   const handleSubscribe = () => {
-//     if (!selectedPlanId) {
-//       alert("Please select a plan first");
-//       return;
-//     }
-//     setIsModalOpen(true);
-//   };
-
-//   const handleCloseModal = () => {
-//     setIsModalOpen(false);
-//   };
-
-//   // ✅ FIXED: Navigate to payment page instead of calling API directly
-//   const handleConfirmSubscription = () => {
-//     if (!selectedPlanId) {
-//       alert("Please select a plan first");
-//       return;
-//     }
-
-//     setIsModalOpen(false);
-
-//     navigate(`/subscription/payment/${selectedPlanId}`, {
-//       state: {
-//         plan: plans?.results?.find((p) => p.id === selectedPlanId),
-//         vendor: vendor,
-//       },
-//     });
-//   };
-
-//   // Filter plans by selected period
-//   const filteredPlans =
-//     plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
-
-//   // Get selected plan data for price display
-//   const selectedPlanData = plans?.results?.find(
-//     (plan) => plan.id === selectedPlanId,
-//   );
-//   const totalPrice = selectedPlanData ? selectedPlanData.price : 0;
-
-//   // Loading state
-//   if (vendorLoading || plansLoading || vendorWithMenuLoading || reviewsLoading) {
-//     return (
-//       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
-//         <div className="text-[#111813] dark:text-text-main-dark">Loading...</div>
-//       </div>
-//     );
-//   }
-
-//   // Error state
-//   if (vendorError || plansError || vendorWithMenuError || reviewsError) {
-//     console.error("Error details:", {
-//       vendorError: vendorError?.message,
-//       plansError: plansError?.message,
-//       vendorWithMenuError: vendorWithMenuError?.message,
-//       reviewsError: reviewsError?.message,
-//     });
-//     return (
-//       <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen flex items-center justify-center">
-//         <div className="text-red-500">
-//           Error loading subscription page. Please try again.
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen pb-32">
-//       {/* Top App Bar */}
-//       <div className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
-//         <div className="flex items-center p-4 justify-between">
-//           <button
-//             onClick={handleBack}
-//             className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-//           >
-//             <ArrowLeft />
-//           </button>
-//           <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
-//             Vendor Profile
-//           </h2>
-//           <button
-//             onClick={handleMore}
-//             className="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-//           >
-//             <MoreVertical />
-//           </button>
-//         </div>
-//       </div>
-
-//       <VendorHero vendor={vendor} reviews={reviews?.results || []} />
-
-//       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
-
-//       {/* Pricing Cards */}
-//       <div className="grid grid-cols-1 gap-4 px-4 py-4">
-//         {filteredPlans.map((plan) => (
-//           <PricingCard
-//             key={plan.id}
-//             plan={plan}
-//             isSelected={selectedPlanId === plan.id}
-//             isPopular={plan.popular}
-//             onSelect={handlePlanSelect}
-//           />
-//         ))}
-//       </div>
-
-//       <MenuPreview
-//         menuItems={vendorWithMenu?.menus || []}
-//         onViewAll={handleViewAllMenu}
-//         onMealClick={handleMealClick}
-//       />
-
-//       {/* Meal Details Modal */}
-//       {selectedMeal && (
-//         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-//           <div className="bg-white dark:bg-background-dark rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-//             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-//               <h2 className="text-lg font-bold">{selectedMeal}</h2>
-//               <button
-//                 onClick={handleCloseMealDetails}
-//                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-//               >
-//                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-//                 </svg>
-//               </button>
-//             </div>
-//             <div className="p-4">
-//               <div className="mb-4">
-//                 <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-//                   Meal Plan Details
-//                 </h3>
-//                 <p className="text-slate-800 dark:text-slate-200">
-//                   {selectedMeal} includes a balanced combination of protein, carbohydrates, and vegetables.
-//                 </p>
-//               </div>
-//               <div className="mb-4">
-//                 <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-//                   Available Plans
-//                 </h3>
-//                 <div className="space-y-2">
-//                   {plans?.results?.map((plan) => (
-//                     <div key={plan.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-//                       <div className="flex justify-between items-center">
-//                         <span className="text-sm font-medium">{plan.plan_name}</span>
-//                         <span className="text-sm font-bold">₦{Number(plan.price).toLocaleString()}</span>
-//                       </div>
-//                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-//                         {plan.description}
-//                       </p>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-//               <button
-//                 onClick={handleCloseMealDetails}
-//                 className="w-full bg-[#13ec49] text-white py-3 rounded-xl font-bold hover:bg-[#10d440] transition-colors"
-//               >
-//                 Close
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
-
-//       <SubscriptionConfirmationModal
-//         isOpen={isModalOpen}
-//         onClose={handleCloseModal}
-//         onConfirm={handleConfirmSubscription}
-//         selectedPlan={selectedPlanData}
-//         vendor={vendor}
-//         isLoading={false}
-//       />
-//     </div>
-//   );
-// };
-
-// export default VendorSubscriptionPage;
-
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -290,7 +6,7 @@ import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
 import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
-import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+// import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import { fetchVendorDetails } from "../services/subscriptionApi";
 import {
   fetchMealPlansByVendor,
@@ -307,55 +23,203 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  // Fetch vendor details
-  const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
-    queryKey: ["vendorDetails", vendorId],
-    queryFn: () => fetchVendorDetails(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  const [selectedDays, setSelectedDays] = useState([]);
+const [quantity, setQuantity] = useState(1);
+const [addExtra, setAddExtra] = useState(false);
 
-  // Fetch subscription plans 
-  const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
-    queryKey: ["mealPlans", vendorId],
-    queryFn: () => fetchMealPlansByVendor(vendorId),
-    enabled: !!vendorId,
-  });
 
-  // Fetch vendor profile for extra info 
-  const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
-    queryKey: ["vendorWithMenu", vendorId],
-    queryFn: () => fetchFoodVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const EXTRA_PRICE = 300;
+  // // Fetch vendor details
+  // const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+  //   queryKey: ["vendorDetails", vendorId],
+  //   queryFn: () => fetchVendorDetails(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
 
-  // Fetch meal items 
-  const { data: mealItemsData } = useQuery({
-    queryKey: ["mealItems", vendorId],
-    queryFn: () => fetchMealsByVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  // // Fetch subscription plans 
+  // const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
+  //   queryKey: ["mealPlans", vendorId],
+  //   queryFn: () => fetchMealPlansByVendor(vendorId),
+  //   enabled: !!vendorId,
+  // });
 
-  // Fetch reviews 
-  const { data: reviews, isLoading: reviewsLoading } = useQuery({
-    queryKey: ["reviews", vendorId],
-    queryFn: () => fetchReviewsForVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  // // Fetch vendor profile for extra info 
+  // const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
+  //   queryKey: ["vendorWithMenu", vendorId],
+  //   queryFn: () => fetchFoodVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
+
+  // // Fetch meal items 
+  // const { data: mealItemsData } = useQuery({
+  //   queryKey: ["mealItems", vendorId],
+  //   queryFn: () => fetchMealsByVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
+
+  // // Fetch reviews 
+  // const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  //   queryKey: ["reviews", vendorId],
+  //   queryFn: () => fetchReviewsForVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
 
   //  Derived state 
+ 
+ // 🔌 TODO: Remove mock data and uncomment useQuery calls when API is ready
+
+// const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+//   queryKey: ["vendorDetails", vendorId],
+//   queryFn: () => fetchVendorDetails(vendorId),
+//   enabled: !!vendorId,
+//   retry: false,
+// });
+// const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
+//   queryKey: ["mealPlans", vendorId],
+//   queryFn: () => fetchMealPlansByVendor(vendorId),
+//   enabled: !!vendorId,
+// });
+// const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
+//   queryKey: ["vendorWithMenu", vendorId],
+//   queryFn: () => fetchFoodVendor(vendorId),
+//   enabled: !!vendorId,
+//   retry: false,
+// });
+// const { data: mealItemsData } = useQuery({
+//   queryKey: ["mealItems", vendorId],
+//   queryFn: () => fetchMealsByVendor(vendorId),
+//   enabled: !!vendorId,
+//   retry: false,
+// });
+// const { data: reviews, isLoading: reviewsLoading } = useQuery({
+//   queryKey: ["reviews", vendorId],
+//   queryFn: () => fetchReviewsForVendor(vendorId),
+//   enabled: !!vendorId,
+//   retry: false,
+// });
+
+const vendor = {
+  id: vendorId,
+  name: "Mama's Kitchen",
+  description: "Delicious home cooked meals delivered fresh daily",
+  cuisine: "Nigerian",
+  location: "Lekki, Lagos",
+  rating: 4.5,
+  reviewCount: "128",
+  verified: true,
+  phone: "08012345678",
+  all_media_urls: "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg",
+};
+
+const plans = {
+  results: [
+    {
+      id: "plan-1",
+      plan_name: "Basic Plan",
+      price: 15000,
+      frequency: "weekly",
+      description: "1 meal per day, Mon-Fri",
+      popular: false,
+    },
+    {
+      id: "plan-2",
+      plan_name: "Standard Plan",
+      price: 25000,
+      frequency: "weekly",
+      description: "2 meals per day, Mon-Fri",
+      popular: true,
+    },
+    {
+      id: "plan-3",
+      plan_name: "Premium Plan",
+      price: 35000,
+      frequency: "weekly",
+      description: "3 meals per day, Mon-Sun",
+      popular: false,
+    },
+  ],
+};
+
+const mealItemsData = [
+  {
+    id: "meal-1",
+    name: "Jollof Rice & Chicken",
+    description: "Classic Nigerian jollof rice with grilled chicken",
+    price: 2500,
+    all_media_urls: [],
+  },
+  {
+    id: "meal-2",
+    name: "Egusi Soup & Eba",
+    description: "Rich egusi soup served with smooth eba",
+    price: 2000,
+    all_media_urls: [],
+  },
+  {
+    id: "meal-3",
+    name: "Pepper Soup",
+    description: "Spicy catfish pepper soup",
+    price: 3000,
+    all_media_urls: [],
+  },
+  {
+    id: "meal-4",
+    name: "Fried Rice & Plantain",
+    description: "Nigerian fried rice with sweet fried plantain",
+    price: 2800,
+    all_media_urls: [],
+  },
+];
+
+const reviews = {
+  results: [
+    {
+      id: "review-1",
+      user_name: "Chioma A.",
+      rating: 5,
+      review_text: "Best food delivery service I've used! Always fresh and on time.",
+      created_at: "2024-11-01T10:00:00Z",
+    },
+    {
+      id: "review-2",
+      user_name: "Emeka O.",
+      rating: 4,
+      review_text: "Great food, portions are generous. Would recommend!",
+      created_at: "2024-10-28T14:30:00Z",
+    },
+    {
+      id: "review-3",
+      user_name: "Aisha M.",
+      rating: 5,
+      review_text: "Mama's Kitchen never disappoints. The jollof rice is 🔥",
+      created_at: "2024-10-20T09:15:00Z",
+    },
+  ],
+};
+
+const vendorLoading = false;
+const vendorError = null;
+const plansLoading = false;
+const plansError = null;
+const vendorWithMenuLoading = false;
+const reviewsLoading = false;
+ 
+ 
   const filteredPlans = plans?.results?.filter(plan => plan.frequency === selectedPlan) || [];
 
   const selectedPlans =
     plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
 
-  const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0);
+ const extraTotal = addExtra ? EXTRA_PRICE : 0;
+const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity + extraTotal;
 
   console.log("Selected Plan IDs:", selectedPlanIds);
   console.log("Selected Plans objects:", selectedPlans);
@@ -369,6 +233,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   //  Handlers
   const handleBack = () => navigate(-1);
+  const handleDayToggle = (day) => {
+  setSelectedDays((prev) =>
+    prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+  );
+};
   const handleMore = () => console.log("More options");
 
   const handlePlanChange = (plan) => {
@@ -387,32 +256,50 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleMealClick = (meal) => setSelectedMeal(meal);
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
-  const handleSubscribe = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
-      return;
-    }
-    setIsModalOpen(true);
-  };
+const handleSubscribe = () => {
+  if (selectedPlanIds.length === 0) {
+    alert("Please select at least one plan");
+    return;
+  }
+  if (selectedDays.length === 0) {
+    alert("Please select at least one delivery day");
+    return;
+  }
+  navigate("/subscription/details", {
+    state: {
+      plans: selectedPlans,
+      vendor,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice: EXTRA_PRICE,
+    },
+  });
+};
 
-  const handleCloseModal = () => setIsModalOpen(false);
+//   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleConfirmSubscription = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
-      return;
-    }
+//   const handleConfirmSubscription = () => {
+//     if (selectedPlanIds.length === 0) {
+//       alert("Please select at least one plan");
+//       return;
+//     }
 
-    setIsModalOpen(false);
+//     setIsModalOpen(false);
 
-    navigate(`/subscription/payment`, {
-      state: {
-        plans: selectedPlans,
-        vendor,
-        totalPrice,
-      },
-    });
-  };
+//    navigate(`/subscription/payment`, {
+//   state: {
+//     plans: selectedPlans,
+//     vendor,
+//     totalPrice,
+//     selectedDays,
+//     quantity,
+//     addExtra,
+//     extraPrice: EXTRA_PRICE,
+//   },
+// });
+//   };
 
   //  Loading 
   if (plansLoading || vendorLoading || vendorWithMenuLoading || reviewsLoading) {
@@ -498,6 +385,87 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         )}
       </div>
 
+      {/* Customization Section - only show if a plan is selected */}
+{selectedPlanIds.length > 0 && (
+  <div className="px-4 py-4 space-y-6">
+
+    {/* Delivery Days */}
+    <div>
+      <h3 className="text-base font-bold mb-3">
+        Select Delivery Days <span className="text-red-500">*</span>
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {DELIVERY_DAYS.map((day) => (
+          <button
+            key={day}
+            onClick={() => handleDayToggle(day)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+              selectedDays.includes(day)
+                ? "bg-[#13ec49] text-[#111813] border-[#13ec49]"
+                : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-gray-200"
+            }`}
+          >
+            {day}
+          </button>
+        ))}
+      </div>
+      {selectedDays.length === 0 && (
+        <p className="text-xs text-red-400 mt-2">Please select at least one day</p>
+      )}
+    </div>
+
+    {/* Quantity */}
+    <div>
+      <h3 className="text-base font-bold mb-3">
+        Number of Plates <span className="text-red-500">*</span>
+      </h3>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-xl font-bold hover:bg-gray-100 transition"
+        >
+          −
+        </button>
+        <span className="text-xl font-bold w-6 text-center">{quantity}</span>
+        <button
+          onClick={() => setQuantity((prev) => Math.min(10, prev + 1))}
+          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-xl font-bold hover:bg-gray-100 transition"
+        >
+          +
+        </button>
+        <span className="text-sm text-gray-400">plate{quantity > 1 ? "s" : ""} per delivery</span>
+      </div>
+    </div>
+
+    {/* Extra */}
+    <div>
+      <h3 className="text-base font-bold mb-3">Add Extra</h3>
+      <div
+        onClick={() => setAddExtra((prev) => !prev)}
+        className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+          addExtra
+            ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+            : "border-gray-200 bg-white dark:bg-slate-800"
+        }`}
+      >
+        <div>
+          <p className="font-semibold text-sm">Add Extra Portion</p>
+          <p className="text-xs text-gray-400">An additional portion added to your delivery</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#13ec49]">+₦{EXTRA_PRICE}</span>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+            addExtra ? "border-[#13ec49] bg-[#13ec49]" : "border-gray-300"
+          }`}>
+            {addExtra && <span className="text-white text-xs font-bold">✓</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+)}
+
       <MenuPreview
         menuItems={menuItems}
         onViewAll={handleViewAllMenu}
@@ -506,14 +474,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 
-      <SubscriptionConfirmationModal
+      {/* <SubscriptionConfirmationModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmSubscription}
         selectedPlans={selectedPlans}
         vendor={vendor}
         isLoading={false}
-      />
+      /> */}
     </div>
   );
 };

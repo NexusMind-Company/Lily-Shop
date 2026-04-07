@@ -69,6 +69,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
 import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
 import ManageVendorPlansPage from "./pages/ManageVendorPlansPage";
+import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
 import CreateSubscriptionPlanPage from "./pages/CreateSubscriptionPlanPage";
 import CreateMealPlanPage from "./pages/CreateMealPlanPage";
 import EditPlanPage from "./pages/EditPlanPage";
@@ -191,6 +192,8 @@ function App() {
               element={<VendorSubscriptionPage />}
             />
 
+            <Route path="/subscription/details" element={<SubscriptionDetailsPage />} />
+
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<ProfileVisiting />} />
@@ -240,7 +243,7 @@ function App() {
               element={<SubscriptionCallbackPage />}
             />
             <Route
-              path="/subscription/payment/:planId"
+              path="/subscription/payment/"
               element={<SubscriptionPaymentPage />}
             />
 
