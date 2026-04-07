@@ -275,46 +275,62 @@ const formatPrice = (price) =>
 
 const SubscriptionPaymentPage = () => {
   const navigate = useNavigate();
-  const { planId } = useParams();
+  // const { planId } = useParams();
   const { state } = useLocation();
 
-  const plan = state?.plan;
-  const vendor = state?.vendor;
+ const plans = state?.plans || [];
+const vendor = state?.vendor;
+const totalPrice = state?.totalPrice || 0;
+const selectedDays = state?.selectedDays || [];
+const quantity = state?.quantity || 1;
+const addExtra = state?.addExtra || false;
+const extraPrice = state?.extraPrice || 0;
+const deliveryType = state?.deliveryType;
+const address = state?.address;
+const phone = state?.phone;
+const collectionCode = state?.collectionCode;
 
   // If no state was passed (e.g. direct URL navigation), go back
-  useEffect(() => {
-    if (!plan || !planId) {
-      navigate(-1);
-    }
-  }, [plan, planId, navigate]);
+useEffect(() => {
+  if (!plans?.length) {
+    navigate(-1);
+  }
+}, [plans, navigate]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
     queryFn: getWalletBalance,
   });
+const planPrice = parseFloat(totalPrice || 0);
+const walletBalance = parseFloat(wallet?.balance_naira || 0);
+const hasEnoughBalance = walletBalance >= planPrice;
 
-  const planPrice = parseFloat(plan?.price || 0);
-  const walletBalance = parseFloat(wallet?.balance_naira || 0);
-  const hasEnoughBalance = walletBalance >= planPrice;
+const platformFee = planPrice * 0.1;
+const vendorReceives = planPrice * 0.9;
 
-  const platformFee = planPrice * 0.1;
-  const vendorReceives = planPrice * 0.9;
-
-  const handlePayWithWallet = () => {
-    navigate("/subscription/processing", {
-      state: {
-        planId,
-        plan,
-        vendor,
-      },
-    });
-  };
+const handlePayWithWallet = () => {
+  navigate("/subscription/processing", {
+    state: {
+      plans,
+      vendor,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice,
+      deliveryType,
+      address,
+      phone,
+      collectionCode,
+    },
+  });
+};
 
   const handleTopUp = () => {
     navigate("/wallet/topup");
   };
 
-  if (!plan) return null;
+if (!plans?.length) return null;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-[#f6f8f6]">
@@ -346,7 +362,7 @@ const SubscriptionPaymentPage = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-4 space-y-3">
+          {/* <div className="border-t border-gray-100 pt-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-gray-500 text-sm">Plan</span>
               <span className="font-semibold text-[#111813] text-sm">{plan?.plan_name}</span>
@@ -375,7 +391,75 @@ const SubscriptionPaymentPage = () => {
                 </span>
               </div>
             )}
-          </div>
+          </div> */}
+
+          <div className="border-t border-gray-100 pt-4 space-y-3">
+
+  {/* Plans list */}
+  {plans.map((plan) => (
+    <div key={plan.id} className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">{plan.plan_name}</span>
+      <span className="font-semibold text-[#111813] text-sm">
+        ₦{formatPrice(plan.price)}
+      </span>
+    </div>
+  ))}
+
+  {/* Delivery Days */}
+  <div className="flex items-center justify-between">
+    <span className="text-gray-500 text-sm flex items-center gap-1">
+      <Calendar size={14} /> Delivery Days
+    </span>
+    <span className="font-semibold text-[#111813] text-sm">
+      {selectedDays?.join(", ")}
+    </span>
+  </div>
+
+  {/* Quantity */}
+  <div className="flex items-center justify-between">
+    <span className="text-gray-500 text-sm">Plates per delivery</span>
+    <span className="font-semibold text-[#111813] text-sm">{quantity}</span>
+  </div>
+
+  {/* Delivery type */}
+  <div className="flex items-center justify-between">
+    <span className="text-gray-500 text-sm">Delivery type</span>
+    <span className="font-semibold text-[#111813] text-sm">
+      {deliveryType === "delivery" ? "🚚 Deliver to me" : "🛍️ Pickup"}
+    </span>
+  </div>
+
+  {/* Address or collection code */}
+  {deliveryType === "delivery" && address && (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">Address</span>
+      <span className="font-semibold text-[#111813] text-sm text-right max-w-[60%]">
+        {address}
+      </span>
+    </div>
+  )}
+  {deliveryType === "pickup" && collectionCode && (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">Collection Code</span>
+      <span className="font-semibold text-[#111813] text-sm">{collectionCode}</span>
+    </div>
+  )}
+
+  {/* Phone */}
+  <div className="flex items-center justify-between">
+    <span className="text-gray-500 text-sm">Phone</span>
+    <span className="font-semibold text-[#111813] text-sm">{phone}</span>
+  </div>
+
+  {/* Extra */}
+  {addExtra && (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">Extra portion</span>
+      <span className="font-semibold text-[#13ec49] text-sm">+₦{extraPrice}</span>
+    </div>
+  )}
+
+</div>
         </motion.div>
 
         {/* Price Breakdown */}

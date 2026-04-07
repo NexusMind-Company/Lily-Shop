@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
+  // import.meta.env.VITE_API_URL || "https://lily-shop-backend.onrender.com";
+   import.meta.env.VITE_API_URL || "https://api.lilyshops.com";
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
