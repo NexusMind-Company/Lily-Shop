@@ -6,7 +6,7 @@ import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
 import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
-import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+// import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import { fetchVendorDetails } from "../services/subscriptionApi";
 import { fetchReviewsForVendor } from "../services/subscriptionApi";
 import { ArrowLeft, MoreVertical } from "lucide-react";
@@ -23,55 +23,97 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  // Fetch vendor details
-  const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
-    queryKey: ["vendorDetails", vendorId],
-    queryFn: () => fetchVendorDetails(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  const [selectedDays, setSelectedDays] = useState([]);
+const [quantity, setQuantity] = useState(1);
+const [addExtra, setAddExtra] = useState(false);
 
-  // Fetch subscription plans 
-  const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
-    queryKey: ["mealPlans", vendorId],
-    queryFn: () => fetchMealPlansByVendor(vendorId),
-    enabled: !!vendorId,
-  });
 
-  // Fetch vendor profile for extra info 
-  const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
-    queryKey: ["vendorWithMenu", vendorId],
-    queryFn: () => fetchFoodVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const EXTRA_PRICE = 300;
+  // // Fetch vendor details
+  // const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+  //   queryKey: ["vendorDetails", vendorId],
+  //   queryFn: () => fetchVendorDetails(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
 
-  // Fetch meal items 
-  const { data: mealItemsData } = useQuery({
-    queryKey: ["mealItems", vendorId],
-    queryFn: () => fetchMealsByVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  // // Fetch subscription plans 
+  // const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
+  //   queryKey: ["mealPlans", vendorId],
+  //   queryFn: () => fetchMealPlansByVendor(vendorId),
+  //   enabled: !!vendorId,
+  // });
 
-  // Fetch reviews 
-  const { data: reviews, isLoading: reviewsLoading } = useQuery({
-    queryKey: ["reviews", vendorId],
-    queryFn: () => fetchReviewsForVendor(vendorId),
-    enabled: !!vendorId,
-    retry: false,
-  });
+  // // Fetch vendor profile for extra info 
+  // const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
+  //   queryKey: ["vendorWithMenu", vendorId],
+  //   queryFn: () => fetchFoodVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
+
+  // // Fetch meal items 
+  // const { data: mealItemsData } = useQuery({
+  //   queryKey: ["mealItems", vendorId],
+  //   queryFn: () => fetchMealsByVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
+
+  // // Fetch reviews 
+  // const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  //   queryKey: ["reviews", vendorId],
+  //   queryFn: () => fetchReviewsForVendor(vendorId),
+  //   enabled: !!vendorId,
+  //   retry: false,
+  // });
 
   //  Derived state 
+ 
+ // 🔌 TODO: Remove mock data and uncomment useQuery calls when API is ready
+
+const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+  queryKey: ["vendorDetails", vendorId],
+  queryFn: () => fetchVendorDetails(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
+  queryKey: ["mealPlans", vendorId],
+  queryFn: () => fetchMealPlansByVendor(vendorId),
+  enabled: !!vendorId,
+});
+const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
+  queryKey: ["vendorWithMenu", vendorId],
+  queryFn: () => fetchFoodVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: mealItemsData } = useQuery({
+  queryKey: ["mealItems", vendorId],
+  queryFn: () => fetchMealsByVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  queryKey: ["reviews", vendorId],
+  queryFn: () => fetchReviewsForVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+
+ 
   const filteredPlans = plans?.results?.filter(plan => plan.frequency === selectedPlan) || [];
 
   const selectedPlans =
     plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
 
-  const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0);
+ const extraTotal = addExtra ? EXTRA_PRICE : 0;
+const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity + extraTotal;
 
   console.log("Selected Plan IDs:", selectedPlanIds);
   console.log("Selected Plans objects:", selectedPlans);
@@ -85,6 +127,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   //  Handlers
   const handleBack = () => navigate(-1);
+  const handleDayToggle = (day) => {
+  setSelectedDays((prev) =>
+    prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+  );
+};
   const handleMore = () => console.log("More options");
 
   const handlePlanChange = (plan) => {
@@ -103,34 +150,50 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleMealClick = (meal) => setSelectedMeal(meal);
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
-  const handleSubscribe = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
-      return;
-    }
-    setIsModalOpen(true);
-  };
+const handleSubscribe = () => {
+  if (selectedPlanIds.length === 0) {
+    alert("Please select at least one plan");
+    return;
+  }
+  if (selectedDays.length === 0) {
+    alert("Please select at least one delivery day");
+    return;
+  }
+  navigate("/subscription/details", {
+    state: {
+      plans: selectedPlans,
+      vendor,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice: EXTRA_PRICE,
+    },
+  });
+};
 
-  const handleCloseModal = () => setIsModalOpen(false);
+//   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleConfirmSubscription = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
-      return;
-    }
+//   const handleConfirmSubscription = () => {
+//     if (selectedPlanIds.length === 0) {
+//       alert("Please select at least one plan");
+//       return;
+//     }
 
-    setIsModalOpen(false);
+//     setIsModalOpen(false);
 
-    // SubscriptionPaymentPage expects a single plan — use the first selected
-    const plan = selectedPlans[0];
-
-    navigate(`/subscription/payment/${plan.id}`, {
-      state: {
-        plan,
-        vendor,
-      },
-    });
-  };
+//    navigate(`/subscription/payment`, {
+//   state: {
+//     plans: selectedPlans,
+//     vendor,
+//     totalPrice,
+//     selectedDays,
+//     quantity,
+//     addExtra,
+//     extraPrice: EXTRA_PRICE,
+//   },
+// });
+//   };
 
   //  Loading 
   if (plansLoading || vendorLoading || vendorWithMenuLoading || reviewsLoading) {
@@ -216,6 +279,87 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         )}
       </div>
 
+      {/* Customization Section - only show if a plan is selected */}
+{selectedPlanIds.length > 0 && (
+  <div className="px-4 py-4 space-y-6">
+
+    {/* Delivery Days */}
+    <div>
+      <h3 className="text-base font-bold mb-3">
+        Select Delivery Days <span className="text-red-500">*</span>
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {DELIVERY_DAYS.map((day) => (
+          <button
+            key={day}
+            onClick={() => handleDayToggle(day)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+              selectedDays.includes(day)
+                ? "bg-[#13ec49] text-[#111813] border-[#13ec49]"
+                : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-gray-200"
+            }`}
+          >
+            {day}
+          </button>
+        ))}
+      </div>
+      {selectedDays.length === 0 && (
+        <p className="text-xs text-red-400 mt-2">Please select at least one day</p>
+      )}
+    </div>
+
+    {/* Quantity */}
+    <div>
+      <h3 className="text-base font-bold mb-3">
+        Number of Plates <span className="text-red-500">*</span>
+      </h3>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-xl font-bold hover:bg-gray-100 transition"
+        >
+          −
+        </button>
+        <span className="text-xl font-bold w-6 text-center">{quantity}</span>
+        <button
+          onClick={() => setQuantity((prev) => Math.min(10, prev + 1))}
+          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-xl font-bold hover:bg-gray-100 transition"
+        >
+          +
+        </button>
+        <span className="text-sm text-gray-400">plate{quantity > 1 ? "s" : ""} per delivery</span>
+      </div>
+    </div>
+
+    {/* Extra */}
+    <div>
+      <h3 className="text-base font-bold mb-3">Add Extra</h3>
+      <div
+        onClick={() => setAddExtra((prev) => !prev)}
+        className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+          addExtra
+            ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+            : "border-gray-200 bg-white dark:bg-slate-800"
+        }`}
+      >
+        <div>
+          <p className="font-semibold text-sm">Add Extra Portion</p>
+          <p className="text-xs text-gray-400">An additional portion added to your delivery</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#13ec49]">+₦{EXTRA_PRICE}</span>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+            addExtra ? "border-[#13ec49] bg-[#13ec49]" : "border-gray-300"
+          }`}>
+            {addExtra && <span className="text-white text-xs font-bold">✓</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+)}
+
       <MenuPreview
         menuItems={menuItems}
         onViewAll={handleViewAllMenu}
@@ -224,14 +368,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 
-      <SubscriptionConfirmationModal
+      {/* <SubscriptionConfirmationModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmSubscription}
         selectedPlans={selectedPlans}
         vendor={vendor}
         isLoading={false}
-      />
+      /> */}
     </div>
   );
 };

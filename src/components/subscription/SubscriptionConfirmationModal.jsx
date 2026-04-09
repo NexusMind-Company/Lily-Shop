@@ -18,6 +18,14 @@ const SubscriptionConfirmationModal = ({
   selectedPlans,
   vendor,
   isLoading,
+  selectedDays,
+  quantity,
+  addExtra,
+  extraPrice,
+  deliveryType,
+  address,
+  phone,
+  collectionCode,
 }) => {
   if (!isOpen) return null;
 
@@ -130,6 +138,54 @@ const totalPrice = selectedPlans?.reduce(
     No subscription plans selected.
   </p>
 )}
+
+{/* Delivery Details */}
+<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-3">
+  <h4 className="font-bold text-slate-900 dark:text-white">Delivery Details</h4>
+
+  <div className="flex justify-between text-sm">
+    <span className="text-slate-500">Type</span>
+    <span className="font-semibold">
+      {deliveryType === "delivery" ? "🚚 Deliver to me" : "🛍️ Pickup"}
+    </span>
+  </div>
+
+  {deliveryType === "delivery" && address && (
+    <div className="flex justify-between text-sm">
+      <span className="text-slate-500">Address</span>
+      <span className="font-semibold text-right max-w-[60%]">{address}</span>
+    </div>
+  )}
+
+  {deliveryType === "pickup" && collectionCode && (
+    <div className="flex justify-between text-sm">
+      <span className="text-slate-500">Collection Code</span>
+      <span className="font-semibold">{collectionCode}</span>
+    </div>
+  )}
+
+  <div className="flex justify-between text-sm">
+    <span className="text-slate-500">Phone</span>
+    <span className="font-semibold">{phone}</span>
+  </div>
+
+  <div className="flex justify-between text-sm">
+    <span className="text-slate-500">Delivery Days</span>
+    <span className="font-semibold">{selectedDays?.join(", ")}</span>
+  </div>
+
+  <div className="flex justify-between text-sm">
+    <span className="text-slate-500">Plates per delivery</span>
+    <span className="font-semibold">{quantity}</span>
+  </div>
+
+  {addExtra && (
+    <div className="flex justify-between text-sm">
+      <span className="text-slate-500">Extra</span>
+      <span className="font-semibold text-[#13ec49]">+₦{extraPrice}</span>
+    </div>
+  )}
+</div>
           {/* Billing Info */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -187,7 +243,7 @@ const totalPrice = selectedPlans?.reduce(
               </>
             ) : (
               <>
-                Subscribe Now
+           Continue to Payment
                 <ArrowRight />
               </>
             )}
@@ -224,6 +280,14 @@ SubscriptionConfirmationModal.propTypes = {
     location: PropTypes.string,
   }),
   isLoading: PropTypes.bool,
+  selectedDays: PropTypes.arrayOf(PropTypes.string),
+quantity: PropTypes.number,
+addExtra: PropTypes.bool,
+extraPrice: PropTypes.number,
+deliveryType: PropTypes.string,
+address: PropTypes.string,
+phone: PropTypes.string,
+collectionCode: PropTypes.string,
 };
 
 export default SubscriptionConfirmationModal;

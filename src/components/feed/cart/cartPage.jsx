@@ -16,10 +16,11 @@ import {
   selectCartItems,
   fetchCart,
   selectCartIsLoading,
+  selectCartId,
 } from "../../../redux/cartSlice";
 import { createOrder } from "../../../redux/orderSlice";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserProfile } from "../../../services/api";
+import { fetchUserProfile, calculateCheckout } from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 
@@ -27,9 +28,12 @@ const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { setPaymentData } = usePayment();
+  const { paymentData, setPaymentData } = usePayment();
+
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
+
+  const cartId = useSelector(selectCartId);
 
   const isDirectBuy = location.state?.directBuy;
   const directProduct = location.state?.product;
@@ -49,7 +53,7 @@ const CartPage = () => {
   });
 
   const { creating: isCreatingOrder, createError } = useSelector(
-    (state) => state.orders,
+    (state) => state.orders || state.order || {},
   );
 
   const {
@@ -62,14 +66,34 @@ const CartPage = () => {
   });
 
   useEffect(() => {
-    // Only fetch cart if not doing a direct buy to avoid unnecessary state shifts
     if (!isDirectBuy) {
       dispatch(fetchCart());
     }
   }, [dispatch, isDirectBuy]);
 
+  // Helper to reliably get the exact unit price without random multiplication
+  const getUnitPrice = (item) => {
+    return (
+      Number(item.price_naira) ||
+      Number(item.product?.price_in_naira) ||
+      Number(item.product?.price) ||
+      (Number(item.total_price_naira)
+        ? Number(item.total_price_naira) / (item.quantity || 1)
+        : 0) ||
+      (Number(item.subtotal_naira)
+        ? Number(item.subtotal_naira) / (item.quantity || 1)
+        : 0) ||
+      Number(item.current_price_kobo) ||
+      0
+    );
+  };
+
   const itemsToCheckout = useMemo(() => {
     if (isDirectBuy && directProduct) {
+      const unitPrice =
+        Number(directProduct.price_in_naira) ||
+        Number(directProduct.price) ||
+        0;
       return [
         {
           id: directProduct.id,
@@ -77,16 +101,9 @@ const CartPage = () => {
           product: directProduct,
           productName: directProduct.name,
           quantity: directQuantity,
-          current_price_kobo:
-            directProduct.price_in_kobo ||
-            (directProduct.price_in_naira
-              ? directProduct.price_in_naira * 100
-              : 0),
-          subtotal_naira:
-            (directProduct.price_in_naira ||
-              (directProduct.price_in_kobo
-                ? directProduct.price_in_kobo / 100
-                : 0)) * directQuantity,
+          // No more * 100 multiplication!
+          current_price_kobo: unitPrice,
+          subtotal_naira: unitPrice * directQuantity,
           mediaSrc: directProduct.image_url || directProduct.media_url,
           username:
             directProduct.shop?.name ||
@@ -110,7 +127,8 @@ const CartPage = () => {
     directQuantity,
   ]);
 
-  const totalDeliveryCharge = useMemo(() => {
+  // Fallback Local Calculations
+  const localDeliveryCharge = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce(
       (sum, item) => sum + (item.deliveryCharge || 0),
@@ -123,19 +141,15 @@ const CartPage = () => {
     return itemsToCheckout.reduce((count, item) => count + item.quantity, 0);
   }, [itemsToCheckout]);
 
-  const subtotal = useMemo(() => {
+  const localSubtotal = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
     return itemsToCheckout.reduce((total, item) => {
-      const itemSubtotal =
-        Number(item.subtotal_naira) ||
-        ((Number(item.current_price_kobo) || 0) / 100) * item.quantity ||
-        (Number(item.product?.price_in_naira) || 0) * item.quantity ||
-        0;
-      return total + itemSubtotal;
+      const unitPrice = getUnitPrice(item);
+      return total + unitPrice * item.quantity;
     }, 0);
   }, [itemsToCheckout]);
 
-  const estimatedDeliveryTime = useMemo(() => {
+  const localEstimatedDeliveryTime = useMemo(() => {
     if (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0) {
       return "Calculating...";
     }
@@ -168,28 +182,49 @@ const CartPage = () => {
   const [deliveryAddress, setDeliveryAddress] = useState("Loading address...");
   const [pickupAddressDisplay, setPickupAddressDisplay] =
     useState("Loading pickup...");
-  const [deliveryType, setDeliveryType] = useState("delivery");
+  const [deliveryType, setDeliveryType] = useState(
+    paymentData?.deliveryType || "delivery",
+  );
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
+  // Authoritative backend calculation states
+  const [checkoutDetails, setCheckoutDetails] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const selectedDelivery = paymentData?.selectedAddress;
+  const selectedPickup = paymentData?.selectedPickup;
+
   useEffect(() => {
-    if (userProfile) {
+    if (selectedDelivery) {
+      setDeliveryAddress(
+        `${selectedDelivery.street_address}, ${selectedDelivery.city}, ${selectedDelivery.state}`,
+      );
+    } else if (userProfile) {
       setDeliveryAddress(
         userProfile.deliveryAddress || "No delivery address set",
       );
+    } else if (profileError) {
+      setDeliveryAddress("Error loading address");
+    }
+  }, [userProfile, profileError, selectedDelivery]);
+
+  useEffect(() => {
+    if (selectedPickup) {
+      setPickupAddressDisplay(
+        `${selectedPickup.name} - ${selectedPickup.address}, ${selectedPickup.city}`,
+      );
+    } else if (userProfile) {
       setPickupAddressDisplay(
         userProfile.pickupAddress || "No preferred pickup set",
       );
     } else if (profileError) {
-      console.error("Failed to load user profile:", profileError);
-      setDeliveryAddress("Error loading address");
       setPickupAddressDisplay("Error loading pickup");
     }
-  }, [userProfile, profileError]);
+  }, [userProfile, profileError, selectedPickup]);
 
   useEffect(() => {
-    // Prevent redirecting back to home if directBuy items are populated
     if (isDirectBuy && directProduct) return;
 
     if (
@@ -213,36 +248,96 @@ const CartPage = () => {
     directProduct,
   ]);
 
-  const estimatedTotal = subtotal + totalDeliveryCharge - appliedDiscount;
-  const backendTotal = subtotal + totalDeliveryCharge;
-  const backendTotalKobo = Math.round(backendTotal * 100);
+  // Fetch authoritative checkout details from the backend
+  useEffect(() => {
+    const fetchCheckoutDetails = async () => {
+      // Don't fetch if cart is empty or if it's a direct buy
+      if (!itemsToCheckout || itemsToCheckout.length === 0 || isDirectBuy)
+        return;
+
+      // Ensure cartId exists before making the request
+      if (!cartId) return;
+
+      // Only fetch if we have the necessary routing IDs
+      if (deliveryType === "delivery" && !selectedDelivery?.id) return;
+      if (deliveryType === "pickup" && !selectedPickup?.id) return;
+
+      setIsCalculating(true);
+      try {
+        const payload = {
+          cart_id: cartId,
+          delivery_type: deliveryType,
+        };
+
+        if (deliveryType === "delivery") {
+          payload.delivery_address_id = selectedDelivery.id;
+        } else {
+          payload.pickup_location_id = selectedPickup.id;
+        }
+
+        const data = await calculateCheckout(payload);
+        setCheckoutDetails(data);
+      } catch (error) {
+        console.error("Failed to calculate checkout details:", error);
+      } finally {
+        setIsCalculating(false);
+      }
+    };
+
+    fetchCheckoutDetails();
+  }, [
+    cartId,
+    deliveryType,
+    selectedDelivery,
+    selectedPickup,
+    isDirectBuy,
+    itemsToCheckout,
+  ]);
+
+  const handleDeliveryTypeSelect = (type) => {
+    setDeliveryType(type);
+    setPaymentData((prev) => ({ ...prev, deliveryType: type }));
+  };
 
   const handleApplyVoucher = () => {
+    const targetSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
     if (voucherCode === "SAVE10") {
-      setAppliedDiscount(subtotal * 0.1);
-      alert("Voucher Applied! (Note: Discount handling depends on backend)");
+      setAppliedDiscount(targetSubtotal * 0.1);
+      alert("Voucher Applied!");
     } else {
       setAppliedDiscount(0);
       alert("Invalid voucher code");
     }
   };
 
+  // Resolve final values (Prefer Backend -> Fallback to Local)
+  const finalSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
+  const finalDeliveryFee =
+    checkoutDetails?.delivery_fee_naira !== undefined
+      ? checkoutDetails.delivery_fee_naira
+      : localDeliveryCharge;
+  const finalPlatformFee = checkoutDetails?.platform_fee_naira || 0;
+  const finalEstimatedTime =
+    checkoutDetails?.estimated_delivery_time || localEstimatedDeliveryTime;
+
+  // Calculate Grand Total
+  const estimatedTotal = checkoutDetails?.total_naira
+    ? checkoutDetails.total_naira - appliedDiscount
+    : finalSubtotal + finalDeliveryFee + finalPlatformFee - appliedDiscount;
+
+  // EXACT value passed directly
+  const backendTotal = estimatedTotal;
+
   const handleProceedToPayment = async () => {
     if (deliveryType === "delivery") {
-      if (
-        !deliveryAddress ||
-        deliveryAddress === "No delivery address set" ||
-        deliveryAddress === "Loading address..."
-      ) {
-        alert("Please add a valid delivery address before proceeding.");
+      if (!selectedDelivery?.id && !userProfile?.deliveryAddress) {
+        alert(
+          "Please add or select a valid delivery address before proceeding.",
+        );
         return;
       }
     } else {
-      if (
-        !pickupAddressDisplay ||
-        pickupAddressDisplay === "No preferred pickup set" ||
-        pickupAddressDisplay === "Loading pickup..."
-      ) {
+      if (!selectedPickup?.id && !userProfile?.pickupAddress) {
         alert("Please select a valid pickup location before proceeding.");
         return;
       }
@@ -255,7 +350,7 @@ const CartPage = () => {
 
     const orderItems = itemsToCheckout.map((item) => ({
       product_id: item.product?.id || item.product_id || item.id,
-      quantity: item.quantity,
+      quantity: parseInt(item.quantity, 10),
     }));
 
     let apiPaymentMethod = "paystack";
@@ -265,20 +360,34 @@ const CartPage = () => {
 
     const orderData = {
       items: orderItems,
-      total_amount_kobo: backendTotalKobo,
+      total_amount_kobo: backendTotal,
       payment_method: apiPaymentMethod,
+      delivery_type: deliveryType,
+      delivery_fee_naira: finalDeliveryFee,
+      platform_fee_naira: finalPlatformFee,
     };
+
+    if (deliveryType === "delivery") {
+      orderData.delivery_address_id = selectedDelivery?.id;
+    } else if (deliveryType === "pickup") {
+      orderData.pickup_location_id = selectedPickup?.id;
+    }
+
+    if (cartId) {
+      orderData.cart_id = cartId;
+    }
 
     try {
       const actionResult = await dispatch(createOrder(orderData)).unwrap();
       const newOrder = actionResult;
 
-      setPaymentData({
+      setPaymentData((prev) => ({
+        ...prev,
         amount: estimatedTotal,
         vendorName: itemsToCheckout[0]?.username || "Lily Vendor",
         orderId: newOrder.id,
         amountPaid: 0,
-      });
+      }));
 
       if (apiPaymentMethod === "wallet") {
         navigate("/password");
@@ -292,6 +401,13 @@ const CartPage = () => {
       }
     } catch (err) {
       console.error("Failed to create order:", err);
+      if (err.response?.status === 500) {
+        alert(
+          "The server encountered an error (500). The backend rejected the payload. Please ensure you have selected a valid address.",
+        );
+      } else {
+        alert(err.message || "Failed to initiate payment. Please try again.");
+      }
     }
   };
 
@@ -329,9 +445,14 @@ const CartPage = () => {
   }
 
   const userFullName =
-    userProfile?.first_name && userProfile?.last_name
-      ? `${userProfile.first_name} ${userProfile.last_name}`
-      : userProfile?.fullName || "No Name Provided";
+    [userProfile?.first_name, userProfile?.last_name]
+      .filter(Boolean)
+      .join(" ") ||
+    userProfile?.fullName ||
+    userProfile?.name ||
+    userProfile?.username ||
+    (userProfile?.email && userProfile.email.split("@")[0]) ||
+    "Recipient";
 
   const userPhone =
     userProfile?.phone_number || userProfile?.phone || "No phone provided";
@@ -340,100 +461,98 @@ const CartPage = () => {
   const walletBalance = userProfile?.wallet_balance || 0;
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50">
-      <div className="relative p-4 border-b border-gray-100 bg-white flex items-center justify-center shrink-0">
+    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50 border-x border-gray-100">
+      <div className="relative p-4 border-b border-gray-100 bg-white flex items-center justify-center shrink-0 z-10">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800 focus:outline-none"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={28} />
         </button>
         <h2 className="font-semibold text-lg text-gray-900">Confirm Order</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-28">
         <div className="bg-white p-4 mb-2 border-b border-gray-100">
           <div className="space-y-6">
-            {itemsToCheckout.map((item) => (
-              <div key={item.id} className="flex flex-col">
-                <p className="text-sm font-medium text-gray-600 mb-3">
-                  {item.username || item.product?.shop?.name || "Vendor"}
-                </p>
-                <div className="flex space-x-4">
-                  <img
-                    src={
-                      item.mediaSrc ||
-                      item.product?.image_url ||
-                      item.product?.media_url ||
-                      "/placeholder-image.png"
-                    }
-                    alt={item.productName || item.product?.name || "Product"}
-                    className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder-image.png";
-                    }}
-                  />
-                  <div className="flex-1 space-y-1">
-                    <p className="font-medium text-gray-900">
-                      {item.productName || item.product?.name || "Product"}
-                    </p>
-                    <p className="text-sm font-semibold text-pink">
-                      ₦
-                      {formatPrice(
-                        Number(item.subtotal_naira) ||
-                          ((Number(item.current_price_kobo) || 0) / 100) *
-                            item.quantity ||
-                          (Number(item.product?.price_in_naira) || 0) *
-                            item.quantity ||
-                          0,
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Qty: {item.quantity}
-                    </p>
-                    {item.color && (
-                      <p className="text-sm text-gray-600">
-                        Color: {item.color}
+            {itemsToCheckout.map((item) => {
+              const unitPrice = getUnitPrice(item);
+              return (
+                <div key={item.id} className="flex flex-col">
+                  <p className="text-sm font-medium text-gray-600 mb-3">
+                    {item.username || item.product?.shop?.name || "Vendor"}
+                  </p>
+                  <div className="flex space-x-4">
+                    <img
+                      src={
+                        item.mediaSrc ||
+                        item.product?.image_url ||
+                        item.product?.media_url ||
+                        "/placeholder-image.png"
+                      }
+                      alt={item.productName || item.product?.name || "Product"}
+                      className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/placeholder-image.png";
+                      }}
+                    />
+                    <div className="flex-1 space-y-1">
+                      <p className="font-medium text-gray-900">
+                        {item.productName || item.product?.name || "Product"}
                       </p>
-                    )}
-                    {item.size && (
-                      <p className="text-sm text-gray-600">Size: {item.size}</p>
-                    )}
-                    <p className="text-sm text-gray-600">
-                      Delivery fee: ₦{formatPrice(item.deliveryCharge || 0)}
-                    </p>
+                      <p className="text-sm font-semibold text-pink">
+                        ₦{formatPrice(unitPrice)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
+                      {item.color && (
+                        <p className="text-sm text-gray-600">
+                          Color: {item.color}
+                        </p>
+                      )}
+                      {item.size && (
+                        <p className="text-sm text-gray-600">
+                          Size: {item.size}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="bg-white p-4 mb-2 border-y border-gray-100">
           <h3 className="font-semibold text-md text-gray-900 mb-4">
-            Delivery address
+            Delivery details
           </h3>
 
           <div className="space-y-5">
             <div className="flex items-start">
               <button
-                onClick={() => setDeliveryType("delivery")}
+                onClick={() => handleDeliveryTypeSelect("delivery")}
                 className="mt-1 shrink-0 focus:outline-none"
               >
                 {deliveryType === "delivery" ? (
                   <CheckCircle2 className="text-white fill-lily w-6 h-6" />
                 ) : (
-                  <Circle className="text-gray-900 w-6 h-6" />
+                  <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
               <div className="ml-3 flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  Default Address
+                  {selectedDelivery
+                    ? selectedDelivery.label || "Delivery Address"
+                    : "Default Address"}
                 </p>
                 <p className="text-sm font-medium text-gray-900 mt-1">
                   {userFullName}{" "}
-                  <span className="font-normal text-gray-600">{userPhone}</span>
+                  <span className="font-normal text-gray-600">
+                    {selectedDelivery?.phone_number || userPhone}
+                  </span>
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5 pr-6 leading-relaxed">
                   {deliveryAddress}
@@ -444,9 +563,10 @@ const CartPage = () => {
                       state: { from: location.pathname },
                     })
                   }
-                  className="flex items-center text-pink text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
+                  className="flex items-center text-pink font-medium text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
                 >
-                  <Plus size={16} className="mr-1" /> Add new address
+                  <Plus size={16} className="mr-1" strokeWidth={3} /> Add new
+                  address
                 </button>
               </div>
               <button
@@ -455,25 +575,27 @@ const CartPage = () => {
                     state: { from: location.pathname },
                   })
                 }
-                className="text-gray-400 mt-2"
+                className="text-gray-400 mt-2 hover:text-gray-700"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={24} />
               </button>
             </div>
 
             <div className="flex items-start">
               <button
-                onClick={() => setDeliveryType("pickup")}
+                onClick={() => handleDeliveryTypeSelect("pickup")}
                 className="mt-1 shrink-0 focus:outline-none"
               >
                 {deliveryType === "pickup" ? (
                   <CheckCircle2 className="text-white fill-lily w-6 h-6" />
                 ) : (
-                  <Circle className="text-gray-900 w-6 h-6" />
+                  <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">Pickup</p>
+                <p className="text-sm font-medium text-gray-900">
+                  Pickup Station
+                </p>
                 <p className="text-sm text-gray-600 mt-1 pr-6 leading-relaxed">
                   {pickupAddressDisplay}
                 </p>
@@ -484,9 +606,9 @@ const CartPage = () => {
                     state: { from: location.pathname },
                   })
                 }
-                className="text-gray-400 mt-2"
+                className="text-gray-400 mt-2 hover:text-gray-700"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={24} />
               </button>
             </div>
           </div>
@@ -505,7 +627,7 @@ const CartPage = () => {
                 {paymentMethod === "card" ? (
                   <CheckCircle2 className="text-white fill-lily w-6 h-6" />
                 ) : (
-                  <Circle className="text-gray-900 w-6 h-6" />
+                  <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
               <div className="ml-3 flex-1">
@@ -528,9 +650,10 @@ const CartPage = () => {
                       state: { from: location.pathname },
                     })
                   }
-                  className="flex items-center text-pink text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
+                  className="flex items-center text-pink font-medium text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
                 >
-                  <Plus size={16} className="mr-1" /> Add new card
+                  <Plus size={16} className="mr-1" strokeWidth={3} /> Add new
+                  card
                 </button>
               </div>
               <button
@@ -539,9 +662,9 @@ const CartPage = () => {
                     state: { from: location.pathname },
                   })
                 }
-                className="text-gray-400 mt-2"
+                className="text-gray-400 mt-2 hover:text-gray-700"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={24} />
               </button>
             </div>
 
@@ -553,7 +676,7 @@ const CartPage = () => {
                 {paymentMethod === "bank" ? (
                   <CheckCircle2 className="text-white fill-lily w-6 h-6" />
                 ) : (
-                  <Circle className="text-gray-900 w-6 h-6" />
+                  <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
               <span className="ml-3 text-sm font-medium text-gray-900">
@@ -569,7 +692,7 @@ const CartPage = () => {
                 {paymentMethod === "wallet" ? (
                   <CheckCircle2 className="text-white fill-lily w-6 h-6" />
                 ) : (
-                  <Circle className="text-gray-900 w-6 h-6" />
+                  <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
               <div className="ml-3">
@@ -590,19 +713,19 @@ const CartPage = () => {
             <div className="flex space-x-3">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Ticket className="h-5 w-5 text-gray-800" />
+                  <Ticket className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="XXXXXX"
                   value={voucherCode}
                   onChange={(e) => setVoucherCode(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 bg-gray-100 border-none rounded-xl text-gray-800 focus:ring-2 focus:ring-lily text-sm"
+                  className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-lily focus:bg-white text-sm transition-colors"
                 />
               </div>
               <button
                 onClick={handleApplyVoucher}
-                className="bg-lily text-white px-8 py-3 rounded-xl font-medium hover:bg-opacity-90 transition-opacity disabled:opacity-50 text-sm"
+                className="bg-lily text-white px-8 py-3 rounded-xl font-medium hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 disabled={!voucherCode}
               >
                 Apply
@@ -613,46 +736,85 @@ const CartPage = () => {
           <h3 className="font-semibold text-md text-gray-900 mb-4">
             Order summary
           </h3>
+
           <div className="space-y-3 text-sm mb-8">
             <div className="flex justify-between text-gray-800">
               <span>Item's total ({itemCount})</span>
-              <span>₦{formatPrice(subtotal)}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(finalSubtotal)}</span>
+              )}
             </div>
-            <div className="flex justify-between text-gray-800">
-              <span>Discount</span>
-              <span>₦{formatPrice(appliedDiscount)}</span>
-            </div>
+            {appliedDiscount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount</span>
+                <span>- ₦{formatPrice(appliedDiscount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-800">
               <span>Delivery fee</span>
-              <span>₦{formatPrice(totalDeliveryCharge)}</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(finalDeliveryFee)}</span>
+              )}
             </div>
-            <div className="flex justify-between text-gray-800">
-              <span>Delivery time</span>
-              <span>{estimatedDeliveryTime}</span>
+            {finalPlatformFee > 0 && (
+              <div className="flex justify-between text-gray-800">
+                <span>Platform fee</span>
+                {isCalculating ? (
+                  <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
+                ) : (
+                  <span>₦{formatPrice(finalPlatformFee)}</span>
+                )}
+              </div>
+            )}
+            <div className="flex justify-between text-gray-900 font-bold border-t border-gray-100 pt-3 mt-1">
+              <span>Total</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-20 rounded"></span>
+              ) : (
+                <span>₦{formatPrice(estimatedTotal)}</span>
+              )}
+            </div>
+            <div className="flex justify-between text-gray-500 pt-2">
+              <span>Estimated Delivery Time</span>
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-4 w-24 rounded"></span>
+              ) : (
+                <span>{finalEstimatedTime}</span>
+              )}
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-start space-x-2 text-gray-900">
-              <ShieldCheck className="w-5 h-5 hrink-0 mt-0.5" />
-              <p className="text-xs leading-relaxed">
+              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-gray-500" />
+              <p className="text-xs leading-relaxed text-gray-600">
                 Your payment is held in escrow till order has been confirmed as
                 delivered
               </p>
             </div>
             <div className="flex items-start space-x-2 text-gray-900">
-              <Undo2 className="w-5 h-5 shrink-0 mt-0.5" />
-              <p className="text-xs leading-relaxed">
+              <Undo2 className="w-5 h-5 shrink-0 mt-0.5 text-gray-500" />
+              <p className="text-xs leading-relaxed text-gray-600">
                 Orders may be returned within <strong>48 hrs</strong> of
                 purchase. Learn more about our{" "}
-                <a href="/about" className="text-pink hover:underline">
+                <a
+                  href="/about"
+                  className="text-pink font-medium hover:underline"
+                >
                   return policy
                 </a>
               </p>
             </div>
-            <p className="text-xs text-gray-900 leading-relaxed mt-4">
+            <p className="text-xs text-gray-500 leading-relaxed mt-4 border-t border-gray-100 pt-4">
               By clicking "proceed", you confirm you have read and agree to our{" "}
-              <a href="/about" className="text-pink hover:underline">
+              <a
+                href="/about"
+                className="text-pink font-medium hover:underline"
+              >
                 terms of services
               </a>
             </p>
@@ -660,27 +822,32 @@ const CartPage = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-white border-t border-gray-100 p-4 w-full max-w-xl mx-auto z-10">
-        <div className="flex items-center">
-          <div className="flex flex-col min-w-40">
-            <span className="font-medium text-sm text-gray-900">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-20 md:left-64 max-w-xl mx-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col min-w-32">
+            <span className="font-medium text-sm text-gray-500">
               Total Payment
             </span>
-            <span className="font-bold text-lg text-gray-900">
-              ₦{formatPrice(estimatedTotal)}
+            <span className="font-bold text-xl text-gray-900">
+              {isCalculating ? (
+                <span className="animate-pulse bg-gray-200 h-6 w-24 rounded inline-block mt-1"></span>
+              ) : (
+                `₦${formatPrice(estimatedTotal)}`
+              )}
             </span>
           </div>
           <button
             onClick={handleProceedToPayment}
-            className="bg-lily w-full text-white px-10 py-3.5 rounded-full text-md font-medium hover:bg-opacity-90 transition-opacity flex items-center justify-center"
+            className="flex-1 bg-lily text-white py-3.5 rounded-full text-md font-bold hover:bg-opacity-90 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               !itemsToCheckout ||
               itemsToCheckout.length === 0 ||
-              isCreatingOrder
+              isCreatingOrder ||
+              isCalculating
             }
           >
-            {isCreatingOrder ? (
-              <Loader2 size={20} className="animate-spin" />
+            {isCreatingOrder || isCalculating ? (
+              <Loader2 size={24} className="animate-spin" />
             ) : (
               "Proceed"
             )}
