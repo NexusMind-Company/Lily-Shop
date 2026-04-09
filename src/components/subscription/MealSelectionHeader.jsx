@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
  */
 const MealSelectionHeader = ({ onBack, onFilter }) => {
   return (
-    <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+    <header className="sticky top-0 z-sticky bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
       <div className="flex items-center p-4 justify-between">
         <button
           onClick={onBack}

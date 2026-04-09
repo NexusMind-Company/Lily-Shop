@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Toaster } from "react-hot-toast";
@@ -9,104 +9,125 @@ import FeedLayout from "./layouts/feedLayouts";
 import ScrollToTop from "./components/common/scrollToTop";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
+import LoaderSd from "./components/loaders/loaderSd";
 import { FeedProvider } from "./context/feedContext";
+import { ThemeProvider } from "./context/themeContext";
+import { FadeTransition } from "./components/common/PageTransition";
 
-/* ---------------- AUTH ---------------- */
-import Login from "./components/auth/login";
-import SignUp from "./components/auth/signUp";
-import ForgotPassword from "./components/auth/forgotPassword";
-import VerifyEmail from "./components/auth/verifyEmail";
-import VerifyCode from "./components/auth/verifyCode";
-import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
-import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
-
-/* ---------------- FEED ---------------- */
-import Feed from "./pages/feed";
-import SearchResults from "./pages/searchResults";
-import ProductDetails from "./components/feed/product/productDetails";
-import VendorsList from "./pages/VendorsList";
-import FeedProductDetails from "./pages/feedProductDetails";
-
-/* ---------------- SHOP ---------------- */
-import CreateShop from "./pages/createShop";
-import MyShop from "./pages/myShop";
-import ShopDetails from "./pages/shopDetails";
-import Ratings from "./components/shop/ratings";
-import EditShop from "./pages/editShop";
-import AddProducts from "./pages/addProducts";
-
-/* ---------------- PROFILE ---------------- */
-import Profile from "./pages/profile";
-import ProfileVisiting from "./pages/profileVisiting";
-import FollowersPage from "./pages/followers";
-import FollowingPage from "./pages/following";
-import EditProfile from "./components/profile/editProfile";
-import VerificationPage from "./pages/VerificationPage";
-import AccountPage from "./pages/account";
-
-/* ---------------- SOCIAL & INBOX ---------------- */
-import InboxPage from "./pages/inbox";
-import ChatPage from "./components/inbox/chatPage";
-import NotificationPage from "./pages/notifications";
-import ActivityPage from "./pages/activity";
-
-/* ---------------- WALLET ---------------- */
-import Wallet from "./pages/wallet";
-import Deposit from "./pages/deposit";
-import Withdraw from "./pages/withdraw";
-import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
-import WithdrawSuccess from "./pages/withdrawSuccess";
-import WalletTopUpPage from "./pages/WalletTopUpPage";
-
-/* ---------------- ORDERS ---------------- */
-import CartPage from "./pages/CartPage";
-import OrderSummaryPage from "./pages/OrderSummaryPage";
-import OrderHistoryPage from "./pages/OrderHistoryPage";
-import OrderDetailPage from "./pages/OrderDetailPage";
-import CheckoutPage from "./pages/CheckoutPage";
-
-/* ---------------- SUBSCRIPTIONS ---------------- */
-import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
-import VendorSubscriptionsOverview from "./pages/VendorSubscriptionsOverview";
-import ManageVendorPlansPage from "./pages/ManageVendorPlansPage";
-import CreateSubscriptionPlanPage from "./pages/CreateSubscriptionPlanPage";
-import CreateMealPlanPage from "./pages/CreateMealPlanPage";
-import EditPlanPage from "./pages/EditPlanPage";
-import PlanDetailsPage from "./pages/PlanDetailsPage";
-import CustomerSubscriptionsPage from "./pages/CustomerSubscriptionsPage";
-import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
-import SubscriptionCallbackPage from "./pages/SubscriptionCallbackPage";
-import UserSubscriptionPage from "./pages/UserSubscriptionPage";
-import UserSubscriptionSuccessPage from "./pages/UserSubscriptionSuccessPage";
-import UserSubscriptionCallbackPage from "./pages/UserSubscriptionCallbackPage";
-import SubscriptionPaymentPage from "./pages/SubscriptionPaymentPage";
-import SubscriptionProcessingPage from "./pages/SubscriptionProcessingPage";
-
-/* ---------------- SETTINGS & ACCOUNT ---------------- */
-import Settings from "./pages/settings";
-import ChangePasswordPage from "./pages/ChangePassword";
-import DeleteAccountPage from "./pages/DeleteAccount";
-import PasswordModalPage from "./pages/PasswordModalPage";
-
-/* ---------------- ADS & PAYMENTS ---------------- */
-import PurchaseAds from "./pages/purchaseAds";
-import FetchAdDetails from "./pages/fetchAdDetails";
-import PaymentInitiation from "./components/ads/paymentInitiation";
-import VerifyTransaction from "./components/ads/verifyTransaction";
-import PaymentFailedPage from "./pages/paymentFailedPage";
-import PaymentSuccessPage from "./pages/paymentsSucessPage";
-
-/* ---------------- OTHER ---------------- */
-import About from "./components/about/About";
-import LilyChat from "./components/ai/lilyChat";
-import CreatePost from "./components/content/CreatePost";
-import AddAddressPage from "./pages/AddAddressPage";
-import AddCardPage from "./pages/AddCardPage";
-import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
-import ChooseCardPage from "./pages/ChooseCardPage";
-import ChooseAddressPage from "./pages/chooseAddressPage";
-import CreateSubscriptionVendor from "./components/subscription/CreateSubscriptionVendor";
-import VendorDashboard from "./pages/VendorDashboard";
+const Login = lazy(() => import("./components/auth/login"));
+const SignUp = lazy(() => import("./components/auth/signUp"));
+const ForgotPassword = lazy(() => import("./components/auth/forgotPassword"));
+const VerifyEmail = lazy(() => import("./components/auth/verifyEmail"));
+const VerifyCode = lazy(() => import("./components/auth/verifyCode"));
+const ResetVerifyCode = lazy(
+  () => import("./components/auth/Reset_Password/verifyCode"),
+);
+const ResetPasswordPage = lazy(
+  () => import("./components/auth/Reset_Password/resetPasswordPage"),
+);
+const Feed = lazy(() => import("./pages/feed"));
+const SearchResults = lazy(() => import("./pages/searchResults"));
+const VendorsList = lazy(() => import("./pages/VendorsList"));
+const FeedProductDetails = lazy(() => import("./pages/feedProductDetails"));
+const CreateShop = lazy(() => import("./pages/createShop"));
+const MyShop = lazy(() => import("./pages/myShop"));
+const ShopDetails = lazy(() => import("./pages/shopDetails"));
+const Ratings = lazy(() => import("./components/shop/ratings"));
+const EditShop = lazy(() => import("./pages/editShop"));
+const AddProducts = lazy(() => import("./pages/addProducts"));
+const Profile = lazy(() => import("./pages/profile"));
+const ProfileVisiting = lazy(() => import("./pages/profileVisiting"));
+const FollowersPage = lazy(() => import("./pages/followers"));
+const FollowingPage = lazy(() => import("./pages/following"));
+const EditProfile = lazy(() => import("./components/profile/editProfile"));
+const VerificationPage = lazy(() => import("./pages/VerificationPage"));
+const AccountPage = lazy(() => import("./pages/account"));
+const InboxPage = lazy(() => import("./pages/inbox"));
+const ChatPage = lazy(() => import("./components/inbox/chatPage"));
+const NotificationPage = lazy(() => import("./pages/notifications"));
+const ActivityPage = lazy(() => import("./pages/activity"));
+const Wallet = lazy(() => import("./pages/wallet"));
+const Deposit = lazy(() => import("./pages/deposit"));
+const Withdraw = lazy(() => import("./pages/withdraw"));
+const ConfirmWithdrawal = lazy(() => import("./pages/ConfirmWithdrawal"));
+const WithdrawSuccess = lazy(() => import("./pages/withdrawSuccess"));
+const WalletTopUpPage = lazy(() => import("./pages/WalletTopUpPage"));
+const WalletCallbackPage = lazy(() => import("./pages/wallet-callback"));
+const TransactionHistoryPage = lazy(
+  () => import("./pages/transaction-history"),
+);
+const CartPage = lazy(() => import("./pages/CartPage"));
+const OrderSummaryPage = lazy(() => import("./pages/OrderSummaryPage"));
+const OrderHistoryPage = lazy(() => import("./pages/OrderHistoryPage"));
+const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const VendorSubscriptionPage = lazy(
+  () => import("./pages/VendorSubscriptionPage"),
+);
+const VendorSubscriptionsOverview = lazy(
+  () => import("./pages/VendorSubscriptionsOverview"),
+);
+const ManageVendorPlansPage = lazy(
+  () => import("./pages/ManageVendorPlansPage"),
+);
+const CreateSubscriptionPlanPage = lazy(
+  () => import("./pages/CreateSubscriptionPlanPage"),
+);
+const CreateMealPlanPage = lazy(() => import("./pages/CreateMealPlanPage"));
+const EditPlanPage = lazy(() => import("./pages/EditPlanPage"));
+const PlanDetailsPage = lazy(() => import("./pages/PlanDetailsPage"));
+const CustomerSubscriptionsPage = lazy(
+  () => import("./pages/CustomerSubscriptionsPage"),
+);
+const SubscriptionSuccessPage = lazy(
+  () => import("./pages/SubscriptionSuccessPage"),
+);
+const SubscriptionCallbackPage = lazy(
+  () => import("./pages/SubscriptionCallbackPage"),
+);
+const UserSubscriptionPage = lazy(
+  () => import("./pages/UserSubscriptionPage"),
+);
+const UserSubscriptionSuccessPage = lazy(
+  () => import("./pages/UserSubscriptionSuccessPage"),
+);
+const UserSubscriptionCallbackPage = lazy(
+  () => import("./pages/UserSubscriptionCallbackPage"),
+);
+const SubscriptionPaymentPage = lazy(
+  () => import("./pages/SubscriptionPaymentPage"),
+);
+const SubscriptionProcessingPage = lazy(
+  () => import("./pages/SubscriptionProcessingPage"),
+);
+const Settings = lazy(() => import("./pages/settings"));
+const ChangePasswordPage = lazy(() => import("./pages/ChangePassword"));
+const DeleteAccountPage = lazy(() => import("./pages/DeleteAccount"));
+const PasswordModalPage = lazy(() => import("./pages/PasswordModalPage"));
+const PurchaseAds = lazy(() => import("./pages/purchaseAds"));
+const FetchAdDetails = lazy(() => import("./pages/fetchAdDetails"));
+const PaymentInitiation = lazy(
+  () => import("./components/ads/paymentInitiation"),
+);
+const VerifyTransaction = lazy(
+  () => import("./components/ads/verifyTransaction"),
+);
+const PaymentFailedPage = lazy(() => import("./pages/paymentFailedPage"));
+const PaymentSuccessPage = lazy(() => import("./pages/paymentsSucessPage"));
+const About = lazy(() => import("./components/about/About"));
+const LilyChat = lazy(() => import("./components/ai/lilyChat"));
+const CreatePost = lazy(() => import("./components/content/CreatePost"));
+const AddAddressPage = lazy(() => import("./pages/AddAddressPage"));
+const AddCardPage = lazy(() => import("./pages/AddCardPage"));
+const ChoosePickupAddressPage = lazy(
+  () => import("./pages/ChoosePickupAddressPage"),
+);
+const ChooseCardPage = lazy(() => import("./pages/ChooseCardPage"));
+const ChooseAddressPage = lazy(() => import("./pages/chooseAddressPage"));
+const CreateSubscriptionVendor = lazy(
+  () => import("./components/subscription/CreateSubscriptionVendor"),
+);
+const VendorDashboard = lazy(() => import("./pages/VendorDashboard"));
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -118,6 +139,8 @@ const ScrollToTopAuto = () => {
   return null;
 };
 
+const RouteFallback = () => <LoaderSd />;
+
 function App() {
   const dispatch = useDispatch();
 
@@ -127,201 +150,229 @@ function App() {
   }, [dispatch]);
 
   return (
-    <FeedProvider>
-      <ScrollToTopAuto />
-      <ScrollToTop />
-      <Toaster position="top-center" />
+    <ThemeProvider>
+      <FeedProvider>
+        <ScrollToTopAuto />
+        <ScrollToTop />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+              borderRadius: '12px',
+              padding: '16px',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: 'white',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: 'white',
+              },
+            },
+          }}
+        />
 
-      <Routes>
-        {/* ================= PUBLIC ROUTES ================= */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/verify-code" element={<VerifyCode />} />
-        <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Suspense fallback={<RouteFallback />}>
+          <FadeTransition>
+            <Routes>
+              {/* ================= PUBLIC ROUTES ================= */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/verify-code" element={<VerifyCode />} />
+              <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* ================= PROTECTED ROUTES ================= */}
-        <Route element={<ProtectedRoute />}>
-          {/* Layout wrapper */}
-          <Route element={<FeedLayout />}>
-            {/* Feed */}
-            <Route path="/" element={<Feed />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/searchResults" element={<SearchResults />} />
+          {/* ================= PROTECTED ROUTES ================= */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<FeedLayout />}>
+              <Route path="/" element={<Feed />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/searchResults" element={<SearchResults />} />
 
-            {/* Product Details */}
-            <Route path="/product/:id" element={<FeedProductDetails />} />
-            <Route
-              path="/product-details/:id"
-              element={<FeedProductDetails />}
-            />
+              <Route path="/product/:id" element={<FeedProductDetails />} />
+              <Route
+                path="/product-details/:id"
+                element={<FeedProductDetails />}
+              />
 
-            {/* Cart & Checkout */}
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="add-address" element={<AddAddressPage />} />
-            <Route path="add-card" element={<AddCardPage />} />
-            <Route path="choose-pickup" element={<ChoosePickupAddressPage />} />
-            <Route path="choose-card" element={<ChooseCardPage />} />
-            <Route path="choose-address" element={<ChooseAddressPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="add-address" element={<AddAddressPage />} />
+              <Route path="add-card" element={<AddCardPage />} />
+              <Route
+                path="choose-pickup"
+                element={<ChoosePickupAddressPage />}
+              />
+              <Route path="choose-card" element={<ChooseCardPage />} />
+              <Route path="choose-address" element={<ChooseAddressPage />} />
 
-            {/* Shop Routes */}
-            <Route path="/create-shop" element={<CreateShop />} />
-            <Route path="/createShop" element={<CreateShop />} />
-            <Route path="/my-shop" element={<MyShop />} />
-            <Route path="/myShop" element={<MyShop />} />
-            <Route path="/createContent" element={<CreatePost />} />
-            <Route path="/shop/:shopId" element={<ShopDetails />} />
-            <Route path="/rating" element={<Ratings />} />
-            <Route path="/edit-shop/:shopId" element={<EditShop />} />
-            <Route
-              path="/shop/add-products/:shopId"
-              element={<AddProducts />}
-            />
-            <Route path="/food" element={<VendorsList />} />
+              <Route path="/create-shop" element={<CreateShop />} />
+              <Route path="/createShop" element={<CreateShop />} />
+              <Route path="/my-shop" element={<MyShop />} />
+              <Route path="/myShop" element={<MyShop />} />
+              <Route path="/createContent" element={<CreatePost />} />
+              <Route path="/shop/:shopId" element={<ShopDetails />} />
+              <Route path="/rating" element={<Ratings />} />
+              <Route path="/edit-shop/:shopId" element={<EditShop />} />
+              <Route
+                path="/shop/add-products/:shopId"
+                element={<AddProducts />}
+              />
+              <Route path="/food" element={<VendorsList />} />
 
-            {/* Vendor browsing */}
-            <Route
-              path="/vendor-subscription/:vendorId"
-              element={<VendorSubscriptionPage />}
-            />
-            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+              <Route
+                path="/vendor-subscription/:vendorId"
+                element={<VendorSubscriptionPage />}
+              />
+              <Route path="/vendor-dashboard" element={<VendorDashboard />} />
 
-            {/* Profile */}
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/:userId" element={<ProfileVisiting />} />
-            <Route
-              path="/profile/:userId/followers"
-              element={<FollowersPage />}
-            />
-            <Route
-              path="/profile/:userId/following"
-              element={<FollowingPage />}
-            />
-            <Route path="/followers" element={<FollowersPage />} />
-            <Route path="/followers/:id" element={<FollowersPage />} />
-            <Route path="/following" element={<FollowingPage />} />
-            <Route path="/following/:id" element={<FollowingPage />} />
-            <Route path="/verify" element={<VerificationPage />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/editProfile" element={<EditProfile />} />
-            <Route path="/about" element={<About />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<ProfileVisiting />} />
+              <Route
+                path="/profile/:userId/followers"
+                element={<FollowersPage />}
+              />
+              <Route
+                path="/profile/:userId/following"
+                element={<FollowingPage />}
+              />
+              <Route path="/followers" element={<FollowersPage />} />
+              <Route path="/followers/:id" element={<FollowersPage />} />
+              <Route path="/following" element={<FollowingPage />} />
+              <Route path="/following/:id" element={<FollowingPage />} />
+              <Route path="/verify" element={<VerificationPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route path="/editProfile" element={<EditProfile />} />
+              <Route path="/about" element={<About />} />
 
-            {/* Inbox & Social */}
-            <Route path="/inbox" element={<InboxPage />} />
-            <Route path="/chat/:conversationId" element={<ChatPage />} />
-            <Route path="/notifications" element={<NotificationPage />} />
-            <Route path="/activity" element={<ActivityPage />} />
+              <Route path="/inbox" element={<InboxPage />} />
+              <Route path="/chat/:conversationId" element={<ChatPage />} />
+              <Route path="/notifications" element={<NotificationPage />} />
+              <Route path="/activity" element={<ActivityPage />} />
 
-            {/* Wallet */}
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/deposit" element={<Deposit />} />
-            <Route path="/withdraw" element={<Withdraw />} />
-            <Route path="/withdraw/confirm" element={<ConfirmWithdrawal />} />
-            <Route path="/withdraw/success" element={<WithdrawSuccess />} />
-            <Route path="/wallet/topup" element={<WalletTopUpPage />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/deposit" element={<Deposit />} />
+              <Route path="/withdraw" element={<Withdraw />} />
+              <Route path="/withdraw/confirm" element={<ConfirmWithdrawal />} />
+              <Route path="/withdraw/success" element={<WithdrawSuccess />} />
+              <Route path="/wallet/topup" element={<WalletTopUpPage />} />
+              <Route
+                path="/wallet/callback"
+                element={<WalletCallbackPage />}
+              />
+              <Route
+                path="/transaction-history"
+                element={<TransactionHistoryPage />}
+              />
 
-            {/* Orders */}
-            <Route path="/order-summary" element={<OrderSummaryPage />} />
-            <Route path="/orders" element={<OrderHistoryPage />} />
-            <Route path="/order/:orderId" element={<OrderDetailPage />} />
+              <Route path="/order-summary" element={<OrderSummaryPage />} />
+              <Route path="/orders" element={<OrderHistoryPage />} />
+              <Route path="/order/:orderId" element={<OrderDetailPage />} />
 
-            {/* Customer Subscriptions */}
-            <Route
-              path="/subscriptions"
-              element={<CustomerSubscriptionsPage />}
-            />
-             <Route
-              path="/create-vendor"
-              element={<CreateSubscriptionVendor />}
-            />
-            <Route
-              path="/create-vendor"
-              element={<CreateSubscriptionVendor />}
-            />
-            <Route
-              path="/subscription-success"
-              element={<SubscriptionSuccessPage />}
-            />
-            <Route
-              path="/subscription-callback"
-              element={<SubscriptionCallbackPage />}
-            />
-            <Route
-              path="/subscription/payment/:planId"
-              element={<SubscriptionPaymentPage />}
-            />
+              <Route
+                path="/subscriptions"
+                element={<CustomerSubscriptionsPage />}
+              />
+              <Route
+                path="/create-vendor"
+                element={<CreateSubscriptionVendor />}
+              />
+              <Route
+                path="/subscription-success"
+                element={<SubscriptionSuccessPage />}
+              />
+              <Route
+                path="/subscription-callback"
+                element={<SubscriptionCallbackPage />}
+              />
+              <Route
+                path="/subscription/payment/:planId"
+                element={<SubscriptionPaymentPage />}
+              />
+              <Route
+                path="/subscription/processing"
+                element={<SubscriptionProcessingPage />}
+              />
 
-            {/* User Premium */}
-            <Route
-              path="/user-subscription"
-              element={<UserSubscriptionPage />}
-            />
-            <Route
-              path="/user-subscription/success"
-              element={<UserSubscriptionSuccessPage />}
-            />
-            <Route
-              path="/user-subscription/callback"
-              element={<UserSubscriptionCallbackPage />}
-            />
+              <Route
+                path="/user-subscription"
+                element={<UserSubscriptionPage />}
+              />
+              <Route
+                path="/user-subscription/success"
+                element={<UserSubscriptionSuccessPage />}
+              />
+              <Route
+                path="/user-subscription/callback"
+                element={<UserSubscriptionCallbackPage />}
+              />
 
-            {/* Extras */}
-            <Route path="/settings" element={<Settings />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/change-password" element={<ChangePasswordPage />} />
+              <Route path="/ChangePassword" element={<ChangePasswordPage />} />
+              <Route path="/delete-account" element={<DeleteAccountPage />} />
+              <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+              <Route path="/password" element={<PasswordModalPage />} />
+            </Route>
 
-            {/* ================= GENERAL ACCOUNT ROUTES ================= */}
-            <Route path="/change-password" element={<ChangePasswordPage />} />
-            <Route path="/ChangePassword" element={<ChangePasswordPage />} />
-            <Route path="/delete-account" element={<DeleteAccountPage />} />
-            <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
-            <Route path="/password" element={<PasswordModalPage />} />
+            <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
+              <Route
+                path="/vendor/subscriptions"
+                element={<VendorSubscriptionsOverview />}
+              />
+              <Route path="/vendor/plans" element={<ManageVendorPlansPage />} />
+              <Route
+                path="/vendor/plans/create"
+                element={<CreateSubscriptionPlanPage />}
+              />
+              <Route
+                path="/vendor/plans/:planId"
+                element={<PlanDetailsPage />}
+              />
+              <Route
+                path="/vendor/plans/:planId/edit"
+                element={<EditPlanPage />}
+              />
+              <Route
+                path="/subscription/create-meal-plan"
+                element={<CreateMealPlanPage />}
+              />
+              <Route
+                path="/subscription/create-meal-plan/:planId"
+                element={<EditPlanPage />}
+              />
+
+              <Route path="/ads" element={<PurchaseAds />} />
+              <Route path="/purchaseAds" element={<PurchaseAds />} />
+              <Route path="/ads/details" element={<FetchAdDetails />} />
+              <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+              <Route path="/ads/payment" element={<PaymentInitiation />} />
+              <Route path="/ads/verify" element={<VerifyTransaction />} />
+              <Route
+                path="/verify-transaction"
+                element={<VerifyTransaction />}
+              />
+              <Route path="/payment-failed" element={<PaymentFailedPage />} />
+              <Route path="/payment-success" element={<PaymentSuccessPage />} />
+
+              <Route path="/lily-chat" element={<LilyChat />} />
+              <Route path="/lilyChat" element={<LilyChat />} />
+            </Route>
           </Route>
-
-          {/* ================= VENDOR ROLE ROUTES ================= */}
-          <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
-            <Route
-              path="/vendor/subscriptions"
-              element={<VendorSubscriptionsOverview />}
-            />
-            <Route path="/vendor/plans" element={<ManageVendorPlansPage />} />
-            <Route
-              path="/vendor/plans/create"
-              element={<CreateSubscriptionPlanPage />}
-            />
-            <Route path="/vendor/plans/:planId" element={<PlanDetailsPage />} />
-            <Route
-              path="/vendor/plans/:planId/edit"
-              element={<EditPlanPage />}
-            />
-            <Route
-              path="/subscription/create-meal-plan"
-              element={<CreateMealPlanPage />}
-            />
-            <Route
-              path="/subscription/create-meal-plan/:planId"
-              element={<EditPlanPage />}
-            />
-
-            {/* Ads Management */}
-            <Route path="/ads" element={<PurchaseAds />} />
-            <Route path="/purchaseAds" element={<PurchaseAds />} />
-            <Route path="/ads/details" element={<FetchAdDetails />} />
-            <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
-            <Route path="/ads/payment" element={<PaymentInitiation />} />
-            <Route path="/ads/verify" element={<VerifyTransaction />} />
-            <Route path="/verify-transaction" element={<VerifyTransaction />} />
-            <Route path="/payment-failed" element={<PaymentFailedPage />} />
-            <Route path="/payment-success" element={<PaymentSuccessPage />} />
-
-            {/* AI Chat */}
-            <Route path="/lily-chat" element={<LilyChat />} />
-            <Route path="/lilyChat" element={<LilyChat />} />
-          </Route>
-        </Route>
-      </Routes>
-    </FeedProvider>
+        </Routes>
+          </FadeTransition>
+        </Suspense>
+      </FeedProvider>
+    </ThemeProvider>
   );
 }
 

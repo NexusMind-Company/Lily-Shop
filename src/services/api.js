@@ -146,16 +146,6 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -164,16 +154,6 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -190,31 +170,31 @@ export const updateProfilePic = async (imageFile) => {
       },
     },
   );
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
 export const uploadMediaFile = async (file) => {
   if (file instanceof File) {
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "video/mp4",
+      "video/quicktime",
+      "video/x-msvideo",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      throw new Error("Only image files (JPEG, PNG, GIF, WEBP) are allowed");
+      throw new Error(
+        "Only image files (JPEG, PNG, GIF, WEBP) and video files (MP4, MOV, AVI) are allowed"
+      );
     }
   }
 
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
+  const response = await api.post("/shops/upload-media/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -265,6 +245,12 @@ export const fetchProductDetails = async (productId) => {
 
 export const searchShops = async (searchTerm) => {
   const response = await api.get("/shops/", { params: { search: searchTerm } });
+  return response.data;
+};
+
+export const searchProducts = async (query, filters = {}) => {
+  const params = { q: query, ...filters };
+  const response = await api.get("/shops/search/", { params });
   return response.data;
 };
 
@@ -435,7 +421,7 @@ export const sendMessage = async ({
 
 export const shareProductToChat = async (productId, recipientId) => {
   const response = await api.post(`/messages/share/${productId}/`, {
-    recipient: recipientId,
+    recipient_id: recipientId,
   });
   return response.data;
 };

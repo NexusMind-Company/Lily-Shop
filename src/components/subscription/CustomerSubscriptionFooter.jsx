@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
  */
 const CustomerSubscriptionFooter = ({ onBrowseNewPlans }) => {
   return (
-    <div className="fixed bottom-0 w-full z-40">
+    <div className="fixed bottom-0 w-full z-dock">
       {/* Gradient fade for smooth content scroll under footer */}
       <div className="absolute bottom-full left-0 w-full h-12 bg-gradient-to-t from-[#f6f8f6] dark:from-background-dark to-transparent pointer-events-none"></div>
       <div className="bg-[#f6f8f6] dark:bg-background-dark p-4 pb-8 max-w-md mx-auto">

@@ -29,6 +29,7 @@ const ProfileVisiting = () => {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [statusNotice, setStatusNotice] = useState(null);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -79,8 +80,8 @@ const ProfileVisiting = () => {
 
         try {
           const [postsRes, productsRes] = await Promise.all([
-            api.get(`/shops/contents/${targetId}`),
-            api.get(`/shops/products/${targetId}/`),
+            api.get(`/shops/contents/user/${targetId}/`),
+            api.get(`/shops/products/user/${targetId}/`),
           ]);
           fetchedPosts = postsRes.data?.results || postsRes.data || [];
           fetchedProducts = productsRes.data?.results || productsRes.data || [];
@@ -252,6 +253,35 @@ const ProfileVisiting = () => {
 
   const { user = {}, posts = [], products = [] } = data;
 
+  const flashNotice = (message) => {
+    setStatusNotice(message);
+    window.setTimeout(() => setStatusNotice(null), 2500);
+  };
+
+  const handleGridItemClick = (item) => {
+    const isProductItem =
+      activeTab === "products" ||
+      item.price_in_naira !== undefined ||
+      item.price_kobo !== undefined;
+
+    if (isProductItem) {
+      navigate(`/product-details/${item.id}`);
+      return;
+    }
+
+    if (item.post_type === "SELLING") {
+      if (item.product_status === "not_found" || !item.product?.id) {
+        flashNotice(item.product_message || "Product not found");
+        return;
+      }
+
+      navigate(`/product-details/${item.product.id}`);
+      return;
+    }
+
+    navigate(`/?postId=${item.id}`);
+  };
+
   const renderGrid = (items, emptyMessage) => {
     if (!items || items.length === 0) {
       return (
@@ -270,6 +300,7 @@ const ProfileVisiting = () => {
       >
         {items.map((item, i) => {
           const mediaSrc =
+            item.all_media_urls?.[0] ||
             item.image_url ||
             item.media_url ||
             item.media ||
@@ -286,7 +317,7 @@ const ProfileVisiting = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/product-details/${item.id}`)}
+              onClick={() => handleGridItemClick(item)}
               className="relative aspect-square overflow-hidden cursor-pointer group"
             >
               <img
@@ -317,6 +348,13 @@ const ProfileVisiting = () => {
                   <Play size={20} className="text-white drop-shadow-lg" />
                 </div>
               )}
+
+              {item.post_type === "SELLING" &&
+                item.product_status === "not_found" && (
+                  <div className="absolute inset-x-2 bottom-2 rounded-full bg-black/70 px-2 py-1 text-center text-[11px] font-semibold text-white">
+                    {item.product_message || "Product not found"}
+                  </div>
+                )}
             </motion.div>
           );
         })}
@@ -326,7 +364,7 @@ const ProfileVisiting = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+      <div className="sticky top-0 z-sticky bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft size={24} />
@@ -345,7 +383,7 @@ const ProfileVisiting = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 bg-white border rounded-xl shadow-lg z-50 w-48 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 bg-white border rounded-xl shadow-lg z-dropdown w-48 overflow-hidden"
                 >
                   <button className="flex items-center w-full px-4 py-3 text-sm hover:bg-gray-50">
                     <Flag size={18} className="mr-3" /> Report
@@ -362,6 +400,12 @@ const ProfileVisiting = () => {
 
       <div className="bg-white pb-4">
         <div className="px-4 pt-6">
+          {statusNotice && (
+            <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+              {statusNotice}
+            </div>
+          )}
+
           <div className="flex items-center gap-4 mb-4">
             <div className="relative">
               <img
@@ -434,7 +478,17 @@ const ProfileVisiting = () => {
               )}
             </motion.button>
 
-            <Link to={`/messages/new?user=${user.id}`} className="flex-1">
+            <Link
+              to={`/chat/${user.id}`}
+              state={{
+                chat: {
+                  id: user.id,
+                  name: user.full_name || user.username || "User",
+                  profilePic: user.profile_pic || "/user.png",
+                },
+              }}
+              className="flex-1"
+            >
               <button className="w-full py-2.5 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center justify-center gap-2">
                 <MessageCircle size={18} />
                 Message
@@ -448,7 +502,7 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      <div className="sticky top-[57px] z-30 bg-white border-b border-gray-200">
+      <div className="sticky top-[57px] z-dock bg-white border-b border-gray-200">
         <div className="flex">
           <button
             onClick={() => setActiveTab("posts")}

@@ -30,14 +30,14 @@ const FeedLayout = () => {
 
   return (
     <FeedProvider>
-      <div className="flex min-h-screen w-full bg-white md:bg-gray-50">
+      <div className="flex min-h-screen w-full bg-white md:bg-gray-50 dark:bg-background-dark transition-colors duration-300">
         <SideNav activePage={activePage} />
 
         <main
           className={`flex-1 w-full md:ml-64 relative h-screen md:pb-0 ${
             isFeedRoute
               ? "overflow-hidden"
-              : "overflow-y-auto overflow-x-hidden"
+              : "overflow-y-auto overflow-x-hidden scrollbar-hide"
           } ${shouldShowBottomNav ? "pb-20" : "pb-0"}`}
         >
           <Outlet />

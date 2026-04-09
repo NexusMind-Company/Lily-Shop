@@ -110,6 +110,7 @@ const walletSlice = createSlice({
     loading: false,
     error: null,
     balance_naira: 0,
+    withdrawable_naira: 0,
     recent_transactions: [],
     topup_loading: false,
     topup_error: null,
@@ -123,6 +124,7 @@ const walletSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.balance_naira = 0;
+      state.withdrawable_naira = 0;
       state.recent_transactions = [];
       state.authorization_url = null;
       state.virtual_account = null;
@@ -138,6 +140,7 @@ const walletSlice = createSlice({
       .addCase(fetchWallet.fulfilled, (state, action) => {
         state.loading = false;
         state.balance_naira = action.payload.balance_naira || 0;
+        state.withdrawable_naira = action.payload.withdrawable_naira || 0;
         state.recent_transactions = action.payload.recent_transactions || [];
       })
       .addCase(fetchWallet.rejected, (state, action) => {

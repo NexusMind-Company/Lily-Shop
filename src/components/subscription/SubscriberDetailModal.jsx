@@ -20,7 +20,7 @@ const SubscriberDetailModal = ({
   if (!isOpen || !subscriber) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+    <div className="fixed inset-0 z-modal flex items-end justify-center pointer-events-none">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"

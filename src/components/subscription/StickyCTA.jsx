@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
  */
 const StickyCTA = ({ totalPrice, onSubscribe }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#f6f8f6] dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 z-40 pb-8">
+    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#f6f8f6] dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 z-dock pb-8">
       <div className="flex items-center gap-4 max-w-lg mx-auto">
         <div className="flex flex-col">
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">

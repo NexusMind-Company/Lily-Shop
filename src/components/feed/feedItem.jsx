@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import { fetchProfile } from "../../redux/profileSlice";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
@@ -185,9 +186,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.userId ||
     post.author_id ||
     resolvedUser?.id ||
+    post.shop?.owner?.id ||
+    post.shop?.vendor_id ||
     post.shop?.user_id ||
-    post.shop_id ||
-    displayUsername;
+    resolvedUser?.username ||
+    (typeof post.user === "string" ? post.user : null);
   const profileLink = profileId ? `/profile/${profileId}` : "#";
 
   const currentUserId = user_data?.id || user_data?.user?.id;
@@ -195,7 +198,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   const isOwnPost =
     (currentUsername && currentUsername === displayUsername) ||
-    (currentUserId && currentUserId === profileId);
+    (currentUserId && String(currentUserId) === String(profileId));
 
   const isProduct =
     post.type?.toLowerCase() === "product" ||
@@ -204,7 +207,31 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.name !== undefined ||
     post.productName !== undefined;
 
-  const hasLinkedProduct = !isProduct && post.product != null;
+  const linkedProduct =
+    !isProduct && post.product && typeof post.product === "object"
+      ? post.product
+      : null;
+  const linkedProductId = linkedProduct?.id || null;
+  const hasLinkedProduct = Boolean(linkedProductId);
+  const buyProductId = isProduct ? post.id : linkedProductId;
+  const isSellingContent = !isProduct && post.post_type === "SELLING";
+  const productUnavailable =
+    isSellingContent &&
+    (!buyProductId || post.product_status === "not_found");
+  const productStatusMessage = post.product_message || "Product not found";
+  const displayPrice = Number(
+    isProduct
+      ? post.price_in_naira ??
+          (post.price_kobo != null ? post.price_kobo / 100 : undefined) ??
+          post.price ??
+          0
+      : linkedProduct?.price_in_naira ??
+          (linkedProduct?.price_kobo != null
+            ? linkedProduct.price_kobo / 100
+            : undefined) ??
+          linkedProduct?.price ??
+          0,
+  );
 
   // ==================== PREFETCHING ====================
   // This runs immediately when the component renders (even off-screen).
@@ -330,6 +357,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         );
       }
       console.error(`[Post ${post.id}] Like error:`, err);
+      toast.error("Couldn't update your like right now.");
     },
   });
 
@@ -363,6 +391,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             updateItemFollows(oldData, profileId, context.previousIsFollowed),
         );
       }
+      console.error(`[Post ${post.id}] Follow error:`, err);
+      toast.error("Couldn't update follow status right now.");
     },
   });
 
@@ -383,7 +413,10 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       e.preventDefault();
     }
     if (!isAuthenticated) return navigate("/login");
-    if (!profileId) return;
+    if (!profileId) {
+      toast.error("This profile isn't available yet.");
+      return;
+    }
     toggleFollow();
   };
 
@@ -406,10 +439,31 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const handleOpenMessage = () => {
     if (!isAuthenticated) return navigate("/login");
     if (profileId) {
-      navigate(`/chat/${profileId}`);
+      navigate(`/chat/${profileId}`, {
+        state: {
+          chat: {
+            id: profileId,
+            name: displayUsername,
+            profilePic:
+              post.userpic || resolvedUser?.profile_pic || "/profile-icon.svg",
+          },
+        },
+      });
     } else {
-      alert("Cannot message this user");
+      toast.error("Can't start a chat with this user right now.");
     }
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!buyProductId) {
+      toast.error(productStatusMessage);
+      return;
+    }
+
+    navigate(`/product-details/${buyProductId}`);
   };
 
   const shareUrl = `${window.location.origin}/?postId=${post.id}`;
@@ -447,7 +501,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
       <AnimatePresence>
         {showLikeAnimation && (
-          <motion.div
+          <Motion.div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1.5, opacity: 1 }}
@@ -458,7 +512,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               className="w-24 h-24 text-lily drop-shadow-lg"
               fill="#4eb75e"
             />
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -472,7 +526,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                   className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden shrink-0"
                 >
                   <img
-                    src={post.userpic || "/profile-icon.svg"}
+                    src={
+                      post.userpic ||
+                      resolvedUser?.profile_pic ||
+                      "/profile-icon.svg"
+                    }
                     alt={displayUsername}
                     className="w-full h-full object-cover"
                   />
@@ -509,21 +567,15 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 "Untitled"}
             </h2>
 
-            {(isProduct ||
-              (hasLinkedProduct &&
-                (post.product?.price_in_naira || post.product?.price))) && (
+            {(isProduct || hasLinkedProduct) && !Number.isNaN(displayPrice) && (
               <p className="font-bold">
-                ₦
-                {Number(
-                  isProduct
-                    ? post.price_in_naira || post.price
-                    : post.product.price_in_naira || post.product.price,
-                ).toLocaleString()}
+                {"\u20A6"}
+                {displayPrice.toLocaleString()}
               </p>
             )}
 
             {post.caption && (
-              <motion.p
+              <Motion.p
                 layout
                 className={`text-sm font-light wrap-break-word whitespace-pre-wrap ${isExpanded ? "max-h-[30vh] overflow-y-auto no-scrollbar pointer-events-auto" : ""}`}
               >
@@ -538,7 +590,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                     {isExpanded ? "...less" : "...see more"}
                   </button>
                 )}
-              </motion.p>
+              </Motion.p>
             )}
 
             <p className="font-light flex items-center gap-1 truncate">
@@ -550,17 +602,29 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
               </span>
             </p>
 
-            {(isProduct || hasLinkedProduct) && (
+            {productUnavailable && (
+              <p className="inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                {productStatusMessage}
+              </p>
+            )}
+
+            {(isProduct || isSellingContent) && (
               <div className="flex items-center space-x-2 pt-2 shrink-0">
-                <Link
-                  to={`/product/${isProduct ? post.id : post.product.id}`}
-                  className="bg-white text-black inline-flex w-fit items-center font-normal p-2 gap-1 rounded-full text-sm"
+                <button
+                  onClick={handleBuyNow}
+                  type="button"
+                  disabled={!buyProductId}
+                  className={`inline-flex w-fit items-center gap-1 rounded-full p-2 text-sm font-normal ${
+                    buyProductId
+                      ? "bg-white text-black"
+                      : "cursor-not-allowed bg-white/70 text-gray-500"
+                  }`}
                 >
                   <span>
                     <img src="/icons/bag-2.svg" alt="" />
                   </span>
-                  Buy Now
-                </Link>
+                  {buyProductId ? "Buy Now" : "Unavailable"}
+                </button>
               </div>
             )}
           </div>

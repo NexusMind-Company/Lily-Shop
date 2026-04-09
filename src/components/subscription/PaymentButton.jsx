@@ -10,7 +10,7 @@ import PropTypes from "prop-types";
  */
 const PaymentButton = ({ amount, onPayment, disabled }) => {
   return (
-    <div className="absolute bottom-0 left-0 w-full bg-[#ffffff] dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 pb-8 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-none">
+    <div className="absolute bottom-0 left-0 w-full bg-[#ffffff] dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 pb-8 z-dock shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-none">
       <button
         onClick={onPayment}
         disabled={disabled}

@@ -1,6 +1,6 @@
 // src/pages/auth/ForgotPassword.jsx
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   requestPasswordReset,
@@ -8,27 +8,24 @@ import {
 } from "../../redux/passwordResetSlice";
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
 
   // Get state from Redux slice
-  const { status, error, successMessage, step } = useSelector(
+  const { status, error, successMessage } = useSelector(
     (state) => state.passwordReset
   );
 
   const loading = status === "loading";
-  const emailSent = step === "verify";
+  const emailSent = status === "succeeded";
 
-  // Navigate on success
   useEffect(() => {
-    if (emailSent) {
-      navigate(`/reset-verify-code?email=${encodeURIComponent(email)}`);
+    return () => {
       dispatch(clearPasswordResetState());
-    }
-  }, [emailSent, navigate, email, dispatch]);
+    };
+  }, [dispatch]);
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -93,9 +90,10 @@ const ForgotPassword = () => {
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         {/* Success message */}
-        {successMessage && (
+        {(successMessage || emailSent) && (
           <p className="text-green-600 text-sm text-center">
-            {successMessage}
+            {successMessage ||
+              "If this email exists, a password reset link has been sent. Please check your inbox."}
           </p>
         )}
       </form>

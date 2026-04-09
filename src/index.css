@@ -22,14 +22,31 @@ body {
 @theme {
   --font-inter: Inter, sans-serif;
   --font-poppins: Poppins, sans-serif;
-  --color-ash: #898585;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --color-ash: #9CA3AF;
+  --color-dark-ash: #6B7280;
   --color-disabled: #d5d5d5;
   --color-disabled__text: #979797;
   --color-main: #fffae7;
-  --color-lily: #4eb75e;
-  --color-darklily: #3da64d;
-  --color-pink: #b61664;
+  --color-lily: #E91E63;
+  --color-lily-dark: #D81B60;
+  --color-lily-light: #FCE4EC;
+  --color-purple: #9C27B0;
   --color-sun: #f6ad6d;
+  
+  /* Dark mode colors */
+  --color-background-dark: #102215;
+  --color-surface-dark: #1c2e21;
+  --color-text-main-light: #111813;
+  --color-text-main-dark: #ffffff;
+  --color-text-secondary-light: #61896b;
+  --color-text-secondary-dark: #8fa895;
+  
+  /* Semantic colors */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
 }
 
 /* Hide scrollbars */
@@ -127,6 +144,12 @@ body {
   }
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Feed Skeleton */
 .skeleton-post-media {
   width: 100%;
@@ -156,8 +179,17 @@ body {
   flex-shrink: 0;
 }
 body {
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: var(--font-display);
   min-height: 100vh;
+  background-color: #ffffff;
+  color: #111813;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background-color: #102215;
+  color: #ffffff;
 }
 
 .no-scrollbar::-webkit-scrollbar {

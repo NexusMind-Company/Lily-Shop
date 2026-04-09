@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import {
   fetchAllFeed,
   fetchProducts,
@@ -82,6 +83,30 @@ const extractContents = (data) => {
   );
 };
 
+const isProductLike = (item) =>
+  item?.type?.toLowerCase() === "product" ||
+  item?.price_in_naira !== undefined ||
+  item?.price_kobo !== undefined ||
+  item?.price !== undefined ||
+  item?.name !== undefined ||
+  item?.productName !== undefined;
+
+const getPrimaryMedia = (item, fallback = "/shop.png") =>
+  item?.all_media_urls?.[0] ||
+  item?.image_url ||
+  item?.media_url ||
+  (Array.isArray(item?.media) ? item.media[0]?.src || item.media[0] : item?.media) ||
+  item?.image ||
+  fallback;
+
+const formatNaira = (value) => {
+  if (value === undefined || value === null || Number.isNaN(Number(value))) {
+    return null;
+  }
+
+  return `${"\u20A6"}${Number(value).toLocaleString()}`;
+};
+
 const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -153,10 +178,53 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     setSearchTerm("");
   };
 
+  const openContentResult = (content) => {
+    if (content.post_type === "SELLING") {
+      if (content.product_status === "not_found" || !content.product?.id) {
+        toast.error(content.product_message || "Product not found");
+        return;
+      }
+
+      navigate(`/product-details/${content.product.id}`);
+      onClose();
+      return;
+    }
+
+    navigate(`/?postId=${content.id}`);
+    onClose();
+  };
+
+  const openTopResult = (item) => {
+    if (isProductLike(item)) {
+      navigate(`/product-details/${item.id}`);
+      onClose();
+      return;
+    }
+
+    if (item.post_type === "SELLING") {
+      if (item.product_status === "not_found" || !item.product?.id) {
+        toast.error(item.product_message || "Product not found");
+        return;
+      }
+
+      navigate(`/product-details/${item.product.id}`);
+      onClose();
+      return;
+    }
+
+    navigate(`/?postId=${item.id}`);
+    onClose();
+  };
+
   const removeRecent = (termToRemove) => {
     const newSearches = recentSearches.filter((term) => term !== termToRemove);
     setRecentSearches(newSearches);
     saveRecentSearches(newSearches);
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    saveRecentSearches([]);
   };
 
   const renderProductList = (products, limit = 5, showHeader = true) => {
@@ -183,11 +251,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             }}
           >
             <img
-              src={
-                Array.isArray(product.media)
-                  ? product.media[0]?.src || product.media[0]
-                  : product.image_url || product.media || "/shop.png"
-              }
+              src={getPrimaryMedia(product)}
               alt={product.name}
               className="w-12 h-12 rounded-lg bg-gray-200 object-cover border border-gray-100"
               onError={(e) => {
@@ -198,11 +262,20 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               <span className="font-medium text-gray-900 block truncate">
                 {product.name}
               </span>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="hidden text-xs text-gray-500 truncate">
                 {product.price_in_naira
                   ? `₦${product.price_in_naira}`
                   : "Price unavailable"}{" "}
                 • {product.shop_name || "Shop"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {formatNaira(
+                  product.price_in_naira ??
+                    (product.price_kobo != null
+                      ? product.price_kobo / 100
+                      : product.price),
+                ) || "Price unavailable"}{" "}
+                {"\u2022"} {product.shop_name || "Shop"}
               </p>
             </div>
           </div>
@@ -260,10 +333,9 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               </span>
               <p className="text-xs text-gray-500 truncate">
                 {shop.owner && shop.owner.username
-                  ? `@${shop.owner.username} • `
+                  ? `@${shop.owner.username} \u2022 `
                   : ""}
-                {shop.category || "Vendor"} • {shop.follower_count || 0}{" "}
-                followers
+                {shop.category || "Vendor"} {"\u2022"} {shop.follower_count || 0} followers
               </p>
             </div>
           </div>
@@ -300,19 +372,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             <div
               key={content.id}
               className="cursor-pointer group"
-              onClick={() => {
-                navigate(`/contents/${content.id}`);
-                onClose();
-              }}
+              onClick={() => openContentResult(content)}
             >
               <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-square">
                 {content.media || content.image_url ? (
                   <img
-                    src={
-                      Array.isArray(content.media)
-                        ? content.media[0]?.src || content.media[0]
-                        : content.media || content.image_url
-                    }
+                    src={getPrimaryMedia(content)}
                     alt={content.caption || "Content"}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -366,23 +431,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           <div
             key={post.id}
             className="cursor-pointer group"
-            onClick={() => {
-              navigate(
-                post.price !== undefined || post.price_in_naira !== undefined
-                  ? `/product-details/${post.id}`
-                  : `/contents/${post.id}`,
-              );
-              onClose();
-            }}
+            onClick={() => openTopResult(post)}
           >
             <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-square">
               {post.media || post.image_url ? (
                 <img
-                  src={
-                    Array.isArray(post.media)
-                      ? post.media[0]?.src || post.media[0]
-                      : post.media || post.image_url
-                  }
+                  src={getPrimaryMedia(post)}
                   alt={post.name || post.caption || "Post"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -466,6 +520,18 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     }
     return (
       <div className="flex flex-col">
+        <div className="mb-2 flex items-center justify-between px-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+            Recent Searches
+          </p>
+          <button
+            type="button"
+            onClick={clearRecentSearches}
+            className="text-xs font-semibold text-lily transition-colors hover:text-darklily"
+          >
+            Clear all
+          </button>
+        </div>
         {recentSearches.map((term) => (
           <div
             key={term}
@@ -553,7 +619,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <Motion.div
           key="search-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -561,7 +627,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           className="fixed inset-0 z-9999 bg-white md:bg-black/50 flex justify-center items-end md:left-64 md:w-[calc(100%-16rem)] md:justify-start md:items-center md:p-6 cursor-pointer pointer-events-auto"
           onClick={onClose}
         >
-          <motion.div
+          <Motion.div
             key="search-panel"
             initial={{ y: "100%", x: 0 }}
             animate={{ y: 0, x: 0 }}
@@ -620,7 +686,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                       >
                         {tab}
                         {activeTab === tab && (
-                          <motion.div
+                          <Motion.div
                             layoutId="activeTabIndicator"
                             className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
                           />
@@ -633,8 +699,8 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 <div className="animate-fadeIn">{renderTabContent()}</div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </Motion.div>
+        </Motion.div>
       )}
     </AnimatePresence>
   );

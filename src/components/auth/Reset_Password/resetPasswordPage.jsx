@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -22,9 +21,11 @@ const ResetPasswordPage = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const { loading, error, success } = useSelector(
-    (state) => state.passwordReset.confirm
+  const { status, error, step, successMessage } = useSelector(
+    (state) => state.passwordReset
   );
+  const loading = status === "loading";
+  const success = step === "completed";
 
   // Handle cleanup when unmounting
   useEffect(() => {
@@ -94,7 +95,7 @@ const ResetPasswordPage = () => {
   return (
     <section className="mt-35 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center bg-[#FFFAE7] w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
+      <div className="flex items-center bg-[#FFFAE7] w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-md z-sticky">
         <Link to="/">
           <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
         </Link>
@@ -113,7 +114,9 @@ const ResetPasswordPage = () => {
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-5">
         {errors.form && <p className="text-red-500 text-sm -mb-4">{errors.form}</p>}
-        {error && <p className="text-red-500 text-sm -mb-4">{error}</p>}
+        {(errors.form || error) && (
+          <p className="text-red-500 text-sm -mb-4">{errors.form || error}</p>
+        )}
 
         {/* New Password */}
         <div className="relative">
@@ -171,6 +174,10 @@ const ResetPasswordPage = () => {
         >
           {loading ? "Resetting..." : "RESET PASSWORD"}
         </button>
+
+        {successMessage && !success && (
+          <p className="text-center text-sm text-green-600">{successMessage}</p>
+        )}
       </form>
 
       {/* Back to login */}

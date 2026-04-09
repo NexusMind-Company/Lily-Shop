@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,6 +14,7 @@ import {
 
 import { useDispatch, useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { addToCart } from "../../../redux/cartSlice";
 import {
   likeProduct,
@@ -30,9 +31,6 @@ import ProductReview from "./productReview";
 const DESCRIPTION_CHAR_LIMIT = 100;
 
 // Utility to format large numbers (e.g., 1500 -> 1.5k)
-const formatCount = (num) =>
-  num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
-
 // --- Sub-component: Video Player for Carousel ---
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
@@ -170,7 +168,13 @@ const ProductItem = ({ product }) => {
         ]
       : [];
 
-  const displayPrice = product.price_in_naira || product.price || 0;
+  const displayPrice =
+    product.price_in_naira ??
+    (product.price_kobo !== undefined ? Number(product.price_kobo) / 100 : null) ??
+    product.price ??
+    0;
+  const productOwnerId =
+    product.user_id || product.user?.id || product.shop?.owner?.id || null;
 
   // Dynamic API Data Mapping
   const vendorDescription =
@@ -212,10 +216,12 @@ const ProductItem = ({ product }) => {
   });
 
   const { mutate: toggleFollow } = useMutation({
-    mutationFn: () =>
-      followUser(
-        product.username || product.vendorName || product.user || "unknown",
-      ),
+    mutationFn: () => {
+      if (!productOwnerId) {
+        throw new Error("Product owner not found");
+      }
+      return followUser(productOwnerId);
+    },
     onMutate: () => {
       if (!isAuthenticated) return;
       setIsFollowed((prev) => !prev); // Optimistic UI update
@@ -242,11 +248,12 @@ const ProductItem = ({ product }) => {
       await dispatch(addToCart({ product_id: product.id, quantity })).unwrap();
       setIsAddedToCart(true);
       setIsAddingToCart(false);
+      toast.success("Added to cart.");
     } catch (error) {
       console.error("Failed to add to cart:", error);
       setIsAddedToCart(false);
       setIsAddingToCart(false);
-      alert(
+      toast.error(
         error?.quantity ||
           error?.message ||
           (typeof error === "string" ? error : "Failed to add to cart."),
@@ -281,9 +288,12 @@ const ProductItem = ({ product }) => {
   // Vendor profile mapping
   const displayUsername =
     product.shop_name || product.username || product.user || "Unknown Vendor";
-  const profileLink = product.shop
-    ? `/shop/${product.shop}`
-    : `/profile/${product.user_id || product.userId}`;
+  const profileLink =
+    typeof product.shop === "string" || typeof product.shop === "number"
+      ? `/shop/${product.shop}`
+      : product.shop?.id
+        ? `/shop/${product.shop.id}`
+        : `/profile/${productOwnerId || ""}`;
 
   return (
     <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-35 flex flex-col">
@@ -379,7 +389,14 @@ const ProductItem = ({ product }) => {
           )}
 
           <div className="flex justify-between items-center mt-2">
-            <p className="text-green-500 font-bold text-lg">{`₦${formatPrice(displayPrice)}`}</p>
+            <div>
+              <p className="text-green-500 font-bold text-lg">
+                {`${"\u20A6"}${formatPrice(displayPrice)}`}
+              </p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-gray-400">
+                {viewCount.toLocaleString()} views
+              </p>
+            </div>
             <button onClick={handleLike} className="p-1">
               <Heart
                 size={26}
@@ -392,7 +409,7 @@ const ProductItem = ({ product }) => {
 
         {/* Description (Expandable) */}
         {product.caption && (
-          <motion.p
+          <Motion.p
             layout
             className="text-sm font-normal text-gray-800 leading-relaxed"
           >
@@ -407,7 +424,7 @@ const ProductItem = ({ product }) => {
                 {isExpanded ? "...less" : "...see more"}
               </button>
             )}
-          </motion.p>
+          </Motion.p>
         )}
 
         {/* Logistics Information */}

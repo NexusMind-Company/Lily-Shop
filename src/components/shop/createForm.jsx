@@ -357,19 +357,19 @@ const CreateShop = () => {
       </div>
 
       {successMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-toast bg-green-500 text-white px-4 py-2 rounded shadow-lg">
           ✅ Shop created successfully! Redirecting to your shop...
         </div>
       )}
 
       {errorMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-red-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-toast bg-red-500 text-white px-4 py-2 rounded shadow-lg">
           ❌ {errorMessage}
         </div>
       )}
 
       {loading && (
-        <div className="fixed top-5 right-5 z-50 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+        <div className="fixed top-5 right-5 z-toast bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
           ⏳ Creating shop, please wait...
         </div>
       )}

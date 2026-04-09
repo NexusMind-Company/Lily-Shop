@@ -280,7 +280,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   // Crop UI
   if (cropMode) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-modal">
         <div className="relative w-full h-[90vh] flex items-center justify-center">
           <div className="w-[90%] h-[90%] relative">
             <Cropper
@@ -320,7 +320,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-50 overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-modal overflow-hidden">
       <video
         ref={videoRef}
         autoPlay
@@ -330,20 +330,20 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       />
 
       {timerActive && (
-        <div className="absolute text-white text-7xl font-bold z-30 animate-pulse">
+        <div className="absolute text-white text-7xl font-bold z-overlay animate-pulse">
           {countdown}
         </div>
       )}
 
       {recording && (
-        <div className="absolute top-15 left-1/2 -translate-x-1/2 text-red-500 text-lg font-semibold bg-black/60 px-3 py-1 rounded-full z-30">
+        <div className="absolute top-15 left-1/2 -translate-x-1/2 text-red-500 text-lg font-semibold bg-black/60 px-3 py-1 rounded-full z-overlay">
           {new Date(recordTimer).toISOString().substr(14, 5)} / {duration}
         </div>
       )}
 
       {overlayText && (
         <div
-          className="absolute z-20 text-white font-bold text-3xl drop-shadow-lg cursor-move select-none text-center max-w-[80%] break-words"
+          className="absolute z-popover text-white font-bold text-3xl drop-shadow-lg cursor-move select-none text-center max-w-[80%] break-words"
           style={{
             left: textPosition.x,
             top: textPosition.y,
@@ -358,7 +358,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       {/* Top Controls */}
       {uiVisible && !textMode && (
-        <div className="absolute top-4 w-full flex justify-between px-5 items-center text-white z-10">
+        <div className="absolute top-4 w-full flex justify-between px-5 items-center text-white z-dock">
           <button onClick={onClose}>
             <X className="w-6 h-6" />
           </button>
@@ -377,7 +377,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       {/* Right Tools */}
       {uiVisible && !textMode && (
-        <div className="absolute right-3 top-1/4 flex flex-col gap-5 text-white z-10">
+        <div className="absolute right-3 top-1/4 flex flex-col gap-5 text-white z-dock">
           <button onClick={() => setTextMode(true)}>
             <Type className="w-6 h-6" />
             <span className="text-xs mt-1">Text</span>
@@ -399,7 +399,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       {/* Text Input */}
       {textMode && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-30 px-6">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-overlay px-6">
           <textarea
             value={overlayText}
             onChange={(e) => setOverlayText(e.target.value)}
@@ -417,7 +417,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       {/* Bottom Controls */}
       {!textMode && (
-        <div className="absolute bottom-10 flex flex-col items-center w-full z-10">
+        <div className="absolute bottom-10 flex flex-col items-center w-full z-dock">
           <div className="flex gap-6 mb-3 text-gray-300">
             {["15s", "30s", "60s", "2m"].map((t) => (
               <button
