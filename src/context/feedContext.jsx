@@ -72,8 +72,9 @@ export const FeedProvider = ({ children }) => {
   } = useInfiniteQuery({
     queryKey: ["feed", activeTab],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, activeTab }),
+    initialPageParam: 1,
     getNextPageParam: (lastPage) =>
-      lastPage.hasMore ? lastPage.nextPage : undefined,
+      lastPage?.hasMore ? lastPage.nextPage : undefined,
     staleTime: 0,
     gcTime: 1000 * 60 * 10,
   });

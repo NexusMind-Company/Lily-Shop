@@ -33,10 +33,7 @@ export const addToCart = createAsyncThunk(
         quantity: quantity || 1,
         quantity_grams: quantity_grams || 0,
       };
-
-      console.log("🛒 Attempting to add to cart:", payload);
       const response = await api.post("/orders/carts/add/", payload);
-      console.log("✅ Cart response:", response.data);
 
       // Crucial: Fetch the updated cart state immediately after adding
       dispatch(fetchCart());
@@ -110,6 +107,7 @@ export const clearCart = createAsyncThunk(
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
+    cart_id: null,
     items: [],
     total_amount: 0,
     loading: false,
@@ -120,6 +118,7 @@ const cartSlice = createSlice({
       state.error = null;
     },
     resetCart: (state) => {
+      state.cart_id = null;
       state.items = [];
       state.total_amount = 0;
       state.loading = false;
@@ -134,9 +133,12 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items || action.payload || [];
+        state.cart_id = action.payload?.id || null;
+        state.items = action.payload?.items || action.payload || [];
         state.total_amount =
-          action.payload.total_price_naira || action.payload.total_amount || 0;
+          action.payload?.total_price_naira ||
+          action.payload?.total_amount ||
+          0;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
@@ -166,6 +168,7 @@ const cartSlice = createSlice({
 export const { clearError, resetCart } = cartSlice.actions;
 
 export const selectCart = (state) => state.cart;
+export const selectCartId = (state) => state.cart.cart_id;
 export const selectCartItems = (state) => state.cart.items;
 export const selectCartTotal = (state) => state.cart.total_amount;
 export const selectCartIsLoading = (state) => state.cart.loading;

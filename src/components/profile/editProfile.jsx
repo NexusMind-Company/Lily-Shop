@@ -8,10 +8,14 @@ import {
   ChevronDown,
   ChevronLeft,
   Loader2,
+  Mail,
+  Phone,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { fetchProfile } from "../../redux/profileSlice";
 import {
   fetchUserProfile,
   updateUsername,
@@ -19,6 +23,8 @@ import {
   updateProfilePic,
 } from "../../services/api";
 import { toast } from "sonner";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 const GenderSelect = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
@@ -62,9 +68,10 @@ const EditProfile = () => {
   const [form, setForm] = useState({
     name: "",
     username: "",
+    email: "",
     bio: "",
+    phone_number: "",
     birthday: "",
-    location: "",
     gender: "",
   });
 
@@ -74,6 +81,7 @@ const EditProfile = () => {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   const { data: user, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
@@ -86,9 +94,10 @@ const EditProfile = () => {
       setForm({
         name: user.name || "",
         username: user.username || "",
+        email: user.email || "",
         bio: user.bio || "",
+        phone_number: user.phone_number || "",
         birthday: user.birthdate || "",
-        location: user.location || "",
         gender: user.gender || "",
       });
 
@@ -104,47 +113,42 @@ const EditProfile = () => {
   const { mutate: saveProfile, isPending: isSaving } = useMutation({
     mutationFn: async () => {
       let apiGender = null;
-      // Ensure gender matches API enum exactly ("F", "M", "NA")
       if (form.gender === "Female") apiGender = "F";
       else if (form.gender === "Male") apiGender = "M";
       else if (form.gender === "Other") apiGender = "NA";
 
-      // Construct payload ONLY with fields the API supports
       const profilePayload = {};
 
-      // Only add if not empty
+      if (form.name && form.name.trim() !== "") profilePayload.name = form.name;
       if (form.bio && form.bio.trim() !== "") profilePayload.bio = form.bio;
+      if (form.phone_number && form.phone_number.trim() !== "")
+        profilePayload.phone_number = form.phone_number;
       if (apiGender) profilePayload.gender = apiGender;
-      // Only send birthdate if it's a valid string, not empty
       if (form.birthday && form.birthday.trim() !== "")
         profilePayload.birthdate = form.birthday;
 
-      // Update Text Data
-      // Only call update if we actually have data to send
       if (Object.keys(profilePayload).length > 0) {
         await updateProfile(profilePayload);
       }
 
-      // Update Username
       if (form.username && form.username !== user.username) {
         await updateUsername(form.username);
       }
 
-      // Update Profile Picture
       if (profileImageFile) {
         await updateProfilePic(profileImageFile);
       }
 
       return true;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries(["userProfile"]);
+      dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
       navigate(-1);
     },
     onError: (error) => {
       console.error("Failed to save profile:", error);
-      // Try to get a specific error message from the backend
       const serverMessage = error.response?.data
         ? JSON.stringify(error.response.data)
         : null;
@@ -203,13 +207,10 @@ const EditProfile = () => {
             className="w-full h-full rounded-full object-cover bg-gray-200"
           />
 
-          {/* Camera Overlay with Pulse Animation */}
           <label
             htmlFor="profile-pic-upload"
             className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full cursor-pointer"
           >
-            {/* If user selects a file, we can hide the camera or keep it. 
-                Here we keep it but maybe subtle. */}
             <div className="animate-pulse">
               <Camera size={30} className="text-white opacity-90" />
             </div>
@@ -262,6 +263,40 @@ const EditProfile = () => {
           </div>
         </div>
 
+        <div className="w-full opacity-60">
+          <label className="block text-sm font-medium text-gray-600">
+            Email Address (Cannot be changed here)
+          </label>
+          <div className="flex items-center bg-gray-100 rounded-lg px-3 py-3 mt-1 cursor-not-allowed">
+            <Mail size={18} className="text-gray-500 mr-2 shrink-0" />
+            <input
+              type="email"
+              value={form.email}
+              disabled
+              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0 cursor-not-allowed text-gray-500"
+              placeholder="Your email address"
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <label className="block text-sm font-medium text-gray-600">
+            Phone Number
+          </label>
+          <div className="bg-gray-100 rounded-lg px-3 py-3 mt-1">
+            <PhoneInput
+              international
+              defaultCountry="NG"
+              value={form.phone_number}
+              onChange={(value) => handleChange("phone_number", value || "")}
+              className="w-full bg-transparent outline-none text-sm sm:text-base"
+              style={{
+                "--PhoneInput-color--focus": "transparent",
+              }}
+            />
+          </div>
+        </div>
+
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-600">Bio</label>
           <input
@@ -288,18 +323,17 @@ const EditProfile = () => {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full opacity-60">
           <label className="block text-sm font-medium text-gray-600">
             Location
           </label>
-          <div className="flex items-center bg-gray-100 rounded-lg px-3 py-3 mt-1">
+          <div className="flex items-center bg-gray-100 rounded-lg px-3 py-3 mt-1 cursor-not-allowed">
             <MapPin size={18} className="text-gray-500 mr-2 shrink-0" />
             <input
               type="text"
-              placeholder="Select location"
-              value={form.location}
-              onChange={(e) => handleChange("location", e.target.value)}
-              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0"
+              value="Coming soon"
+              disabled
+              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0 cursor-not-allowed text-gray-500"
             />
           </div>
         </div>
