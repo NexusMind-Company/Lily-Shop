@@ -1,37 +1,5 @@
-// import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
-
-
-// export const PaymentProvider = ({ children }) => {
-//   const PaymentContext = createContext(null);
-//   const [paymentData, setPaymentData] = useState({
-//     amount: 0,
-//     vendorName: "",
-//     orderId: null,
-//     amountPaid: 0,
-//     // New fields for checkout flow
-//     selectedAddress: null,
-//     selectedPaymentMethod: null, // 'paystack' or 'wallet'
-//   });
-
-//   return (
-//     <PaymentContext.Provider value={{ paymentData, setPaymentData }}>
-//       {children}
-//     </PaymentContext.Provider>
-//   );
-// };
-
-// export const usePayment = () => {
-//   const context = useContext(PaymentContext);
-//   if (!context) {
-//     throw new Error("usePayment must be used within a PaymentProvider");
-//   }
-//   return context;
-// };
-
-import React, { createContext, useContext, useState } from "react";
-
-// ✅ Create context OUTSIDE the component
 export const PaymentContext = createContext(null);
 
 export const PaymentProvider = ({ children }) => {
@@ -40,9 +8,8 @@ export const PaymentProvider = ({ children }) => {
     vendorName: "",
     orderId: null,
     amountPaid: 0,
-    // New fields for checkout flow
     selectedAddress: null,
-    selectedPaymentMethod: null, // 'paystack' or 'wallet'
+    selectedPaymentMethod: null,
   });
 
   return (

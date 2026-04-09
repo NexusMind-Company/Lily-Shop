@@ -124,10 +124,10 @@ const SubscriptionItem = ({ subscription, onClick }) => {
 
 SubscriptionItem.propTypes = {
   subscription: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     plan_name: PropTypes.string.isRequired,
-    price: PropTypes.string.isRequired,
-    subscribers: PropTypes.string,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    subscribers: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     subscription_date: PropTypes.string,
     trial_days: PropTypes.number,
     trial_end_date: PropTypes.string,

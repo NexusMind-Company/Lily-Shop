@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 // import PropTypes from "prop-types";
 
 // /**
@@ -43,7 +45,6 @@
 
 
 
-import PropTypes from "prop-types";
 
 /**
  * MenuItem component for displaying individual menu items
