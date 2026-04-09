@@ -64,7 +64,7 @@ const WalletTopUpPage = () => {
   // Success screen (if no Paystack redirect)
   if (successData) {
     return (
-      <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-[#f6f8f6] items-center justify-center p-6 text-center">
+      <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6] items-center justify-center p-6 text-center">
         <div className="w-20 h-20 rounded-full bg-[#13ec49]/10 border-4 border-[#13ec49] flex items-center justify-center mb-6">
           <CheckCircle size={40} className="text-[#13ec49]" />
         </div>
@@ -83,7 +83,7 @@ const WalletTopUpPage = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-[#f6f8f6]">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
       {/* Header */}
       <div className="relative bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-center">
         <button

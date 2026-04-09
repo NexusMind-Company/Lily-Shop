@@ -96,7 +96,7 @@ const VendorSubscriptionsOverview = () => {
   }
 
   return (
-    <div className="relative flex flex-col w-full max-w-md mx-auto min-h-screen bg-[#f6f8f6] dark:bg-background-dark">
+    <div className="relative flex flex-col w-full max-w-5xl mx-auto min-h-screen bg-[#f6f8f6] dark:bg-background-dark">
       <SubscriptionsHeader onBack={handleBack} onFilter={handleFilter} />
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24">

@@ -74,7 +74,7 @@ const OrderSummaryPage = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-gray-50">
       <div className="bg-white p-4 border-b border-gray-200 flex items-center shadow-sm sticky top-0 z-10">
         <button onClick={() => navigate(-1)} className="mr-4 text-gray-600">
           <ChevronLeft size={24} />

@@ -583,11 +583,16 @@ export const fetchSubscriptionStats = async (vendorId) => {
 };
 
 export const fetchRecentSubscriptions = async (vendorId, limit = 5) => {
-  const response = await api.get(`/foods/subscriptions/vendor/`);
-  const subscriptions = response.data.results || response.data;
-  return subscriptions
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, limit);
+  try {
+    const response = await api.get(`/foods/subscriptions/vendor/`);
+    const subscriptions = response.data.results || response.data || [];
+    return subscriptions
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, limit);
+  } catch (error) {
+    console.error("❌ API Error fetching recent subscriptions:", error);
+    return [];
+  }
 };
 
 export const fetchAllSubscriptions = async (

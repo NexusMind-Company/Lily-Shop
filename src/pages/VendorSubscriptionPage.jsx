@@ -8,13 +8,13 @@ import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
 // import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import { fetchVendorDetails } from "../services/subscriptionApi";
+import { fetchReviewsForVendor } from "../services/subscriptionApi";
+import { ArrowLeft, MoreVertical } from "lucide-react";
 import {
   fetchMealPlansByVendor,
   fetchFoodVendor,
   fetchMealsByVendor,
 } from "../services/api";
-import { fetchReviewsForVendor } from "../services/subscriptionApi";
-import { ArrowLeft, MoreVertical } from "lucide-react";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();

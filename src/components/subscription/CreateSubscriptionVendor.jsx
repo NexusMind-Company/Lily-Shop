@@ -11,11 +11,13 @@ const INITIAL_FORM_STATE = {
   description: "",
   contact_email: "",
   contact_phone: "",
+  address: "",
 };
 
 const VALIDATION_RULES = {
-  name: { required: true, requiredMessage: "Vendor name is required.", maxLength: 255 },
+  name: { required: true, requiredMessage: "Restaurant/Vendor name is required.", maxLength: 255 },
   description: { required: true, requiredMessage: "Description is required." },
+  address: { required: true, requiredMessage: "Address is required. Customers need to know where you are." },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
     required: false,
@@ -57,6 +59,7 @@ const CreateSubscriptionVendor = () => {
       description: validatedTextValues.description.trim(),
       contact_email: validatedTextValues.contact_email.trim(),
       contact_phone: validatedTextValues.contact_phone.trim(),
+      address: validatedTextValues.address.trim(),
       media: mediaFiles,
     };
 
@@ -68,10 +71,9 @@ const CreateSubscriptionVendor = () => {
 
       setTimeout(() => {
         setSuccessMsg("");
-        navigate("/vendor-dashboard");
+        navigate("/vendor/dashboard");
       }, 3000);
     } catch (err) {
-      console.error("Failed to create food vendor:", err);
       let errorMsg = "Failed to create food vendor. ";
       if (err && err.message && err.message.includes("timeout")) {
         errorMsg += "Request timed out. Please try again.";
@@ -86,13 +88,12 @@ const CreateSubscriptionVendor = () => {
         typeof err.detail === "string" &&
         err.detail.includes("already has")
       ) {
-        // User already has a vendor, redirect to dashboard
         setSuccessMsg(
           "You already have a vendor profile. Redirecting to dashboard...",
         );
         setSubmissionStatus("succeeded");
         setTimeout(() => {
-          navigate("/vendor-dashboard");
+          navigate("/vendor/dashboard");
         }, 2000);
         return;
       } else if (
@@ -118,6 +119,9 @@ const CreateSubscriptionVendor = () => {
       setSubmissionStatus("failed");
     }
   };
+
+  const inputClass = (fieldName) =>
+    `input h-[46px] w-full ${fieldErrors[fieldName] ? "border-red-500" : "border-gray-300"}`;
 
   return (
     <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
@@ -146,12 +150,10 @@ const CreateSubscriptionVendor = () => {
         onSubmit={handleFormSubmit(actualSubmitLogic)}
         noValidate
       >
+        {/* Restaurant / Vendor Name */}
         <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Vendor Name
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            Restaurant / Vendor Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -160,9 +162,8 @@ const CreateSubscriptionVendor = () => {
             value={values.name}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`input h-[46px] w-full ${
-              fieldErrors.name ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="e.g. Mama Nkechi's Kitchen"
+            className={inputClass("name")}
             aria-invalid={fieldErrors.name ? "true" : "false"}
           />
           {fieldErrors.name && (
@@ -170,12 +171,35 @@ const CreateSubscriptionVendor = () => {
           )}
         </div>
 
+        {/* Address — required */}
         <div>
-          <label
-            htmlFor="cuisine"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Cuisine 
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+            Restaurant Address <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            value={values.address}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
+            className={inputClass("address")}
+            aria-invalid={fieldErrors.address ? "true" : "false"}
+          />
+          {fieldErrors.address ? (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
+          ) : (
+            <p className="text-gray-400 text-xs mt-1">
+              Customers will use this to find your restaurant.
+            </p>
+          )}
+        </div>
+
+        {/* Cuisine */}
+        <div>
+          <label htmlFor="cuisine" className="block text-sm font-medium text-gray-700 mb-1">
+            Cuisine
           </label>
           <input
             type="text"
@@ -184,9 +208,8 @@ const CreateSubscriptionVendor = () => {
             value={values.cuisine}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`input h-[46px] w-full ${
-              fieldErrors.cuisine ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="e.g. Nigerian, Continental, Chinese"
+            className={inputClass("cuisine")}
             aria-invalid={fieldErrors.cuisine ? "true" : "false"}
           />
           {fieldErrors.cuisine && (
@@ -194,12 +217,10 @@ const CreateSubscriptionVendor = () => {
           )}
         </div>
 
+        {/* Description */}
         <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Description
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            Description <span className="text-red-500">*</span>
           </label>
           <textarea
             id="description"
@@ -207,24 +228,19 @@ const CreateSubscriptionVendor = () => {
             value={values.description}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`input h-[80px] w-full ${
-              fieldErrors.description ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="Tell customers what makes your food special..."
+            className={`input h-[80px] w-full ${fieldErrors.description ? "border-red-500" : "border-gray-300"}`}
             aria-invalid={fieldErrors.description ? "true" : "false"}
           />
           {fieldErrors.description && (
-            <p className="text-red-500 text-xs mt-1">
-              {fieldErrors.description}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.description}</p>
           )}
         </div>
 
+        {/* Contact Email */}
         <div>
-          <label
-            htmlFor="contact_email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Contact Email 
+          <label htmlFor="contact_email" className="block text-sm font-medium text-gray-700 mb-1">
+            Contact Email
           </label>
           <input
             type="email"
@@ -233,24 +249,19 @@ const CreateSubscriptionVendor = () => {
             value={values.contact_email}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`input h-[46px] w-full ${
-              fieldErrors.contact_email ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="restaurant@email.com"
+            className={inputClass("contact_email")}
             aria-invalid={fieldErrors.contact_email ? "true" : "false"}
           />
           {fieldErrors.contact_email && (
-            <p className="text-red-500 text-xs mt-1">
-              {fieldErrors.contact_email}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.contact_email}</p>
           )}
         </div>
 
+        {/* Contact Phone */}
         <div>
-          <label
-            htmlFor="contact_phone"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Contact Phone 
+          <label htmlFor="contact_phone" className="block text-sm font-medium text-gray-700 mb-1">
+            Contact Phone
           </label>
           <input
             type="tel"
@@ -259,24 +270,19 @@ const CreateSubscriptionVendor = () => {
             value={values.contact_phone}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`input h-[46px] w-full ${
-              fieldErrors.contact_phone ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="e.g. 08012345678"
+            className={inputClass("contact_phone")}
             aria-invalid={fieldErrors.contact_phone ? "true" : "false"}
           />
           {fieldErrors.contact_phone && (
-            <p className="text-red-500 text-xs mt-1">
-              {fieldErrors.contact_phone}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.contact_phone}</p>
           )}
         </div>
 
+        {/* Media */}
         <div>
-          <label
-            htmlFor="media"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Media 
+          <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-1">
+            Photos / Media
           </label>
           <input
             type="file"

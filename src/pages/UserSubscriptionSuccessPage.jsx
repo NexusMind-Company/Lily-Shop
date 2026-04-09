@@ -33,7 +33,7 @@ const UserSubscriptionSuccessPage = () => {
       />
 
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Success Header */}
           <div className="bg-gradient-to-r from-green-500 to-green-600 p-8 text-white text-center">
             <CheckCircle className="mx-auto mb-4" size={64} />
