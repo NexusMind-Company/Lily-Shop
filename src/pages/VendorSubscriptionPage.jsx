@@ -76,142 +76,36 @@ const EXTRA_PRICE = 300;
  
  // 🔌 TODO: Remove mock data and uncomment useQuery calls when API is ready
 
-// const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
-//   queryKey: ["vendorDetails", vendorId],
-//   queryFn: () => fetchVendorDetails(vendorId),
-//   enabled: !!vendorId,
-//   retry: false,
-// });
-// const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
-//   queryKey: ["mealPlans", vendorId],
-//   queryFn: () => fetchMealPlansByVendor(vendorId),
-//   enabled: !!vendorId,
-// });
-// const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
-//   queryKey: ["vendorWithMenu", vendorId],
-//   queryFn: () => fetchFoodVendor(vendorId),
-//   enabled: !!vendorId,
-//   retry: false,
-// });
-// const { data: mealItemsData } = useQuery({
-//   queryKey: ["mealItems", vendorId],
-//   queryFn: () => fetchMealsByVendor(vendorId),
-//   enabled: !!vendorId,
-//   retry: false,
-// });
-// const { data: reviews, isLoading: reviewsLoading } = useQuery({
-//   queryKey: ["reviews", vendorId],
-//   queryFn: () => fetchReviewsForVendor(vendorId),
-//   enabled: !!vendorId,
-//   retry: false,
-// });
+const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+  queryKey: ["vendorDetails", vendorId],
+  queryFn: () => fetchVendorDetails(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
+  queryKey: ["mealPlans", vendorId],
+  queryFn: () => fetchMealPlansByVendor(vendorId),
+  enabled: !!vendorId,
+});
+const { data: vendorWithMenu, isLoading: vendorWithMenuLoading } = useQuery({
+  queryKey: ["vendorWithMenu", vendorId],
+  queryFn: () => fetchFoodVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: mealItemsData } = useQuery({
+  queryKey: ["mealItems", vendorId],
+  queryFn: () => fetchMealsByVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
+const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  queryKey: ["reviews", vendorId],
+  queryFn: () => fetchReviewsForVendor(vendorId),
+  enabled: !!vendorId,
+  retry: false,
+});
 
-const vendor = {
-  id: vendorId,
-  name: "Mama's Kitchen",
-  description: "Delicious home cooked meals delivered fresh daily",
-  cuisine: "Nigerian",
-  location: "Lekki, Lagos",
-  rating: 4.5,
-  reviewCount: "128",
-  verified: true,
-  phone: "08012345678",
-  all_media_urls: "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg",
-};
-
-const plans = {
-  results: [
-    {
-      id: "plan-1",
-      plan_name: "Basic Plan",
-      price: 15000,
-      frequency: "weekly",
-      description: "1 meal per day, Mon-Fri",
-      popular: false,
-    },
-    {
-      id: "plan-2",
-      plan_name: "Standard Plan",
-      price: 25000,
-      frequency: "weekly",
-      description: "2 meals per day, Mon-Fri",
-      popular: true,
-    },
-    {
-      id: "plan-3",
-      plan_name: "Premium Plan",
-      price: 35000,
-      frequency: "weekly",
-      description: "3 meals per day, Mon-Sun",
-      popular: false,
-    },
-  ],
-};
-
-const mealItemsData = [
-  {
-    id: "meal-1",
-    name: "Jollof Rice & Chicken",
-    description: "Classic Nigerian jollof rice with grilled chicken",
-    price: 2500,
-    all_media_urls: [],
-  },
-  {
-    id: "meal-2",
-    name: "Egusi Soup & Eba",
-    description: "Rich egusi soup served with smooth eba",
-    price: 2000,
-    all_media_urls: [],
-  },
-  {
-    id: "meal-3",
-    name: "Pepper Soup",
-    description: "Spicy catfish pepper soup",
-    price: 3000,
-    all_media_urls: [],
-  },
-  {
-    id: "meal-4",
-    name: "Fried Rice & Plantain",
-    description: "Nigerian fried rice with sweet fried plantain",
-    price: 2800,
-    all_media_urls: [],
-  },
-];
-
-const reviews = {
-  results: [
-    {
-      id: "review-1",
-      user_name: "Chioma A.",
-      rating: 5,
-      review_text: "Best food delivery service I've used! Always fresh and on time.",
-      created_at: "2024-11-01T10:00:00Z",
-    },
-    {
-      id: "review-2",
-      user_name: "Emeka O.",
-      rating: 4,
-      review_text: "Great food, portions are generous. Would recommend!",
-      created_at: "2024-10-28T14:30:00Z",
-    },
-    {
-      id: "review-3",
-      user_name: "Aisha M.",
-      rating: 5,
-      review_text: "Mama's Kitchen never disappoints. The jollof rice is 🔥",
-      created_at: "2024-10-20T09:15:00Z",
-    },
-  ],
-};
-
-const vendorLoading = false;
-const vendorError = null;
-const plansLoading = false;
-const plansError = null;
-const vendorWithMenuLoading = false;
-const reviewsLoading = false;
- 
  
   const filteredPlans = plans?.results?.filter(plan => plan.frequency === selectedPlan) || [];
 

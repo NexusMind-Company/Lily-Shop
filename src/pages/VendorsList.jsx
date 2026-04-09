@@ -85,95 +85,81 @@ const VendorsList = () => {
 
   const [searchQuery, setSearchQuery] = useState("")
 
-  // const { data, isLoading, error } = useQuery({
-  //   queryKey: ["vendors"],
-  //   queryFn: async () => {
-  //     const response = await api.get("/foods/vendors/");
-  //     console.log(response.data);
-  //     return response.data;
-  //   },
-  // });
+const { data, isLoading, error } = useQuery({
+  queryKey: ["vendors"],
+  queryFn: async () => {
+    const response = await api.get("/foods/vendors/");
+    return response.data;
+  },
+});
+const vendors = data?.results || [];
 
-  // const vendors = data?.results || [];
-
-
-
-
-// const { data, isLoading, error } = useQuery({
-//   queryKey: ["vendors"],
-//   queryFn: async () => {
-//     const response = await api.get("/foods/vendors/");
-//     return response.data;
+// const mockVendors = [
+//   {
+//     id: "1",
+//     name: "Mama's Kitchen",
+//     description: "Delicious home cooked meals delivered fresh daily",
+//     cuisine: "Nigerian",
+//     location: "Lekki, Lagos",
+//     rating: 4.5,
+//     verified: true,
+//     all_media_urls: [],
 //   },
-// });
-// const vendors = data?.results || [];
+//   {
+//     id: "2",
+//     name: "Iya Basira",
+//     description: "Best amala and ewedu in town",
+//     cuisine: "Yoruba",
+//     location: "Surulere, Lagos",
+//     rating: 4.8,
+//     verified: true,
+//     all_media_urls: [],
+//   },
+//   {
+//     id: "3",
+//     name: "Chef Emeka",
+//     description: "Eastern Nigerian delicacies made with love",
+//     cuisine: "Igbo",
+//     location: "Ikeja, Lagos",
+//     rating: 4.3,
+//     verified: false,
+//     all_media_urls: [],
+//   },
+//   {
+//     id: "4",
+//     name: "Abuja Buka",
+//     description: "Authentic northern Nigerian meals",
+//     cuisine: "Hausa",
+//     location: "Wuse, Abuja",
+//     rating: 4.6,
+//     verified: true,
+//     all_media_urls: [],
+//   },
+//   {
+//     id: "5",
+//     name: "Lagos Grill House",
+//     description: "Grilled fish, chicken and suya platters",
+//     cuisine: "Continental",
+//     location: "VI, Lagos",
+//     rating: 4.2,
+//     verified: false,
+//     all_media_urls: [],
+//   },
+//   {
+//     id: "6",
+//     name: "Nkechi's Place",
+//     description: "Soups, swallows and everything nice",
+//     cuisine: "Nigerian",
+//     location: "Ajah, Lagos",
+//     rating: 4.7,
+//     verified: true,
+//     all_media_urls: [],
+//   },
+// ];
 
-const mockVendors = [
-  {
-    id: "1",
-    name: "Mama's Kitchen",
-    description: "Delicious home cooked meals delivered fresh daily",
-    cuisine: "Nigerian",
-    location: "Lekki, Lagos",
-    rating: 4.5,
-    verified: true,
-    all_media_urls: [],
-  },
-  {
-    id: "2",
-    name: "Iya Basira",
-    description: "Best amala and ewedu in town",
-    cuisine: "Yoruba",
-    location: "Surulere, Lagos",
-    rating: 4.8,
-    verified: true,
-    all_media_urls: [],
-  },
-  {
-    id: "3",
-    name: "Chef Emeka",
-    description: "Eastern Nigerian delicacies made with love",
-    cuisine: "Igbo",
-    location: "Ikeja, Lagos",
-    rating: 4.3,
-    verified: false,
-    all_media_urls: [],
-  },
-  {
-    id: "4",
-    name: "Abuja Buka",
-    description: "Authentic northern Nigerian meals",
-    cuisine: "Hausa",
-    location: "Wuse, Abuja",
-    rating: 4.6,
-    verified: true,
-    all_media_urls: [],
-  },
-  {
-    id: "5",
-    name: "Lagos Grill House",
-    description: "Grilled fish, chicken and suya platters",
-    cuisine: "Continental",
-    location: "VI, Lagos",
-    rating: 4.2,
-    verified: false,
-    all_media_urls: [],
-  },
-  {
-    id: "6",
-    name: "Nkechi's Place",
-    description: "Soups, swallows and everything nice",
-    cuisine: "Nigerian",
-    location: "Ajah, Lagos",
-    rating: 4.7,
-    verified: true,
-    all_media_urls: [],
-  },
-];
-
-const vendors = mockVendors;
-const isLoading = false;
-const error = null;
+// const vendors = mockVendors;
+// const isLoading = false;
+// const error = null;
 
 
   const filteredVendors = vendors.filter((vendor) =>
