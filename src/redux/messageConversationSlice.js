@@ -110,6 +110,7 @@ const messageConversationSlice = createSlice({
       })
       .addCase(fetchConversationMessages.fulfilled, (state, action) => {
         state.loading = false;
+        const normalizedMessages = [...action.payload.messages].reverse();
 
         // Detect new chat user and reset list
         if (state.activeChatUser !== action.payload.userId) {
@@ -119,11 +120,11 @@ const messageConversationSlice = createSlice({
 
         // First page loads normally
         if (action.payload.page === 1) {
-          state.messages = action.payload.messages;
+          state.messages = normalizedMessages;
         }
         // Next pages prepend older messages (infinite scroll UX)
         else {
-          state.messages = [...action.payload.messages, ...state.messages];
+          state.messages = [...normalizedMessages, ...state.messages];
         }
 
         state.nextPage = action.payload.nextPage;

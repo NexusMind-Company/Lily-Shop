@@ -15,6 +15,7 @@ export default function MessagesList() {
     (state) => state.messages
   );
   const { user_data } = useSelector((state) => state.auth);
+  const currentUserId = user_data?.id || user_data?.user?.id;
 
   useEffect(() => {
     dispatch(fetchConversations());
@@ -30,15 +31,9 @@ export default function MessagesList() {
   // Format conversations into a displayable list
   const formattedConversations = Array.isArray(conversations)
     ? conversations.map((conv) => {
-      // Determine the other user (not the current user)
-      const isCurrentUserBuyer = conv.buyer?.id === user_data?.user?.id;
-      const otherUser = isCurrentUserBuyer ? conv.seller : conv.buyer;
-
-      // Get the last message
-      const lastMessage =
-        conv.messages && conv.messages.length > 0
-          ? conv.messages[conv.messages.length - 1]
-          : null;
+      const isCurrentUserBuyer = conv.buyer?.id === currentUserId;
+      const otherUser = conv.other_user || (isCurrentUserBuyer ? conv.seller : conv.buyer);
+      const lastMessage = conv.last_message || null;
 
       return {
         id: conv.id,
@@ -48,12 +43,12 @@ export default function MessagesList() {
           otherUser?.display_name ||
           otherUser?.email ||
           "Unknown User",
-        profilePic: otherUser?.profile_pic || null,
+        profilePic: otherUser?.profile_pic || otherUser?.image_url || null,
         lastMessage: lastMessage?.content || "No messages yet",
         time: conv.last_message_at
           ? getTimeAgo(conv.last_message_at)
           : "",
-        unread: lastMessage && !lastMessage.read && lastMessage.sender !== user_data?.user?.id,
+        unread: Number(conv.unread_count || 0) > 0,
         productName: conv.product?.name || null,
         orderRef: conv.order?.reference || null,
       };
@@ -147,7 +142,17 @@ export default function MessagesList() {
                 key={chat.id}
                 className={`flex items-center justify-between cursor-pointer w-full p-3 rounded-xl transition-colors ${chat.unread ? "bg-purple-50" : "bg-white hover:bg-gray-50"
                   }`}
-                onClick={() => navigate(`/chat/${chat.otherUserId}`)}
+                onClick={() =>
+                  navigate(`/chat/${chat.otherUserId}`, {
+                    state: {
+                      chat: {
+                        id: chat.otherUserId,
+                        name: chat.name,
+                        profilePic: chat.profilePic,
+                      },
+                    },
+                  })
+                }
               >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-lily to-purple-400 flex items-center justify-center overflow-hidden">

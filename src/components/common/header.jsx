@@ -132,36 +132,42 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between w-full fixed top-0 h-16 px-3 md:px-6 shadow-md bg-white z-40">
+    <header className="flex items-center justify-between w-full fixed top-0 h-16 px-3 md:px-6 shadow-md bg-white dark:bg-surface-dark z-banner transition-colors duration-300">
       <Link to="/" onClick={handleLogoClick}>
-        <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
+        <h1 className="font-bold text-2xl text-lily uppercase tracking-wide">Lily Shops</h1>
       </Link>
 
       <div className="flex items-center gap-2.5 ">
         <button
-          className="cursor-pointer"
+          className="cursor-pointer p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-dark transition-colors"
           onClick={() => {
             setSearchOpen(!searchOpen);
             if (!searchOpen) setSearchTerm("");
           }}
           ref={searchButtonRef}
+          aria-label="Search"
         >
-          <Search className="w-7 h-7" />
+          <Search className="w-6 h-6 text-gray-700 dark:text-text-main-dark" />
         </button>
 
         <button
-          className="cursor-pointer"
+          className="cursor-pointer p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-dark transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           ref={menuButtonRef}
+          aria-label="Menu"
         >
-          <img src="/icon.svg" alt="menu icon" />
+          <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
+            <span className={`block h-0.5 bg-gray-700 dark:bg-text-main-dark transition-all duration-300 ${menuOpen ? "w-6 rotate-45 translate-y-2" : "w-6"}`}></span>
+            <span className={`block h-0.5 bg-gray-700 dark:bg-text-main-dark transition-all duration-300 ${menuOpen ? "w-6 opacity-0" : "w-4"}`}></span>
+            <span className={`block h-0.5 bg-gray-700 dark:bg-text-main-dark transition-all duration-300 ${menuOpen ? "w-6 -rotate-45 -translate-y-2" : "w-5"}`}></span>
+          </div>
         </button>
 
         {isAuthenticated && (
-          <Link to="/notifications" className="cursor-pointer relative">
-            <Bell className="w-7 h-7" />
+          <Link to="/notifications" className="cursor-pointer relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-dark transition-colors">
+            <Bell className="w-6 h-6 text-gray-700 dark:text-text-main-dark" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
+              <span className="absolute top-1 right-1 bg-lily text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-semibold animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -178,7 +184,7 @@ const Header = () => {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className={`absolute flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out ${searchOpen
+        className={`absolute flex top-3 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md md:max-w-8/12 lg:max-w-6/12 sm:max-w-sm transition-all duration-500 ease-in-out z-dropdown ${searchOpen
           ? "opacity-100 scale-y-100 origin-top"
           : "opacity-0 scale-y-0 pointer-events-none"
           }`}
@@ -188,9 +194,9 @@ const Header = () => {
           className="relative w-full flex items-center"
         >
           <input
-            className="bg-white py-2 px-3 sm:py-1 sm:px-2 w-full rounded-lg border border-gray-300"
+            className="bg-white dark:bg-surface-dark py-2.5 px-4 w-full rounded-xl border border-gray-200 dark:border-gray-600 focus:border-lily focus:ring-2 focus:ring-lily/20 outline-none transition-all text-gray-900 dark:text-text-main-dark placeholder:text-gray-400 dark:placeholder:text-gray-500"
             type="text"
-            placeholder="Search by keyword"
+            placeholder="Search shops, products..."
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus={searchOpen}
@@ -202,30 +208,37 @@ const Header = () => {
 
         {/* Search Results Dropdown */}
         {searchResults.length > 0 && (
-          <div className="absolute mt-10 w-full bg-white rounded-lg shadow-lg max-h-72 overflow-y-auto overflow-x-clip z-10">
-            <ul>
+          <div className="absolute mt-12 w-full bg-white dark:bg-surface-dark rounded-xl shadow-xl shadow-black/10 dark:shadow-black/30 max-h-72 overflow-y-auto overflow-x-clip z-popover border border-gray-100 dark:border-gray-700">
+            <ul className="py-2">
               {searchResults.map((shop) => (
                 <li
                   key={shop.id}
-                  className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0"
+                  className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors"
                   onClick={() => navigate(`/shop/${shop.id}`)}
                 >
-                  <div className="flex items-center">
-                    {shop.image_url && (
+                  <div className="flex items-center gap-3">
+                    {shop.image_url ? (
                       <img
                         src={shop.image_url}
                         alt={shop.name}
-                        className="w-8 h-8 object-cover mr-2"
+                        className="w-10 h-10 object-cover rounded-lg"
                       />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-lily-100 dark:bg-lily-900/30 flex items-center justify-center">
+                        <span className="text-lily font-bold text-lg">{shop.name?.charAt(0).toUpperCase()}</span>
+                      </div>
                     )}
-                    <div>
-                      <p className="font-medium">{shop.name}</p>
-                      <p className="text-xs text-gray-600 truncate">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 dark:text-text-main-dark truncate">{shop.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-text-secondary-dark truncate">
                         {shop.category && (
-                          <span className="text-lily">• {shop.category}</span>
+                          <span className="inline-flex items-center gap-1 mr-2">
+                            <span className="w-1 h-1 rounded-full bg-lily"></span>
+                            {shop.category}
+                          </span>
                         )}
                         {shop.address && (
-                          <span className="text-lily">• {shop.address}</span>
+                          <span className="truncate">{shop.address}</span>
                         )}
                       </p>
                     </div>
@@ -233,7 +246,7 @@ const Header = () => {
                 </li>
               ))}
               <li
-                className="p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer"
+                className="px-4 py-3 text-center text-lily hover:bg-lily-50 dark:hover:bg-lily-900/20 cursor-pointer transition-colors border-t border-gray-100 dark:border-gray-700 font-medium text-sm"
                 onClick={() =>
                   navigate(`/searchResults?q=${encodeURIComponent(searchTerm)}`)
                 }
@@ -248,34 +261,44 @@ const Header = () => {
       {/* Dropdown Menu */}
       <ul
         ref={menuRef}
-        className={`absolute top-14 right-2 w-40 rounded-xl bg-white p-2.5 shadow-lg transition-transform duration-500 ease-in-out transform ${menuOpen
-          ? "opacity-100 scale-y-100 origin-top"
-          : "opacity-0 scale-y-0 pointer-events-none"
-          }`}
+        className={`absolute top-16 right-3 w-48 rounded-xl bg-white dark:bg-surface-dark p-2 shadow-xl shadow-black/10 dark:shadow-black/30 transition-all duration-300 ease-out transform ${menuOpen
+          ? "opacity-100 scale-100 origin-top translate-y-0"
+          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+          } z-dropdown border border-gray-100 dark:border-gray-700`}
       >
         {isAuthenticated && (
           <>
-            <li className="py-2 hover:text-lily">
-              <Link to="/myShop">My Shop</Link>
+            <li className="rounded-lg hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+              <Link to="/myShop" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-text-secondary-dark hover:text-lily">
+                <span className="w-5 h-5 flex items-center justify-center">🏪</span>
+                My Shop
+              </Link>
             </li>
           </>
         )}
         {isAuthenticated ? (
-          <li className="py-2 hover:text-lily">
+          <li className="rounded-lg hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
             <button
-              className="cursor-pointer"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-text-secondary-dark hover:text-lily cursor-pointer"
               onClick={() => dispatch(logout())}
             >
+              <span className="w-5 h-5 flex items-center justify-center">🚪</span>
               Logout
             </button>
           </li>
         ) : (
           <>
-            <li className="py-2 hover:text-lily">
-              <Link to="/signUp">Sign Up</Link>
+            <li className="rounded-lg hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+              <Link to="/signUp" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-text-secondary-dark hover:text-lily">
+                <span className="w-5 h-5 flex items-center justify-center">✨</span>
+                Sign Up
+              </Link>
             </li>
-            <li className="py-2 hover:text-lily">
-              <Link to="/login">Sign In</Link>
+            <li className="rounded-lg hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+              <Link to="/login" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-text-secondary-dark hover:text-lily">
+                <span className="w-5 h-5 flex items-center justify-center">🔐</span>
+                Sign In
+              </Link>
             </li>
           </>
         )}

@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import { fetchProfile } from "../../redux/profileSlice";
 import { api, deleteContentPost, deleteProductPost } from "../../services/api";
 import { Link } from "react-router-dom";
@@ -41,6 +42,7 @@ const ProfileOwner = () => {
   const [followingCount, setFollowingCount] = useState(0);
 
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [statusNotice, setStatusNotice] = useState(null);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -309,6 +311,11 @@ const ProfileOwner = () => {
     return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
 
+  const flashNotice = (message) => {
+    setStatusNotice(message);
+    window.setTimeout(() => setStatusNotice(null), 2500);
+  };
+
   const handleDeletePost = async (e, post) => {
     e.stopPropagation();
     setOpenMenuId(null);
@@ -331,9 +338,10 @@ const ProfileOwner = () => {
           items: prev.items.filter((p) => p.id !== post.id),
         }));
       }
+      toast.success("Post deleted.");
     } catch (error) {
       console.error("Failed to delete post", error);
-      alert("Failed to delete post. Please try again.");
+      toast.error("Failed to delete post. Please try again.");
     }
   };
 
@@ -357,6 +365,31 @@ const ProfileOwner = () => {
       </div>
     );
 
+  const handleGridItemClick = (post, items) => {
+    if (post.itemType === "product") {
+      navigate(`/product-details/${post.id}`);
+      return;
+    }
+
+    if (post.post_type === "SELLING") {
+      if (post.product_status === "not_found" || !post.product?.id) {
+        flashNotice(post.product_message || "Product not found");
+        return;
+      }
+
+      navigate(`/product-details/${post.product.id}`);
+      return;
+    }
+
+    const contentItems = items.filter((item) => item.itemType === "content");
+    const clickedIndex = contentItems.findIndex((item) => item.id === post.id);
+    setFeedOverlay({
+      isOpen: true,
+      items: contentItems,
+      initialIndex: clickedIndex !== -1 ? clickedIndex : 0,
+    });
+  };
+
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
       return (
@@ -378,7 +411,13 @@ const ProfileOwner = () => {
       <div className="grid grid-cols-3 gap-3 my-2 px-4">
         {items.map((post, i) => {
           const mediaSrc =
-            post.image_url || post.media || post.image || "/placeholder.png";
+            post.all_media_urls?.[0] ||
+            post.image_url ||
+            post.media_url ||
+            post.media ||
+            post.image ||
+            post.images?.[0]?.image ||
+            "/placeholder.png";
           const isVideo =
             post.is_video ||
             (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
@@ -387,23 +426,7 @@ const ProfileOwner = () => {
             <div
               key={post.id || i}
               className="relative rounded-lg overflow-hidden cursor-pointer"
-              onClick={() => {
-                if (post.itemType === "product") {
-                  navigate(`/product-details/${post.id}`);
-                } else {
-                  const contentItems = items.filter(
-                    (item) => item.itemType === "content",
-                  );
-                  const clickedIndex = contentItems.findIndex(
-                    (item) => item.id === post.id,
-                  );
-                  setFeedOverlay({
-                    isOpen: true,
-                    items: contentItems,
-                    initialIndex: clickedIndex !== -1 ? clickedIndex : 0,
-                  });
-                }
-              }}
+              onClick={() => handleGridItemClick(post, items)}
             >
               {isVideo ? (
                 <video
@@ -427,6 +450,13 @@ const ProfileOwner = () => {
               <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
                 <Eye size={15} className="mr-1" /> {post.view_count || 0}
               </div>
+
+              {post.post_type === "SELLING" &&
+                post.product_status === "not_found" && (
+                  <div className="absolute inset-x-2 bottom-8 rounded-full bg-black/70 px-2 py-1 text-center text-[11px] font-semibold text-white">
+                    {post.product_message || "Product not found"}
+                  </div>
+                )}
 
               {activeTab === 0 && (
                 <div className="absolute top-1 right-1 z-10">
@@ -488,6 +518,12 @@ const ProfileOwner = () => {
           initialIndex={feedOverlay.initialIndex}
           onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
         />
+      )}
+
+      {statusNotice && (
+        <div className="mx-4 mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+          {statusNotice}
+        </div>
       )}
 
       <div className="flex items-center justify-between px-4 py-3 mt-1">

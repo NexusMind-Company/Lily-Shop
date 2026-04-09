@@ -49,7 +49,7 @@ const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/[50%] bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out"
+      className="fixed inset-0 bg-black/[50%] bg-opacity-50 flex items-center justify-center z-modal p-4 transition-opacity duration-300 ease-in-out"
       onClick={(e) => {
         if (e.target === e.currentTarget && status !== "loading") {
           toggleDel();

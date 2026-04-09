@@ -20,7 +20,7 @@ const SubscriptionPromptModal = ({ isOpen, onClose, vendorName = "this vendor" }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-modal p-4">
       <div className="bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-pink-500 to-pink-600 p-6 text-white relative">

@@ -376,7 +376,7 @@ const UploadProfilePic = () => {
             <button
               onClick={handleCameraClick}
               onKeyDown={(e) => handleKeyDown(e, handleCameraClick)}
-              className="absolute bottom-2 right-2 w-12 h-12 bg-white rounded-full shadow-lg border-[3px] border-[#FFFAE7] flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lily transition-all"
+              className="absolute bottom-2 right-2 w-12 h-12 bg-white rounded-full shadow-lg border-[3px] border-[#FFFAE7] dark:border-surface-dark flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lily transition-all"
               aria-label="Select image file"
               tabIndex={0}
             >

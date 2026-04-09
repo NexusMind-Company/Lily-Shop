@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Camera,
   SendHorizontal,
@@ -8,11 +8,12 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 import {
   fetchConversationMessages,
   sendMessageToUser,
-  clearConversation
+  clearConversation,
 } from "../../redux/messageConversationSlice";
 
 const ChatPage = () => {
@@ -25,60 +26,66 @@ const ChatPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { conversationId } = useParams();
-  console.log("Recipient ID:", conversationId);
 
   const { messages: conversation, loading, sending, currentPage, nextPage } =
     useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
 
-  //  On mount & user change
+  const currentUserId = user_data?.id || user_data?.user?.id;
+  const chatMeta = location.state?.chat || null;
+
   useEffect(() => {
     dispatch(clearConversation());
 
-    if (conversationId) {
+    if (!conversationId) {
+      return;
+    }
+
+    dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }))
+      .catch((error) => {
+        console.error("Error fetching conversation messages:", error);
+      });
+
+    const interval = setInterval(() => {
       dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }))
         .catch((error) => {
           console.error("Error fetching conversation messages:", error);
         });
+    }, 5000);
 
-      // Polling for new messages every 5 seconds
-      const interval = setInterval(() => {
-        try {
-          dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }));
-        } catch (error) {
-          console.error("Error fetching conversation messages:", error);
-        }
-      }, 5000);
+    return () => clearInterval(interval);
+  }, [conversationId, dispatch]);
 
-      return () => clearInterval(interval);
-    }
-  }, [conversationId]);
-
-  //  Auto scroll bottom when new messages come in
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
 
-  //  Load more messages on scroll top
   const handleScroll = () => {
-    const top = chatBoxRef.current.scrollTop;
+    const top = chatBoxRef.current?.scrollTop ?? 0;
+
     if (top === 0 && nextPage && !isFetchingMore) {
       setIsFetchingMore(true);
 
-      dispatch(fetchConversationMessages({ userId: conversationId, page: currentPage + 1 }))
-        .then(() => {
-          setTimeout(() => {
+      dispatch(
+        fetchConversationMessages({
+          userId: conversationId,
+          page: currentPage + 1,
+        }),
+      ).then(() => {
+        setTimeout(() => {
+          if (chatBoxRef.current) {
             chatBoxRef.current.scrollTop = 10;
-            setIsFetchingMore(false);
-          }, 100);
-        });
+          }
+          setIsFetchingMore(false);
+        }, 100);
+      });
     }
   };
 
-  //  Send Message
   const handleSend = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
 
     dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
       .then(() => {
@@ -87,30 +94,54 @@ const ChatPage = () => {
       })
       .catch((error) => {
         console.error("Error sending message:", error);
+        toast.error("Couldn't send your message. Please try again.");
       });
   };
 
   const handleFileSelect = (e) => {
-    console.log("Selected files:", Array.from(e.target.files));
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      toast("Attachment sharing is coming soon.");
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
+  const handleComposerKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const canSend = newMessage.trim().length > 0 && !sending;
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
-      {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
+    <div className="flex h-screen flex-col overflow-hidden bg-gray-50">
+      <div className="flex-shrink-0 flex items-center justify-between bg-white p-4 shadow-sm">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
-            <ChevronLeft className="w-8 h-8" />
+            <ChevronLeft className="h-8 w-8" />
           </button>
 
-          <div className="w-8 h-8 bg-pink-200 rounded-full flex items-center justify-center text-sm font-bold">
-            💬
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-pink-200 text-sm font-bold text-white">
+            {chatMeta?.profilePic ? (
+              <img
+                src={chatMeta.profilePic}
+                alt={chatMeta?.name || "Chat user"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span>{"\u{1F4AC}"}</span>
+            )}
           </div>
 
           <div>
             <h2 className="font-semibold text-gray-800">
-              {conversation[0]?.recipient_username ||
-                conversation[0]?.sender_username ||
+              {chatMeta?.name ||
+                conversation[conversation.length - 1]?.sender_name ||
+                conversation[conversation.length - 1]?.sender_username ||
                 "Chat"}
             </h2>
             <p className="text-xs text-green-600">Online</p>
@@ -122,48 +153,59 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* Messages */}
       <div
         ref={chatBoxRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
+        {isFetchingMore && (
+          <p className="text-center text-xs font-medium text-gray-400">
+            Loading earlier messages...
+          </p>
+        )}
+
         {loading && conversation.length === 0 ? (
           <p className="text-center text-gray-500">Loading messages...</p>
         ) : conversation.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
-          conversation.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === user_data?.user?.id
-                ? "justify-end"
-                : "justify-start"
-                }`}
-            >
+          conversation.map((msg) => {
+            const isOwnMessage =
+              String(msg.sender_id || msg.sender) === String(currentUserId);
+
+            return (
               <div
-                className={`max-w-[75%] p-3 rounded-2xl text-sm ${msg.sender === user_data?.user?.id
-                  ? "bg-green-100 text-gray-800 rounded-br-none"
-                  : "bg-pink-100 text-gray-800 rounded-bl-none"
-                  }`}
+                key={msg.id}
+                className={`flex ${
+                  isOwnMessage ? "justify-end" : "justify-start"
+                }`}
               >
-                {msg.content}
-                <p className="text-[10px] mt-1 opacity-70 text-right">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+                <div
+                  className={`max-w-[75%] rounded-2xl p-3 text-sm ${
+                    isOwnMessage
+                      ? "rounded-br-none bg-green-100 text-gray-800"
+                      : "rounded-bl-none bg-pink-100 text-gray-800"
+                  }`}
+                >
+                  {msg.content}
+                  <p className="mt-1 text-right text-[10px] opacity-70">
+                    {new Date(
+                      msg.timestamp || msg.created_at,
+                    ).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="flex-shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="relative flex-shrink-0 items-center space-x-2 border-t bg-white p-3 flex">
         <input
           type="file"
           ref={fileInputRef}
@@ -177,20 +219,22 @@ const ChatPage = () => {
           placeholder="Type a message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 bg-gray-200 rounded-full px-4 py-2 focus:outline-none"
+          onKeyDown={handleComposerKeyDown}
+          className="flex-1 rounded-full bg-gray-200 px-4 py-2 focus:outline-none"
         />
 
         <button
           className="absolute right-[15%] text-gray-500"
-          onClick={() => fileInputRef.current.click()}
+          onClick={() => fileInputRef.current?.click()}
         >
           <Camera className="h-8 w-8" />
         </button>
 
-        <button onClick={handleSend} disabled={sending}>
+        <button onClick={handleSend} disabled={!canSend}>
           <SendHorizontal
-            className={`h-8 w-8 ${sending ? "text-gray-400" : "text-lily"
-              } transition-all`}
+            className={`h-8 w-8 transition-all ${
+              canSend ? "text-lily" : "text-gray-400"
+            }`}
           />
         </button>
       </div>
