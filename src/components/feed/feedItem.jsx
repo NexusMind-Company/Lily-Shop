@@ -417,7 +417,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   return (
     <div
-      className="relative w-full h-full bg-lily text-white"
+      className="relative w-full h-full bg-black text-white"
       onDoubleClick={handleDoubleTap}
     >
       <div className="media-container-cover w-full h-full bg-black">
