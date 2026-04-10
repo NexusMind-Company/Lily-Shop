@@ -21,6 +21,12 @@ const SubscriptionProcessingPage = () => {
     const subscribe = async () => {
       try {
         const result = await createSubscription(planId);
+        
+        // Generate a simple pickup code if applicable
+        let generatedCode = null;
+        if (state?.deliveryType === "pickup") {
+           generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
 
         // Short pause so animation doesn't flash
         await new Promise((res) => setTimeout(res, 1200));
@@ -31,6 +37,9 @@ const SubscriptionProcessingPage = () => {
             plan,
             vendor,
             subscription: result?.subscription || result,
+            pickupCode: generatedCode,
+            deliveryType: state?.deliveryType,
+            preferredTime: state?.preferredTime,
           },
         });
         

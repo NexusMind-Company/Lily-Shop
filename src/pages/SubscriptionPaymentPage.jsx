@@ -23,6 +23,7 @@ const quantity = state?.quantity || 1;
 const addExtra = state?.addExtra || false;
 const extraPrice = state?.extraPrice || 0;
 const deliveryType = state?.deliveryType;
+const preferredTime = state?.preferredTime;
 const address = state?.address;
 const phone = state?.phone;
 const collectionCode = state?.collectionCode;
@@ -57,6 +58,7 @@ const handlePayWithWallet = () => {
       addExtra,
       extraPrice,
       deliveryType,
+      preferredTime,
       address,
       phone,
       collectionCode,
@@ -81,6 +83,7 @@ const handlePayWithWallet = () => {
         addExtra,
         extraPrice,
         deliveryType,
+        preferredTime,
         address,
         phone,
         collectionCode,
@@ -209,9 +212,19 @@ if (!plan) return null;
   {/* Address or collection code */}
   {deliveryType === "delivery" && address && (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">Address</span>
+      <span className="text-gray-500 text-sm">{deliveryType === "delivery" ? "Delivery Address" : "Pickup Address"}</span>
       <span className="font-semibold text-[#111813] text-sm text-right max-w-[60%]">
         {address}
+      </span>
+    </div>
+  )}
+  
+  {/* Preferred Time */}
+  {preferredTime && (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">Preferred Time</span>
+      <span className="font-semibold text-[#111813] text-sm">
+        {preferredTime}
       </span>
     </div>
   )}
@@ -334,19 +347,29 @@ if (!plan) return null;
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-start gap-2 bg-blue-50 rounded-2xl p-4"
+          className="flex items-start gap-2 bg-[#13ec49]/10 rounded-2xl p-4 border border-[#13ec49]/20"
         >
-          <AlertCircle size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-          <p className="text-blue-600 text-xs leading-relaxed">
-            Food subscriptions are paid using your Lily Wallet balance. The amount will be deducted
-            immediately upon confirmation.
+          <Zap size={16} className="text-[#13ec49] mt-0.5 flex-shrink-0" />
+          <p className="text-[#111813] text-xs leading-relaxed font-medium">
+            <strong>Direct Payment Enabled:</strong> You can now pay directly with your card or bank transfer. Your wallet will be topped up and the subscription processed immediately.
           </p>
         </motion.div>
       </div>
 
       {/* Bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 space-y-3 max-w-5xl mx-auto lg:ml-64">
-        {hasEnoughBalance ? (
+        {!walletLoading && !hasEnoughBalance ? (
+          <>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleDirectPayment}
+              className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base transition-all active:scale-95 shadow-lg shadow-green-500/20"
+            >
+              Pay ₦{formatPrice(planPrice)} Now (Direct)
+            </motion.button>
+            <p className="text-center text-[10px] text-gray-400 font-medium">Safe & Secure via Paystack</p>
+          </>
+        ) : (
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handlePayWithWallet}
@@ -355,30 +378,24 @@ if (!plan) return null;
           >
             {walletLoading ? "Checking balance..." : `Pay ₦${formatPrice(planPrice)} with Wallet`}
           </motion.button>
-        ) : (
-          <>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={handleDirectPayment}
-              className="w-full bg-[#111813] text-white font-bold py-4 rounded-2xl text-base transition-all active:scale-95 mb-2"
-            >
-              Pay ₦{formatPrice(planPrice)} Directly (Card/Transfer)
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={handleTopUp}
-              className="w-full bg-white text-[#111813] border border-gray-200 font-bold py-3 rounded-2xl text-sm transition-all active:scale-95"
-            >
-              Top Up Wallet Separately
-            </motion.button>
-            <button
-              onClick={() => navigate(-1)}
-              className="w-full bg-white text-gray-500 font-semibold py-3 rounded-2xl text-sm border border-gray-200"
-            >
-              Go Back
-            </button>
-          </>
         )}
+        
+        <div className="flex gap-2">
+           {!hasEnoughBalance && (
+             <button
+               onClick={handleTopUp}
+               className="flex-1 bg-white text-gray-600 border border-gray-100 font-semibold py-3 rounded-2xl text-xs"
+             >
+               Top Up Only
+             </button>
+           )}
+           <button
+             onClick={() => navigate(-1)}
+             className="flex-1 bg-white text-gray-500 font-semibold py-3 rounded-2xl text-xs border border-gray-100"
+           >
+             Go Back
+           </button>
+        </div>
       </div>
     </div>
   );
