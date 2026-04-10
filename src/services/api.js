@@ -265,6 +265,11 @@ export const fetchProductDetails = async (productId) => {
   return response.data;
 };
 
+export const fetchContentById = async (contentId) => {
+  const response = await api.get(`/shops/contents/${contentId}/`);
+  return response.data;
+};
+
 export const searchShops = async (searchTerm) => {
   const response = await api.get("/shops/", { params: { search: searchTerm } });
   return response.data;

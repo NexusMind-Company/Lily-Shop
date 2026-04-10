@@ -467,7 +467,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 md:pb-6 text-white z-10 pointer-events-none bg-linear-to-t from-black/80 via-black/40 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-6 text-white z-10 pointer-events-none bg-linear-to-t from-black/80 via-black/40 to-transparent">
         <div className="flex justify-between items-end gap-2">
           <div className="flex-1 flex flex-col justify-end space-y-2.5 min-w-0 pr-2 pointer-events-auto">
             <div className="relative gap-3 flex items-center shrink-0">
@@ -530,7 +530,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {post.caption && (
               <motion.p
                 layout
-                className={`text-sm font-light wrap-break-word whitespace-pre-wrap ${isExpanded ? "max-h-[30vh] overflow-y-auto no-scrollbar pointer-events-auto" : ""}`}
+                className={`text-sm font-light wrap-break-word whitespace-pre-wrap ${isExpanded ? "max-h-[22vh] overflow-y-auto no-scrollbar pointer-events-auto" : ""}`}
               >
                 {isExpanded
                   ? post.caption
