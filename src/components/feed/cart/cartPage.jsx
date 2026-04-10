@@ -224,12 +224,21 @@ const CartPage = () => {
     }
   }, [userProfile, profileError, selectedPickup]);
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    // Wait a bit longer to ensure all initial loads are finished
+    if (!isLoadingProfile && !isLoadingCart) {
+      const timer = setTimeout(() => setIsInitialized(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadingProfile, isLoadingCart]);
+
   useEffect(() => {
     if (isDirectBuy && directProduct) return;
 
     if (
-      !isLoadingProfile &&
-      !isLoadingCart &&
+      isInitialized &&
       (!Array.isArray(itemsToCheckout) || itemsToCheckout.length === 0)
     ) {
       const timer = setTimeout(() => {
@@ -241,8 +250,7 @@ const CartPage = () => {
     }
   }, [
     itemsToCheckout,
-    isLoadingProfile,
-    isLoadingCart,
+    isInitialized,
     navigate,
     isDirectBuy,
     directProduct,
@@ -360,7 +368,7 @@ const CartPage = () => {
 
     const orderData = {
       items: orderItems,
-      total_amount_kobo: backendTotal,
+      total_amount_kobo: Math.round(backendTotal * 100), // Convert Naira to Kobo for backend consistency
       payment_method: apiPaymentMethod,
       delivery_type: deliveryType,
       delivery_fee_naira: finalDeliveryFee,
