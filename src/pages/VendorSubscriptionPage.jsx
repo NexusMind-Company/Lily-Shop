@@ -12,6 +12,7 @@ import {
   fetchMealPlansByVendor,
   fetchFoodVendor,
   fetchMealsByVendor,
+  fetchPublicProfile,
 } from "../services/api";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 
@@ -259,7 +260,7 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
         </div>
       </div>
 
-      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} />
+      <VendorHero vendor={displayVendor} reviews={reviews?.results || []} />
       
       {/* Address Display for Selection Transparency */}
       {selectedPlanIds.length > 0 && selectedPlans[0]?.address && (

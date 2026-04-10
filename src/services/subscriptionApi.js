@@ -94,10 +94,23 @@ export const fetchAllVendors = async (params = {}) => {
 export const fetchVendorDetails = async (vendorId) => {
   try {
     const data = await fetchFoodVendor(vendorId);
+    
+    // Inject the vendor's actual user profile picture if missing and tied to a UUID
+    if (data && data.user && !data.profile_pic) {
+      try {
+        const userId = typeof data.user === 'string' ? data.user : data.user.id;
+        const profile = await fetchPublicProfile(userId);
+        if (profile) {
+           data.user_profile = profile;
+           data.profile_pic = profile.profile_pic;
+        }
+      } catch (err) {
+         console.warn("Could not fetch associated user profile for vendor avatar", err);
+      }
+    }
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
-    // Return null instead of throwing — page renders without vendor info
     if (error?.response?.status === 500 || error?.response?.status === 404) {
       return null;
     }
