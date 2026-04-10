@@ -1,4 +1,4 @@
-import { ArrowLeft, Search,X } from "lucide-react";
+import { ArrowLeft, Search, X, MapPin } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -69,9 +69,20 @@ const VendorCard = ({ vendor, onClick }) => {
       {/* Vendor Info */}
       <div className="flex-1 min-w-0">
         <h2 className="text-lg font-semibold truncate">{vendor.name}</h2>
-        <p className="text-sm text-gray-500 line-clamp-2">
+        <p className="text-sm text-gray-500 line-clamp-1 mb-1">
           {vendor.description || "No description available"}
         </p>
+        {vendor.cuisine && (
+          <p className="text-xs text-lily font-medium mb-1">
+            {vendor.cuisine}
+          </p>
+        )}
+        {vendor.address && (
+          <div className="flex items-center gap-1 text-gray-400">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <p className="text-xs truncate">{vendor.address}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -162,9 +173,15 @@ const vendors = data?.results || [];
 // const error = null;
 
 
-  const filteredVendors = vendors.filter((vendor) =>
-    vendor.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredVendors = vendors.filter((vendor) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      vendor.name?.toLowerCase().includes(searchLower) ||
+      vendor.cuisine?.toLowerCase().includes(searchLower) ||
+      vendor.description?.toLowerCase().includes(searchLower) ||
+      vendor.address?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const handleVendorClick = (vendorId) => {
     navigate(`/vendor-subscription/${vendorId}`);
