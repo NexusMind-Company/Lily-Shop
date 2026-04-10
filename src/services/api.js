@@ -690,8 +690,10 @@ export const updateFoodVendor = async (vendorId, vendorData) => {
 };
 
 export const fetchFoodVendor = async (vendorId) => {
-  const response = await api.get(`/foods/food-vendors/${vendorId}/`);
-  return response.data;
+  // Use list endpoint with filter since /foods/food-vendors/{id}/ returns 405
+  const response = await api.get(`/foods/vendors/`, { params: { id: vendorId } });
+  const results = response.data.results || response.data;
+  return results.find(v => v.id === vendorId) || results[0] || null;
 };
 
 export const fetchAllFoodVendors = async (params = {}) => {
