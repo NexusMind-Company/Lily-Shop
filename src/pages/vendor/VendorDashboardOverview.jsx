@@ -16,6 +16,10 @@ import {
   fetchSubscriberGrowth,
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
+import { updateFoodVendor } from "../../services/api";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { MapPin, Edit3, Check, X } from "lucide-react";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
@@ -72,6 +76,33 @@ const CustomTooltip = ({ active, payload, label }) => {
 const VendorDashboardOverview = () => {
   const navigate = useNavigate();
   const { data: profileData } = useSelector((state) => state.profile);
+  const vendorId = profileData?.user?.vendor_id;
+
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState("");
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  const handleUpdateAddress = async () => {
+    if (!newAddress.trim()) {
+      toast.error("Please enter a valid address");
+      return;
+    }
+    if (!vendorId) return;
+
+    setIsSavingAddress(true);
+    try {
+      await updateFoodVendor(vendorId, { address: newAddress.trim() });
+      toast.success("Address updated successfully!");
+      setIsEditingAddress(false);
+      // We don't necessarily need to reload profile here as VendorHero will pick it up on next render 
+      // if it fetches fresh, or the user can refresh.
+    } catch (err) {
+      toast.error("Failed to update address. Please try again.");
+      console.error(err);
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
 
   const {
     data: overview,
@@ -129,16 +160,50 @@ const VendorDashboardOverview = () => {
 
   return (
     <VendorLayout title="Overview">
-      <div className="pt-1">
-        <p className="text-xs text-gray-400 font-medium">Good afternoon 👋</p>
-        <h2 className="text-xl font-bold text-[#111813] dark:text-white">
-          {profileData?.user?.username ?? "Vendor"}
-        </h2>
+      {/* Welcome & Quick Address Fix */}
+      <div className="flex items-start justify-between group">
+        <div className="pt-1">
+          <p className="text-xs text-gray-400 font-medium">Good afternoon 👋</p>
+          <h2 className="text-xl font-bold text-[#111813] dark:text-white">
+            {profileData?.user?.username ?? "Vendor"}
+          </h2>
+        </div>
+        {!isEditingAddress ? (
+          <button 
+            onClick={() => setIsEditingAddress(true)}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
+          >
+            <MapPin size={12} /> Update Address
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 p-1.5 rounded-xl shadow-sm">
+            <input 
+              type="text"
+              placeholder="Enter street address..."
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+              className="text-xs px-2 py-1 outline-none dark:bg-transparent dark:text-white min-w-[150px]"
+              autoFocus
+            />
+            <button 
+              disabled={isSavingAddress}
+              onClick={handleUpdateAddress}
+              className="p-1 text-[#4eb75e] hover:bg-green-50 rounded-lg disabled:opacity-50"
+            >
+               {isSavingAddress ? <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" /> : <Check size={14} />}
+            </button>
+            <button 
+               onClick={() => setIsEditingAddress(false)}
+               className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Soft warning if any secondary query failed */}
       {(growthError || activityError) && (
-        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5 mt-2">
           <p className="text-xs text-orange-700 dark:text-orange-400">
             ⚠️ Some data couldn't refresh — showing last known values.
           </p>
