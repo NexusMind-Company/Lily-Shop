@@ -637,8 +637,13 @@ export const fetchCustomerSubscriptions = async () => {
 };
 
 export const fetchMealsByVendor = async (vendorId) => {
-  const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
-  return response.data;
+  try {
+    const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
+    return response.data;
+  } catch (error) {
+    console.warn("Error fetching meals by vendor, returning empty list:", error?.message);
+    return [];
+  }
 };
 
 export const fetchMealPlansByVendor = async (vendorId) => {
