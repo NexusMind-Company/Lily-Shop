@@ -17,7 +17,9 @@ const VerificationPage = () => {
   const [resending, setResending] = useState(false);
 
   const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "//api.lilyshops.com";
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://api.lilyshops.com";
 
   const handleVerify = async (e) => {
     e.preventDefault();

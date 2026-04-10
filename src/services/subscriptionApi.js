@@ -198,11 +198,36 @@ export const fetchCustomerSubscriptions = async (customerId) => {
  * @param {Object} mealPlanData - The meal plan data with optional media file
  * @returns {Promise<Object>} Created meal plan data
  */
-export const createMealPlan = async (mealPlanData) => {
+export const createMealPlan = async (payload) => {
   try {
-    const data = await createSubscriptionPlan(mealPlanData);
-    console.log(" API createMealPlan response:", data);
-    return data;
+    let response;
+    // Check if we have media files
+    if (payload.media && payload.media.length > 0) {
+      const formData = new FormData();
+      Object.keys(payload).forEach(key => {
+        if (key === 'media') {
+          payload.media.forEach(file => {
+            formData.append('media', file);
+          });
+        } else if (key === 'features') {
+          payload.features.forEach(feature => {
+            formData.append('features', feature);
+          });
+        } else {
+          formData.append(key, payload[key]);
+        }
+      });
+      // The endpoint must accept multipart/form-data
+      response = await api.post("/foods/subscriptions/create/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      // Fallback JSON if no media
+      response = await api.post("/foods/subscriptions/create/", payload);
+    }
+    
+    console.log(" API createMealPlan response:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Error creating meal plan:", error.response?.data || error);
     throw error;

@@ -148,16 +148,6 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -166,16 +156,6 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -192,16 +172,6 @@ export const updateProfilePic = async (imageFile) => {
       },
     },
   );
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 

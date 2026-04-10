@@ -12,6 +12,10 @@ import {
   Shield,
   Repeat,
 } from "lucide-react";
+import {
+  resolveSubscriptionSuccessState,
+  saveSubscriptionSuccessState,
+} from "../utils/subscriptionFlow";
 
 const formatPrice = (price) =>
   Number(price)
@@ -82,10 +86,17 @@ const Confetti = () => {
 const SubscriptionSuccessPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const successState = resolveSubscriptionSuccessState(state);
 
-  const plan = state?.plan;
-  const vendor = state?.vendor;
-  const subscription = state?.subscription;
+  const plan = successState?.plan;
+  const vendor = successState?.vendor;
+  const subscription = successState?.subscription;
+
+  useEffect(() => {
+    if (successState) {
+      saveSubscriptionSuccessState(successState);
+    }
+  }, [successState]);
 
   // Fallbacks if navigated directly (no state)
   const planName = plan?.plan_name || subscription?.plan?.plan_name || "Your Plan";
@@ -166,10 +177,10 @@ const SubscriptionSuccessPage = () => {
                 <span className="font-bold text-[#111813]">₦{formatPrice(amountPaid)}</span>
               </div>
               
-              {state?.deliveryType === "pickup" && state?.pickupCode && (
+              {successState?.deliveryType === "pickup" && successState?.pickupCode && (
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-center space-y-2 my-2">
                   <p className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400 tracking-wider">Your Pickup Code</p>
-                  <p className="text-3xl font-black text-[#111813] dark:text-white tracking-[0.2em]">{state.pickupCode}</p>
+                  <p className="text-3xl font-black text-[#111813] dark:text-white tracking-[0.2em]">{successState.pickupCode}</p>
                   <p className="text-[10px] text-orange-500 font-medium italic">Show this at the restaurant to collect your food</p>
                 </div>
               )}
@@ -180,10 +191,10 @@ const SubscriptionSuccessPage = () => {
                 </span>
                 <span className="font-semibold text-[#111813] capitalize">{frequency}</span>
               </div>
-              {state?.preferredTime && (
+              {successState?.preferredTime && (
                 <div className="flex items-center justify-between">
                    <span className="text-gray-500 text-sm">Preferred Time</span>
-                   <span className="font-semibold text-[#111813] text-sm">{state.preferredTime} daily</span>
+                   <span className="font-semibold text-[#111813] text-sm">{successState.preferredTime} daily</span>
                 </div>
               )}
               <div className="flex items-center justify-between">

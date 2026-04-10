@@ -40,7 +40,7 @@ const VendorHero = ({ vendor, reviews = [] }) => {
               {vendor.name}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
-              {vendor.cuisine} • {vendor.location}
+              {vendor.cuisine ? `${vendor.cuisine} • ` : ""} {vendor.address || vendor.location || "No address provided"}
             </p>
             {vendor.phone && (
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">

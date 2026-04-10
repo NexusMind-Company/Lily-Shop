@@ -1,44 +1,28 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import MessagesList from "../components/inbox/messagesList";
-import ChatPage from "../components/inbox/chatPage";
 import PageSEO from "../components/common/PageSEO";
 
 export default function Messages() {
-  const [activeChat, setActiveChat] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const { state } = location;
-    if (state && state.recipientId) {
-      setActiveChat({
-        id: state.recipientId,
-        name: state.recipientUsername,
-        username: state.recipientUsername,
-        profilePic: state.profilePic,
-      });
-      navigate(location.pathname, { replace: true, state: {} });
+    const recipientId =
+      location.state?.recipientId ||
+      searchParams.get("user") ||
+      searchParams.get("seller");
+
+    if (recipientId) {
+      navigate(`/chat/${recipientId}`, { replace: true });
     }
-  }, [location, navigate]);
-
-  const handleOpenChat = (chat) => {
-    navigate(`/chat/${chat.id}`);
-  };
-
-  const handleGoBack = () => {
-    navigate("/messages");
-    setActiveChat(null);
-  };
+  }, [location.state, navigate, searchParams]);
 
   return (
     <section className="h-screen">
       <PageSEO />
-      {activeChat ? (
-        <ChatPage chat={activeChat} goBack={() => setActiveChat(null)} />
-      ) : (
-        <MessagesList openChat={setActiveChat} />
-      )}
+      <MessagesList />
     </section>
   );
 }

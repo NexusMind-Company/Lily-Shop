@@ -13,6 +13,7 @@ import {
   fetchFoodVendor,
   fetchMealsByVendor,
 } from "../services/api";
+import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
@@ -158,19 +159,23 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
     }
 
     const plan = selectedPlans[0];
+    const subscriptionFlowState = {
+      plan,
+      vendor,
+      vendorId,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice: EXTRA_PRICE,
+      preferredTime,
+      deliveryType,
+      address: plan.address,
+    };
+
+    saveSubscriptionFlowState(subscriptionFlowState);
     navigate("/subscription/details", {
-      state: {
-        plan,
-        vendor,
-        totalPrice,
-        selectedDays,
-        quantity,
-        addExtra,
-        extraPrice: EXTRA_PRICE,
-        preferredTime,
-        deliveryType,
-        address: plan.address, // Use the address from the plan
-      },
+      state: subscriptionFlowState,
     });
   };
 

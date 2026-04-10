@@ -1,8 +1,8 @@
-import { useEffect, useContext } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Shield, X } from "lucide-react";
-import { PaymentProvider, usePayment } from "../context/paymentContext";
+import { usePayment } from "../context/paymentContext";
 import { checkPaymentStatus } from "../services/api";
 
 const PaymentLoadingPage = () => {
@@ -22,28 +22,35 @@ const PaymentLoadingPage = () => {
     },
     // Only run the query if orderId is present
     enabled: !!paymentData?.orderId,
-    onSuccess: (data) => {
-      if (data?.status === "success") {
-        // Update context with final payment details
-        setPaymentData((prev) => ({
-          ...prev,
-          amountPaid: data.amountPaid,
-          vendorName: data.vendorName,
-        }));
-        navigate("/payment-success");
-      } else if (data?.status === "failed" || data?.status === "cancelled") {
-        navigate("/payment-failed");
-      }
-    },
-    onError: (err) => {
-      console.error("Payment status check failed:", err);
-      navigate("/payment-failed");
-    },
     refetchInterval: (query) =>
       query.state.data?.status === "pending" ? 3000 : false,
     refetchOnWindowFocus: false,
     retry: 2,
   });
+
+  useEffect(() => {
+    if (!data) return;
+
+    if (data.status === "success") {
+      setPaymentData((prev) => ({
+        ...prev,
+        amountPaid: data.amountPaid,
+        vendorName: data.vendorName,
+      }));
+      navigate("/payment-success");
+      return;
+    }
+
+    if (data.status === "failed" || data.status === "cancelled") {
+      navigate("/payment-failed");
+    }
+  }, [data, navigate, setPaymentData]);
+
+  useEffect(() => {
+    if (!error) return;
+    console.error("Payment status check failed:", error);
+    navigate("/payment-failed");
+  }, [error, navigate]);
 
   const handleCancel = () => {
     // TODO: Add logic to attempt to cancel the payment on the backend if possible

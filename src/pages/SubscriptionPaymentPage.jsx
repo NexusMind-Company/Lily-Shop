@@ -1,9 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchWallet, topUpWallet } from "../services/api";
+import {
+  resolveSubscriptionFlowState,
+  saveSubscriptionFlowState,
+} from "../utils/subscriptionFlow";
 
 const formatPrice = (price) =>
   Number(price)
@@ -12,28 +16,30 @@ const formatPrice = (price) =>
 
 const SubscriptionPaymentPage = () => {
   const navigate = useNavigate();
-  // const { planId } = useParams();
   const { state } = useLocation();
+  const flowState = resolveSubscriptionFlowState(state);
 
-  const plan = state?.plan;
-const vendor = state?.vendor;
-const totalPrice = state?.totalPrice || 0;
-const selectedDays = state?.selectedDays || [];
-const quantity = state?.quantity || 1;
-const addExtra = state?.addExtra || false;
-const extraPrice = state?.extraPrice || 0;
-const deliveryType = state?.deliveryType;
-const preferredTime = state?.preferredTime;
-const address = state?.address;
-const phone = state?.phone;
-const collectionCode = state?.collectionCode;
+  const plan = flowState?.plan;
+const vendor = flowState?.vendor;
+const totalPrice = flowState?.totalPrice || 0;
+const selectedDays = flowState?.selectedDays || [];
+const quantity = flowState?.quantity || 1;
+const addExtra = flowState?.addExtra || false;
+const extraPrice = flowState?.extraPrice || 0;
+const deliveryType = flowState?.deliveryType;
+const preferredTime = flowState?.preferredTime;
+const address = flowState?.address;
+const phone = flowState?.phone;
+const collectionCode = flowState?.collectionCode;
 
   // If no state was passed (e.g. direct URL navigation), go back
 useEffect(() => {
   if (!plan) {
-    navigate(-1);
+    navigate("/subscriptions", { replace: true });
+    return;
   }
-}, [plan, navigate]);
+  saveSubscriptionFlowState(flowState);
+}, [plan, navigate, flowState]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
@@ -47,26 +53,31 @@ const platformFee = planPrice * 0.1;
 const vendorReceives = planPrice * 0.9;
 
 const handlePayWithWallet = () => {
+  const processingState = {
+    ...flowState,
+    planId: plan?.id,
+    plan,
+    vendor,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    deliveryType,
+    preferredTime,
+    address,
+    phone,
+    collectionCode,
+  };
+
+  saveSubscriptionFlowState(processingState);
   navigate("/subscription/processing", {
-    state: {
-      planId: plan?.id,
-      plan,
-      vendor,
-      totalPrice,
-      selectedDays,
-      quantity,
-      addExtra,
-      extraPrice,
-      deliveryType,
-      preferredTime,
-      address,
-      phone,
-      collectionCode,
-    },
+    state: processingState,
   });
 };
 
   const handleTopUp = () => {
+    saveSubscriptionFlowState(flowState);
     navigate("/wallet/topup");
   };
 
@@ -74,6 +85,7 @@ const handlePayWithWallet = () => {
     try {
       // Store current subscription state in localStorage
       const pendingData = {
+        ...flowState,
         planId: plan?.id,
         plan,
         vendor,
@@ -89,6 +101,7 @@ const handlePayWithWallet = () => {
         collectionCode,
       };
       
+      saveSubscriptionFlowState(pendingData);
       localStorage.setItem("lily_pending_subscription_data", JSON.stringify(pendingData));
       localStorage.setItem("lily_subscription_redirect", "true");
 

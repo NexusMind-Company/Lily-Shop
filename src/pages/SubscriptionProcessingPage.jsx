@@ -4,19 +4,32 @@ import { motion } from "framer-motion";
 
 // Import from your api.js — adjust path if needed
 import { createSubscription } from "../services/api";
+import {
+  clearSubscriptionFlowState,
+  resolveSubscriptionFlowState,
+  saveSubscriptionFlowState,
+  saveSubscriptionSuccessState,
+} from "../utils/subscriptionFlow";
 
 const SubscriptionProcessingPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const hasCalled = useRef(false);
+  const flowState = resolveSubscriptionFlowState(state);
 
-  const planId = state?.planId || state?.plan?.id;
-  const plan = state?.plan;
-  const vendor = state?.vendor;
+  const planId = flowState?.planId || flowState?.plan?.id;
+  const plan = flowState?.plan;
+  const vendor = flowState?.vendor;
 
   useEffect(() => {
-    if (!planId || hasCalled.current) return;
+    if (!planId) {
+      navigate("/subscription/payment", { replace: true });
+      return;
+    }
+
+    if (hasCalled.current) return;
     hasCalled.current = true;
+    saveSubscriptionFlowState(flowState);
 
     const subscribe = async () => {
       try {
@@ -24,27 +37,30 @@ const SubscriptionProcessingPage = () => {
         
         // Generate a simple pickup code if applicable
         let generatedCode = null;
-        if (state?.deliveryType === "pickup") {
+        if (flowState?.deliveryType === "pickup") {
            generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         }
 
         // Short pause so animation doesn't flash
         await new Promise((res) => setTimeout(res, 1200));
 
+        const successState = {
+          ...flowState,
+          plan,
+          vendor,
+          subscription: result?.subscription || result,
+          pickupCode: generatedCode,
+          deliveryType: flowState?.deliveryType,
+          preferredTime: flowState?.preferredTime,
+        };
+
+        saveSubscriptionSuccessState(successState);
+        clearSubscriptionFlowState();
+
         navigate("/subscription/success", {
           replace: true,
-          state: {
-            plan,
-            vendor,
-            subscription: result?.subscription || result,
-            pickupCode: generatedCode,
-            deliveryType: state?.deliveryType,
-            preferredTime: state?.preferredTime,
-          },
+          state: successState,
         });
-        
-        // Clear pending subscription data
-        localStorage.removeItem("lily_pending_subscription_data");
       } catch (err) {
         await new Promise((res) => setTimeout(res, 800));
 
@@ -53,9 +69,10 @@ const SubscriptionProcessingPage = () => {
           err?.response?.data?.detail ||
           "Something went wrong. Please try again.";
 
-        navigate("/subscription/payment/" + planId, {
+        navigate("/subscription/payment", {
           replace: true,
           state: {
+            ...flowState,
             plan,
             vendor,
             error: message,
@@ -65,7 +82,7 @@ const SubscriptionProcessingPage = () => {
     };
 
     subscribe();
-  }, [planId, plan, vendor, navigate]);
+  }, [planId, plan, vendor, navigate, flowState]);
 
   const dots = [0, 1, 2];
 

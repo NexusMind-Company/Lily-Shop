@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Plus, Loader2, AlertCircle } from "lucide-react";
@@ -26,14 +26,15 @@ const ChooseCardPage = () => {
   } = useQuery({
     queryKey: ["savedCards"],
     queryFn: fetchSavedCards,
-    onSuccess: (data) => {
-      const defaultCard = data?.find((card) => card.is_default);
-      if (defaultCard && !selectedCardId) {
-        setSelectedCardId(defaultCard.id);
-      }
-    },
     retry: 1, // Only retry once to avoid long waits on a missing endpoint
   });
+
+  useEffect(() => {
+    const defaultCard = savedCards?.find((card) => card.is_default);
+    if (defaultCard && !selectedCardId) {
+      setSelectedCardId(defaultCard.id);
+    }
+  }, [savedCards, selectedCardId]);
 
   const handleCardSelection = (card) => {
     setSelectedCardId(card.id);

@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, MapPin, Phone, Hash, Truck, ShoppingBag } from "lucide-react";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+import {
+  resolveSubscriptionFlowState,
+  saveSubscriptionFlowState,
+} from "../utils/subscriptionFlow";
 
 
 const SubscriptionDetailsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const flowState = resolveSubscriptionFlowState(location.state);
 
   // This receives everything passed from VendorSubscriptionPage
   const {
@@ -17,14 +22,58 @@ const SubscriptionDetailsPage = () => {
     quantity,
     addExtra,
     extraPrice,
-  } = location.state || {};
+    preferredTime,
+    vendorId,
+  } = flowState || {};
 
 
-  const [deliveryType, setDeliveryType] = useState(""); // "delivery" or "pickup"
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [collectionCode, setCollectionCode] = useState("");
+  const [deliveryType, setDeliveryType] = useState(flowState?.deliveryType || ""); // "delivery" or "pickup"
+  const [address, setAddress] = useState(flowState?.address || "");
+  const [phone, setPhone] = useState(flowState?.phone || "");
+  const [collectionCode, setCollectionCode] = useState(flowState?.collectionCode || "");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!plan) {
+      navigate("/subscriptions", { replace: true });
+    }
+  }, [plan, navigate]);
+
+  useEffect(() => {
+    if (!plan) return;
+
+    saveSubscriptionFlowState({
+      ...flowState,
+      plan,
+      vendor,
+      vendorId,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice,
+      preferredTime,
+      deliveryType,
+      address,
+      phone,
+      collectionCode,
+    });
+  }, [
+    flowState,
+    plan,
+    vendor,
+    vendorId,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    preferredTime,
+    deliveryType,
+    address,
+    phone,
+    collectionCode,
+  ]);
 
   const isValid = () => {
     if (!deliveryType) return false;
@@ -45,20 +94,25 @@ const SubscriptionDetailsPage = () => {
 
 const handleConfirm = () => {
   setIsModalOpen(false);
+  const paymentState = {
+    ...flowState,
+    plan,
+    vendor,
+    vendorId,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    preferredTime,
+    deliveryType,
+    address,
+    phone,
+    collectionCode,
+  };
+  saveSubscriptionFlowState(paymentState);
   navigate("/subscription/payment", {
-    state: {
-      plan,
-      vendor,
-      totalPrice,
-      selectedDays,
-      quantity,
-      addExtra,
-      extraPrice,
-      deliveryType,
-      address,
-      phone,
-      collectionCode,
-    },
+    state: paymentState,
   });
 };
 

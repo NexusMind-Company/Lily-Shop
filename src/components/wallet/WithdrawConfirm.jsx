@@ -82,7 +82,7 @@ export default function WithdrawConfirm() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Navigate to success page
-      navigate("/withdrawSuccess", {
+      navigate("/withdraw/success", {
         state: {
           amount: amount,
           fee: platformFee.toFixed(2),

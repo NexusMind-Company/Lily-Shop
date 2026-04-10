@@ -23,7 +23,6 @@ import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPag
 /* ---------------- FEED ---------------- */
 import Feed from "./pages/feed";
 import SearchResults from "./pages/searchResults";
-import ProductDetails from "./components/feed/product/productDetails";
 import VendorsList from "./pages/VendorsList";
 import FeedProductDetails from "./pages/feedProductDetails";
 
@@ -46,6 +45,7 @@ import AccountPage from "./pages/account";
 
 /* ---------------- SOCIAL & INBOX ---------------- */
 import InboxPage from "./pages/inbox";
+import MessagesPage from "./pages/messages";
 import ChatPage from "./components/inbox/chatPage";
 import NotificationPage from "./pages/notifications";
 import ActivityPage from "./pages/activity";
@@ -57,6 +57,11 @@ import Withdraw from "./pages/withdraw";
 import ConfirmWithdrawal from "./pages/ConfirmWithdrawal";
 import WithdrawSuccess from "./pages/withdrawSuccess";
 import WalletTopUpPage from "./pages/WalletTopUpPage";
+import AddBankAccountPage from "./pages/addBankAccount";
+import BankAccountDetailsPage from "./pages/bankAccountDetails";
+import TransactionHistoryPage from "./pages/transaction-history";
+import ReceiptPage from "./pages/reciept";
+import WalletCallbackPage from "./pages/wallet-callback";
 
 /* ---------------- ORDERS ---------------- */
 import CartPage from "./pages/CartPage";
@@ -64,6 +69,7 @@ import OrderSummaryPage from "./pages/OrderSummaryPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 
 /* ---------------- SUBSCRIPTIONS ---------------- */
 import VendorSubscriptionPage from "./pages/VendorSubscriptionPage";
@@ -97,6 +103,8 @@ import PaymentInitiation from "./components/ads/paymentInitiation";
 import VerifyTransaction from "./components/ads/verifyTransaction";
 import PaymentFailedPage from "./pages/paymentFailedPage";
 import PaymentSuccessPage from "./pages/paymentsSucessPage";
+import PaymentLoadingPage from "./pages/paymentLoading";
+import PaystackCallbackPage from "./pages/PaystackCallbackPage";
 
 /* ---------------- VENDOR DASHBOARD ---------------- */
 import VendorDashboardOverview from "./pages/vendor/VendorDashboardOverview";
@@ -125,7 +133,6 @@ import ChoosePickupAddressPage from "./pages/ChoosePickupAddressPage";
 import ChooseCardPage from "./pages/ChooseCardPage";
 import ChooseAddressPage from "./pages/chooseAddressPage";
 import CreateSubscriptionVendor from "./components/subscription/CreateSubscriptionVendor";
-import VendorDashboard from "./pages/VendorDashboard";
 
 const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
@@ -167,6 +174,7 @@ function App() {
           <Route element={<FeedLayout />}>
             {/* Feed */}
             <Route path="/" element={<Feed />} />
+            <Route path="/feed" element={<Navigate to="/" replace />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/searchResults" element={<SearchResults />} />
 
@@ -235,6 +243,8 @@ function App() {
 
             {/* Inbox & Social */}
             <Route path="/inbox" element={<InboxPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/messages/new" element={<MessagesPage />} />
             <Route path="/chat/:conversationId" element={<ChatPage />} />
             <Route path="/notifications" element={<NotificationPage />} />
             <Route path="/activity" element={<ActivityPage />} />
@@ -246,6 +256,11 @@ function App() {
             <Route path="/withdraw/confirm" element={<ConfirmWithdrawal />} />
             <Route path="/withdraw/success" element={<WithdrawSuccess />} />
             <Route path="/wallet/topup" element={<WalletTopUpPage />} />
+            <Route path="/transaction-history" element={<TransactionHistoryPage />} />
+            <Route path="/addBankAccount" element={<AddBankAccountPage />} />
+            <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
+            <Route path="/receipt" element={<ReceiptPage />} />
+            <Route path="/reciept" element={<ReceiptPage />} />
 
             {/* Orders */}
             <Route path="/order-summary" element={<OrderSummaryPage />} />
@@ -256,10 +271,6 @@ function App() {
             <Route
               path="/subscriptions"
               element={<CustomerSubscriptionsPage />}
-            />
-             <Route
-              path="/create-vendor"
-              element={<CreateSubscriptionVendor />}
             />
             <Route
               path="/create-vendor"
@@ -315,6 +326,15 @@ function App() {
             <Route path="/password" element={<PasswordModalPage />} />
           </Route>
 
+          <Route path="/payment-loading" element={<PaymentLoadingPage />} />
+          <Route path="/payment-failed" element={<PaymentFailedPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/paystack-callback" element={<PaystackCallbackPage />} />
+          <Route path="/paystack/callback" element={<PaystackCallbackPage />} />
+          <Route path="/wallet-callback" element={<WalletCallbackPage />} />
+          <Route path="/wallet/callback" element={<WalletCallbackPage />} />
+
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
 
@@ -366,8 +386,6 @@ function App() {
             <Route path="/ads/payment" element={<PaymentInitiation />} />
             <Route path="/ads/verify" element={<VerifyTransaction />} />
             <Route path="/verify-transaction" element={<VerifyTransaction />} />
-            <Route path="/payment-failed" element={<PaymentFailedPage />} />
-            <Route path="/payment-success" element={<PaymentSuccessPage />} />
 
             {/* AI Chat */}
             <Route path="/lily-chat" element={<LilyChat />} />

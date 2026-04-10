@@ -78,12 +78,10 @@ const VendorCard = ({ vendor, onClick }) => {
             {vendor.cuisine}
           </p>
         )}
-        {vendor.address && (
-          <div className="flex items-center gap-1 text-gray-400">
-            <MapPin className="w-3 h-3 shrink-0" />
-            <p className="text-xs truncate">{vendor.address}</p>
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-gray-500 mt-1">
+          <MapPin className="w-3 h-3 shrink-0" />
+          <p className="text-xs truncate font-medium">{vendor.address || "Address unavailable"}</p>
+        </div>
       </div>
     </div>
   );
