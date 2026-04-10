@@ -658,7 +658,7 @@ export const createFoodVendor = async (vendorData) => {
   if (vendorData.profile_image)
     formData.append("profile_image", vendorData.profile_image);
 
-  const response = await api.post("/foods/vendors/", formData, {
+  const response = await api.post("/foods/food-vendors/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -680,7 +680,7 @@ export const updateFoodVendor = async (vendorId, vendorData) => {
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
 
-  const response = await api.patch(`/foods/vendors/${vendorId}/`, formData, {
+  const response = await api.patch(`/foods/food-vendors/${vendorId}/`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -690,7 +690,7 @@ export const updateFoodVendor = async (vendorId, vendorData) => {
 };
 
 export const fetchFoodVendor = async (vendorId) => {
-  const response = await api.get(`/foods/vendors/${vendorId}/`);
+  const response = await api.get(`/foods/food-vendors/${vendorId}/`);
   return response.data;
 };
 
