@@ -22,6 +22,7 @@ const MealPlanForm = ({
     type: initialType,
     mealsPerWeek: initialType === "weekly" ? 5 : 20,
     features: [],
+    address: "",
   });
 
   const [meals, setMeals] = useState([
@@ -120,6 +121,10 @@ const MealPlanForm = ({
       alert("Please enter a plan name");
       return;
     }
+    if (!planData.address.trim()) {
+      alert("Please enter a restaurant/pickup address");
+      return;
+    }
     if (!planData.description.trim()) {
       alert("Please enter a plan description");
       return;
@@ -185,6 +190,20 @@ const MealPlanForm = ({
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
+              Restaurant/Pickup Address *
+            </label>
+            <textarea
+              value={planData.address}
+              onChange={(e) => handlePlanChange("address", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
+              rows="2"
+              placeholder="Full address where customers can pick up or search for you..."
+              required
+            />
           </div>
 
           <div>

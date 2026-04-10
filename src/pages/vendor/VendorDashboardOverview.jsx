@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag, UtensilsCrossed, Users, TrendingUp,
-  DollarSign, UserPlus, UserMinus, Activity, ChevronRight,
+  UserPlus, UserMinus, Activity, ChevronRight,
   ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
 import {
@@ -157,7 +157,7 @@ const VendorDashboardOverview = () => {
           <p className="text-green-100 text-xs font-medium mb-0.5">Total Earnings</p>
           <p className="text-white text-2xl font-bold">₦{(o.total_earnings ?? 0).toLocaleString()}</p>
         </div>
-        <div className="bg-white/20 rounded-full p-3"><DollarSign size={22} className="text-white" /></div>
+        <div className="bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center text-white font-bold text-xl">₦</div>
       </div>
 
       <div>
