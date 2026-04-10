@@ -643,56 +643,54 @@ export const createMeal = async (mealData) => {
   return response.data;
 };
 
-export const createFoodVendor = async (vendorData) => {
+export const createFoodVendorProfile = async (vendorData) => {
   const formData = new FormData();
-
-  if (vendorData.name) formData.append("name", vendorData.name);
-  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
-  if (vendorData.description)
-    formData.append("description", vendorData.description);
+  formData.append("shop_name", vendorData.shop_name);
+  formData.append("description", vendorData.description);
+  formData.append("address", vendorData.address);
+  formData.append("category", vendorData.category);
   if (vendorData.contact_email)
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
-  if (vendorData.address)
-    formData.append("address", vendorData.address);
+  if (vendorData.banner_image)
+    formData.append("banner_image", vendorData.banner_image);
+  if (vendorData.profile_image)
+    formData.append("profile_image", vendorData.profile_image);
 
-  if (vendorData.media && Array.isArray(vendorData.media)) {
-    vendorData.media.forEach((file) => {
-      formData.append("media", file);
-    });
-  }
-
-  const response = await api.post("/foods/food-vendors/", formData, {
+  const response = await api.post("/foods/vendors/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+
   return response.data;
 };
 
-export const updateFoodVendor = async (vendorId, vendorData) => {
+export const updateFoodVendorProfile = async (vendorId, vendorData) => {
   const formData = new FormData();
-
-  if (vendorData.name) formData.append("name", vendorData.name);
-  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
+  if (vendorData.shop_name)
+    formData.append("shop_name", vendorData.shop_name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
-  if (vendorData.address)
-    formData.append("address", vendorData.address);
+  if (vendorData.address) formData.append("address", vendorData.address);
+  if (vendorData.category) formData.append("category", vendorData.category);
+  if (vendorData.contact_email)
+    formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
 
-  const response = await api.patch(`/foods/food-vendors/${vendorId}/`, formData, {
+  const response = await api.patch(`/foods/vendors/${vendorId}/`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+
   return response.data;
 };
 
 export const fetchFoodVendor = async (vendorId) => {
-  const response = await api.get(`/foods/food-vendors/${vendorId}/`);
+  const response = await api.get(`/foods/vendors/${vendorId}/`);
   return response.data;
 };
 
