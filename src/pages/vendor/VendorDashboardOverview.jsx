@@ -182,7 +182,7 @@ const VendorDashboardOverview = () => {
               placeholder="Enter street address..."
               value={newAddress}
               onChange={(e) => setNewAddress(e.target.value)}
-              className="text-xs px-2 py-1 outline-none dark:bg-transparent dark:text-white min-w-[150px]"
+              className="text-xs px-2 py-1 outline-none text-black dark:bg-transparent dark:text-white min-w-[150px]"
               autoFocus
             />
             <button 
