@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import { fetchProfile } from "./redux/profileSlice";
@@ -206,7 +206,10 @@ function App() {
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
             />
-            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+            <Route
+              path="/vendor-dashboard"
+              element={<Navigate to="/vendor/dashboard" replace />}
+            />
 
             <Route path="/subscription/details" element={<SubscriptionDetailsPage />} />
 

@@ -10,7 +10,7 @@ const SubscriptionProcessingPage = () => {
   const { state } = useLocation();
   const hasCalled = useRef(false);
 
-  const planId = state?.planId;
+  const planId = state?.planId || state?.plan?.id;
   const plan = state?.plan;
   const vendor = state?.vendor;
 

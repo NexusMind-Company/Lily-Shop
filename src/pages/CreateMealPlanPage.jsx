@@ -115,7 +115,7 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
       }
 
       console.log("✅ Meal plan saved successfully");
-      navigate("/vendor-dashboard", { replace: true });
+      navigate("/vendor/dashboard", { replace: true });
     } catch (err) {
       const msg =
         err.response?.data?.detail ||
