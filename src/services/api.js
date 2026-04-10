@@ -654,6 +654,8 @@ export const createFoodVendor = async (vendorData) => {
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
+  if (vendorData.address)
+    formData.append("address", vendorData.address);
 
   if (vendorData.media && Array.isArray(vendorData.media)) {
     vendorData.media.forEach((file) => {
@@ -662,6 +664,26 @@ export const createFoodVendor = async (vendorData) => {
   }
 
   const response = await api.post("/foods/food-vendors/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const updateFoodVendor = async (vendorId, vendorData) => {
+  const formData = new FormData();
+
+  if (vendorData.name) formData.append("name", vendorData.name);
+  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
+  if (vendorData.description)
+    formData.append("description", vendorData.description);
+  if (vendorData.address)
+    formData.append("address", vendorData.address);
+  if (vendorData.contact_phone)
+    formData.append("contact_phone", vendorData.contact_phone);
+
+  const response = await api.patch(`/foods/food-vendors/${vendorId}/`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
