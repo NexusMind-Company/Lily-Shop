@@ -56,7 +56,7 @@ export default function BankAccountDetails() {
 
   const handleProceedToWithdraw = () => {
     const account = savedAccounts.find((acc) => acc.id === selectedAccount);
-    navigate("/confirmWithdrawal", {
+    navigate("/withdraw/confirm", {
       state: {
         bankName: account.bankName,
         accountNumber: account.accountNumber,

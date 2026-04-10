@@ -25,6 +25,8 @@ const MealPlanForm = ({
     address: "",
   });
 
+  const [mediaFiles, setMediaFiles] = useState([]);
+
   const [meals, setMeals] = useState([
     {
       name: "",
@@ -144,6 +146,7 @@ const MealPlanForm = ({
       ...planData,
       price: parseFloat(planData.price),
       features: planData.features.filter((f) => f.trim()),
+      media: mediaFiles,
     });
   };
 
@@ -218,6 +221,30 @@ const MealPlanForm = ({
               placeholder="Describe your meal plan..."
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
+              Package Photos & Videos
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setMediaFiles(Array.from(e.target.files));
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white
+                         file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+                         file:bg-[#13ec49] file:text-green-950 hover:file:bg-[#0ea33b] transition-colors cursor-pointer"
+            />
+            {mediaFiles.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                {mediaFiles.length} file(s) selected
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
