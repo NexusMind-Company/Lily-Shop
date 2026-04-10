@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { fetchWallet } from "../services/api";
+import { fetchWallet, topUpWallet } from "../services/api";
 
 const formatPrice = (price) =>
   Number(price)
@@ -66,6 +66,45 @@ const handlePayWithWallet = () => {
 
   const handleTopUp = () => {
     navigate("/wallet/topup");
+  };
+
+  const handleDirectPayment = async () => {
+    try {
+      // Store current subscription state in localStorage
+      const pendingData = {
+        planId: plan?.id,
+        plan,
+        vendor,
+        totalPrice,
+        selectedDays,
+        quantity,
+        addExtra,
+        extraPrice,
+        deliveryType,
+        address,
+        phone,
+        collectionCode,
+      };
+      
+      localStorage.setItem("lily_pending_subscription_data", JSON.stringify(pendingData));
+      localStorage.setItem("lily_subscription_redirect", "true");
+
+      // Amount to top up (the exact cost of the plan)
+      const amountValue = parseFloat(totalPrice);
+      
+      // Call topUpWallet API
+      const response = await topUpWallet(amountValue);
+      
+      if (response && response.authorization_url) {
+        // Redirect to Paystack
+        window.location.href = response.authorization_url;
+      } else {
+        alert("Failed to initialize direct payment. Please try again.");
+      }
+    } catch (error) {
+      console.error("Direct payment error:", error);
+      alert("An error occurred during direct payment initialization.");
+    }
   };
 
 if (!plan) return null;
@@ -320,10 +359,17 @@ if (!plan) return null;
           <>
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={handleTopUp}
-              className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base transition-all active:scale-95"
+              onClick={handleDirectPayment}
+              className="w-full bg-[#111813] text-white font-bold py-4 rounded-2xl text-base transition-all active:scale-95 mb-2"
             >
-              Top Up Wallet
+              Pay ₦{formatPrice(planPrice)} Directly (Card/Transfer)
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleTopUp}
+              className="w-full bg-white text-[#111813] border border-gray-200 font-bold py-3 rounded-2xl text-sm transition-all active:scale-95"
+            >
+              Top Up Wallet Separately
             </motion.button>
             <button
               onClick={() => navigate(-1)}
