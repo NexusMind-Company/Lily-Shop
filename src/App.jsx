@@ -10,7 +10,6 @@ import ScrollToTop from "./components/common/scrollToTop";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import LoaderSd from "./components/loaders/loaderSd";
-import { FeedProvider } from "./context/feedContext";
 import { ThemeProvider } from "./context/themeContext";
 import { FadeTransition } from "./components/common/PageTransition";
 
@@ -151,37 +150,36 @@ function App() {
 
   return (
     <ThemeProvider>
-      <FeedProvider>
-        <ScrollToTopAuto />
-        <ScrollToTop />
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-              borderRadius: '12px',
-              padding: '16px',
+      <ScrollToTopAuto />
+      <ScrollToTop />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            borderRadius: '12px',
+            padding: '16px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10B981',
+              secondary: 'white',
             },
-            success: {
-              iconTheme: {
-                primary: '#10B981',
-                secondary: 'white',
-              },
+          },
+          error: {
+            iconTheme: {
+              primary: '#EF4444',
+              secondary: 'white',
             },
-            error: {
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: 'white',
-              },
-            },
-          }}
-        />
+          },
+        }}
+      />
 
-        <Suspense fallback={<RouteFallback />}>
-          <FadeTransition>
-            <Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <FadeTransition>
+          <Routes>
               {/* ================= PUBLIC ROUTES ================= */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
@@ -291,6 +289,10 @@ function App() {
                 element={<SubscriptionSuccessPage />}
               />
               <Route
+                path="/subscription/success"
+                element={<SubscriptionSuccessPage />}
+              />
+              <Route
                 path="/subscription-callback"
                 element={<SubscriptionCallbackPage />}
               />
@@ -368,10 +370,9 @@ function App() {
               <Route path="/lilyChat" element={<LilyChat />} />
             </Route>
           </Route>
-        </Routes>
-          </FadeTransition>
-        </Suspense>
-      </FeedProvider>
+          </Routes>
+        </FadeTransition>
+      </Suspense>
     </ThemeProvider>
   );
 }

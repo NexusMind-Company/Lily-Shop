@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UtensilsCrossed, Search, ShoppingCart, Home, PlusCircle, MessageSquare, User } from "lucide-react";
 import { useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
 import CartModal from "./cart/cartModal";
 import SearchModal from "./searchModal";
 import DarkModeToggle from "../common/DarkModeToggle";
+import { useFeed } from "../../context/feedContext";
 
 // NavLink helper component
 const NavLink = ({ to, active, icon, badge, children }) => {
@@ -54,6 +55,9 @@ const NavLink = ({ to, active, icon, badge, children }) => {
 const SideNav = ({ activePage }) => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { triggerHomeRefresh } = useFeed();
 
   const EMPTY_ARRAY = [];
   const cartItems = useSelector((state) => state.cart?.items || EMPTY_ARRAY);
@@ -61,6 +65,14 @@ const SideNav = ({ activePage }) => {
     (total, item) => total + (item.quantity || 1),
     0,
   );
+
+  const handleHomeClick = () => {
+    triggerHomeRefresh();
+
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+  };
 
   return (
     <div className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark pt-8 px-4 z-sticky transition-colors duration-300">
@@ -70,12 +82,16 @@ const SideNav = ({ activePage }) => {
         animate={{ x: 0, opacity: 1 }}
         className="mb-10 px-4"
       >
-        <Link to="/" className="flex items-center gap-3 group">
+        <button
+          type="button"
+          onClick={handleHomeClick}
+          className="flex items-center gap-3 group text-left"
+        >
           <div className="w-10 h-10 rounded-xl bg-lily flex items-center justify-center shadow-lg shadow-lily/30 group-hover:shadow-lily/50 transition-shadow">
             <span className="text-white font-bold text-xl">L</span>
           </div>
           <h1 className="font-bold text-2xl text-lily uppercase tracking-wide">Lily Shops</h1>
-        </Link>
+        </button>
       </motion.div>
 
       {/* Navigation Links */}
@@ -84,9 +100,29 @@ const SideNav = ({ activePage }) => {
           Menu
         </p>
         {/* Home */}
-        <NavLink to="/" active={activePage === "home"} icon="home">
-          Home
-        </NavLink>
+        <button type="button" onClick={handleHomeClick} className="w-full text-left">
+          <motion.div
+            className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+              activePage === "home"
+                ? "bg-lily/10 dark:bg-lily/20 text-lily font-semibold"
+                : "text-gray-600 dark:text-text-secondary-dark hover:bg-gray-50 dark:hover:bg-surface-dark/50 font-medium"
+            }`}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className={`p-2 rounded-lg transition-colors ${activePage === "home" ? "bg-lily/20" : "bg-gray-100 dark:bg-surface-dark"}`}>
+              <Home className={`h-5 w-5 transition-colors ${activePage === "home" ? "text-lily" : ""}`} />
+            </div>
+            <span className="text-base">Home</span>
+            {activePage === "home" && (
+              <motion.div
+                layoutId="sideNavIndicator"
+                className="ml-auto w-1.5 h-1.5 rounded-full bg-lily"
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            )}
+          </motion.div>
+        </button>
 
         {/* Create */}
         <NavLink to="/createContent" active={activePage === "create"} icon="create">

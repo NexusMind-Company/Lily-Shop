@@ -13,6 +13,20 @@ const FeedContext = createContext(null);
 
 const FEED_PAGE_SIZE = 20;
 
+const shuffleItems = (items = []) => {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [
+      shuffled[swapIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
 const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
   const endpoint =
     activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/home/";
@@ -28,7 +42,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (data && data.results) {
     return {
-      items: data.results,
+      items: shuffleItems(data.results),
       nextPage: data.next ? pageParam + 1 : null,
       hasMore: !!data.next,
     };
@@ -36,7 +50,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (data && data.feed) {
     return {
-      items: data.feed,
+      items: shuffleItems(data.feed),
       nextPage: data.feed.length > 0 ? pageParam + 1 : null,
       hasMore: data.feed.length === FEED_PAGE_SIZE,
     };
@@ -44,7 +58,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (Array.isArray(data)) {
     return {
-      items: data,
+      items: shuffleItems(data),
       nextPage: data.length > 0 ? pageParam + 1 : null,
       hasMore: data.length === FEED_PAGE_SIZE,
     };
@@ -56,6 +70,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 export const FeedProvider = ({ children }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [activeTab, setActiveTab] = useState("forYou");
+  const [homeRefreshToken, setHomeRefreshToken] = useState(0);
   const scrollPositionRef = useRef(0);
   const lastViewedPostRef = useRef(null);
 
@@ -94,6 +109,13 @@ export const FeedProvider = ({ children }) => {
     await refetch();
   }, [refetch]);
 
+  const triggerHomeRefresh = useCallback(() => {
+    lastViewedPostRef.current = null;
+    scrollPositionRef.current = 0;
+    setActiveTab("forYou");
+    setHomeRefreshToken((prev) => prev + 1);
+  }, []);
+
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
   }, []);
@@ -122,6 +144,8 @@ export const FeedProvider = ({ children }) => {
       toggleMute,
       saveCurrentPost,
       getRestoreIndex,
+      triggerHomeRefresh,
+      homeRefreshToken,
       isMuted,
       activeTab,
       setActiveTab,
@@ -140,6 +164,8 @@ export const FeedProvider = ({ children }) => {
       toggleMute,
       saveCurrentPost,
       getRestoreIndex,
+      triggerHomeRefresh,
+      homeRefreshToken,
       isMuted,
       activeTab,
       setActiveTab,

@@ -15,7 +15,10 @@ const formatTime = (time) => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
+const VideoPlayer = forwardRef(function VideoPlayer(
+  { src, isActive = false },
+  ref,
+) {
   const { isMuted, toggleMute } = useFeed();
   const videoRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
@@ -62,6 +65,31 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
       videoNode.removeEventListener("pause", onPause);
       videoNode.removeEventListener("timeupdate", onTimeUpdate);
       videoNode.removeEventListener("loadedmetadata", onLoadedMetadata);
+    };
+  }, []);
+
+  useEffect(() => {
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+
+    if (!isActive) {
+      videoNode.pause();
+      setShowControls(false);
+      return;
+    }
+
+    videoNode.play().catch(() => {});
+  }, [isActive]);
+
+  useEffect(() => {
+    return () => {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
     };
   }, []);
 

@@ -1,8 +1,13 @@
 import { UtensilsCrossed } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useFeed } from "../../context/feedContext";
 
 const BottomNav = ({ activePage }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { triggerHomeRefresh } = useFeed();
+
   const navItems = [
     { id: "home", label: "Home", path: "/", icon: "home" },
     { id: "create", label: "Create", path: "/createContent", icon: "create" },
@@ -10,6 +15,14 @@ const BottomNav = ({ activePage }) => {
     { id: "inbox", label: "Inbox", path: "/inbox", icon: "inbox" },
     { id: "profile", label: "Profile", path: "/profile", icon: "profile" },
   ];
+
+  const handleHomeClick = () => {
+    triggerHomeRefresh();
+
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+  };
 
   return (
     <motion.div
@@ -20,6 +33,57 @@ const BottomNav = ({ activePage }) => {
     >
       {navItems.map((item) => {
         const isActive = activePage === item.id;
+
+        if (item.id === "home") {
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={handleHomeClick}
+              className={`flex flex-col items-center justify-center relative flex-1 h-full ${
+                isActive ? "text-lily" : "text-gray-400 dark:text-gray-500"
+              }`}
+            >
+              <motion.div
+                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
+                  isActive
+                    ? "bg-lily/10 dark:bg-lily/20 -mt-4 shadow-lg shadow-lily/20"
+                    : "hover:bg-gray-50 dark:hover:bg-surface-dark"
+                }`}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill={isActive ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+              </motion.div>
+              <span
+                className={`text-xs font-medium mt-1 transition-all duration-300 ${
+                  isActive ? "opacity-100 translate-y-0" : "opacity-70"
+                }`}
+              >
+                {item.label}
+              </span>
+              {isActive && (
+                <motion.div
+                  layoutId="bottomNavIndicator"
+                  className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-lily"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
+            </button>
+          );
+        }
+
         return (
           <Link
             key={item.id}

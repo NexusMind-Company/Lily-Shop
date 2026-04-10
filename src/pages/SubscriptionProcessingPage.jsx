@@ -37,6 +37,7 @@ const SubscriptionProcessingPage = () => {
         await new Promise((res) => setTimeout(res, 800));
 
         const message =
+          err?.response?.data?.error ||
           err?.response?.data?.message ||
           err?.response?.data?.detail ||
           "Something went wrong. Please try again.";

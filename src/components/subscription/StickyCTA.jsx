@@ -1,32 +1,27 @@
 import { ArrowRight } from "lucide-react";
 import PropTypes from "prop-types";
 
-/**
- * StickyCTA component for the subscription call-to-action
- * @param {Object} props - Component props
- * @param {number} props.totalPrice - Total price to display
- * @param {Function} props.onSubscribe - Function to handle subscription
- */
 const StickyCTA = ({ totalPrice, onSubscribe }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#f6f8f6] dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 z-dock pb-8">
-      <div className="flex items-center gap-4 max-w-lg mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-dock border-t border-slate-100 bg-[#f6f8f6] p-4 pb-8 dark:border-slate-800 dark:bg-background-dark">
+      <div className="mx-auto flex max-w-lg items-center gap-4">
         <div className="flex flex-col">
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Total
           </span>
-         <span className="text-2xl font-black text-slate-900 dark:text-white">
-  ₦{Number(totalPrice || 0).toLocaleString()}
-</span>
+          <span className="text-2xl font-black text-slate-900 dark:text-white">
+            ₦{Number(totalPrice || 0).toLocaleString()}
+          </span>
         </div>
-       <button
-  onClick={onSubscribe}
-  disabled={!totalPrice}
-  className="flex-1 bg-[#13ec49] text-green-950 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
->
-  Subscribe Now
-  <ArrowRight />
-</button>
+
+        <button
+          onClick={onSubscribe}
+          disabled={!totalPrice}
+          className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#13ec49] text-lg font-bold text-green-950 shadow-lg shadow-primary/25 transition-all hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Subscribe Now
+          <ArrowRight />
+        </button>
       </div>
     </div>
   );
