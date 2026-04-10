@@ -13,6 +13,15 @@ const FeedContext = createContext(null);
 
 const FEED_PAGE_SIZE = 20;
 
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
   const endpoint =
     activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
@@ -28,7 +37,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (data && data.results) {
     return {
-      items: data.results,
+      items: shuffleArray(data.results),
       nextPage: data.next ? pageParam + 1 : null,
       hasMore: !!data.next,
     };
@@ -36,7 +45,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (data && data.feed) {
     return {
-      items: data.feed,
+      items: shuffleArray(data.feed),
       nextPage: data.feed.length > 0 ? pageParam + 1 : null,
       hasMore: data.feed.length === FEED_PAGE_SIZE,
     };
@@ -44,7 +53,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (Array.isArray(data)) {
     return {
-      items: data,
+      items: shuffleArray(data),
       nextPage: data.length > 0 ? pageParam + 1 : null,
       hasMore: data.length === FEED_PAGE_SIZE,
     };
