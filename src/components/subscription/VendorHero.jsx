@@ -21,7 +21,7 @@ const VendorHero = ({ vendor, reviews = [] }) => {
               style={{
                 backgroundImage: `url("${
                   (() => {
-                    const media = vendor.all_media_urls || vendor.image || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
+                    const media = vendor.profile_pic || vendor.user?.profile_pic || vendor.logo || vendor.image || vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
                     const urlStr = Array.isArray(media) ? media[0] : media;
                     return typeof urlStr === 'string' ? urlStr.replace(/^http:\/\//i, 'https://') : urlStr;
                   })()

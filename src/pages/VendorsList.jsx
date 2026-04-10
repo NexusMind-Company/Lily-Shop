@@ -25,7 +25,7 @@ const SkeletonCard = () => {
 const VendorCard = ({ vendor, onClick }) => {
   const [imageError, setImageError] = React.useState(false);
 
-  const rawUrl = vendor.all_media_urls?.[0];
+  const rawUrl = vendor.profile_pic || vendor.user?.profile_pic || vendor.logo || vendor.image || vendor.all_media_urls?.[0];
   const imageUrl = typeof rawUrl === 'string' ? rawUrl.replace(/^http:\/\//i, 'https://') : rawUrl;
   const showImage = imageUrl && !imageError;
 
