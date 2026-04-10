@@ -20,7 +20,11 @@ const VendorHero = ({ vendor, reviews = [] }) => {
               className="bg-center bg-no-repeat bg-cover rounded-2xl h-24 w-24 shadow-sm"
               style={{
                 backgroundImage: `url("${
-                  vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg"
+                  (() => {
+                    const media = vendor.all_media_urls || vendor.image || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
+                    const urlStr = Array.isArray(media) ? media[0] : media;
+                    return typeof urlStr === 'string' ? urlStr.replace(/^http:\/\//i, 'https://') : urlStr;
+                  })()
                 }")`,
               }}
               alt={`${vendor.name} profile`}
