@@ -1,13 +1,14 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useFeed } from "../../../context/feedContext";
 import ProductItem from "./productItem";
-import { fetchProductDetails } from "../../../services/api";
+import { fetchProductDetails, fetchContentById } from "../../../services/api";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const { posts } = useFeed();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Try to find the product in the loaded feed data.
   // It could be a direct product post, OR a content post that links to a product.
@@ -27,12 +28,37 @@ const ProductDetails = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchProductDetails(id),
-    enabled: !actualProduct, // Only fetch if we don't already have it
+    queryKey: ["product-detail", id],
+    queryFn: async () => {
+      // If we have an itemType hint, try that first
+      const preferredType = location.state?.itemType;
+      
+      if (preferredType === "content") {
+        try {
+          return await fetchContentById(id);
+        } catch (e) {
+          return await fetchProductDetails(id);
+        }
+      }
+      
+      try {
+        // Default: try product detail first
+        return await fetchProductDetails(id);
+      } catch (e) {
+        // Fallback: try content detail
+        try {
+          return await fetchContentById(id);
+        } catch (e2) {
+          throw e; // throw original error if both fail
+        }
+      }
+    },
+    enabled: !actualProduct,
   });
 
-  const product = actualProduct || productFromApi;
+  // If the product comes from content, it might be nested
+  const resolvedProduct = productFromApi?.product || productFromApi;
+  const product = actualProduct || resolvedProduct;
 
   if (isLoading) {
     return (
