@@ -429,7 +429,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             onDoubleClick={handleDoubleTap}
           />
         ) : isVideo ? (
-          <VideoPlayer ref={mediaRef} src={mediaArray[0]?.src} />
+          <VideoPlayer
+            ref={mediaRef}
+            src={mediaArray[0]?.src}
+            isActive={isActive}
+          />
         ) : (
           <img
             ref={mediaRef}

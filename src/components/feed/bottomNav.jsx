@@ -1,12 +1,29 @@
 import { UtensilsCrossed } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useFeed } from "../../context/feedContext";
 
 const BottomNav = ({ activePage }) => {
+  const location = useLocation();
+  const { refreshFeed } = useFeed();
+
+  const handleHomeClick = (e) => {
+    if (location.pathname === "/") {
+      // If already on home, refresh the feed
+      refreshFeed();
+      // Also scroll any scrollable container to top if needed
+      const scrollContainer = document.querySelector(".overflow-y-scroll");
+      if (scrollContainer) {
+        scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <div className="flex md:hidden justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
         to="/"
+        onClick={handleHomeClick}
         className={`flex flex-col items-center relative ${activePage === "home" ? "text-lily" : "text-ash"}`}
       >
         <button className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">

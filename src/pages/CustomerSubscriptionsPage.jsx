@@ -96,6 +96,7 @@ const UnsubscribeModal = ({ plan, onConfirm, onCancel, isLoading }) => (
 );
 
 const SubscriptionCard = ({ sub, onUnsubscribe }) => {
+  const navigate = useNavigate();
   const plan = sub?.plan || sub;
   const vendor = plan?.vendor || sub?.vendor;
 
@@ -148,14 +149,29 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
         </div>
       </div>
 
-      {/* Cancel button — only show for active */}
+      {/* Action buttons — only show for active */}
       {(sub?.status === "active" || !sub?.status) && (
-        <button
-          onClick={() => onUnsubscribe(plan)}
-          className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors"
-        >
-          Cancel Subscription
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() =>
+              navigate(`/meal-selection/${sub?.id}`, {
+                state: {
+                  plan: plan,
+                  vendorId: vendor?.id || sub?.vendor_id,
+                },
+              })
+            }
+            className="w-full py-2.5 rounded-xl bg-[#13ec49] text-[#111813] text-sm font-bold hover:bg-[#11d842] transition-colors"
+          >
+            Select/Manage Meals
+          </button>
+          <button
+            onClick={() => onUnsubscribe(plan)}
+            className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors"
+          >
+            Cancel Subscription
+          </button>
+        </div>
       )}
     </motion.div>
   );

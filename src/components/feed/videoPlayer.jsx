@@ -15,7 +15,7 @@ const formatTime = (time) => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
+const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
   const { isMuted, toggleMute } = useFeed();
   const videoRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
@@ -36,6 +36,22 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
       return videoRef.current;
     },
   }));
+
+  // Handle Play/Pause based on Active State
+  useEffect(() => {
+    if (isActive) {
+      const playPromise = videoRef.current?.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } else {
+      videoRef.current?.pause();
+    }
+
+    return () => {
+      videoRef.current?.pause();
+    };
+  }, [isActive]);
 
   // Handle Mute State
   useEffect(() => {
