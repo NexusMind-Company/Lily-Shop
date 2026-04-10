@@ -22,6 +22,7 @@ const FeedContainer = () => {
     activeTab,
     setActiveTab,
     saveCurrentPost,
+    homeRefreshToken,
   } = useFeed();
 
   const [searchParams] = useSearchParams();
@@ -36,6 +37,16 @@ const FeedContainer = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [hasScrolledToShared, setHasScrolledToShared] = useState(false);
+  const didMountHomeRefreshRef = useRef(false);
+
+  const pauseAllMedia = useCallback(() => {
+    mediaRefs.current.forEach((item) => {
+      const domEl = item?.getDOMNode ? item.getDOMNode() : item;
+      if (domEl && typeof domEl.pause === "function") {
+        domEl.pause();
+      }
+    });
+  }, []);
 
   // ========================================
   // SCROLL TO SHARED POST
@@ -66,6 +77,36 @@ const FeedContainer = () => {
       }
     }
   }, [posts, sharedPostId, hasScrolledToShared]);
+
+  useEffect(() => {
+    if (!didMountHomeRefreshRef.current) {
+      didMountHomeRefreshRef.current = true;
+      if (homeRefreshToken === 0) {
+        return;
+      }
+    }
+
+    if (homeRefreshToken === 0) {
+      return;
+    }
+
+    const runHomeRefresh = async () => {
+      pauseAllMedia();
+      setCurrentPostIndex(0);
+      setHasScrolledToShared(false);
+
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }
+
+      await refreshFeed();
+    };
+
+    runHomeRefresh();
+  }, [homeRefreshToken, pauseAllMedia, refreshFeed]);
 
   // ========================================
   // VIDEO INTERSECTION OBSERVER

@@ -312,7 +312,7 @@ const SubscriptionSuccessPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/my-subscriptions")}
+          onClick={() => navigate("/subscriptions")}
           className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base flex items-center justify-center gap-2"
         >
           View My Subscriptions

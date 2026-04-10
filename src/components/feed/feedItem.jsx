@@ -402,6 +402,16 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   }, [onVideoInit]);
 
+  useEffect(() => {
+    if (
+      !isActive &&
+      mediaRef.current &&
+      typeof mediaRef.current.pause === "function"
+    ) {
+      mediaRef.current.pause();
+    }
+  }, [isActive]);
+
   const handleLike = () => {
     if (!isAuthenticated) return navigate("/login");
     toggleLike();
@@ -479,11 +489,16 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             ref={mediaRef}
             media={mediaArray}
             isFeedCarousel={true}
+            isActive={isActive}
             containerClassName="media-container-cover w-full aspect-square"
             onDoubleClick={handleDoubleTap}
           />
         ) : isVideo ? (
-          <VideoPlayer ref={mediaRef} src={mediaArray[0]?.src} />
+          <VideoPlayer
+            ref={mediaRef}
+            src={mediaArray[0]?.src}
+            isActive={isActive}
+          />
         ) : (
           <img
             ref={mediaRef}

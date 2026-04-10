@@ -285,6 +285,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
@@ -306,7 +307,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const vendorId = propVendorId || paramVendorId;
 
   const [selectedPlan, setSelectedPlan] = useState("weekly");
-  const [selectedPlanIds, setSelectedPlanIds] = useState([]);
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
@@ -350,16 +351,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   });
 
   //  Derived state 
-  const filteredPlans = plans?.results?.filter(plan => plan.frequency === selectedPlan) || [];
-
-  const selectedPlans =
-    plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
-
-  const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0);
-
-  console.log("Selected Plan IDs:", selectedPlanIds);
-  console.log("Selected Plans objects:", selectedPlans);
-  console.log("Total price:", totalPrice);
+  const filteredPlans =
+    plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
+  const selectedPlanData =
+    plans?.results?.find((plan) => plan.id === selectedPlanId) || null;
+  const totalPrice = Number(selectedPlanData?.price || 0);
 
   const menuItems = Array.isArray(mealItemsData)
     ? mealItemsData
@@ -373,14 +369,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const handlePlanChange = (plan) => {
     setSelectedPlan(plan);
-    setSelectedPlanIds([]);
+    setSelectedPlanId(null);
   };
 
   const handlePlanSelect = (planId) => {
-    setSelectedPlanIds((prev) => {
-      if (prev.includes(planId)) return prev.filter(id => id !== planId);
-      return [...prev, planId];
-    });
+    setSelectedPlanId((prev) => (prev === planId ? null : planId));
   };
 
   const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
@@ -388,8 +381,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
   const handleSubscribe = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
+    if (!selectedPlanData) {
+      toast.error("Please select a plan first.");
       return;
     }
     setIsModalOpen(true);
@@ -398,17 +391,17 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleConfirmSubscription = () => {
-    if (selectedPlanIds.length === 0) {
-      alert("Please select at least one plan");
+    if (!selectedPlanData) {
+      toast.error("Please select a plan first.");
       return;
     }
 
     setIsModalOpen(false);
 
-    navigate(`/subscription/payment`, {
+    navigate(`/subscription/payment/${selectedPlanData.id}`, {
       state: {
-        plans: selectedPlans,
-        vendor,
+        plan: selectedPlanData,
+        vendor: vendor || vendorWithMenu,
         totalPrice,
       },
     });
@@ -486,7 +479,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
             <PricingCard
               key={plan.id}
               plan={plan}
-              isSelected={selectedPlanIds.includes(plan.id)}
+              isSelected={selectedPlanId === plan.id}
               isPopular={plan.popular}
               onSelect={handlePlanSelect}
             />
@@ -510,8 +503,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmSubscription}
-        selectedPlans={selectedPlans}
-        vendor={vendor}
+        selectedPlans={selectedPlanData ? [selectedPlanData] : []}
+        vendor={vendor || vendorWithMenu}
         isLoading={false}
       />
     </div>

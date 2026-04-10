@@ -88,11 +88,25 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
 };
 
 const MediaCarousel = forwardRef(function MediaCarousel(
-  { media, isFeedCarousel = false, containerClassName, onDoubleClick },
+  {
+    media,
+    isFeedCarousel = false,
+    containerClassName,
+    onDoubleClick,
+    isActive = false,
+  },
   ref,
 ) {
   const containerRef = useRef(null);
   const videoRefs = useRef({});
+
+  const pauseAllVideos = () => {
+    Object.values(videoRefs.current).forEach((video) => {
+      if (video && typeof video.pause === "function") {
+        video.pause();
+      }
+    });
+  };
 
   useImperativeHandle(ref, () => ({
     play: () => {
@@ -105,13 +119,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       }
     },
     pause: () => {
-      const swiper = containerRef.current?.swiper;
-      if (swiper) {
-        const currentVideo = videoRefs.current[swiper.realIndex];
-        if (currentVideo) {
-          currentVideo.pause();
-        }
-      }
+      pauseAllVideos();
     },
     getDOMNode: () => {
       return containerRef.current;
@@ -136,6 +144,24 @@ const MediaCarousel = forwardRef(function MediaCarousel(
   const finalContainerClass = `relative group ${
     containerClassName || "w-full h-full"
   }`;
+
+  useEffect(() => {
+    const swiper = containerRef.current?.swiper;
+
+    if (!swiper) {
+      return;
+    }
+
+    if (!isActive) {
+      pauseAllVideos();
+      return;
+    }
+
+    const currentVideo = videoRefs.current[swiper.realIndex];
+    if (currentVideo && currentVideo.paused) {
+      currentVideo.play().catch(() => {});
+    }
+  }, [isActive]);
 
   return (
     <div

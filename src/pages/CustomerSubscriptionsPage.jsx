@@ -143,6 +143,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 
 // Import from your api.js — adjust path if needed
 import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
@@ -304,11 +305,17 @@ const CustomerSubscriptionsPage = () => {
   const unsubscribeMutation = useMutation({
     mutationFn: (planId) => unsubscribeFromPlan(planId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["mySubscriptions"]);
+      queryClient.invalidateQueries({ queryKey: ["mySubscriptions"] });
       setPlanToCancel(null);
+      toast.success("Subscription cancelled.");
     },
     onError: (err) => {
       console.error("Unsubscribe error:", err);
+      toast.error(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Couldn't cancel this subscription.",
+      );
     },
   });
 
@@ -385,7 +392,7 @@ const CustomerSubscriptionsPage = () => {
             </div>
             {!searchQuery && (
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/food")}
                 className="bg-[#13ec49] text-[#111813] font-bold px-6 py-3 rounded-xl text-sm"
               >
                 Explore Vendors

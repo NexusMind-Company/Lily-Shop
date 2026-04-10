@@ -1,16 +1,6 @@
 import { ArrowRight, Info, X } from "lucide-react";
 import PropTypes from "prop-types";
 
-/**
- * SubscriptionConfirmationModal component for confirming subscription
- * @param {Object} props - Component props
- * @param {boolean} props.isOpen - Whether the modal is open
- * @param {Function} props.onClose - Function to close the modal
- * @param {Function} props.onConfirm - Function to confirm subscription
- * @param {Object} props.selectedPlan - Selected plan data
- * @param {Object} props.vendor - Vendor data
- * @param {boolean} props.isLoading - Loading state for confirmation
- */
 const SubscriptionConfirmationModal = ({
   isOpen,
   onClose,
@@ -21,140 +11,91 @@ const SubscriptionConfirmationModal = ({
 }) => {
   if (!isOpen) return null;
 
-const totalPrice = selectedPlans?.reduce(
-  (sum, plan) => sum + Number(plan?.price || 0),
-  0
-) ?? 0;
+  const totalPrice =
+    selectedPlans?.reduce((sum, plan) => sum + Number(plan?.price || 0), 0) ??
+    0;
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-[#ffffff] dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[#ffffff] shadow-xl dark:bg-surface-dark">
+        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             Confirm Subscription
           </h2>
           <button
             onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex size-8 items-center justify-center rounded-full transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Vendor Info */}
+        <div className="space-y-6 p-6">
           <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-xl bg-cover bg-center"
+              className="h-12 w-12 rounded-xl bg-cover bg-center"
               style={{
                 backgroundImage: `url("${
-                  vendor?.image || "https://via.placeholder.com/48"
+                  vendor?.image ||
+                  vendor?.image_url ||
+                  "https://via.placeholder.com/48"
                 }")`,
               }}
             />
             <div>
               <h3 className="font-bold text-slate-900 dark:text-white">
-                {vendor?.name}
+                {vendor?.name || "Vendor"}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {vendor?.cuisine} • {vendor?.location}
+                {[vendor?.cuisine, vendor?.location].filter(Boolean).join(" • ")}
               </p>
             </div>
           </div>
 
-          {/* Plan Details */}
-          {/* {selectedPlan && (
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-bold text-slate-900 dark:text-white">
-                  {selectedPlan.plan_name ||
-                    selectedPlan.name ||
-                    "Unnamed Plan"}
-                </h4>
-                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">
-                  {selectedPlan.frequency || selectedPlan.period || "month"}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-3">
-                <span className="text-2xl font-black text-slate-900 dark:text-white">
-                  ₦{selectedPlan.price?.toLocaleString() || "0"}
-                </span>
-                <span className="text-sm font-medium text-slate-500">
-                  /{selectedPlan.frequency || selectedPlan.period || "month"}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {selectedPlan.features?.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
-                  >
-                    <CheckCircle />
-                    {feature}
+          {selectedPlans?.length ? (
+            <div className="space-y-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+              <h4 className="font-bold text-slate-900 dark:text-white">
+                Selected Plan
+              </h4>
+
+              {selectedPlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className="border-b border-slate-200 pb-3 last:border-none dark:border-slate-700"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {plan.plan_name || plan.name}
+                    </span>
+                    <span className="font-bold">
+                      ₦{Number(plan.price).toLocaleString()}
+                    </span>
                   </div>
-                )) || (
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    No features listed for this plan
-                  </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          )} */}
-{selectedPlans?.length ? (
-  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-4">
-    <h4 className="font-bold text-slate-900 dark:text-white">
-      Selected Plans
-    </h4>
+          ) : (
+            <p className="text-sm text-slate-500">
+              No subscription plans selected.
+            </p>
+          )}
 
-    {selectedPlans.map((plan) => (
-      <div
-        key={plan.id}
-        className="border-b border-slate-200 dark:border-slate-700 pb-3 last:border-none"
-      >
-        <div className="flex justify-between items-center">
-          <span className="font-semibold text-slate-900 dark:text-white">
-            {plan.plan_name || plan.name}
-          </span>
-
-          <span className="font-bold">
-            ₦{Number(plan.price).toLocaleString()}
-          </span>
-        </div>
-      </div>
-    ))}
-  </div>
-) : (
-  <p className="text-sm text-slate-500">
-    No subscription plans selected.
-  </p>
-)}
-          {/* Billing Info */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="rounded-xl bg-blue-50 p-4 dark:bg-blue-900/20">
+            <div className="mb-2 flex items-center gap-2">
               <Info />
               <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
                 Billing Information
               </span>
             </div>
 
-            {/* <p className="text-sm text-blue-800 dark:text-blue-200">
-              You will be charged ₦{Number(totalPrice).toLocaleString()} for the{" "}
-              {selectedPlan?.period} plan. Subscription will auto-renew unless
-              cancelled.
-            </p> */}
-
             <p className="text-sm text-blue-800 dark:text-blue-200">
-  You will be charged ₦{Number(totalPrice).toLocaleString()} for the
-  selected subscription plans. Subscription will auto-renew unless
-  cancelled.
-</p>
-
+              You will be charged ₦{Number(totalPrice).toLocaleString()} for the
+              selected subscription plan. Subscription will auto-renew unless
+              cancelled.
+            </p>
           </div>
 
-          {/* Terms */}
-          <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+          <div className="space-y-1 text-xs text-slate-500 dark:text-slate-400">
             <p>
               By subscribing, you agree to our Terms of Service and Privacy
               Policy.
@@ -166,23 +107,22 @@ const totalPrice = selectedPlans?.reduce(
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex gap-3 border-t border-slate-200 p-6 dark:border-slate-700">
           <button
             onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
             disabled={isLoading}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-          disabled={isLoading || !selectedPlans?.length}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#13ec49] text-green-950 font-bold hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            disabled={isLoading || !selectedPlans?.length}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#13ec49] px-4 py-3 font-bold text-green-950 transition-all hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-green-950 border-t-transparent rounded-full animate-spin"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-950 border-t-transparent" />
                 Processing...
               </>
             ) : (
@@ -202,24 +142,18 @@ SubscriptionConfirmationModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onConfirm: PropTypes.func.isRequired,
-  // selectedPlan: PropTypes.shape({
-  //   id: PropTypes.string,
-  //   name: PropTypes.string,
-  //   price: PropTypes.number,
-  //   period: PropTypes.string,
-  //   features: PropTypes.arrayOf(PropTypes.string),
-  // }),
- selectedPlans: PropTypes.arrayOf(
-  PropTypes.shape({
-   id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    name: PropTypes.string,
-    plan_name: PropTypes.string,
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  })
-),
+  selectedPlans: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      name: PropTypes.string,
+      plan_name: PropTypes.string,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  ),
   vendor: PropTypes.shape({
     name: PropTypes.string,
     image: PropTypes.string,
+    image_url: PropTypes.string,
     cuisine: PropTypes.string,
     location: PropTypes.string,
   }),

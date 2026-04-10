@@ -519,28 +519,28 @@ export const updateSubscriptionMeals = async (
   subscriptionId,
   mealSelections,
 ) => {
-  const response = await api.put(`/subscriptions/${subscriptionId}/meals/`, {
+  const response = await api.put(`/foods/subscriptions/${subscriptionId}/meals/`, {
     meal_selections: mealSelections,
   });
   return response.data;
 };
 
 export const cancelSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/cancel/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/cancel/`, {
     reason,
   });
   return response.data;
 };
 
 export const pauseSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/pause/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/pause/`, {
     reason,
   });
   return response.data;
 };
 
 export const resumeSubscription = async (subscriptionId) => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/resume/`);
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/resume/`);
   return response.data;
 };
 
@@ -770,7 +770,7 @@ export const fetchMealPlans = async () => {
 };
 
 export const fetchMealPlan = async (id) => {
-  const res = await api.get(`/foods/subscriptions/${id}/`);
+  const res = await api.get(`/foods/subscriptions/plan/${id}/`);
   return res.data;
 };
 
