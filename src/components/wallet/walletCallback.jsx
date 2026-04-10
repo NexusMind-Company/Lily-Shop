@@ -39,9 +39,21 @@ export default function WalletCallback() {
         // Refresh wallet data
         dispatch(fetchWallet());
 
-        // Redirect to wallet after 2 seconds
+        // Check if we should redirect back to subscription
+        const shouldRedirect = localStorage.getItem("lily_subscription_redirect") === "true";
+        const pendingDataStr = localStorage.getItem("lily_pending_subscription_data");
+        
+        // Redirect after short delay
         setTimeout(() => {
-          navigate("/wallet?status=success");
+          if (shouldRedirect && pendingDataStr) {
+            const pendingData = JSON.parse(pendingDataStr);
+            localStorage.removeItem("lily_subscription_redirect");
+            // Note: we don't clear lily_pending_subscription_data yet, 
+            // the processing page will do it after successful subscription.
+            navigate("/subscription/processing", { state: pendingData });
+          } else {
+            navigate("/wallet?status=success");
+          }
         }, 2000);
       })
       .catch((error) => {

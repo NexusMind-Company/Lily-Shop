@@ -101,7 +101,7 @@ export const fetchDailyPrepList = async (date = null) => {
  *                       start_date, end_date, status, duration_days }
  */
 export const fetchVendorSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/vendor/subscriptions/", { params });
+  const response = await api.get("/foods/subscriptions/vendor/", { params });
   return response.data;
 };
 
@@ -111,7 +111,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * Response: [{ id, customer_name, requested_plan, requested_at, meal_preferences }]
  */
 export const fetchSubscriptionRequests = async () => {
-  const response = await api.get("/foods/vendor/subscriptions/requests/");
+  const response = await api.get("/foods/subscriptions/vendor/requests/");
   return response.data;
 };
 

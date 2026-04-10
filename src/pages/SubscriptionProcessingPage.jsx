@@ -33,6 +33,9 @@ const SubscriptionProcessingPage = () => {
             subscription: result?.subscription || result,
           },
         });
+        
+        // Clear pending subscription data
+        localStorage.removeItem("lily_pending_subscription_data");
       } catch (err) {
         await new Promise((res) => setTimeout(res, 800));
 
