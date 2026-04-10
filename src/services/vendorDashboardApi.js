@@ -19,7 +19,7 @@ import { api } from "./api";
  *             cancelled_subscriptions, net_growth }
  */
 export const fetchVendorDashboardOverview = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/dashboard/overview/");
+  const response = await api.get("/foods/vendor/dashboard/overview/");
   return response.data;
 };
 
@@ -30,7 +30,7 @@ export const fetchVendorDashboardOverview = async () => {
  * Response: { labels: [...], new_subscribers: [...], lost_subscribers: [...] }
  */
 export const fetchSubscriberGrowth = async (period = "weekly") => {
-  const response = await api.get("/foods/subscriptions/vendor/dashboard/subscriber-growth/", {
+  const response = await api.get("/foods/vendor/dashboard/subscriber-growth/", {
     params: { period },
   });
   return response.data;
@@ -42,7 +42,7 @@ export const fetchSubscriberGrowth = async (period = "weekly") => {
  * Response: [{ id, customer_name, action, meal_plan, timestamp }]
  */
 export const fetchRecentActivity = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/dashboard/recent-activity/");
+  const response = await api.get("/foods/vendor/dashboard/recent-activity/");
   return response.data;
 };
 
@@ -59,7 +59,7 @@ export const fetchRecentActivity = async () => {
  *                meal_plan, status, created_at }
  */
 export const fetchVendorOrders = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/orders/", { params });
+  const response = await api.get("/foods/vendor/orders/", { params });
   return response.data;
 };
 
@@ -70,7 +70,7 @@ export const fetchVendorOrders = async (params = {}) => {
  * Response: updated order object
  */
 export const updateOrderStatus = async (orderId, status) => {
-  const response = await api.patch(`/foods/subscriptions/vendor/orders/${orderId}/status/`, {
+  const response = await api.patch(`/foods/vendor/orders/${orderId}/status/`, {
     status,
   });
   return response.data;
@@ -84,7 +84,7 @@ export const updateOrderStatus = async (orderId, status) => {
  */
 export const fetchDailyPrepList = async (date = null) => {
   const params = date ? { date } : {};
-  const response = await api.get("/foods/subscriptions/vendor/orders/daily-prep-list/", { params });
+  const response = await api.get("/foods/vendor/orders/daily-prep-list/", { params });
   return response.data;
 };
 
@@ -101,7 +101,7 @@ export const fetchDailyPrepList = async (date = null) => {
  *                       start_date, end_date, status, duration_days }
  */
 export const fetchVendorSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/", { params });
+  const response = await api.get("/foods/vendor/", { params });
   return response.data;
 };
 
@@ -111,7 +111,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * Response: [{ id, customer_name, requested_plan, requested_at, meal_preferences }]
  */
 export const fetchSubscriptionRequests = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/requests/");
+  const response = await api.get("/foods/vendor/requests/");
   return response.data;
 };
 
@@ -122,7 +122,7 @@ export const fetchSubscriptionRequests = async () => {
  */
 export const acceptSubscriptionRequest = async (requestId) => {
   const response = await api.post(
-    `/foods/subscriptions/vendor/subscriptions/requests/${requestId}/accept/`
+    `/foods/vendor/subscriptions/requests/${requestId}/accept/`
   );
   return response.data;
 };
@@ -135,7 +135,7 @@ export const acceptSubscriptionRequest = async (requestId) => {
  */
 export const declineSubscriptionRequest = async (requestId, reason = "") => {
   const response = await api.post(
-    `/foods/subscriptions/vendor/subscriptions/requests/${requestId}/decline/`,
+    `/foods/vendor/subscriptions/requests/${requestId}/decline/`,
     { reason }
   );
   return response.data;
@@ -152,7 +152,7 @@ export const declineSubscriptionRequest = async (requestId, reason = "") => {
  * Response: { success: true, plan_id }
  */
 export const enableMonthlyPlan = async (planData) => {
-  const response = await api.post("/foods/subscriptions/vendor/plans/monthly/enable/", planData);
+  const response = await api.post("/foods/vendor/plans/monthly/enable/", planData);
   return response.data;
 };
 
@@ -163,7 +163,7 @@ export const enableMonthlyPlan = async (planData) => {
  * Response: updated plan object
  */
 export const updateMonthlyPlan = async (planId, planData) => {
-  const response = await api.patch(`/foods/subscriptions/vendor/plans/monthly/${planId}/`, planData);
+  const response = await api.patch(`/foods/vendor/plans/monthly/${planId}/`, planData);
   return response.data;
 };
 
@@ -177,7 +177,7 @@ export const updateMonthlyPlan = async (planId, planData) => {
  * Response: [{ id, name, price, size_category, image_url, is_available, created_at }]
  */
 export const fetchVendorMenu = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/menu/");
+  const response = await api.get("/foods/vendor/menu/");
   return response.data;
 };
 
@@ -196,7 +196,7 @@ export const addMeal = async (mealData) => {
   if (mealData.description) formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
 
-  const response = await api.post("/foods/subscriptions/vendor/menu/", formData, {
+  const response = await api.post("/foods/vendor/menu/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
@@ -218,7 +218,7 @@ export const updateMeal = async (mealId, mealData) => {
     formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
 
-  const response = await api.patch(`/foods/subscriptions/vendor/menu/${mealId}/`, formData, {
+  const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
@@ -230,7 +230,7 @@ export const updateMeal = async (mealId, mealData) => {
  * Response: 204 No Content
  */
 export const deleteMealItem = async (mealId) => {
-  const response = await api.delete(`/foods/subscriptions/vendor/menu/${mealId}/`);
+  const response = await api.delete(`/foods/vendor/menu/${mealId}/`);
   return response.data;
 };
 
@@ -245,7 +245,7 @@ export const deleteMealItem = async (mealId) => {
  *             max_meals_per_day, is_sold_out }
  */
 export const fetchAvailability = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/availability/");
+  const response = await api.get("/foods/vendor/availability/");
   return response.data;
 };
 
@@ -257,7 +257,7 @@ export const fetchAvailability = async () => {
  * Response: updated availability object
  */
 export const updateAvailability = async (availabilityData) => {
-  const response = await api.put("/foods/subscriptions/vendor/availability/", availabilityData);
+  const response = await api.put("/foods/vendor/availability/", availabilityData);
   return response.data;
 };
 
@@ -272,7 +272,7 @@ export const updateAvailability = async (availabilityData) => {
  *             delivery_window_end, is_enabled }
  */
 export const fetchCutoffSettings = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/cutoff-settings/");
+  const response = await api.get("/foods/vendor/cutoff-settings/");
   return response.data;
 };
 
@@ -285,7 +285,7 @@ export const fetchCutoffSettings = async () => {
  * Response: updated settings object
  */
 export const updateCutoffSettings = async (settingsData) => {
-  const response = await api.put("/foods/subscriptions/vendor/cutoff-settings/", settingsData);
+  const response = await api.put("/foods/vendor/cutoff-settings/", settingsData);
   return response.data;
 };
 
@@ -300,7 +300,7 @@ export const updateCutoffSettings = async (settingsData) => {
  *             pause_existing_subscriptions }
  */
 export const fetchShopStatus = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/shop-status/");
+  const response = await api.get("/foods/vendor/shop-status/");
   return response.data;
 };
 
@@ -311,7 +311,7 @@ export const fetchShopStatus = async () => {
  * Response: { success: true, paused_at }
  */
 export const pauseShop = async (pauseData) => {
-  const response = await api.post("/foods/subscriptions/vendor/shop-status/pause/", pauseData);
+  const response = await api.post("/foods/vendor/shop-status/pause/", pauseData);
   return response.data;
 };
 
@@ -321,7 +321,7 @@ export const pauseShop = async (pauseData) => {
  * Response: { success: true, resumed_at }
  */
 export const resumeShop = async () => {
-  const response = await api.post("/foods/subscriptions/vendor/shop-status/resume/");
+  const response = await api.post("/foods/vendor/shop-status/resume/");
   return response.data;
 };
 
@@ -336,7 +336,7 @@ export const resumeShop = async () => {
  *             daily_earnings, weekly_earnings, monthly_earnings }
  */
 export const fetchEarningsSummary = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/earnings/summary/");
+  const response = await api.get("/foods/vendor/earnings/summary/");
   return response.data;
 };
 
@@ -348,7 +348,7 @@ export const fetchEarningsSummary = async () => {
  *             platform_fee, net, payment_date, subscription_plan, status }] }
  */
 export const fetchEarningsHistory = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/earnings/history/", { params });
+  const response = await api.get("/foods/vendor/earnings/history/", { params });
   return response.data;
 };
 
@@ -359,7 +359,7 @@ export const fetchEarningsHistory = async (params = {}) => {
  * Response: { labels: [...], earnings: [...] }
  */
 export const fetchEarningsChart = async (period = "weekly") => {
-  const response = await api.get("/foods/subscriptions/vendor/earnings/chart/", {
+  const response = await api.get("/foods/vendor/earnings/chart/", {
     params: { period },
   });
   return response.data;
@@ -375,7 +375,7 @@ export const fetchEarningsChart = async (period = "weekly") => {
  * Response: [{ id, name, price, image_url?, is_available }]
  */
 export const fetchAddons = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/addons/");
+  const response = await api.get("/foods/vendor/addons/");
   return response.data;
 };
 
@@ -392,7 +392,7 @@ export const createAddon = async (addonData) => {
   if (addonData.description) formData.append("description", addonData.description);
   if (addonData.image instanceof File) formData.append("image", addonData.image);
 
-  const response = await api.post("/foods/subscriptions/vendor/addons/", formData, {
+  const response = await api.post("/foods/vendor/addons/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
@@ -405,7 +405,7 @@ export const createAddon = async (addonData) => {
  * Response: updated addon object
  */
 export const updateAddon = async (addonId, addonData) => {
-  const response = await api.patch(`/foods/subscriptions/vendor/addons/${addonId}/`, addonData);
+  const response = await api.patch(`/foods/vendor/addons/${addonId}/`, addonData);
   return response.data;
 };
 
@@ -415,7 +415,7 @@ export const updateAddon = async (addonId, addonData) => {
  * Response: 204 No Content
  */
 export const deleteAddon = async (addonId) => {
-  const response = await api.delete(`/foods/subscriptions/vendor/addons/${addonId}/`);
+  const response = await api.delete(`/foods/vendor/addons/${addonId}/`);
   return response.data;
 };
 
@@ -430,7 +430,7 @@ export const deleteAddon = async (addonId) => {
  *             last_message_time, unread_count }]
  */
 export const fetchVendorConversations = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/conversations/");
+  const response = await api.get("/foods/vendor/conversations/");
   return response.data;
 };
 
@@ -442,7 +442,7 @@ export const fetchVendorConversations = async () => {
  */
 export const fetchConversationMessages = async (conversationId, params = {}) => {
   const response = await api.get(
-    `/foods/subscriptions/vendor/conversations/${conversationId}/messages/`,
+    `/foods/vendor/conversations/${conversationId}/messages/`,
     { params }
   );
   return response.data;
@@ -456,7 +456,7 @@ export const fetchConversationMessages = async (conversationId, params = {}) => 
  */
 export const sendMessageToCustomer = async (conversationId, text) => {
   const response = await api.post(
-    `/foods/subscriptions/vendor/conversations/${conversationId}/messages/`,
+    `/foods/vendor/conversations/${conversationId}/messages/`,
     { text }
   );
   return response.data;
@@ -473,7 +473,7 @@ export const sendMessageToCustomer = async (conversationId, text) => {
  * Response: { success: true, recipients_count, sent_at }
  */
 export const sendBroadcastMessage = async (broadcastData) => {
-  const response = await api.post("/foods/subscriptions/vendor/broadcast/", broadcastData);
+  const response = await api.post("/foods/vendor/broadcast/", broadcastData);
   return response.data;
 };
 
@@ -483,7 +483,7 @@ export const sendBroadcastMessage = async (broadcastData) => {
  * Response: [{ id, title, message, recipients_count, sent_at }]
  */
 export const fetchBroadcastHistory = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/broadcast/history/");
+  const response = await api.get("/foods/vendor/broadcast/history/");
   // Handle both plain array and paginated { results: [...] } responses
   const data = response.data;
   return Array.isArray(data) ? data : (data?.results ?? []);
@@ -501,7 +501,7 @@ export const fetchBroadcastHistory = async () => {
  *             review, customer_name, created_at }] }
  */
 export const fetchMealRatings = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/ratings/", { params });
+  const response = await api.get("/foods/vendor/ratings/", { params });
   return response.data;
 };
 
@@ -512,7 +512,7 @@ export const fetchMealRatings = async (params = {}) => {
  *             common_removal (e.g. "onions 80%") }]
  */
 export const fetchRatingsSummary = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/ratings/summary/");
+  const response = await api.get("/foods/vendor/ratings/summary/");
   return response.data;
 };
 
@@ -528,7 +528,7 @@ export const fetchRatingsSummary = async () => {
  *             customer_avatar, last_plan, cancelled_at, days_since_cancel }] }
  */
 export const fetchChurnedCustomers = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/churn/", { params });
+  const response = await api.get("/foods/vendor/churn/", { params });
   return response.data;
 };
 
@@ -540,7 +540,7 @@ export const fetchChurnedCustomers = async (params = {}) => {
  */
 export const sendWinbackOffer = async (customerId, offerData) => {
   const response = await api.post(
-    `/foods/subscriptions/vendor/churn/${customerId}/offer-discount/`,
+    `/foods/vendor/churn/${customerId}/offer-discount/`,
     offerData
   );
   return response.data;
@@ -560,7 +560,7 @@ export const sendWinbackOffer = async (customerId, offerData) => {
  *             top_performing_plans: [...] }
  */
 export const fetchVendorAnalytics = async (period = "monthly") => {
-  const response = await api.get("/foods/subscriptions/vendor/analytics/", { params: { period } });
+  const response = await api.get("/foods/vendor/analytics/", { params: { period } });
   return response.data;
 };
 
@@ -575,7 +575,7 @@ export const fetchVendorAnalytics = async (period = "monthly") => {
  * Response: { success: true, reference, estimated_arrival }
  */
 export const initiateEarningsPayout = async (payoutData) => {
-  const response = await api.post("/foods/subscriptions/vendor/earnings/payout/", payoutData);
+  const response = await api.post("/foods/vendor/earnings/payout/", payoutData);
   return response.data;
 };
 
@@ -590,7 +590,7 @@ export const initiateEarningsPayout = async (payoutData) => {
  *             includes_delivery, extras: [{ name, price }] }]
  */
 export const fetchVendorPackages = async () => {
-  const response = await api.get("/foods/subscriptions/vendor/packages/");
+  const response = await api.get("/foods/vendor/packages/");
   return response.data;
 };
 
@@ -601,7 +601,7 @@ export const fetchVendorPackages = async () => {
  *         includes_delivery, extras: [{ name, price }] }
  */
 export const createVendorPackage = async (data) => {
-  const response = await api.post("/foods/subscriptions/vendor/packages/", data);
+  const response = await api.post("/foods/vendor/packages/", data);
   return response.data;
 };
 
@@ -610,7 +610,7 @@ export const createVendorPackage = async (data) => {
  * Updates an existing package.
  */
 export const updateVendorPackage = async (packageId, data) => {
-  const response = await api.patch(`/foods/subscriptions/vendor/packages/${packageId}/`, data);
+  const response = await api.patch(`/foods/vendor/packages/${packageId}/`, data);
   return response.data;
 };
 
@@ -618,6 +618,6 @@ export const updateVendorPackage = async (packageId, data) => {
  * DELETE /vendor/packages/{packageId}/
  */
 export const deleteVendorPackage = async (packageId) => {
-  const response = await api.delete(`/foods/subscriptions/vendor/packages/${packageId}/`);
+  const response = await api.delete(`/foods/vendor/packages/${packageId}/`);
   return response.data;
 };
