@@ -10,7 +10,7 @@ const SubscriptionDetailsPage = () => {
 
   // This receives everything passed from VendorSubscriptionPage
   const {
-    plans,
+    plan,
     vendor,
     totalPrice,
     selectedDays,
@@ -47,7 +47,7 @@ const handleConfirm = () => {
   setIsModalOpen(false);
   navigate("/subscription/payment", {
     state: {
-      plans,
+      plan,
       vendor,
       totalPrice,
       selectedDays,
@@ -202,7 +202,7 @@ const handleCloseModal = () => setIsModalOpen(false);
   isOpen={isModalOpen}
   onClose={handleCloseModal}
   onConfirm={handleConfirm}
-  selectedPlans={plans}
+  selectedPlans={plan ? [plan] : []}
   vendor={vendor}
   totalPrice={totalPrice}
   selectedDays={selectedDays}

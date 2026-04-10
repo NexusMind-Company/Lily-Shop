@@ -460,7 +460,7 @@ export const setDefaultAddress = async (addressId) => {
 };
 
 export const fetchPickupLocations = async () => {
-  const response = await api.get("/pickup-locations/");
+  const response = await api.get("/shops/pickup-locations/");
   return response.data;
 };
 
@@ -521,10 +521,6 @@ export const createSubscription = async (plan_id) => {
   return response.data;
 };
 
-export const getWalletBalance = async () => {
-  const response = await api.get("/wallet/me/");
-  return response.data;
-};
 
 export const getUserSubscriptions = async () => {
   const response = await api.get("/foods/subscriptions/me/");
@@ -535,28 +531,28 @@ export const updateSubscriptionMeals = async (
   subscriptionId,
   mealSelections,
 ) => {
-  const response = await api.put(`/subscriptions/${subscriptionId}/meals/`, {
+  const response = await api.put(`/foods/subscriptions/${subscriptionId}/meals/`, {
     meal_selections: mealSelections,
   });
   return response.data;
 };
 
 export const cancelSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/cancel/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/cancel/`, {
     reason,
   });
   return response.data;
 };
 
 export const pauseSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/pause/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/pause/`, {
     reason,
   });
   return response.data;
 };
 
 export const resumeSubscription = async (subscriptionId) => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/resume/`);
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/resume/`);
   return response.data;
 };
 
@@ -791,7 +787,7 @@ export const fetchMealPlans = async () => {
 };
 
 export const fetchMealPlan = async (id) => {
-  const res = await api.get(`/foods/subscriptions/${id}/`);
+  const res = await api.get(`/foods/subscriptions/plan/${id}/`);
   return res.data;
 };
 
@@ -802,7 +798,7 @@ export const subscribeToPlan = async () => {
 
 export const unsubscribeFromPlan = async (planId) => {
   const response = await api.post(
-    `/foods/subscriptions/${planId}/unsubscribe/`,
+    `/foods/subscriptions/plan/${planId}/unsubscribe/`,
   );
   return response.data;
 };
@@ -862,7 +858,7 @@ export const createSubscriptionPlan = async (planData) => {
 
 export const deleteMealPlan = async (mealPlanId) => {
   const response = await api.delete(
-    `/foods/subscriptions/${mealPlanId}/delete/`,
+    `/foods/subscriptions/plan/${mealPlanId}/delete/`,
   );
   return response.data;
 };
@@ -911,7 +907,7 @@ export const fetchSubscribedVendors = async () => {
 };
 
 export const fetchVendorSubscriptions = async (vendorId) => {
-  const response = await api.get(`/foods/subscriptions/${vendorId}/`);
+  const response = await api.get(`/foods/subscriptions/vendors/${vendorId}/plans/`);
   return response.data;
 };
 

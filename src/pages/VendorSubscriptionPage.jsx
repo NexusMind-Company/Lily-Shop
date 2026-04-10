@@ -140,37 +140,36 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
   };
 
   const handlePlanSelect = (planId) => {
-    setSelectedPlanIds((prev) => {
-      if (prev.includes(planId)) return prev.filter(id => id !== planId);
-      return [...prev, planId];
-    });
+    setSelectedPlanIds([planId]);
   };
 
   const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
   const handleMealClick = (meal) => setSelectedMeal(meal);
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
-const handleSubscribe = () => {
-  if (selectedPlanIds.length === 0) {
-    alert("Please select at least one plan");
-    return;
-  }
-  if (selectedDays.length === 0) {
-    alert("Please select at least one delivery day");
-    return;
-  }
-  navigate("/subscription/details", {
-    state: {
-      plans: selectedPlans,
-      vendor,
-      totalPrice,
-      selectedDays,
-      quantity,
-      addExtra,
-      extraPrice: EXTRA_PRICE,
-    },
-  });
-};
+  const handleSubscribe = () => {
+    if (selectedPlanIds.length === 0) {
+      alert("Please select a plan to continue");
+      return;
+    }
+    if (selectedDays.length === 0) {
+      alert("Please select at least one delivery day");
+      return;
+    }
+
+    const plan = selectedPlans[0];
+    navigate("/subscription/details", {
+      state: {
+        plan,
+        vendor,
+        totalPrice,
+        selectedDays,
+        quantity,
+        addExtra,
+        extraPrice: EXTRA_PRICE,
+      },
+    });
+  };
 
 //   const handleCloseModal = () => setIsModalOpen(false);
 

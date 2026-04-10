@@ -15,7 +15,7 @@ const SubscriptionPaymentPage = () => {
   // const { planId } = useParams();
   const { state } = useLocation();
 
- const plans = state?.plans || [];
+  const plan = state?.plan;
 const vendor = state?.vendor;
 const totalPrice = state?.totalPrice || 0;
 const selectedDays = state?.selectedDays || [];
@@ -29,10 +29,10 @@ const collectionCode = state?.collectionCode;
 
   // If no state was passed (e.g. direct URL navigation), go back
 useEffect(() => {
-  if (!plans?.length) {
+  if (!plan) {
     navigate(-1);
   }
-}, [plans, navigate]);
+}, [plan, navigate]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
@@ -48,7 +48,8 @@ const vendorReceives = planPrice * 0.9;
 const handlePayWithWallet = () => {
   navigate("/subscription/processing", {
     state: {
-      plans,
+      planId: plan?.id,
+      plan,
       vendor,
       totalPrice,
       selectedDays,
@@ -67,7 +68,7 @@ const handlePayWithWallet = () => {
     navigate("/wallet/topup");
   };
 
-if (!plans?.length) return null;
+if (!plan) return null;
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
@@ -132,15 +133,15 @@ if (!plans?.length) return null;
 
           <div className="border-t border-gray-100 pt-4 space-y-3">
 
-  {/* Plans list */}
-  {plans.map((plan) => (
-    <div key={plan.id} className="flex items-center justify-between">
+  {/* Plan details */}
+  {plan && (
+    <div className="flex items-center justify-between">
       <span className="text-gray-500 text-sm">{plan.plan_name}</span>
       <span className="font-semibold text-[#111813] text-sm">
         ₦{formatPrice(plan.price)}
       </span>
     </div>
-  ))}
+  )}
 
   {/* Delivery Days */}
   <div className="flex items-center justify-between">
