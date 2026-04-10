@@ -643,7 +643,7 @@ export const createMeal = async (mealData) => {
   return response.data;
 };
 
-export const createFoodVendorProfile = async (vendorData) => {
+export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
   formData.append("shop_name", vendorData.shop_name);
   formData.append("description", vendorData.description);
