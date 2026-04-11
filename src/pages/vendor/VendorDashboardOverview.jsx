@@ -17,9 +17,9 @@ import {
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
 import { updateFoodVendor } from "../../services/api";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { MapPin, Edit3, Check, X } from "lucide-react";
+import { MapPin, Edit3, Check, X, Camera } from "lucide-react";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
@@ -80,6 +80,8 @@ const VendorDashboardOverview = () => {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState("");
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleUpdateAddress = async () => {
     if (!newAddress.trim()) {
@@ -104,6 +106,24 @@ const VendorDashboardOverview = () => {
       toast.error("Failed to update address. Please try again.");
     } finally {
       setIsSavingAddress(false);
+    }
+  };
+
+  const handleProfilePicChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingProfilePic(true);
+    try {
+      await updateFoodVendor({ media: [file] });
+      toast.success("Profile picture updated successfully!");
+      // Reload profile to show updated picture
+      window.location.reload();
+    } catch (err) {
+      console.error("Error updating profile picture:", err);
+      toast.error("Failed to update profile picture. Please try again.");
+    } finally {
+      setIsUploadingProfilePic(false);
     }
   };
 
@@ -163,7 +183,7 @@ const VendorDashboardOverview = () => {
 
   return (
     <VendorLayout title="Overview">
-      {/* Welcome & Quick Address Fix */}
+      {/* Welcome & Quick Actions */}
       <div className="flex items-start justify-between group">
         <div className="pt-1">
           <p className="text-xs text-gray-400 font-medium">Good afternoon 👋</p>
@@ -171,38 +191,59 @@ const VendorDashboardOverview = () => {
             {profileData?.user?.username ?? "Vendor"}
           </h2>
         </div>
-        {!isEditingAddress ? (
+        <div className="flex gap-2">
+          {!isEditingAddress ? (
+            <button 
+              onClick={() => setIsEditingAddress(true)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
+            >
+              <MapPin size={12} /> Update Address
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 p-1.5 rounded-xl shadow-sm">
+              <input 
+                type="text"
+                placeholder="Enter street address..."
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                className="text-xs px-2 py-1 outline-none text-black dark:bg-transparent dark:text-white min-w-[150px]"
+                autoFocus
+              />
+              <button 
+                disabled={isSavingAddress}
+                onClick={handleUpdateAddress}
+                className="p-1 text-[#4eb75e] hover:bg-green-50 rounded-lg disabled:opacity-50"
+              >
+                 {isSavingAddress ? <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" /> : <Check size={14} />}
+              </button>
+              <button 
+                 onClick={() => setIsEditingAddress(false)}
+                 className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleProfilePicChange}
+            accept="image/*"
+            className="hidden"
+          />
           <button 
-            onClick={() => setIsEditingAddress(true)}
-            className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingProfilePic}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors disabled:opacity-50"
           >
-            <MapPin size={12} /> Update Address
+            {isUploadingProfilePic ? (
+              <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" />
+            ) : (
+              <Camera size={12} />
+            )}
+            Update Photo
           </button>
-        ) : (
-          <div className="flex items-center gap-2 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 p-1.5 rounded-xl shadow-sm">
-            <input 
-              type="text"
-              placeholder="Enter street address..."
-              value={newAddress}
-              onChange={(e) => setNewAddress(e.target.value)}
-              className="text-xs px-2 py-1 outline-none text-black dark:bg-transparent dark:text-white min-w-[150px]"
-              autoFocus
-            />
-            <button 
-              disabled={isSavingAddress}
-              onClick={handleUpdateAddress}
-              className="p-1 text-[#4eb75e] hover:bg-green-50 rounded-lg disabled:opacity-50"
-            >
-               {isSavingAddress ? <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" /> : <Check size={14} />}
-            </button>
-            <button 
-               onClick={() => setIsEditingAddress(false)}
-               className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
+        </div>
       </div>
 
       {(growthError || activityError) && (

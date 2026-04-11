@@ -679,6 +679,11 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
+  if (vendorData.media) {
+    vendorData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
 
   const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
     headers: {
