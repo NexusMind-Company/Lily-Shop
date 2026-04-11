@@ -6,7 +6,7 @@ import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
 import StickyCTA from "../components/subscription/StickyCTA";
 import { fetchVendorDetails, fetchReviewsForVendor } from "../services/subscriptionApi";
-import { ArrowLeft, MoreVertical, BadgeCheck, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Clock, MapPin } from "lucide-react";
 import {
   fetchMealPlansByVendor,
   fetchFoodVendor,
@@ -240,12 +240,6 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
           <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
             Vendor Profile
           </h2>
-          <button
-            onClick={handleMore}
-            className="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-          >
-            <MoreVertical />
-          </button>
         </div>
       </div>
 
