@@ -140,7 +140,9 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
   };
 
   const handlePlanSelect = (planId) => {
-    setSelectedPlanIds([planId]);
+    setSelectedPlanIds((prev) =>
+      prev.includes(planId) ? prev.filter((id) => id !== planId) : [planId]
+    );
   };
 
   const handleViewAllMenu = () => navigate("/vendor/dashboard/menu");
@@ -253,7 +255,7 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
         </div>
       </div>
 
-      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} />
+      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} hasSubscriptionPlans={filteredPlans.length > 0} />
       
       {/* Address Display for Selection Transparency */}
       {selectedPlanIds.length > 0 && selectedPlans[0]?.address && (

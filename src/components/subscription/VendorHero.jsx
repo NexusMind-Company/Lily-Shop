@@ -6,8 +6,9 @@ import PropTypes from "prop-types";
  * @param {Object} props - Component props
  * @param {Object} props.vendor - Vendor data
  * @param {Array} props.reviews - Array of vendor reviews
+ * @param {boolean} props.hasSubscriptionPlans - Whether vendor has subscription plans available
  */
-const VendorHero = ({ vendor, reviews = [] }) => {
+const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
   if (!vendor) return null;
 
   return (
@@ -55,13 +56,18 @@ const VendorHero = ({ vendor, reviews = [] }) => {
                 Phone: {vendor.phone}
               </p>
             )}
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
                 {vendor.rating} <Star className="text-[12px] ml-0.5" />
               </span>
               <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                 ({vendor.reviewCount} reviews)
               </span>
+              {hasSubscriptionPlans && (
+                <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
+                  Subscription Plan Available
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -142,6 +148,7 @@ VendorHero.propTypes = {
       created_at: PropTypes.string.isRequired,
     })
   ),
+  hasSubscriptionPlans: PropTypes.bool,
 };
 
 export default VendorHero;
