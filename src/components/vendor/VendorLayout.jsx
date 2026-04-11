@@ -154,7 +154,7 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
 
           {/* Right */}
           <button 
-            onClick={() => navigate("/notifications")}
+            onClick={() => navigate("/vendor/dashboard/messages")}
             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Bell size={20} />
