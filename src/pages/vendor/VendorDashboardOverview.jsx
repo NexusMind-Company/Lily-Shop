@@ -255,33 +255,33 @@ const VendorDashboardOverview = () => {
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate("/editProfile")}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
           >
             <Edit3 size={16} className="text-[#4eb75e]" />
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Edit Profile</span>
           </button>
           <button
             onClick={() => navigate("/vendor/plans")}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
           >
             <Settings size={16} className="text-blue-500" />
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
           </button>
           <button
             onClick={() => navigate("/vendor/plans/create")}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
           >
             <Plus size={16} className="text-[#4eb75e]" />
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
           </button>
           <button
             onClick={() => navigate("/delete-vendor-profile")}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
           >
             <Trash2 size={16} className="text-red-500" />
             <span className="text-xs font-semibold text-red-600 dark:text-red-400">Delete Profile</span>
@@ -289,14 +289,14 @@ const VendorDashboardOverview = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         <StatCard icon={ShoppingBag} label="Today's Orders" value={o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
         <StatCard icon={UtensilsCrossed} label="Meals to Prepare" value={o.meals_to_prepare ?? "—"} color="bg-orange-400" />
         <StatCard icon={Users} label="Active Subscriptions" value={o.active_subscriptions ?? "—"} color="bg-blue-500" sub={`+${o.new_subscribers_this_week ?? 0} this week`} subUp />
         <StatCard icon={TrendingUp} label="Weekly Revenue" value={`₦${(o.weekly_revenue ?? 0).toLocaleString()}`} color="bg-purple-500" sub="vs last week" subUp />
       </div>
 
-      <div className="bg-[#4eb75e] rounded-2xl px-5 py-4 flex items-center justify-between shadow-md cursor-pointer" onClick={() => navigate("/vendor/dashboard/earnings")}>
+      <div className="bg-[#4eb75e] rounded-2xl px-5 py-4 flex items-center justify-between shadow-md cursor-pointer mb-4" onClick={() => navigate("/vendor/dashboard/earnings")}>
         <div>
           <p className="text-green-100 text-xs font-medium mb-0.5">Total Earnings</p>
           <p className="text-white text-2xl font-bold">₦{(o.total_earnings ?? 0).toLocaleString()}</p>
@@ -304,9 +304,9 @@ const VendorDashboardOverview = () => {
         <div className="bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center text-white font-bold text-xl">₦</div>
       </div>
 
-      <div>
+      <div className="mb-4">
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">This Week's Growth</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {[
             { label: "New Subscribers", value: o.new_subscribers_this_week ?? 0, icon: UserPlus, color: "bg-[#4eb75e]" },
             { label: "Cancelled", value: o.cancelled_subscriptions ?? 0, icon: UserMinus, color: "bg-red-400" },
