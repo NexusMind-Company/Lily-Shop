@@ -612,3 +612,27 @@ export const updateMealPlan = async (id, payload) => {
 //
 // These will need to be implemented on the backend or the frontend components will need to be updated
 // to work without these features.
+
+/**
+ * Update subscription preferences (dietary, allergies, portion size, etc.)
+ * @param {string} subscriptionId - The subscription ID
+ * @param {Object} preferencesData - The preferences data
+ * @param {string} preferencesData.preferred_delivery_days - Array of delivery days
+ * @param {Object} preferencesData.dietary_preferences - Dietary preferences
+ * @param {Array} preferencesData.allergies - List of allergies
+ * @param {string} preferencesData.portion_size - Portion size (small, regular, large)
+ * @param {string} preferencesData.special_instructions - Special instructions
+ * @returns {Promise<Object>} Updated subscription data
+ */
+export const updateSubscriptionPreferences = async (subscriptionId, preferencesData) => {
+  try {
+    const response = await api.patch(
+      `/foods/subscriptions/${subscriptionId}/preferences/`,
+      preferencesData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating subscription preferences:", error);
+    throw error;
+  }
+};
