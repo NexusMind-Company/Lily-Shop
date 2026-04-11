@@ -680,7 +680,7 @@ export const updateFoodVendor = async (vendorId, vendorData) => {
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
 
-  const response = await api.patch(`/foods/food-vendors/${vendorId}/`, formData, {
+  const response = await api.patch(`/foods/food-vendors/${vendorId}/update/`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
