@@ -202,7 +202,7 @@ export const fetchVendorMenu = async () => {
 /**
  * POST /vendor/menu/
  * Adds a new meal to the vendor's menu.
- * Body (multipart/form-data): name, price, size_category (small|medium|large),
+ * Body (multipart/form-data): name, price,
  *                              description?, image (file), video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: created meal object
  */
@@ -210,7 +210,6 @@ export const addMeal = async (mealData) => {
   const formData = new FormData();
   formData.append("name", mealData.name);
   formData.append("price", mealData.price.toString());
-  formData.append("size_category", mealData.size_category);
   if (mealData.description) formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
   if (mealData.video_url) formData.append("video_url", mealData.video_url);
@@ -238,7 +237,8 @@ export const addMeal = async (mealData) => {
 /**
  * PATCH /vendor/menu/{mealId}/
  * Updates an existing meal.
- * Body (multipart/form-data): name?, price?, size_category?, description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
+ * Body (multipart/form-data): name?, price?, 
+ *                              description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: updated meal object
  */
 export const updateMeal = async (mealId, mealData) => {
@@ -246,7 +246,6 @@ export const updateMeal = async (mealId, mealData) => {
   if (mealData.name) formData.append("name", mealData.name);
   if (mealData.price !== undefined)
     formData.append("price", mealData.price.toString());
-  if (mealData.size_category) formData.append("size_category", mealData.size_category);
   if (mealData.description !== undefined)
     formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);

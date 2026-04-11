@@ -128,6 +128,8 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
       allergens: form.allergens.split(",").map(s => s.trim()).filter(Boolean),
       dietary_tags: form.dietary_tags.split(",").map(s => s.trim()).filter(Boolean),
     };
+    // Remove size_category from submit data as it's not in backend model
+    delete submitData.size_category;
     onSave(submitData);
   };
 
