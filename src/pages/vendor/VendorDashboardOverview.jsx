@@ -76,7 +76,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 const VendorDashboardOverview = () => {
   const navigate = useNavigate();
   const { data: profileData } = useSelector((state) => state.profile);
-  const vendorId = profileData?.user?.vendor_id;
 
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState("");
@@ -87,15 +86,11 @@ const VendorDashboardOverview = () => {
       toast.error("Please enter a valid address");
       return;
     }
-    if (!vendorId) {
-      toast.error("Vendor ID not found. Please refresh the page.");
-      return;
-    }
 
     setIsSavingAddress(true);
     try {
-      console.log("Updating vendor address:", { vendorId, address: newAddress.trim() });
-      await updateFoodVendor(vendorId, { address: newAddress.trim() });
+      console.log("Updating vendor address:", { address: newAddress.trim() });
+      await updateFoodVendor({ address: newAddress.trim() });
       toast.success("Address updated successfully!");
       setIsEditingAddress(false);
       // We don't necessarily need to reload profile here as VendorHero will pick it up on next render 
