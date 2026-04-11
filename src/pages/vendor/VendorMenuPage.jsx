@@ -407,12 +407,11 @@ const VendorMenuPage = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-[#111813] dark:text-white truncate">{meal.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${SIZE_COLORS[meal.size_category] ?? ""}`}>{meal.size_category}</span>
                   <span className="text-xs font-bold text-[#4eb75e]">₦{parseFloat(meal.price).toLocaleString()}</span>
                   {!meal.is_available && <span className="text-[10px] text-red-500 font-medium">Unavailable</span>}
                 </div>
               </div>
-              <div className="flex gap-1 flex-shrink-0">
+              <div className="flex gap-2 flex-shrink-0">
                 <button onClick={() => setEditMeal(meal)}
                   className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 hover:text-[#4eb75e] transition-colors">
                   <Pencil size={15} />
