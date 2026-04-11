@@ -23,14 +23,15 @@ const CreateSubscriptionPlanPage = () => {
     if (loading) return;
     setLoading(true);
     try {
-      const response = await api.post("/foods/subscriptions/create/", {
-        plan_name: "Weekly Meal Plan",
+      const formData = new FormData();          // ✅ FIX: send as multipart
+      formData.append("plan_name", "Weekly Meal Plan");
+
+      await api.post("/foods/subscriptions/create/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      // On success, navigate to manage page
       navigate("/vendor/plans?type=weekly");
     } catch (error) {
       console.error("Error creating weekly plan:", error);
-      // Optionally show user-friendly error message
     } finally {
       setLoading(false);
     }
@@ -40,14 +41,15 @@ const CreateSubscriptionPlanPage = () => {
     if (loading) return;
     setLoading(true);
     try {
-      const response = await api.post("/foods/subscriptions/create/", {
-        plan_name: "Monthly Meal Plan",
+      const formData = new FormData();          // ✅ FIX: send as multipart
+      formData.append("plan_name", "Monthly Meal Plan");
+
+      await api.post("/foods/subscriptions/create/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      // On success, navigate to manage page
       navigate("/vendor/plans?type=monthly");
     } catch (error) {
       console.error("Error creating monthly plan:", error);
-      // Optionally show user-friendly error message
     } finally {
       setLoading(false);
     }
@@ -76,7 +78,7 @@ const CreateSubscriptionPlanPage = () => {
             title="Weekly Meal Plan"
             description="Create a menu for 7 days. Best for flexible menus and trying new items."
             imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Tjy7xd0cR5LT4akA5XfNh7qu17h7sGSTS7U4S-FrskGJgpNBDCkllNKTGEhNy-rOH_NyH_r6y9mKSG-amJ45DBcy8NXARPFd0YajXDBDAwOdk-SiI7uMUQtPA2AwyJgxDLfnyc0eiwntUwZV6hSXKQ2otfud9i9V-Hwguj51Vnn1TdJrHVaJuLHvVeYuTZCguxJil3QTS72211iZdJuuxXIjpKqTNZXpDQ_LqWzmJpdokfXchCkfC9xExo12p6HPIozZ7rPRCew4"
-            onClick={loading ? undefined : handleWeeklySelect}
+            onClick={handleWeeklySelect}
           />
           <PlanSelectionCard
             icon={<CalendarDays />}
@@ -84,7 +86,7 @@ const CreateSubscriptionPlanPage = () => {
             title="Monthly Meal Plan"
             description="Set a recurring menu for 4 weeks. Ideal for loyal customers and stability."
             imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tW_Vj0swJcH8RIkmksm5lRXlqa8tx5AUqzdsj6s-_ezogqG9qSTXdbDptkyXj6EuK5Bw1FPCbcK2bkO8qNSfwKq_JbeEsZuUW41ptgaKkCzgGjs9hRvG2xePMG-obVekOexYF0WY1ywyNNl7i_xhQyZCSadaqcrwj4AuTsY1_98HMahhdEuoIggckL2RFstIKHRvKDV6Ccw88tGJUivNJZ9tb8gbH-Y29shFtBGPiZmAZG5qBI-TadU_xbEYYP22znhYlMOEMzbO"
-            onClick={loading ? undefined : handleMonthlySelect}
+            onClick={handleMonthlySelect}
           />
         </div>
         <HelpSection

@@ -347,9 +347,12 @@ const ProfileOwner = () => {
       </div>
     );
 
-  if (error) {
-    navigate("/login");
-  }
+  // ✅ AFTER — add this alongside your existing useEffects
+  useEffect(() => {
+    if (error) {
+      navigate("/login");
+    }
+  }, [error, navigate]);
 
   if (auth?.isAuthenticated && !data)
     return (
@@ -590,7 +593,7 @@ const ProfileOwner = () => {
             </Link>
           </div>
           <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-62.5 mx-auto">
-            {user?.vendor_id && (
+            {user?.vendor_id ? (
               <Link to="/vendor-dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
                   Vendor Dashboard
@@ -603,6 +606,7 @@ const ProfileOwner = () => {
                 </button>
               </Link>
             )}
+
             <Link to="/editProfile" className="w-full">
               <button className="w-full px-4 py-2 border-2 border-lily text-lily rounded-3xl font-bold md:text-[16px]">
                 Edit Profile
