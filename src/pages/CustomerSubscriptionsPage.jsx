@@ -304,7 +304,7 @@ const CustomerSubscriptionsPage = () => {
             </div>
             {!searchQuery && (
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/food")}
                 className="bg-[#13ec49] text-[#111813] font-bold px-6 py-3 rounded-xl text-sm"
               >
                 Explore Vendors
