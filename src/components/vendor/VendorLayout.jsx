@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -22,6 +23,7 @@ import {
   Package,
 } from "lucide-react";
 import PropTypes from "prop-types";
+import { fetchNotifications } from "../../redux/notificationSlice";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/vendor/dashboard" },
@@ -44,7 +46,13 @@ const navItems = [
 const VendorLayout = ({ children, title = "Dashboard" }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const { unreadCount } = useSelector((state) => state.notifications);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchNotifications({ page: 1 }));
+  }, [dispatch]);
 
   return (
     <div className="flex min-h-screen bg-[#f6f8f6] dark:bg-background-dark">
@@ -145,9 +153,16 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
           </div>
 
           {/* Right */}
-          <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button 
+            onClick={() => navigate("/notifications")}
+            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
             <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-[#4eb75e] rounded-full" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
         </header>
 
