@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar } from "lucide-react";
+import { Calendar, Phone, Clock, MapPin, BadgeCheck } from "lucide-react";
 import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
 import {
@@ -42,6 +42,35 @@ const SubscriptionCard = ({ sub }) => {
           <span>End: {new Date(sub.end_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}</span>
         </div>
       </div>
+
+      {/* Customer Details */}
+      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+        {sub.phone && (
+          <div className="flex items-center gap-2 text-xs">
+            <Phone size={12} className="text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-300">{sub.phone}</span>
+          </div>
+        )}
+        {sub.collection_code && (
+          <div className="flex items-center gap-2 text-xs">
+            <BadgeCheck size={12} className="text-[#4eb75e]" />
+            <span className="text-gray-600 dark:text-gray-300 font-semibold">Code: {sub.collection_code}</span>
+          </div>
+        )}
+        {sub.preferred_time && (
+          <div className="flex items-center gap-2 text-xs">
+            <Clock size={12} className="text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-300">Time: {sub.preferred_time}</span>
+          </div>
+        )}
+        {sub.delivery_type && (
+          <div className="flex items-center gap-2 text-xs">
+            <MapPin size={12} className="text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-300 capitalize">{sub.delivery_type}</span>
+          </div>
+        )}
+      </div>
+
       {sub.status === "active" && (
         <div className="mt-3">
           <div className="flex justify-between items-center mb-1">
