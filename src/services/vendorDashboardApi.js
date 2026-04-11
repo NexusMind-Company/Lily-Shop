@@ -93,7 +93,7 @@ export const fetchDailyPrepList = async (date = null) => {
 // ─────────────────────────────────────────────
 
 /**
- * GET /vendor/subscriptions/
+ * GET /subscriptions/vendor/
  * Returns all subscriptions for this vendor with filtering.
  * Query params: page, page_size, status (active|expired|pending), plan_type (weekly|monthly)
  * Response: { count, next, previous, results: [subscription...] }
@@ -101,48 +101,62 @@ export const fetchDailyPrepList = async (date = null) => {
  *                       start_date, end_date, status, duration_days }
  */
 export const fetchVendorSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/vendor/", { params });
+  const response = await api.get("/foods/subscriptions/vendor/", { params });
   return response.data;
 };
+
+// ─────────────────────────────────────────────
+// SUBSCRIPTION REQUESTS - Backend endpoints not implemented
+// ─────────────────────────────────────────────
 
 /**
  * GET /vendor/subscriptions/requests/
  * Returns pending subscription requests awaiting vendor acceptance.
  * Response: [{ id, customer_name, requested_plan, requested_at, meal_preferences }]
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const fetchSubscriptionRequests = async () => {
-  const response = await api.get("/foods/vendor/requests/");
-  return response.data;
-};
+// export const fetchSubscriptionRequests = async () => {
+//   const response = await api.get("/foods/vendor/requests/");
+//   return response.data;
+// };
 
 /**
  * POST /vendor/subscriptions/requests/{requestId}/accept/
  * Accepts a subscription request.
  * Response: { success: true, subscription_id }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const acceptSubscriptionRequest = async (requestId) => {
-  const response = await api.post(
-    `/foods/vendor/subscriptions/requests/${requestId}/accept/`
-  );
-  return response.data;
-};
+// export const acceptSubscriptionRequest = async (requestId) => {
+//   const response = await api.post(
+//     `/foods/vendor/subscriptions/requests/${requestId}/accept/`
+//   );
+//   return response.data;
+// };
 
 /**
  * POST /vendor/subscriptions/requests/{requestId}/decline/
  * Declines a subscription request.
  * Body: { reason? }
  * Response: { success: true }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const declineSubscriptionRequest = async (requestId, reason = "") => {
-  const response = await api.post(
-    `/foods/vendor/subscriptions/requests/${requestId}/decline/`,
-    { reason }
-  );
-  return response.data;
-};
+// export const declineSubscriptionRequest = async (requestId, reason = "") => {
+//   const response = await api.post(
+//     `/foods/vendor/subscriptions/requests/${requestId}/decline/`,
+//     { reason }
+//   );
+//   return response.data;
+// };
 
 // ─────────────────────────────────────────────
 // 4. MONTHLY SUBSCRIPTION PLAN
+// ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+// MONTHLY SUBSCRIPTION PLAN - Backend endpoints not implemented
 // ─────────────────────────────────────────────
 
 /**
@@ -150,22 +164,26 @@ export const declineSubscriptionRequest = async (requestId, reason = "") => {
  * Enables monthly subscription plans for this vendor.
  * Body: { price, description?, max_subscribers? }
  * Response: { success: true, plan_id }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const enableMonthlyPlan = async (planData) => {
-  const response = await api.post("/foods/vendor/plans/monthly/enable/", planData);
-  return response.data;
-};
+// export const enableMonthlyPlan = async (planData) => {
+//   const response = await api.post("/foods/vendor/plans/monthly/enable/", planData);
+//   return response.data;
+// };
 
 /**
  * PATCH /vendor/plans/monthly/{planId}/
  * Updates a monthly subscription plan.
  * Body: { price?, description?, max_subscribers?, is_active? }
  * Response: updated plan object
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const updateMonthlyPlan = async (planId, planData) => {
-  const response = await api.patch(`/foods/vendor/plans/monthly/${planId}/`, planData);
-  return response.data;
-};
+// export const updateMonthlyPlan = async (planId, planData) => {
+//   const response = await api.patch(`/foods/vendor/plans/monthly/${planId}/`, planData);
+//   return response.data;
+// };
 
 // ─────────────────────────────────────────────
 // 5. MENU MANAGEMENT
