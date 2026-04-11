@@ -93,7 +93,7 @@ export const fetchDailyPrepList = async (date = null) => {
 // ─────────────────────────────────────────────
 
 /**
- * GET /vendor/subscriptions/
+ * GET /subscriptions/vendor/
  * Returns all subscriptions for this vendor with filtering.
  * Query params: page, page_size, status (active|expired|pending), plan_type (weekly|monthly)
  * Response: { count, next, previous, results: [subscription...] }
@@ -101,48 +101,62 @@ export const fetchDailyPrepList = async (date = null) => {
  *                       start_date, end_date, status, duration_days }
  */
 export const fetchVendorSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/vendor/subscriptions/", { params });
+  const response = await api.get("/foods/subscriptions/vendor/", { params });
   return response.data;
 };
+
+// ─────────────────────────────────────────────
+// SUBSCRIPTION REQUESTS - Backend endpoints not implemented
+// ─────────────────────────────────────────────
 
 /**
  * GET /vendor/subscriptions/requests/
  * Returns pending subscription requests awaiting vendor acceptance.
  * Response: [{ id, customer_name, requested_plan, requested_at, meal_preferences }]
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const fetchSubscriptionRequests = async () => {
-  const response = await api.get("/foods/vendor/subscriptions/requests/");
-  return response.data;
-};
+// export const fetchSubscriptionRequests = async () => {
+//   const response = await api.get("/foods/vendor/requests/");
+//   return response.data;
+// };
 
 /**
  * POST /vendor/subscriptions/requests/{requestId}/accept/
  * Accepts a subscription request.
  * Response: { success: true, subscription_id }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const acceptSubscriptionRequest = async (requestId) => {
-  const response = await api.post(
-    `/foods/vendor/subscriptions/requests/${requestId}/accept/`
-  );
-  return response.data;
-};
+// export const acceptSubscriptionRequest = async (requestId) => {
+//   const response = await api.post(
+//     `/foods/vendor/subscriptions/requests/${requestId}/accept/`
+//   );
+//   return response.data;
+// };
 
 /**
  * POST /vendor/subscriptions/requests/{requestId}/decline/
  * Declines a subscription request.
  * Body: { reason? }
  * Response: { success: true }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const declineSubscriptionRequest = async (requestId, reason = "") => {
-  const response = await api.post(
-    `/foods/vendor/subscriptions/requests/${requestId}/decline/`,
-    { reason }
-  );
-  return response.data;
-};
+// export const declineSubscriptionRequest = async (requestId, reason = "") => {
+//   const response = await api.post(
+//     `/foods/vendor/subscriptions/requests/${requestId}/decline/`,
+//     { reason }
+//   );
+//   return response.data;
+// };
 
 // ─────────────────────────────────────────────
 // 4. MONTHLY SUBSCRIPTION PLAN
+// ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+// MONTHLY SUBSCRIPTION PLAN - Backend endpoints not implemented
 // ─────────────────────────────────────────────
 
 /**
@@ -150,22 +164,26 @@ export const declineSubscriptionRequest = async (requestId, reason = "") => {
  * Enables monthly subscription plans for this vendor.
  * Body: { price, description?, max_subscribers? }
  * Response: { success: true, plan_id }
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const enableMonthlyPlan = async (planData) => {
-  const response = await api.post("/foods/vendor/plans/monthly/enable/", planData);
-  return response.data;
-};
+// export const enableMonthlyPlan = async (planData) => {
+//   const response = await api.post("/foods/vendor/plans/monthly/enable/", planData);
+//   return response.data;
+// };
 
 /**
  * PATCH /vendor/plans/monthly/{planId}/
  * Updates a monthly subscription plan.
  * Body: { price?, description?, max_subscribers?, is_active? }
  * Response: updated plan object
+ * 
+ * NOTE: Backend endpoint not implemented yet
  */
-export const updateMonthlyPlan = async (planId, planData) => {
-  const response = await api.patch(`/foods/vendor/plans/monthly/${planId}/`, planData);
-  return response.data;
-};
+// export const updateMonthlyPlan = async (planId, planData) => {
+//   const response = await api.patch(`/foods/vendor/plans/monthly/${planId}/`, planData);
+//   return response.data;
+// };
 
 // ─────────────────────────────────────────────
 // 5. MENU MANAGEMENT
@@ -184,17 +202,31 @@ export const fetchVendorMenu = async () => {
 /**
  * POST /vendor/menu/
  * Adds a new meal to the vendor's menu.
- * Body (multipart/form-data): name, price, size_category (small|medium|large),
- *                              description?, image (file)
+ * Body (multipart/form-data): name, price,
+ *                              description?, image (file), video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: created meal object
  */
 export const addMeal = async (mealData) => {
   const formData = new FormData();
   formData.append("name", mealData.name);
   formData.append("price", mealData.price.toString());
-  formData.append("size_category", mealData.size_category);
   if (mealData.description) formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
+  if (mealData.video_url) formData.append("video_url", mealData.video_url);
+  if (mealData.calories) formData.append("calories", mealData.calories);
+  if (mealData.protein) formData.append("protein", mealData.protein);
+  if (mealData.carbs) formData.append("carbs", mealData.carbs);
+  if (mealData.fat) formData.append("fat", mealData.fat);
+  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.media && mealData.media.length > 0) {
+    mealData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
 
   const response = await api.post("/foods/vendor/menu/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -205,7 +237,8 @@ export const addMeal = async (mealData) => {
 /**
  * PATCH /vendor/menu/{mealId}/
  * Updates an existing meal.
- * Body (multipart/form-data): name?, price?, size_category?, description?, image?
+ * Body (multipart/form-data): name?, price?, 
+ *                              description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: updated meal object
  */
 export const updateMeal = async (mealId, mealData) => {
@@ -213,10 +246,24 @@ export const updateMeal = async (mealId, mealData) => {
   if (mealData.name) formData.append("name", mealData.name);
   if (mealData.price !== undefined)
     formData.append("price", mealData.price.toString());
-  if (mealData.size_category) formData.append("size_category", mealData.size_category);
   if (mealData.description !== undefined)
     formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
+  if (mealData.video_url) formData.append("video_url", mealData.video_url);
+  if (mealData.calories) formData.append("calories", mealData.calories);
+  if (mealData.protein) formData.append("protein", mealData.protein);
+  if (mealData.carbs) formData.append("carbs", mealData.carbs);
+  if (mealData.fat) formData.append("fat", mealData.fat);
+  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.media && mealData.media.length > 0) {
+    mealData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
 
   const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -362,6 +409,52 @@ export const fetchEarningsChart = async (period = "weekly") => {
   const response = await api.get("/foods/vendor/earnings/chart/", {
     params: { period },
   });
+  return response.data;
+};
+
+// ─────────────────────────────────────────────
+// 12. VENDOR WALLET
+// ─────────────────────────────────────────────
+
+/**
+ * GET /vendor/wallet/
+ * Returns vendor wallet balance.
+ * Response: { id, vendor, balance_kobo, balance_naira, updated_at }
+ */
+export const fetchVendorWallet = async () => {
+  const response = await api.get("/foods/vendor/wallet/");
+  return response.data;
+};
+
+/**
+ * GET /vendor/withdrawals/
+ * Returns vendor withdrawal requests.
+ * Query params: page, page_size, status
+ * Response: { count, next, previous, results: [withdrawal...] }
+ */
+export const fetchVendorWithdrawals = async (params = {}) => {
+  const response = await api.get("/foods/vendor/withdrawals/", { params });
+  return response.data;
+};
+
+/**
+ * POST /vendor/withdrawals/
+ * Creates a new withdrawal request.
+ * Body: { amount_kobo, bank_name, account_number, account_name }
+ * Response: created withdrawal object
+ */
+export const createVendorWithdrawal = async (withdrawalData) => {
+  const response = await api.post("/foods/vendor/withdrawals/", withdrawalData);
+  return response.data;
+};
+
+/**
+ * GET /vendor/withdrawals/{id}/
+ * Returns withdrawal details.
+ * Response: withdrawal object
+ */
+export const fetchWithdrawalDetails = async (withdrawalId) => {
+  const response = await api.get(`/foods/vendor/withdrawals/${withdrawalId}/`);
   return response.data;
 };
 

@@ -1,30 +1,92 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, MapPin, Phone, Hash, Truck, ShoppingBag } from "lucide-react";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+import {
+  resolveSubscriptionFlowState,
+  saveSubscriptionFlowState,
+} from "../utils/subscriptionFlow";
 
 
 const SubscriptionDetailsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const flowState = resolveSubscriptionFlowState(location.state);
 
   // This receives everything passed from VendorSubscriptionPage
   const {
-    plans,
+    plan,
     vendor,
     totalPrice,
     selectedDays,
     quantity,
     addExtra,
     extraPrice,
-  } = location.state || {};
+    preferredTime,
+    vendorId,
+  } = flowState || {};
 
 
-  const [deliveryType, setDeliveryType] = useState(""); // "delivery" or "pickup"
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [collectionCode, setCollectionCode] = useState("");
+  const [deliveryType, setDeliveryType] = useState(flowState?.deliveryType || ""); // "delivery" or "pickup"
+  const [address, setAddress] = useState(flowState?.address || "");
+  const [phone, setPhone] = useState(flowState?.phone || "");
+  const [collectionCode, setCollectionCode] = useState(flowState?.collectionCode || "");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dietaryPreferences, setDietaryPreferences] = useState(flowState?.dietaryPreferences || "");
+  const [allergies, setAllergies] = useState(flowState?.allergies || "");
+  const [portionSize, setPortionSize] = useState(flowState?.portionSize || "regular");
+  const [specialInstructions, setSpecialInstructions] = useState(flowState?.specialInstructions || "");
+  const [showCustomization, setShowCustomization] = useState(false);
+
+  useEffect(() => {
+    if (!plan) {
+      navigate("/subscriptions", { replace: true });
+    }
+  }, [plan, navigate]);
+
+  useEffect(() => {
+    if (!plan) return;
+
+    saveSubscriptionFlowState({
+      ...flowState,
+      plan,
+      vendor,
+      vendorId,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice,
+      preferredTime,
+      deliveryType,
+      address,
+      phone,
+      collectionCode,
+      dietaryPreferences,
+      allergies,
+      portionSize,
+      specialInstructions,
+    });
+  }, [
+    flowState,
+    plan,
+    vendor,
+    vendorId,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    preferredTime,
+    deliveryType,
+    address,
+    phone,
+    collectionCode,
+    dietaryPreferences,
+    allergies,
+    portionSize,
+    specialInstructions,
+  ]);
 
   const isValid = () => {
     if (!deliveryType) return false;
@@ -45,20 +107,29 @@ const SubscriptionDetailsPage = () => {
 
 const handleConfirm = () => {
   setIsModalOpen(false);
+  const paymentState = {
+    ...flowState,
+    plan,
+    vendor,
+    vendorId,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    preferredTime,
+    deliveryType,
+    address,
+    phone,
+    collectionCode,
+    dietaryPreferences,
+    allergies,
+    portionSize,
+    specialInstructions,
+  };
+  saveSubscriptionFlowState(paymentState);
   navigate("/subscription/payment", {
-    state: {
-      plans,
-      vendor,
-      totalPrice,
-      selectedDays,
-      quantity,
-      addExtra,
-      extraPrice,
-      deliveryType,
-      address,
-      phone,
-      collectionCode,
-    },
+    state: paymentState,
   });
 };
 
@@ -177,6 +248,85 @@ const handleCloseModal = () => setIsModalOpen(false);
               </div>
             </div>
 
+            {/* Meal Customization Section */}
+            <div>
+              <button
+                onClick={() => setShowCustomization(!showCustomization)}
+                className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-[#13ec49] transition-colors bg-gray-50 dark:bg-slate-800"
+              >
+                <span className="text-sm font-semibold text-[#111813] dark:text-white">Customize Your Meal Plan</span>
+                <ShoppingBag className={showCustomization ? "text-[#13ec49] rotate-180" : "text-gray-400"} />
+              </button>
+            </div>
+
+            {showCustomization && (
+              <div className="space-y-4 pt-2">
+                {/* Dietary Preferences */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Dietary Preferences <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Vegetarian, Keto, Low-sodium"
+                    value={dietaryPreferences}
+                    onChange={(e) => setDietaryPreferences(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                  />
+                </div>
+
+                {/* Allergies */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Allergies <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Peanuts, Dairy, Gluten"
+                    value={allergies}
+                    onChange={(e) => setAllergies(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                  />
+                </div>
+
+                {/* Portion Size */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Portion Size <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["small", "regular", "large"].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setPortionSize(size)}
+                        className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
+                          portionSize === size
+                            ? "bg-[#13ec49] text-white shadow-sm"
+                            : "bg-white dark:bg-slate-800 text-gray-500 border border-gray-200"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Special Instructions */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Special Instructions <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Any special requests for your meals..."
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                  />
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
@@ -202,7 +352,7 @@ const handleCloseModal = () => setIsModalOpen(false);
   isOpen={isModalOpen}
   onClose={handleCloseModal}
   onConfirm={handleConfirm}
-  selectedPlans={plans}
+  selectedPlans={plan ? [plan] : []}
   vendor={vendor}
   totalPrice={totalPrice}
   selectedDays={selectedDays}

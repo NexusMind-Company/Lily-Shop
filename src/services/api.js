@@ -147,16 +147,6 @@ export const fetchUserProfile = async () => {
 
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -165,16 +155,6 @@ export const updateProfile = async (profileData) => {
     Object.entries(profileData).filter(([, v]) => v != null),
   );
   const response = await api.patch("/auth/profile/update/", cleanData);
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -191,16 +171,6 @@ export const updateProfilePic = async (imageFile) => {
       },
     },
   );
-
-  try {
-    await supabase.from("profiles").upsert(response.data);
-  } catch (supabaseError) {
-    console.error(
-      "Error updating user data in Supabase:",
-      handleSupabaseError(supabaseError),
-    );
-  }
-
   return response.data;
 };
 
@@ -261,6 +231,11 @@ export const fetchNearbyFeed = async (params = {}) => {
 
 export const fetchProductDetails = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/`);
+  return response.data;
+};
+
+export const fetchContentById = async (contentId) => {
+  const response = await api.get(`/shops/contents/${contentId}/`);
   return response.data;
 };
 
@@ -459,7 +434,7 @@ export const setDefaultAddress = async (addressId) => {
 };
 
 export const fetchPickupLocations = async () => {
-  const response = await api.get("/pickup-locations/");
+  const response = await api.get("/shops/pickup-locations/");
   return response.data;
 };
 
@@ -520,10 +495,6 @@ export const createSubscription = async (plan_id) => {
   return response.data;
 };
 
-export const getWalletBalance = async () => {
-  const response = await api.get("/wallet/me/");
-  return response.data;
-};
 
 export const getUserSubscriptions = async () => {
   const response = await api.get("/foods/subscriptions/me/");
@@ -534,28 +505,28 @@ export const updateSubscriptionMeals = async (
   subscriptionId,
   mealSelections,
 ) => {
-  const response = await api.put(`/subscriptions/${subscriptionId}/meals/`, {
+  const response = await api.put(`/foods/subscriptions/${subscriptionId}/meals/`, {
     meal_selections: mealSelections,
   });
   return response.data;
 };
 
 export const cancelSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/cancel/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/cancel/`, {
     reason,
   });
   return response.data;
 };
 
 export const pauseSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/pause/`, {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/pause/`, {
     reason,
   });
   return response.data;
 };
 
 export const resumeSubscription = async (subscriptionId) => {
-  const response = await api.post(`/subscriptions/${subscriptionId}/resume/`);
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/resume/`);
   return response.data;
 };
 
@@ -635,8 +606,13 @@ export const fetchCustomerSubscriptions = async () => {
 };
 
 export const fetchMealsByVendor = async (vendorId) => {
-  const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
-  return response.data;
+  try {
+    const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
+    return response.data;
+  } catch (error) {
+    console.warn("Error fetching meals by vendor, returning empty list:", error?.message);
+    return [];
+  }
 };
 
 export const fetchMealPlansByVendor = async (vendorId) => {
@@ -668,33 +644,60 @@ export const createMeal = async (mealData) => {
 
 export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
-
-  if (vendorData.name) formData.append("name", vendorData.name);
-  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
-  if (vendorData.description)
-    formData.append("description", vendorData.description);
+  formData.append("shop_name", vendorData.shop_name);
+  formData.append("description", vendorData.description);
+  formData.append("address", vendorData.address);
+  formData.append("category", vendorData.category);
   if (vendorData.contact_email)
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
-
-  if (vendorData.media && Array.isArray(vendorData.media)) {
-    vendorData.media.forEach((file) => {
-      formData.append("media", file);
-    });
-  }
+  if (vendorData.banner_image)
+    formData.append("banner_image", vendorData.banner_image);
+  if (vendorData.profile_image)
+    formData.append("profile_image", vendorData.profile_image);
 
   const response = await api.post("/foods/food-vendors/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+
+  return response.data;
+};
+
+export const updateFoodVendor = async (vendorData) => {
+  const formData = new FormData();
+  if (vendorData.shop_name)
+    formData.append("name", vendorData.shop_name);
+  if (vendorData.description)
+    formData.append("description", vendorData.description);
+  if (vendorData.address) formData.append("address", vendorData.address);
+  if (vendorData.category) formData.append("cuisine", vendorData.category);
+  if (vendorData.contact_email)
+    formData.append("contact_email", vendorData.contact_email);
+  if (vendorData.contact_phone)
+    formData.append("contact_phone", vendorData.contact_phone);
+  if (vendorData.media) {
+    vendorData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
+
+  const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
   return response.data;
 };
 
 export const fetchFoodVendor = async (vendorId) => {
-  const response = await api.get(`/foods/food-vendors/${vendorId}/`);
-  return response.data;
+  // Use list endpoint with filter since /foods/food-vendors/{id}/ returns 405
+  const response = await api.get(`/foods/vendors/`, { params: { id: vendorId } });
+  const results = response.data.results || response.data;
+  return results.find(v => v.id === vendorId) || results[0] || null;
 };
 
 export const fetchAllFoodVendors = async (params = {}) => {
@@ -790,7 +793,7 @@ export const fetchMealPlans = async () => {
 };
 
 export const fetchMealPlan = async (id) => {
-  const res = await api.get(`/foods/subscriptions/${id}/`);
+  const res = await api.get(`/foods/subscriptions/plan/${id}/`);
   return res.data;
 };
 
@@ -801,7 +804,7 @@ export const subscribeToPlan = async () => {
 
 export const unsubscribeFromPlan = async (planId) => {
   const response = await api.post(
-    `/foods/subscriptions/${planId}/unsubscribe/`,
+    `/foods/subscriptions/plan/${planId}/unsubscribe/`,
   );
   return response.data;
 };
@@ -861,7 +864,7 @@ export const createSubscriptionPlan = async (planData) => {
 
 export const deleteMealPlan = async (mealPlanId) => {
   const response = await api.delete(
-    `/foods/subscriptions/${mealPlanId}/delete/`,
+    `/foods/subscriptions/plan/${mealPlanId}/delete/`,
   );
   return response.data;
 };
@@ -910,7 +913,7 @@ export const fetchSubscribedVendors = async () => {
 };
 
 export const fetchVendorSubscriptions = async (vendorId) => {
-  const response = await api.get(`/foods/subscriptions/${vendorId}/`);
+  const response = await api.get(`/foods/subscriptions/vendors/${vendorId}/plans/`);
   return response.data;
 };
 

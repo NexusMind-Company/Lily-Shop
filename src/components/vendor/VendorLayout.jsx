@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   LayoutDashboard, ShoppingBag, Users, UtensilsCrossed,
   Calendar, Clock, PauseCircle, Wallet, PlusCircle,
@@ -8,6 +9,7 @@ import {
   ListPlus, Home, User, PhoneCall,
 } from "lucide-react";
 import PropTypes from "prop-types";
+import { fetchNotifications } from "../../redux/notificationSlice";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview",      path: "/vendor/dashboard" },
@@ -42,9 +44,14 @@ const appItems = [
 const VendorLayout = ({ children, title = "Dashboard" }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const { unreadCount } = useSelector((state) => state.notifications);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const go = (path) => { navigate(path); setSidebarOpen(false); };
+//   useEffect(() => {
+//     dispatch(fetchNotifications({ page: 1 }));
+//   }, [dispatch]);
 
   return (
     <div className="flex min-h-screen bg-[#f6f8f6] dark:bg-background-dark">
@@ -208,6 +215,18 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#4eb75e] rounded-full" />
             </button>
           </div>
+          {/* Right */}
+//           <button 
+//             onClick={() => navigate("/vendor/dashboard/messages")}
+//             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+//           >
+//             <Bell size={20} />
+//             {unreadCount > 0 && (
+//               <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+//                 {unreadCount > 9 ? '9+' : unreadCount}
+//               </span>
+//             )}
+//           </button>
         </header>
 
         {/* Content */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { DollarSign, ArrowDownToLine, X, Building2, CreditCard } from "lucide-react";
+import { ArrowDownToLine, X, Building2, CreditCard } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";

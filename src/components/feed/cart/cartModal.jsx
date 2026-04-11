@@ -188,7 +188,7 @@ const CartModal = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 flex justify-center items-end"
+      className="fixed inset-0 z-[70] bg-black/50 flex justify-center items-end pointer-events-auto"
       onClick={onClose}
     >
       <div

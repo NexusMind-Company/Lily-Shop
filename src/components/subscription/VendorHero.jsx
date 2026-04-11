@@ -6,8 +6,9 @@ import PropTypes from "prop-types";
  * @param {Object} props - Component props
  * @param {Object} props.vendor - Vendor data
  * @param {Array} props.reviews - Array of vendor reviews
+ * @param {boolean} props.hasSubscriptionPlans - Whether vendor has subscription plans available
  */
-const VendorHero = ({ vendor, reviews = [] }) => {
+const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
   if (!vendor) return null;
 
   return (
@@ -20,7 +21,11 @@ const VendorHero = ({ vendor, reviews = [] }) => {
               className="bg-center bg-no-repeat bg-cover rounded-2xl h-24 w-24 shadow-sm"
               style={{
                 backgroundImage: `url("${
-                  vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg"
+                  (() => {
+                    const media = vendor.profile_pic || vendor.user?.profile_pic || vendor.logo || vendor.image || vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
+                    const urlStr = Array.isArray(media) ? media[0] : media;
+                    return typeof urlStr === 'string' ? urlStr.replace(/^http:\/\//i, 'https://') : urlStr;
+                  })()
                 }")`,
               }}
               alt={`${vendor.name} profile`}
@@ -36,20 +41,27 @@ const VendorHero = ({ vendor, reviews = [] }) => {
               {vendor.name}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
-              {vendor.cuisine} • {vendor.location}
+              {vendor.cuisine ? `${vendor.cuisine}` : ""} 
+              {vendor.address && vendor.address !== "Lagos" && vendor.cuisine ? ` • ${vendor.address}` : ""}
+              {vendor.address && vendor.address !== "Lagos" && !vendor.cuisine ? vendor.address : ""}
             </p>
             {vendor.phone && (
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
                 Phone: {vendor.phone}
               </p>
             )}
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
                 {vendor.rating} <Star className="text-[12px] ml-0.5" />
               </span>
               <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                 ({vendor.reviewCount} reviews)
               </span>
+              {hasSubscriptionPlans && (
+                <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
+                  Subscription Plan Available
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -130,6 +142,7 @@ VendorHero.propTypes = {
       created_at: PropTypes.string.isRequired,
     })
   ),
+  hasSubscriptionPlans: PropTypes.bool,
 };
 
 export default VendorHero;

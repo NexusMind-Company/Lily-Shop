@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, Upload, X, CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, CheckCircle, AlertTriangle, Info, Video, FileVideo } from "lucide-react";
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";
 import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
@@ -71,27 +71,66 @@ const FoodGuidelines = ({ onClose }) => (
 
 const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
   const fileRef = useRef();
+  const videoRef = useRef();
   const [form, setForm] = useState({
     name: meal?.name ?? "",
     price: meal?.price ?? "",
     size_category: meal?.size_category ?? "medium",
     description: meal?.description ?? "",
     image: null,
+    video_url: meal?.video_url ?? "",
+    media: [],
+    calories: meal?.calories ?? "",
+    protein: meal?.protein ?? "",
+    carbs: meal?.carbs ?? "",
+    fat: meal?.fat ?? "",
+    ingredients: meal?.ingredients?.join(", ") ?? "",
+    allergens: meal?.allergens?.join(", ") ?? "",
+    dietary_tags: meal?.dietary_tags?.join(", ") ?? "",
+    preparation_time: meal?.preparation_time ?? "",
+    serving_size: meal?.serving_size ?? "",
   });
   const [showPriceGuide, setShowPriceGuide] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(!meal);
+  const [mediaPreviews, setMediaPreviews] = useState(meal?.all_media_urls || []);
 
   const range = PRICE_RANGES[form.size_category];
   const priceNum = parseFloat(form.price);
   const priceValid = !form.price || (priceNum >= range.min && priceNum <= range.max);
   const priceWarning = !!form.price && !priceValid;
 
+  const handleMediaChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setForm({ ...form, media: [...form.media, ...files] });
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setMediaPreviews([...mediaPreviews, ...newPreviews]);
+    }
+  };
+
+  const removeMedia = (index) => {
+    const newMedia = form.media.filter((_, i) => i !== index);
+    const newPreviews = mediaPreviews.filter((_, i) => i !== index);
+    setForm({ ...form, media: newMedia });
+    setMediaPreviews(newPreviews);
+  };
+
   const handleSubmit = () => {
     if (!form.name.trim()) { toast.error("Meal name is required."); return; }
     if (!form.price) { toast.error("Price is required."); return; }
     if (isNaN(priceNum) || priceNum <= 0) { toast.error("Enter a valid price."); return; }
     if (!priceValid) { toast.error(`Price must be ₦${range.min.toLocaleString()}–₦${range.max.toLocaleString()} for ${form.size_category} meals.`); return; }
-    onSave(form);
+    
+    // Transform comma-separated strings to arrays
+    const submitData = {
+      ...form,
+      ingredients: form.ingredients.split(",").map(s => s.trim()).filter(Boolean),
+      allergens: form.allergens.split(",").map(s => s.trim()).filter(Boolean),
+      dietary_tags: form.dietary_tags.split(",").map(s => s.trim()).filter(Boolean),
+    };
+    // Remove size_category from submit data as it's not in backend model
+    delete submitData.size_category;
+    onSave(submitData);
   };
 
   if (showGuidelines) {
@@ -188,12 +227,104 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e] resize-none" />
           </div>
 
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Video URL (optional)</label>
+            <input type="url" placeholder="https://youtube.com/watch?v=..."
+              value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Additional Media (images/videos)</label>
+            <div onClick={() => fileRef.current.click()}
+              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center cursor-pointer hover:border-[#4eb75e] transition-colors">
+              <FileVideo size={18} className="text-gray-300 mb-1" />
+              <p className="text-xs text-gray-400">Add more images or videos</p>
+              <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaChange} />
+            </div>
+            {mediaPreviews.length > 0 && (
+              <div className="flex gap-2 mt-2 overflow-x-auto">
+                {mediaPreviews.map((preview, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                    <img src={preview} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <button onClick={() => removeMedia(idx)} className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full">
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Calories (kcal)</label>
+              <input type="number" placeholder="e.g. 350"
+                value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Prep Time (min)</label>
+              <input type="number" placeholder="e.g. 30"
+                value={form.preparation_time} onChange={(e) => setForm({ ...form, preparation_time: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Protein (g)</label>
+              <input type="number" step="0.1" placeholder="e.g. 25"
+                value={form.protein} onChange={(e) => setForm({ ...form, protein: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Carbs (g)</label>
+              <input type="number" step="0.1" placeholder="e.g. 45"
+                value={form.carbs} onChange={(e) => setForm({ ...form, carbs: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Fat (g)</label>
+              <input type="number" step="0.1" placeholder="e.g. 12"
+                value={form.fat} onChange={(e) => setForm({ ...form, fat: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Ingredients (comma-separated)</label>
+            <input type="text" placeholder="e.g. Rice, Chicken, Tomatoes, Onions"
+              value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Allergens (comma-separated)</label>
+            <input type="text" placeholder="e.g. Peanuts, Dairy, Gluten"
+              value={form.allergens} onChange={(e) => setForm({ ...form, allergens: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Dietary Tags (comma-separated)</label>
+            <input type="text" placeholder="e.g. Vegan, Gluten-Free, High-Protein"
+              value={form.dietary_tags} onChange={(e) => setForm({ ...form, dietary_tags: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Serving Size (optional)</label>
+            <input type="text" placeholder="e.g. 1 plate, 2 servings"
+              value={form.serving_size} onChange={(e) => setForm({ ...form, serving_size: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]" />
+          </div>
+
           <button onClick={handleSubmit} disabled={priceWarning || isSaving}
             className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all ${priceWarning || isSaving ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#4eb75e] hover:bg-[#3da64d]"}`}>
             {isSaving ? "Saving..." : meal ? "Save Changes" : "Add Meal"}
           </button>
         </div>
-        {showPriceGuide && <PriceGuide onClose={() => setShowPriceGuide(false)} />}
       </div>
     </div>
   );
@@ -276,12 +407,11 @@ const VendorMenuPage = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-[#111813] dark:text-white truncate">{meal.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${SIZE_COLORS[meal.size_category] ?? ""}`}>{meal.size_category}</span>
                   <span className="text-xs font-bold text-[#4eb75e]">₦{parseFloat(meal.price).toLocaleString()}</span>
                   {!meal.is_available && <span className="text-[10px] text-red-500 font-medium">Unavailable</span>}
                 </div>
               </div>
-              <div className="flex gap-1 flex-shrink-0">
+              <div className="flex gap-2 flex-shrink-0">
                 <button onClick={() => setEditMeal(meal)}
                   className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 hover:text-[#4eb75e] transition-colors">
                   <Pencil size={15} />

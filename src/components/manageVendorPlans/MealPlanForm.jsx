@@ -22,7 +22,10 @@ const MealPlanForm = ({
     type: initialType,
     mealsPerWeek: initialType === "weekly" ? 5 : 20,
     features: [],
+    address: "",
   });
+
+  const [mediaFiles, setMediaFiles] = useState([]);
 
   const [meals, setMeals] = useState([
     {
@@ -120,6 +123,10 @@ const MealPlanForm = ({
       alert("Please enter a plan name");
       return;
     }
+    if (!planData.address.trim()) {
+      alert("Please enter a restaurant/pickup address");
+      return;
+    }
     if (!planData.description.trim()) {
       alert("Please enter a plan description");
       return;
@@ -139,6 +146,7 @@ const MealPlanForm = ({
       ...planData,
       price: parseFloat(planData.price),
       features: planData.features.filter((f) => f.trim()),
+      media: mediaFiles,
     });
   };
 
@@ -189,6 +197,20 @@ const MealPlanForm = ({
 
           <div>
             <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
+              Restaurant/Pickup Address *
+            </label>
+            <textarea
+              value={planData.address}
+              onChange={(e) => handlePlanChange("address", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
+              rows="2"
+              placeholder="Full address where customers can pick up or search for you..."
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
               Description *
             </label>
             <textarea
@@ -199,6 +221,30 @@ const MealPlanForm = ({
               placeholder="Describe your meal plan..."
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
+              Package Photos & Videos
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setMediaFiles(Array.from(e.target.files));
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white
+                         file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+                         file:bg-[#13ec49] file:text-green-950 hover:file:bg-[#0ea33b] transition-colors cursor-pointer"
+            />
+            {mediaFiles.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                {mediaFiles.length} file(s) selected
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

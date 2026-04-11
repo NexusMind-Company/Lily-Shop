@@ -318,7 +318,7 @@ const EditProfile = () => {
               type="date"
               value={form.birthday}
               onChange={(e) => handleChange("birthday", e.target.value)}
-              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0"
+              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0 text-[#111813]"
             />
           </div>
         </div>

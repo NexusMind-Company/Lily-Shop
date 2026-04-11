@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag, UtensilsCrossed, Users, TrendingUp,
-  DollarSign, UserPlus, UserMinus, Activity, ChevronRight,
+  UserPlus, UserMinus, Activity, ChevronRight,
   ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
 import {
@@ -16,6 +16,10 @@ import {
   fetchSubscriberGrowth,
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
+import { updateFoodVendor } from "../../services/api";
+import { useState, useRef } from "react";
+import { toast } from "react-hot-toast";
+import { MapPin, Edit3, Check, X, Camera, Settings, Plus, Trash2 } from "lucide-react";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
@@ -73,6 +77,56 @@ const VendorDashboardOverview = () => {
   const navigate = useNavigate();
   const { data: profileData } = useSelector((state) => state.profile);
 
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState("");
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleUpdateAddress = async () => {
+    if (!newAddress.trim()) {
+      toast.error("Please enter a valid address");
+      return;
+    }
+
+    setIsSavingAddress(true);
+    try {
+      console.log("Updating vendor address:", { address: newAddress.trim() });
+      await updateFoodVendor({ address: newAddress.trim() });
+      toast.success("Address updated successfully!");
+      setIsEditingAddress(false);
+      // We don't necessarily need to reload profile here as VendorHero will pick it up on next render 
+      // if it fetches fresh, or the user can refresh.
+    } catch (err) {
+      console.error("Error updating vendor address:", err);
+      if (err.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+      }
+      toast.error("Failed to update address. Please try again.");
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  const handleProfilePicChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingProfilePic(true);
+    try {
+      await updateFoodVendor({ media: [file] });
+      toast.success("Profile picture updated successfully!");
+      // Reload profile to show updated picture
+      window.location.reload();
+    } catch (err) {
+      console.error("Error updating profile picture:", err);
+      toast.error("Failed to update profile picture. Please try again.");
+    } finally {
+      setIsUploadingProfilePic(false);
+    }
+  };
+
   const {
     data: overview,
     isLoading: overviewLoading,
@@ -129,40 +183,130 @@ const VendorDashboardOverview = () => {
 
   return (
     <VendorLayout title="Overview">
-      <div className="pt-1">
-        <p className="text-xs text-gray-400 font-medium">Good afternoon 👋</p>
-        <h2 className="text-xl font-bold text-[#111813] dark:text-white">
-          {profileData?.user?.username ?? "Vendor"}
-        </h2>
+      {/* Welcome & Quick Actions */}
+      <div className="flex items-start justify-between group">
+        <div className="pt-1">
+          <p className="text-xs text-gray-400 font-medium">Welcome back 👋</p>
+          <h2 className="text-xl font-bold text-[#111813] dark:text-white">
+            {profileData?.user?.username ?? "Vendor"}
+          </h2>
+        </div>
+        <div className="flex gap-2">
+          {!isEditingAddress ? (
+            <button 
+              onClick={() => setIsEditingAddress(true)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
+            >
+              <MapPin size={12} /> Update Address
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 p-1.5 rounded-xl shadow-sm">
+              <input 
+                type="text"
+                placeholder="Enter street address..."
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                className="text-xs px-2 py-1 outline-none text-black dark:bg-transparent dark:text-white min-w-[150px]"
+                autoFocus
+              />
+              <button 
+                disabled={isSavingAddress}
+                onClick={handleUpdateAddress}
+                className="p-1 text-[#4eb75e] hover:bg-green-50 rounded-lg disabled:opacity-50"
+              >
+                 {isSavingAddress ? <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" /> : <Check size={14} />}
+              </button>
+              <button 
+                 onClick={() => setIsEditingAddress(false)}
+                 className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleProfilePicChange}
+            accept="image/*"
+            className="hidden"
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingProfilePic}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-[#4eb75e] bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors disabled:opacity-50"
+          >
+            {isUploadingProfilePic ? (
+              <div className="w-3 h-3 border-2 border-[#4eb75e] border-t-transparent animate-spin rounded-full" />
+            ) : (
+              <Camera size={12} />
+            )}
+            Update Photo
+          </button>
+        </div>
       </div>
 
-      {/* Soft warning if any secondary query failed */}
       {(growthError || activityError) && (
-        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5 mt-2">
           <p className="text-xs text-orange-700 dark:text-orange-400">
             ⚠️ Some data couldn't refresh — showing last known values.
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      {/* Quick Actions */}
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
+        <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate("/vendor/dashboard/edit-profile")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Edit3 size={16} className="text-[#4eb75e]" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Edit Profile</span>
+          </button>
+          <button
+            onClick={() => navigate("/vendor/plans")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Settings size={16} className="text-blue-500" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
+          </button>
+          <button
+            onClick={() => navigate("/vendor/plans/create")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Plus size={16} className="text-[#4eb75e]" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
+          </button>
+          <button
+            onClick={() => navigate("/delete-vendor-profile")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
+          >
+            <Trash2 size={16} className="text-red-500" />
+            <span className="text-xs font-semibold text-red-600 dark:text-red-400">Delete Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
         <StatCard icon={ShoppingBag} label="Today's Orders" value={o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
         <StatCard icon={UtensilsCrossed} label="Meals to Prepare" value={o.meals_to_prepare ?? "—"} color="bg-orange-400" />
         <StatCard icon={Users} label="Active Subscriptions" value={o.active_subscriptions ?? "—"} color="bg-blue-500" sub={`+${o.new_subscribers_this_week ?? 0} this week`} subUp />
         <StatCard icon={TrendingUp} label="Weekly Revenue" value={`₦${(o.weekly_revenue ?? 0).toLocaleString()}`} color="bg-purple-500" sub="vs last week" subUp />
       </div>
 
-      <div className="bg-[#4eb75e] rounded-2xl px-5 py-4 flex items-center justify-between shadow-md cursor-pointer" onClick={() => navigate("/vendor/dashboard/earnings")}>
+      <div className="bg-[#4eb75e] rounded-2xl px-5 py-4 flex items-center justify-between shadow-md cursor-pointer mb-4" onClick={() => navigate("/vendor/dashboard/earnings")}>
         <div>
           <p className="text-green-100 text-xs font-medium mb-0.5">Total Earnings</p>
           <p className="text-white text-2xl font-bold">₦{(o.total_earnings ?? 0).toLocaleString()}</p>
         </div>
-        <div className="bg-white/20 rounded-full p-3"><DollarSign size={22} className="text-white" /></div>
+        <div className="bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center text-white font-bold text-xl">₦</div>
       </div>
 
-      <div>
+      <div className="mb-4">
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">This Week's Growth</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {[
             { label: "New Subscribers", value: o.new_subscribers_this_week ?? 0, icon: UserPlus, color: "bg-[#4eb75e]" },
             { label: "Cancelled", value: o.cancelled_subscriptions ?? 0, icon: UserMinus, color: "bg-red-400" },

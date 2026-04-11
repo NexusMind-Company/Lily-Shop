@@ -94,6 +94,7 @@ import MealSelectionPage from "./pages/MealSelectionPage";
 import Settings from "./pages/settings";
 import ChangePasswordPage from "./pages/ChangePassword";
 import DeleteAccountPage from "./pages/DeleteAccount";
+import DeleteVendorProfilePage from "./pages/DeleteVendorProfilePage";
 import PasswordModalPage from "./pages/PasswordModalPage";
 
 /* ---------------- ADS & PAYMENTS ---------------- */
@@ -347,6 +348,7 @@ function App() {
             <Route path="/vendor/dashboard/subscriptions" element={<VendorSubscriptionsPage />} />
             <Route path="/vendor/dashboard/menu" element={<VendorMenuPage />} />
             <Route path="/vendor/dashboard/availability" element={<VendorAvailabilityPage />} />
+            <Route path="/delete-vendor-profile" element={<DeleteVendorProfilePage />} />
             <Route path="/vendor/dashboard/cutoff" element={<VendorCutoffPage />} />
             <Route path="/vendor/dashboard/pause" element={<VendorPauseShopPage />} />
             <Route path="/vendor/dashboard/earnings" element={<VendorEarningsPage />} />
@@ -358,6 +360,7 @@ function App() {
             <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
             <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
             <Route path="/vendor/dashboard/profile" element={<VendorEditProfilePage />} />
+//             <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} />
 
             <Route
               path="/vendor/subscriptions"

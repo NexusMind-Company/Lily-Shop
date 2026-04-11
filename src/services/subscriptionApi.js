@@ -93,11 +93,54 @@ export const fetchAllVendors = async (params = {}) => {
 
 export const fetchVendorDetails = async (vendorId) => {
   try {
+    // 1. Fetch core vendor detail
     const data = await fetchFoodVendor(vendorId);
+    
+    // 2. Data Stitching: The detail view often omits media seen in the list view
+    if (data && !data.all_media_urls) {
+      try {
+        const vendorList = await fetchAllFoodVendors();
+        const listData = (vendorList.results || vendorList).find(v => v.id === vendorId);
+        if (listData && listData.all_media_urls) {
+          data.all_media_urls = listData.all_media_urls;
+        }
+      } catch (e) {
+        console.warn("Could not stitch vendor list media", e);
+      }
+    }
+
+    // 3. User Avatar: Inject the vendor's actual associated user profile picture
+    if (data && data.user && !data.profile_pic) {
+      try {
+        const userId = typeof data.user === 'string' ? data.user : data.user.id;
+        const profile = await fetchPublicProfile(userId);
+        if (profile) {
+           data.user_profile = profile;
+           data.profile_pic = profile.profile_pic;
+           // If address is still missing, maybe it's listed in the user's bio/metadata
+           if (!data.address && profile.address) data.address = profile.address;
+        }
+      } catch (err) {
+         console.warn("Could not fetch associated user profile for vendor avatar", err);
+      }
+    }
+
+    // 4. Address Fallback: If vendor has no address, check their meal plans
+    if (data && !data.address) {
+      try {
+        const plans = await apiFetchMealPlansByVendor(vendorId);
+        const firstPlanWithAddress = (plans.results || plans).find(p => p.address);
+        if (firstPlanWithAddress) {
+          data.address = firstPlanWithAddress.address;
+        }
+      } catch (e) {
+        console.warn("Could not fetch fallback address from plans", e);
+      }
+    }
+
     return data;
   } catch (error) {
     console.error("Error fetching vendor details:", error);
-    // Return null instead of throwing — page renders without vendor info
     if (error?.response?.status === 500 || error?.response?.status === 404) {
       return null;
     }
@@ -198,11 +241,36 @@ export const fetchCustomerSubscriptions = async (customerId) => {
  * @param {Object} mealPlanData - The meal plan data with optional media file
  * @returns {Promise<Object>} Created meal plan data
  */
-export const createMealPlan = async (mealPlanData) => {
+export const createMealPlan = async (payload) => {
   try {
-    const data = await createSubscriptionPlan(mealPlanData);
-    console.log(" API createMealPlan response:", data);
-    return data;
+    let response;
+    // Check if we have media files
+    if (payload.media && payload.media.length > 0) {
+      const formData = new FormData();
+      Object.keys(payload).forEach(key => {
+        if (key === 'media') {
+          payload.media.forEach(file => {
+            formData.append('media', file);
+          });
+        } else if (key === 'features') {
+          payload.features.forEach(feature => {
+            formData.append('features', feature);
+          });
+        } else {
+          formData.append(key, payload[key]);
+        }
+      });
+      // The endpoint must accept multipart/form-data
+      response = await api.post("/foods/subscriptions/create/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      // Fallback JSON if no media
+      response = await api.post("/foods/subscriptions/create/", payload);
+    }
+    
+    console.log(" API createMealPlan response:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Error creating meal plan:", error.response?.data || error);
     throw error;
@@ -544,3 +612,27 @@ export const updateMealPlan = async (id, payload) => {
 //
 // These will need to be implemented on the backend or the frontend components will need to be updated
 // to work without these features.
+
+/**
+ * Update subscription preferences (dietary, allergies, portion size, etc.)
+ * @param {string} subscriptionId - The subscription ID
+ * @param {Object} preferencesData - The preferences data
+ * @param {string} preferencesData.preferred_delivery_days - Array of delivery days
+ * @param {Object} preferencesData.dietary_preferences - Dietary preferences
+ * @param {Array} preferencesData.allergies - List of allergies
+ * @param {string} preferencesData.portion_size - Portion size (small, regular, large)
+ * @param {string} preferencesData.special_instructions - Special instructions
+ * @returns {Promise<Object>} Updated subscription data
+ */
+export const updateSubscriptionPreferences = async (subscriptionId, preferencesData) => {
+  try {
+    const response = await api.patch(
+      `/foods/subscriptions/${subscriptionId}/preferences/`,
+      preferencesData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating subscription preferences:", error);
+    throw error;
+  }
+};
