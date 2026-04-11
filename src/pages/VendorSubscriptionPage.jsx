@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
-import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
 import { fetchVendorDetails, fetchReviewsForVendor } from "../services/subscriptionApi";
 import { ArrowLeft, MoreVertical, BadgeCheck, Clock, MapPin } from "lucide-react";
@@ -24,7 +23,6 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   // const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const [selectedDays, setSelectedDays] = useState([]);
 const [quantity, setQuantity] = useState(1);
@@ -144,10 +142,6 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
       prev.includes(planId) ? prev.filter((id) => id !== planId) : [planId]
     );
   };
-
-  const handleViewAllMenu = () => navigate("/vendor/dashboard/menu");
-  const handleMealClick = (meal) => setSelectedMeal(meal);
-  const handleCloseMealDetails = () => setSelectedMeal(null);
 
   const handleSubscribe = () => {
     if (selectedPlanIds.length === 0) {
@@ -395,12 +389,6 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
 
   </div>
 )}
-
-      <MenuPreview
-        menuItems={menuItems}
-        onViewAll={handleViewAllMenu}
-        onMealClick={handleMealClick}
-      />
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 
