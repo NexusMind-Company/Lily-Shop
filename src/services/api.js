@@ -670,11 +670,11 @@ export const createFoodVendor = async (vendorData) => {
 export const updateFoodVendor = async (vendorId, vendorData) => {
   const formData = new FormData();
   if (vendorData.shop_name)
-    formData.append("shop_name", vendorData.shop_name);
+    formData.append("name", vendorData.shop_name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
   if (vendorData.address) formData.append("address", vendorData.address);
-  if (vendorData.category) formData.append("category", vendorData.category);
+  if (vendorData.category) formData.append("cuisine", vendorData.category);
   if (vendorData.contact_email)
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
