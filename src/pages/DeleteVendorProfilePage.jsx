@@ -13,8 +13,13 @@ const DeleteVendorProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [confirmText, setConfirmText] = useState("");
 
-  const { user } = useSelector((state) => state.auth?.user_data || {});
-  const isVendor = user?.is_vendor || false;
+  const { user_data } = useSelector((state) => state.auth);
+  const { data: profileData } = useSelector((state) => state.profile);
+  
+  const isVendor = Boolean(
+    user_data?.vendor_id ||
+    profileData?.user?.vendor_id
+  );
 
   const handleDelete = async () => {
     if (confirmText !== "DELETE") {
