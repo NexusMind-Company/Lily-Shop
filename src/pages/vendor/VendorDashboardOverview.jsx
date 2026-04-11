@@ -19,7 +19,7 @@ import {
 import { updateFoodVendor } from "../../services/api";
 import { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { MapPin, Edit3, Check, X, Camera } from "lucide-react";
+import { MapPin, Edit3, Check, X, Camera, Settings, Plus, Trash2 } from "lucide-react";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
@@ -186,7 +186,7 @@ const VendorDashboardOverview = () => {
       {/* Welcome & Quick Actions */}
       <div className="flex items-start justify-between group">
         <div className="pt-1">
-          <p className="text-xs text-gray-400 font-medium">Good afternoon 👋</p>
+          <p className="text-xs text-gray-400 font-medium">Welcome back 👋</p>
           <h2 className="text-xl font-bold text-[#111813] dark:text-white">
             {profileData?.user?.username ?? "Vendor"}
           </h2>
@@ -253,6 +253,41 @@ const VendorDashboardOverview = () => {
           </p>
         </div>
       )}
+
+      {/* Quick Actions */}
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+        <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => navigate("/editProfile")}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Edit3 size={16} className="text-[#4eb75e]" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Edit Profile</span>
+          </button>
+          <button
+            onClick={() => navigate("/vendor/plans")}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Settings size={16} className="text-blue-500" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
+          </button>
+          <button
+            onClick={() => navigate("/vendor/plans/create")}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+          >
+            <Plus size={16} className="text-[#4eb75e]" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
+          </button>
+          <button
+            onClick={() => navigate("/delete-vendor-profile")}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
+          >
+            <Trash2 size={16} className="text-red-500" />
+            <span className="text-xs font-semibold text-red-600 dark:text-red-400">Delete Profile</span>
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <StatCard icon={ShoppingBag} label="Today's Orders" value={o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
