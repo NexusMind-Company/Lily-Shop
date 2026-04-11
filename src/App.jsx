@@ -94,6 +94,7 @@ import MealSelectionPage from "./pages/MealSelectionPage";
 import Settings from "./pages/settings";
 import ChangePasswordPage from "./pages/ChangePassword";
 import DeleteAccountPage from "./pages/DeleteAccount";
+import DeleteVendorProfilePage from "./pages/DeleteVendorProfilePage";
 import PasswordModalPage from "./pages/PasswordModalPage";
 
 /* ---------------- ADS & PAYMENTS ---------------- */
@@ -323,6 +324,7 @@ function App() {
             <Route path="/ChangePassword" element={<ChangePasswordPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
+            <Route path="/delete-vendor-profile" element={<DeleteVendorProfilePage />} />
             <Route path="/password" element={<PasswordModalPage />} />
           </Route>
 
