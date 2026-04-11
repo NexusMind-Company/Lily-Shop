@@ -32,6 +32,11 @@ const SubscriptionDetailsPage = () => {
   const [phone, setPhone] = useState(flowState?.phone || "");
   const [collectionCode, setCollectionCode] = useState(flowState?.collectionCode || "");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dietaryPreferences, setDietaryPreferences] = useState(flowState?.dietaryPreferences || "");
+  const [allergies, setAllergies] = useState(flowState?.allergies || "");
+  const [portionSize, setPortionSize] = useState(flowState?.portionSize || "regular");
+  const [specialInstructions, setSpecialInstructions] = useState(flowState?.specialInstructions || "");
+  const [showCustomization, setShowCustomization] = useState(false);
 
   useEffect(() => {
     if (!plan) {
@@ -57,6 +62,10 @@ const SubscriptionDetailsPage = () => {
       address,
       phone,
       collectionCode,
+      dietaryPreferences,
+      allergies,
+      portionSize,
+      specialInstructions,
     });
   }, [
     flowState,
@@ -73,6 +82,10 @@ const SubscriptionDetailsPage = () => {
     address,
     phone,
     collectionCode,
+    dietaryPreferences,
+    allergies,
+    portionSize,
+    specialInstructions,
   ]);
 
   const isValid = () => {
@@ -109,6 +122,10 @@ const handleConfirm = () => {
     address,
     phone,
     collectionCode,
+    dietaryPreferences,
+    allergies,
+    portionSize,
+    specialInstructions,
   };
   saveSubscriptionFlowState(paymentState);
   navigate("/subscription/payment", {
@@ -230,6 +247,85 @@ const handleCloseModal = () => setIsModalOpen(false);
                 />
               </div>
             </div>
+
+            {/* Meal Customization Section */}
+            <div>
+              <button
+                onClick={() => setShowCustomization(!showCustomization)}
+                className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-[#13ec49] transition-colors bg-gray-50 dark:bg-slate-800"
+              >
+                <span className="text-sm font-semibold text-[#111813] dark:text-white">Customize Your Meal Plan</span>
+                <ShoppingBag className={showCustomization ? "text-[#13ec49] rotate-180" : "text-gray-400"} />
+              </button>
+            </div>
+
+            {showCustomization && (
+              <div className="space-y-4 pt-2">
+                {/* Dietary Preferences */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Dietary Preferences <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Vegetarian, Keto, Low-sodium"
+                    value={dietaryPreferences}
+                    onChange={(e) => setDietaryPreferences(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                  />
+                </div>
+
+                {/* Allergies */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Allergies <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Peanuts, Dairy, Gluten"
+                    value={allergies}
+                    onChange={(e) => setAllergies(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                  />
+                </div>
+
+                {/* Portion Size */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Portion Size <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["small", "regular", "large"].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setPortionSize(size)}
+                        className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
+                          portionSize === size
+                            ? "bg-[#13ec49] text-white shadow-sm"
+                            : "bg-white dark:bg-slate-800 text-gray-500 border border-gray-200"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Special Instructions */}
+                <div>
+                  <label className="text-sm font-bold mb-2 block">
+                    Special Instructions <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Any special requests for your meals..."
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                  />
+                </div>
+              </div>
+            )}
 
           </div>
         )}
