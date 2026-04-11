@@ -185,7 +185,7 @@ export const fetchVendorMenu = async () => {
  * POST /vendor/menu/
  * Adds a new meal to the vendor's menu.
  * Body (multipart/form-data): name, price, size_category (small|medium|large),
- *                              description?, image (file)
+ *                              description?, image (file), video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: created meal object
  */
 export const addMeal = async (mealData) => {
@@ -195,6 +195,21 @@ export const addMeal = async (mealData) => {
   formData.append("size_category", mealData.size_category);
   if (mealData.description) formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
+  if (mealData.video_url) formData.append("video_url", mealData.video_url);
+  if (mealData.calories) formData.append("calories", mealData.calories);
+  if (mealData.protein) formData.append("protein", mealData.protein);
+  if (mealData.carbs) formData.append("carbs", mealData.carbs);
+  if (mealData.fat) formData.append("fat", mealData.fat);
+  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.media && mealData.media.length > 0) {
+    mealData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
 
   const response = await api.post("/foods/vendor/menu/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -205,7 +220,7 @@ export const addMeal = async (mealData) => {
 /**
  * PATCH /vendor/menu/{mealId}/
  * Updates an existing meal.
- * Body (multipart/form-data): name?, price?, size_category?, description?, image?
+ * Body (multipart/form-data): name?, price?, size_category?, description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: updated meal object
  */
 export const updateMeal = async (mealId, mealData) => {
@@ -217,6 +232,21 @@ export const updateMeal = async (mealId, mealData) => {
   if (mealData.description !== undefined)
     formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
+  if (mealData.video_url) formData.append("video_url", mealData.video_url);
+  if (mealData.calories) formData.append("calories", mealData.calories);
+  if (mealData.protein) formData.append("protein", mealData.protein);
+  if (mealData.carbs) formData.append("carbs", mealData.carbs);
+  if (mealData.fat) formData.append("fat", mealData.fat);
+  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.media && mealData.media.length > 0) {
+    mealData.media.forEach((file) => {
+      formData.append("media", file);
+    });
+  }
 
   const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
