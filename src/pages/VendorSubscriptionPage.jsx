@@ -28,14 +28,12 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const [selectedDays, setSelectedDays] = useState([]);
 const [quantity, setQuantity] = useState(1);
-const [addExtra, setAddExtra] = useState(false);
 const [preferredTime, setPreferredTime] = useState("12:00");
 const [deliveryType, setDeliveryType] = useState("delivery");
 const [collectionCode, setCollectionCode] = useState("");
 
 
 const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const EXTRA_PRICE = 300;
   // // Fetch vendor details
   // const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
   //   queryKey: ["vendorDetails", vendorId],
@@ -115,8 +113,7 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
   const selectedPlans =
     plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
 
- const extraTotal = addExtra ? EXTRA_PRICE : 0;
-const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity + extraTotal;
+ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity;
 
   console.log("Selected Plan IDs:", selectedPlanIds);
   console.log("Selected Plans objects:", selectedPlans);
@@ -164,8 +161,6 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
       totalPrice,
       selectedDays,
       quantity,
-      addExtra,
-      extraPrice: EXTRA_PRICE,
       preferredTime,
       deliveryType,
       address: plan.address,
@@ -323,32 +318,6 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
           +
         </button>
         <span className="text-sm text-gray-400">plate{quantity > 1 ? "s" : ""} per delivery</span>
-      </div>
-    </div>
-
-    {/* Extra */}
-    <div>
-      <h3 className="text-base font-bold mb-3">Add Extra</h3>
-      <div
-        onClick={() => setAddExtra((prev) => !prev)}
-        className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
-          addExtra
-            ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
-            : "border-gray-200 bg-white dark:bg-slate-800"
-        }`}
-      >
-        <div>
-          <p className="font-semibold text-sm">Add Extra Portion</p>
-          <p className="text-xs text-gray-400">An additional portion added to your delivery</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-[#13ec49]">+₦{EXTRA_PRICE}</span>
-          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-            addExtra ? "border-[#13ec49] bg-[#13ec49]" : "border-gray-300"
-          }`}>
-            {addExtra && <span className="text-white text-xs font-bold">✓</span>}
-          </div>
-        </div>
       </div>
     </div>
 
