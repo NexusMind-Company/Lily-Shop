@@ -119,7 +119,7 @@ const VendorDashboardOverview = () => {
 
   const o = overview ?? {};
   const g = growth ?? {};
-  const a = activity;
+  const a = activity ?? [];
 
   const chartData = (g?.labels ?? []).map((label, i) => ({
     name: label,
@@ -216,7 +216,7 @@ const VendorDashboardOverview = () => {
         </div>
         {activityError
           ? <p className="text-xs text-gray-400 text-center py-4">Activity feed unavailable</p>
-          : a.length === 0
+          : !a || a.length === 0
             ? <p className="text-xs text-gray-400 text-center py-4">No recent activity</p>
             : a.slice(0, 5).map((item) => <ActivityRow key={item.id} item={item} />)
         }

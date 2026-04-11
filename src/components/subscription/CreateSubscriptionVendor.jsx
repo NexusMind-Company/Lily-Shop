@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
-import { useDispatch } from "react-redux";
 import useFormValidation from "../../hooks/useFormValidation";
 import ErrorDisplay from "../common/ErrorDisplay";
 
@@ -31,6 +31,20 @@ const VALIDATION_RULES = {
 const CreateSubscriptionVendor = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const { user_data } = useSelector((state) => state.auth);
+  const { data: profileData } = useSelector((state) => state.profile);
+
+  // If already a vendor, redirect immediately — don't show the form
+  const isAlreadyVendor = Boolean(
+    user_data?.vendor_id || profileData?.user?.vendor_id
+  );
+
+  useEffect(() => {
+    if (isAlreadyVendor) {
+      navigate("/vendor/dashboard", { replace: true });
+    }
+  }, [isAlreadyVendor, navigate]);
 
   const {
     values,
@@ -122,6 +136,9 @@ const CreateSubscriptionVendor = () => {
 
   const inputClass = (fieldName) =>
     `input h-[46px] w-full ${fieldErrors[fieldName] ? "border-red-500" : "border-gray-300"}`;
+
+  // Don't render form while redirect is in progress
+  if (isAlreadyVendor) return null;
 
   return (
     <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
