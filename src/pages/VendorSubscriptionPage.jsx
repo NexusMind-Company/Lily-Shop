@@ -146,7 +146,7 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
     setSelectedPlanIds([planId]);
   };
 
-  const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
+  const handleViewAllMenu = () => navigate("/vendor/dashboard/menu");
   const handleMealClick = (meal) => setSelectedMeal(meal);
   const handleCloseMealDetails = () => setSelectedMeal(null);
 
