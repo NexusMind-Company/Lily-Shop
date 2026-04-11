@@ -414,6 +414,52 @@ export const fetchEarningsChart = async (period = "weekly") => {
 };
 
 // ─────────────────────────────────────────────
+// 12. VENDOR WALLET
+// ─────────────────────────────────────────────
+
+/**
+ * GET /vendor/wallet/
+ * Returns vendor wallet balance.
+ * Response: { id, vendor, balance_kobo, balance_naira, updated_at }
+ */
+export const fetchVendorWallet = async () => {
+  const response = await api.get("/foods/vendor/wallet/");
+  return response.data;
+};
+
+/**
+ * GET /vendor/withdrawals/
+ * Returns vendor withdrawal requests.
+ * Query params: page, page_size, status
+ * Response: { count, next, previous, results: [withdrawal...] }
+ */
+export const fetchVendorWithdrawals = async (params = {}) => {
+  const response = await api.get("/foods/vendor/withdrawals/", { params });
+  return response.data;
+};
+
+/**
+ * POST /vendor/withdrawals/
+ * Creates a new withdrawal request.
+ * Body: { amount_kobo, bank_name, account_number, account_name }
+ * Response: created withdrawal object
+ */
+export const createVendorWithdrawal = async (withdrawalData) => {
+  const response = await api.post("/foods/vendor/withdrawals/", withdrawalData);
+  return response.data;
+};
+
+/**
+ * GET /vendor/withdrawals/{id}/
+ * Returns withdrawal details.
+ * Response: withdrawal object
+ */
+export const fetchWithdrawalDetails = async (withdrawalId) => {
+  const response = await api.get(`/foods/vendor/withdrawals/${withdrawalId}/`);
+  return response.data;
+};
+
+// ─────────────────────────────────────────────
 // 10. ADD-ON UPSELL
 // ─────────────────────────────────────────────
 
