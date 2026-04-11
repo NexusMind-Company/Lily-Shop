@@ -1,4 +1,4 @@
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, Receipt } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useFeed } from "../../context/feedContext";
 
@@ -64,6 +64,21 @@ const BottomNav = ({ activePage }) => {
           )}
         </button>
         <span className="text-xs font-poppins mt-6">Food</span>
+      </Link>
+
+      {/* Subscriptions */}
+      <Link
+        to="/subscriptions"
+        className={`flex flex-col items-center relative ${activePage === "subscriptions" ? "text-lily" : "text-ash"}`}
+      >
+        <button className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">
+          {activePage === "subscriptions" ? (
+            <Receipt className="text-lily h-7 w-7" />
+          ) : (
+            <Receipt className="text-gray-600 h-7 w-7" />
+          )}
+        </button>
+        <span className="text-xs font-poppins mt-6">Subs</span>
       </Link>
 
       {/* Chatroom */}
