@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getSubscriptionFlowState } from "../../utils/subscriptionFlow";
 
 export default function SubscriptionCallback() {
   const navigate = useNavigate();
@@ -10,17 +11,24 @@ export default function SubscriptionCallback() {
     const params = new URLSearchParams(location.search);
     const reference = params.get("reference");
     const status = params.get("status"); // trxref, reference, etc.
+    const pendingState = getSubscriptionFlowState();
 
     if (reference) {
-      // For now, we'll assume success and redirect
-      // In production, you'd verify the payment with your backend
-      navigate("/subscription-success");
+      if (pendingState?.planId || pendingState?.plan?.id) {
+        navigate("/subscription/processing", {
+          replace: true,
+          state: pendingState,
+        });
+        return;
+      }
+
+      navigate("/subscription-success", { replace: true });
     } else if (status === "cancelled") {
       // Payment was cancelled
-      navigate("/my-subscriptions?status=cancelled");
+      navigate("/subscriptions?status=cancelled", { replace: true });
     } else {
       // Handle other cases
-      navigate("/my-subscriptions?status=unknown");
+      navigate("/subscriptions?status=unknown", { replace: true });
     }
   }, [navigate, location.search]);
 

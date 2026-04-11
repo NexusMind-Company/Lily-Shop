@@ -14,6 +14,8 @@ import {
   Loader2,
   Search,
   UtensilsCrossed,
+  Receipt,
+  BadgeCheck,
 } from "lucide-react";
 
 // Import from your api.js — adjust path if needed
@@ -149,6 +151,36 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
         </div>
       </div>
 
+      {/* Proof Information */}
+      <div className="border-t border-gray-100 pt-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs flex items-center gap-1">
+            <Receipt size={11} /> Subscription ID
+          </span>
+          <span className="text-xs text-[#111813] font-medium font-mono">
+            {sub?.id?.slice(0, 8) || "N/A"}
+          </span>
+        </div>
+        {sub?.collection_code && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <BadgeCheck size={11} /> Collection Code
+            </span>
+            <span className="text-xs text-[#13ec49] font-semibold">
+              {sub.collection_code}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs flex items-center gap-1">
+            <Clock size={11} /> Subscribed on
+          </span>
+          <span className="text-xs text-[#111813] font-medium">
+            {formatDate(sub?.created_at || sub?.start_date)}
+          </span>
+        </div>
+      </div>
+
       {/* Action buttons — only show for active */}
       {(sub?.status === "active" || !sub?.status) && (
         <div className="flex flex-col gap-2">
@@ -273,7 +305,7 @@ const CustomerSubscriptionsPage = () => {
             </div>
             {!searchQuery && (
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/food")}
                 className="bg-[#13ec49] text-[#111813] font-bold px-6 py-3 rounded-xl text-sm"
               >
                 Explore Vendors

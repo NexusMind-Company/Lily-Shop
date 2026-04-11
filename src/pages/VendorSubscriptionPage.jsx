@@ -4,17 +4,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
-import MenuPreview from "../components/subscription/MenuPreview";
 import StickyCTA from "../components/subscription/StickyCTA";
-// import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
-import { fetchVendorDetails } from "../services/subscriptionApi";
-import { fetchReviewsForVendor } from "../services/subscriptionApi";
-import { ArrowLeft, MoreVertical } from "lucide-react";
+import { fetchVendorDetails, fetchReviewsForVendor } from "../services/subscriptionApi";
+import { ArrowLeft, BadgeCheck, Clock, MapPin } from "lucide-react";
 import {
   fetchMealPlansByVendor,
   fetchFoodVendor,
   fetchMealsByVendor,
+  fetchPublicProfile,
 } from "../services/api";
+import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
@@ -24,15 +23,15 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   // const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const [selectedDays, setSelectedDays] = useState([]);
 const [quantity, setQuantity] = useState(1);
-const [addExtra, setAddExtra] = useState(false);
+const [preferredTime, setPreferredTime] = useState("12:00");
+const [deliveryType, setDeliveryType] = useState("delivery");
+const [collectionCode, setCollectionCode] = useState("");
 
 
 const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const EXTRA_PRICE = 300;
   // // Fetch vendor details
   // const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
   //   queryKey: ["vendorDetails", vendorId],
@@ -112,8 +111,7 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
   const selectedPlans =
     plans?.results?.filter(plan => selectedPlanIds.includes(plan.id)) || [];
 
- const extraTotal = addExtra ? EXTRA_PRICE : 0;
-const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity + extraTotal;
+ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) * quantity;
 
   console.log("Selected Plan IDs:", selectedPlanIds);
   console.log("Selected Plans objects:", selectedPlans);
@@ -140,37 +138,36 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
   };
 
   const handlePlanSelect = (planId) => {
-    setSelectedPlanIds((prev) => {
-      if (prev.includes(planId)) return prev.filter(id => id !== planId);
-      return [...prev, planId];
-    });
+    setSelectedPlanIds((prev) =>
+      prev.includes(planId) ? prev.filter((id) => id !== planId) : [planId]
+    );
   };
 
-  const handleViewAllMenu = () => navigate(`/vendor/${vendorId}/menu`);
-  const handleMealClick = (meal) => setSelectedMeal(meal);
-  const handleCloseMealDetails = () => setSelectedMeal(null);
+  const handleSubscribe = () => {
+    if (selectedPlanIds.length === 0) {
+      alert("Please select a plan to continue");
+      return;
+    }
 
-const handleSubscribe = () => {
-  if (selectedPlanIds.length === 0) {
-    alert("Please select at least one plan");
-    return;
-  }
-  if (selectedDays.length === 0) {
-    alert("Please select at least one delivery day");
-    return;
-  }
-  navigate("/subscription/details", {
-    state: {
-      plans: selectedPlans,
+    const plan = selectedPlans[0];
+    const subscriptionFlowState = {
+      plan,
       vendor,
+      vendorId,
       totalPrice,
       selectedDays,
       quantity,
-      addExtra,
-      extraPrice: EXTRA_PRICE,
-    },
-  });
-};
+      preferredTime,
+      deliveryType,
+      address: plan.address,
+      collectionCode,
+    };
+
+    saveSubscriptionFlowState(subscriptionFlowState);
+    navigate("/subscription/details", {
+      state: subscriptionFlowState,
+    });
+  };
 
 //   const handleCloseModal = () => setIsModalOpen(false);
 
@@ -243,16 +240,24 @@ const handleSubscribe = () => {
           <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
             Vendor Profile
           </h2>
-          <button
-            onClick={handleMore}
-            className="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-          >
-            <MoreVertical />
-          </button>
         </div>
       </div>
 
-      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} />
+      <VendorHero vendor={vendor || null} reviews={reviews?.results || []} hasSubscriptionPlans={filteredPlans.length > 0} />
+      
+      {/* Address Display for Selection Transparency */}
+      {selectedPlanIds.length > 0 && selectedPlans[0]?.address && (
+        <div className="mx-4 mb-4 p-3 bg-white dark:bg-slate-800 rounded-xl border border-[#13ec49]/30 flex items-start gap-3 shadow-sm">
+          <div className="mt-1 flex-shrink-0 text-[#13ec49]">
+            <BadgeCheck size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Pickup/Restaurant Address</p>
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{selectedPlans[0].address}</p>
+          </div>
+        </div>
+      )}
+
       <PlanToggle selectedPlan={selectedPlan} onPlanChange={handlePlanChange} />
 
       <div className="grid grid-cols-1 gap-4 px-4 py-4">
@@ -283,31 +288,6 @@ const handleSubscribe = () => {
 {selectedPlanIds.length > 0 && (
   <div className="px-4 py-4 space-y-6">
 
-    {/* Delivery Days */}
-    <div>
-      <h3 className="text-base font-bold mb-3">
-        Select Delivery Days <span className="text-red-500">*</span>
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {DELIVERY_DAYS.map((day) => (
-          <button
-            key={day}
-            onClick={() => handleDayToggle(day)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-              selectedDays.includes(day)
-                ? "bg-[#13ec49] text-[#111813] border-[#13ec49]"
-                : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-gray-200"
-            }`}
-          >
-            {day}
-          </button>
-        ))}
-      </div>
-      {selectedDays.length === 0 && (
-        <p className="text-xs text-red-400 mt-2">Please select at least one day</p>
-      )}
-    </div>
-
     {/* Quantity */}
     <div>
       <h3 className="text-base font-bold mb-3">
@@ -331,40 +311,78 @@ const handleSubscribe = () => {
       </div>
     </div>
 
-    {/* Extra */}
+    {/* Preferred Time */}
     <div>
-      <h3 className="text-base font-bold mb-3">Add Extra</h3>
-      <div
-        onClick={() => setAddExtra((prev) => !prev)}
-        className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
-          addExtra
-            ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
-            : "border-gray-200 bg-white dark:bg-slate-800"
-        }`}
-      >
-        <div>
-          <p className="font-semibold text-sm">Add Extra Portion</p>
-          <p className="text-xs text-gray-400">An additional portion added to your delivery</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-[#13ec49]">+₦{EXTRA_PRICE}</span>
-          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-            addExtra ? "border-[#13ec49] bg-[#13ec49]" : "border-gray-300"
-          }`}>
-            {addExtra && <span className="text-white text-xs font-bold">✓</span>}
-          </div>
-        </div>
+      <h3 className="text-base font-bold mb-3">Preferred {deliveryType === "delivery" ? "Delivery" : "Pickup"} Time</h3>
+      <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200">
+        <Clock className="text-gray-400" size={20} />
+        <input
+          type="time"
+          value={preferredTime}
+          onChange={(e) => setPreferredTime(e.target.value)}
+          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold dark:text-white"
+        />
       </div>
+      <p className="text-[10px] text-gray-400 mt-2">Vendors will try their best to meet this time daily.</p>
+    </div>
+
+    {/* Collection Code */}
+    <div>
+      <h3 className="text-base font-bold mb-3">Collection Code (Optional)</h3>
+      <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200">
+        <BadgeCheck className="text-gray-400" size={20} />
+        <input
+          type="text"
+          value={collectionCode}
+          onChange={(e) => setCollectionCode(e.target.value)}
+          placeholder="Enter vendor's collection code"
+          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold dark:text-white"
+        />
+      </div>
+      <p className="text-[10px] text-gray-400 mt-2">If the vendor provided a collection code, enter it here.</p>
+    </div>
+
+    {/* Delivery Method Selector (New) */}
+    <div>
+      <h3 className="text-base font-bold mb-3">How do you want it?</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setDeliveryType("delivery")}
+          className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+            deliveryType === "delivery"
+              ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+              : "border-gray-200 bg-white dark:bg-slate-800"
+          }`}
+        >
+          <MapPin size={24} className={deliveryType === "delivery" ? "text-[#13ec49]" : "text-gray-400"} />
+          <span className="text-sm font-bold">Deliver to me</span>
+        </button>
+        <button
+          onClick={() => setDeliveryType("pickup")}
+          className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+            deliveryType === "pickup"
+              ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+              : "border-gray-200 bg-white dark:bg-slate-800"
+          }`}
+        >
+          <div className="relative">
+            <Clock size={24} className={deliveryType === "pickup" ? "text-[#13ec49]" : "text-gray-400"} />
+            <div className="absolute -top-1 -right-1 bg-[#13ec49] w-2 h-2 rounded-full" />
+          </div>
+          <span className="text-sm font-bold">Pickup myself</span>
+        </button>
+      </div>
+      {deliveryType === "pickup" && (
+        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <p className="text-[11px] text-blue-600 dark:text-blue-400 leading-relaxed font-medium">
+            💡 <strong>Logistics via Code:</strong> You'll get a unique code after payment. Show it at the restaurant to collect your food.
+          </p>
+        </div>
+      )}
     </div>
 
   </div>
 )}
-
-      <MenuPreview
-        menuItems={menuItems}
-        onViewAll={handleViewAllMenu}
-        onMealClick={handleMealClick}
-      />
 
       <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
 

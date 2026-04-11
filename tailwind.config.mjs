@@ -12,19 +12,19 @@ export default {
         primary: "#13ec49",
         "primary-dark": "#0db938",
         
-        // Lily brand colors (Pink/Purple theme)
+        // Lily brand colors (Green theme)
         lily: {
-          DEFAULT: "#E91E63", // Main pink
-          50: "#FCE4EC",
-          100: "#F8BBD0",
-          200: "#F48FB1",
-          300: "#F06292",
-          400: "#EC407A",
-          500: "#E91E63",
-          600: "#D81B60",
-          700: "#C2185B",
-          800: "#AD1457",
-          900: "#880E4F",
+          DEFAULT: "#4eb75e", // Main green
+          50: "#f0fdf4",
+          100: "#dcfce7",
+          200: "#bbf7d0",
+          300: "#86efac",
+          400: "#4ade80",
+          500: "#4eb75e",
+          600: "#22c55e",
+          700: "#16a34a",
+          800: "#15803d",
+          900: "#166534",
         },
         
         purple: {
@@ -80,8 +80,8 @@ export default {
       
       boxShadow: {
         soft: "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
-        glow: "0 0 20px rgba(233, 30, 99, 0.3)",
-        "glow-lg": "0 0 40px rgba(233, 30, 99, 0.4)",
+        glow: "0 0 20px rgba(78, 183, 94, 0.3)",
+        "glow-lg": "0 0 40px rgba(78, 183, 94, 0.4)",
         card: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         "card-hover": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
       },
@@ -89,8 +89,8 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "lily-gradient": "linear-gradient(135deg, #E91E63 0%, #9C27B0 100%)",
-        "lily-gradient-soft": "linear-gradient(135deg, #FCE4EC 0%, #F3E5F5 100%)",
+        "lily-gradient": "linear-gradient(135deg, #4eb75e 0%, #22c55e 100%)",
+        "lily-gradient-soft": "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
       },
       
       animation: {

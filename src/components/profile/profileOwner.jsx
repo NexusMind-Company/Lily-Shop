@@ -431,40 +431,6 @@ const ProfileOwner = () => {
               <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
                 <Eye size={15} className="mr-1" /> {post.view_count || 0}
               </div>
-
-              {activeTab === 0 && (
-                <div className="absolute top-1 right-1 z-10">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuId(openMenuId === post.id ? null : post.id);
-                    }}
-                    className="bg-black/50 p-1 rounded-full text-white hover:bg-black/70 transition-colors shadow-sm"
-                  >
-                    <MoreVertical size={16} />
-                  </button>
-
-                  {openMenuId === post.id && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuId(null);
-                        }}
-                      ></div>
-                      <div className="absolute right-0 top-8 mt-1 w-28 bg-white rounded-md shadow-lg overflow-hidden py-1 z-20">
-                        <button
-                          onClick={(e) => handleDeletePost(e, post)}
-                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 font-medium"
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
@@ -595,6 +561,7 @@ const ProfileOwner = () => {
           <div className="flex flex-col items-center md:flex-row gap-3 w-full max-w-62.5 mx-auto">
             {user?.vendor_id ? (
               <Link to="/vendor-dashboard" className="w-full">
+//               <Link to="/vendor/dashboard" className="w-full">
                 <button className="w-full px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-3xl font-bold md:text-[16px]">
                   Vendor Dashboard
                 </button>

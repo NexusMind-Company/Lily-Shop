@@ -1,9 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { fetchWallet } from "../services/api";
+import { fetchWallet, topUpWallet } from "../services/api";
+import {
+  resolveSubscriptionFlowState,
+  saveSubscriptionFlowState,
+} from "../utils/subscriptionFlow";
 
 const formatPrice = (price) =>
   Number(price)
@@ -12,27 +16,30 @@ const formatPrice = (price) =>
 
 const SubscriptionPaymentPage = () => {
   const navigate = useNavigate();
-  // const { planId } = useParams();
   const { state } = useLocation();
+  const flowState = resolveSubscriptionFlowState(state);
 
- const plans = state?.plans || [];
-const vendor = state?.vendor;
-const totalPrice = state?.totalPrice || 0;
-const selectedDays = state?.selectedDays || [];
-const quantity = state?.quantity || 1;
-const addExtra = state?.addExtra || false;
-const extraPrice = state?.extraPrice || 0;
-const deliveryType = state?.deliveryType;
-const address = state?.address;
-const phone = state?.phone;
-const collectionCode = state?.collectionCode;
+  const plan = flowState?.plan;
+const vendor = flowState?.vendor;
+const totalPrice = flowState?.totalPrice || 0;
+const selectedDays = flowState?.selectedDays || [];
+const quantity = flowState?.quantity || 1;
+const addExtra = flowState?.addExtra || false;
+const extraPrice = flowState?.extraPrice || 0;
+const deliveryType = flowState?.deliveryType;
+const preferredTime = flowState?.preferredTime;
+const address = flowState?.address;
+const phone = flowState?.phone;
+const collectionCode = flowState?.collectionCode;
 
   // If no state was passed (e.g. direct URL navigation), go back
 useEffect(() => {
-  if (!plans?.length) {
-    navigate(-1);
+  if (!plan) {
+    navigate("/subscriptions", { replace: true });
+    return;
   }
-}, [plans, navigate]);
+  saveSubscriptionFlowState(flowState);
+}, [plan, navigate, flowState]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
@@ -46,28 +53,77 @@ const platformFee = planPrice * 0.1;
 const vendorReceives = planPrice * 0.9;
 
 const handlePayWithWallet = () => {
+  const processingState = {
+    ...flowState,
+    planId: plan?.id,
+    plan,
+    vendor,
+    totalPrice,
+    selectedDays,
+    quantity,
+    addExtra,
+    extraPrice,
+    deliveryType,
+    preferredTime,
+    address,
+    phone,
+    collectionCode,
+  };
+
+  saveSubscriptionFlowState(processingState);
   navigate("/subscription/processing", {
-    state: {
-      plans,
-      vendor,
-      totalPrice,
-      selectedDays,
-      quantity,
-      addExtra,
-      extraPrice,
-      deliveryType,
-      address,
-      phone,
-      collectionCode,
-    },
+    state: processingState,
   });
 };
 
   const handleTopUp = () => {
+    saveSubscriptionFlowState(flowState);
     navigate("/wallet/topup");
   };
 
-if (!plans?.length) return null;
+  const handleDirectPayment = async () => {
+    try {
+      // Store current subscription state in localStorage
+      const pendingData = {
+        ...flowState,
+        planId: plan?.id,
+        plan,
+        vendor,
+        totalPrice,
+        selectedDays,
+        quantity,
+        addExtra,
+        extraPrice,
+        deliveryType,
+        preferredTime,
+        address,
+        phone,
+        collectionCode,
+      };
+      
+      saveSubscriptionFlowState(pendingData);
+      localStorage.setItem("lily_pending_subscription_data", JSON.stringify(pendingData));
+      localStorage.setItem("lily_subscription_redirect", "true");
+
+      // Amount to top up (the exact cost of the plan)
+      const amountValue = parseFloat(totalPrice);
+      
+      // Call topUpWallet API
+      const response = await topUpWallet(amountValue);
+      
+      if (response && response.authorization_url) {
+        // Redirect to Paystack
+        window.location.href = response.authorization_url;
+      } else {
+        alert("Failed to initialize direct payment. Please try again.");
+      }
+    } catch (error) {
+      console.error("Direct payment error:", error);
+      alert("An error occurred during direct payment initialization.");
+    }
+  };
+
+if (!plan) return null;
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
@@ -132,15 +188,15 @@ if (!plans?.length) return null;
 
           <div className="border-t border-gray-100 pt-4 space-y-3">
 
-  {/* Plans list */}
-  {plans.map((plan) => (
-    <div key={plan.id} className="flex items-center justify-between">
+  {/* Plan details */}
+  {plan && (
+    <div className="flex items-center justify-between">
       <span className="text-gray-500 text-sm">{plan.plan_name}</span>
       <span className="font-semibold text-[#111813] text-sm">
         ₦{formatPrice(plan.price)}
       </span>
     </div>
-  ))}
+  )}
 
   {/* Delivery Days */}
   <div className="flex items-center justify-between">
@@ -169,9 +225,19 @@ if (!plans?.length) return null;
   {/* Address or collection code */}
   {deliveryType === "delivery" && address && (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">Address</span>
+      <span className="text-gray-500 text-sm">{deliveryType === "delivery" ? "Delivery Address" : "Pickup Address"}</span>
       <span className="font-semibold text-[#111813] text-sm text-right max-w-[60%]">
         {address}
+      </span>
+    </div>
+  )}
+  
+  {/* Preferred Time */}
+  {preferredTime && (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-sm">Preferred Time</span>
+      <span className="font-semibold text-[#111813] text-sm">
+        {preferredTime}
       </span>
     </div>
   )}
@@ -294,19 +360,29 @@ if (!plans?.length) return null;
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-start gap-2 bg-blue-50 rounded-2xl p-4"
+          className="flex items-start gap-2 bg-[#13ec49]/10 rounded-2xl p-4 border border-[#13ec49]/20"
         >
-          <AlertCircle size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-          <p className="text-blue-600 text-xs leading-relaxed">
-            Food subscriptions are paid using your Lily Wallet balance. The amount will be deducted
-            immediately upon confirmation.
+          <Zap size={16} className="text-[#13ec49] mt-0.5 flex-shrink-0" />
+          <p className="text-[#111813] text-xs leading-relaxed font-medium">
+            <strong>Direct Payment Enabled:</strong> You can now pay directly with your card or bank transfer. Your wallet will be topped up and the subscription processed immediately.
           </p>
         </motion.div>
       </div>
 
       {/* Bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 space-y-3 max-w-5xl mx-auto lg:ml-64">
-        {hasEnoughBalance ? (
+        {!walletLoading && !hasEnoughBalance ? (
+          <>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleDirectPayment}
+              className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base transition-all active:scale-95 shadow-lg shadow-green-500/20"
+            >
+              Pay ₦{formatPrice(planPrice)} Now (Direct)
+            </motion.button>
+            <p className="text-center text-[10px] text-gray-400 font-medium">Safe & Secure via Paystack</p>
+          </>
+        ) : (
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handlePayWithWallet}
@@ -315,23 +391,24 @@ if (!plans?.length) return null;
           >
             {walletLoading ? "Checking balance..." : `Pay ₦${formatPrice(planPrice)} with Wallet`}
           </motion.button>
-        ) : (
-          <>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={handleTopUp}
-              className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base transition-all active:scale-95"
-            >
-              Top Up Wallet
-            </motion.button>
-            <button
-              onClick={() => navigate(-1)}
-              className="w-full bg-white text-gray-500 font-semibold py-3 rounded-2xl text-sm border border-gray-200"
-            >
-              Go Back
-            </button>
-          </>
         )}
+        
+        <div className="flex gap-2">
+           {!hasEnoughBalance && (
+             <button
+               onClick={handleTopUp}
+               className="flex-1 bg-white text-gray-600 border border-gray-100 font-semibold py-3 rounded-2xl text-xs"
+             >
+               Top Up Only
+             </button>
+           )}
+           <button
+             onClick={() => navigate(-1)}
+             className="flex-1 bg-white text-gray-500 font-semibold py-3 rounded-2xl text-xs border border-gray-100"
+           >
+             Go Back
+           </button>
+        </div>
       </div>
     </div>
   );

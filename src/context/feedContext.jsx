@@ -13,9 +13,19 @@ const FeedContext = createContext(null);
 
 const FEED_PAGE_SIZE = 20;
 
-const fetchFeedPage = async ({ pageParam, activeTab }) => {
-  // ✅ FIX: default here instead of in the destructure signature
-  const page = pageParam ?? 1;
+// const fetchFeedPage = async ({ pageParam, activeTab }) => {
+//   // ✅ FIX: default here instead of in the destructure signature
+//   const page = pageParam ?? 1;
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
   const endpoint =
     activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
 
@@ -27,24 +37,30 @@ const fetchFeedPage = async ({ pageParam, activeTab }) => {
 
   if (data && data.results) {
     return {
-      items: data.results,
-      nextPage: data.next ? page + 1 : null,
+//       items: data.results,
+//       nextPage: data.next ? page + 1 : null,
+      items: shuffleArray(data.results),
+      nextPage: data.next ? pageParam + 1 : null,
       hasMore: !!data.next,
     };
   }
 
   if (data && data.feed) {
     return {
-      items: data.feed,
-      nextPage: data.feed.length > 0 ? page + 1 : null,
+//       items: data.feed,
+//       nextPage: data.feed.length > 0 ? page + 1 : null,
+      items: shuffleArray(data.feed),
+      nextPage: data.feed.length > 0 ? pageParam + 1 : null,
       hasMore: data.feed.length === FEED_PAGE_SIZE,
     };
   }
 
   if (Array.isArray(data)) {
     return {
-      items: data,
-      nextPage: data.length > 0 ? page + 1 : null,
+//       items: data,
+//       nextPage: data.length > 0 ? page + 1 : null,
+      items: shuffleArray(data),
+      nextPage: data.length > 0 ? pageParam + 1 : null,
       hasMore: data.length === FEED_PAGE_SIZE,
     };
   }

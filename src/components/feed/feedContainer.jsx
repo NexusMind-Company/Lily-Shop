@@ -71,43 +71,14 @@ const FeedContainer = () => {
   // VIDEO INTERSECTION OBSERVER
   // ========================================
   useEffect(() => {
+    // The individual FeedItem components now handle their own play/pause 
+    // logic using the `isActive` prop. This observer is no longer 
+    // responsible for triggering playback to avoid race conditions.
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          const mediaElement = Array.from(mediaRefs.current).find(
-            (item) =>
-              (item.getDOMNode ? item.getDOMNode() : item) === entry.target,
-          );
-
-          if (!mediaElement) return;
-
-          const domEl = mediaElement.getDOMNode
-            ? mediaElement.getDOMNode()
-            : mediaElement;
-
-          const isPlayable = domEl && typeof domEl.play === "function";
-          if (!isPlayable) return;
-
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
-            mediaRefs.current.forEach((item) => {
-              const el = item.getDOMNode ? item.getDOMNode() : item;
-              if (el && el !== domEl && typeof el.pause === "function") {
-                el.pause();
-              }
-            });
-
-            const playPromise = domEl.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(() => {});
-            }
-          } else {
-            if (typeof domEl.pause === "function") {
-              domEl.pause();
-            }
-          }
-        });
+        // No-op: Playback is now driven by `isActive` prop in FeedItem
       },
-      { threshold: 0.75 },
+      { threshold: 0.8 },
     );
 
     observerRef.current = observer;

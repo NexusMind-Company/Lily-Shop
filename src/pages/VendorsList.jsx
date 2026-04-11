@@ -1,4 +1,4 @@
-import { ArrowLeft, Search,X } from "lucide-react";
+import { ArrowLeft, Search, X, MapPin } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +25,8 @@ const SkeletonCard = () => {
 const VendorCard = ({ vendor, onClick }) => {
   const [imageError, setImageError] = React.useState(false);
 
-  const imageUrl = vendor.all_media_urls?.[0];
+  const rawUrl = vendor.profile_pic || vendor.user?.profile_pic || vendor.logo || vendor.image || vendor.all_media_urls?.[0];
+  const imageUrl = typeof rawUrl === 'string' ? rawUrl.replace(/^http:\/\//i, 'https://') : rawUrl;
   const showImage = imageUrl && !imageError;
 
   const initials =
@@ -69,9 +70,20 @@ const VendorCard = ({ vendor, onClick }) => {
       {/* Vendor Info */}
       <div className="flex-1 min-w-0">
         <h2 className="text-lg font-semibold truncate">{vendor.name}</h2>
-        <p className="text-sm text-gray-500 line-clamp-2">
+        <p className="text-sm text-gray-500 line-clamp-1 mb-1">
           {vendor.description || "No description available"}
         </p>
+        {vendor.cuisine && (
+          <p className="text-xs text-lily font-medium mb-1">
+            {vendor.cuisine}
+          </p>
+        )}
+        {vendor.address && vendor.address !== "Lagos" && (
+          <div className="flex items-center gap-1 text-gray-500 mt-1">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <p className="text-xs truncate font-medium">{vendor.address}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -162,9 +174,15 @@ const vendors = data?.results || [];
 // const error = null;
 
 
-  const filteredVendors = vendors.filter((vendor) =>
-    vendor.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredVendors = vendors.filter((vendor) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      vendor.name?.toLowerCase().includes(searchLower) ||
+      vendor.cuisine?.toLowerCase().includes(searchLower) ||
+      vendor.description?.toLowerCase().includes(searchLower) ||
+      vendor.address?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const handleVendorClick = (vendorId) => {
     navigate(`/vendor-subscription/${vendorId}`);

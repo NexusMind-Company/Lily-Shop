@@ -9,9 +9,12 @@ const footer = () => {
             <p className="text-white/70 mt-1">Your trusted marketplace</p>
           </div>
           <div className="flex flex-col items-center md:items-end">
-            <h3 className="text-lg font-semibold mb-2">Contact Us</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-semibold">Contact Us</h3>
+              <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full font-medium">24/7 Support</span>
+            </div>
             <a
-              href="mailto:ai.nexusmind@gmail.com"
+              href="mailto:Info.lillyshops@gmail.com"
               className="text-white/80 hover:text-white transition-colors flex items-center mb-1"
             >
               <svg
@@ -28,7 +31,7 @@ const footer = () => {
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
-              ai.nexusmind@gmail.com
+              Info.lillyshops@gmail.com
             </a>
             <a
               href="tel:+2349033325971"

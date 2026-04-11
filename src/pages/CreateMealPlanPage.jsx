@@ -13,6 +13,7 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
     price: "",
     meal_per_cycle: 1,
     trial_days: 0,
+    collection_code: "",
     media: null,
   });
 
@@ -33,6 +34,7 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
           price: data.price || "",
           meal_per_cycle: data.meal_per_cycle || 1,
           trial_days: data.trial_days || 0,
+          collection_code: data.collection_code || "",
         }));
         // Set preview for existing media
         if (data.media) {
@@ -105,6 +107,7 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
         trial_days: form.trial_days || 0,
         description: form.description || "",
         meal_per_cycle: form.meal_per_cycle.toString(),
+        collection_code: form.collection_code || "",
         media: mediaFile, // Send file directly - backend will handle upload
       };
 
@@ -115,7 +118,7 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
       }
 
       console.log("✅ Meal plan saved successfully");
-      navigate("/vendor-dashboard", { replace: true });
+      navigate("/vendor/dashboard", { replace: true });
     } catch (err) {
       const msg =
         err.response?.data?.detail ||
@@ -169,10 +172,21 @@ const CreateMealPlanPage = ({ isEdit = false }) => {
               <textarea
                 rows={3}
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm resize-none outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                placeholder="What meals are included, who it's for, delivery days..."
+                placeholder="What meals are included, who it's for..."
                 value={form.description}
                 onChange={(e) => update("description", e.target.value)}
               />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Collection Code (Optional)</label>
+              <input
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                placeholder="e.g. LILY2024"
+                value={form.collection_code}
+                onChange={(e) => update("collection_code", e.target.value)}
+              />
+              <p className="text-xs text-gray-500 mt-1">Customers can use this code to identify your meal plan when subscribing</p>
             </div>
           </section>
 
