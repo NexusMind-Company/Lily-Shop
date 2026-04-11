@@ -87,18 +87,26 @@ const VendorDashboardOverview = () => {
       toast.error("Please enter a valid address");
       return;
     }
-    if (!vendorId) return;
+    if (!vendorId) {
+      toast.error("Vendor ID not found. Please refresh the page.");
+      return;
+    }
 
     setIsSavingAddress(true);
     try {
+      console.log("Updating vendor address:", { vendorId, address: newAddress.trim() });
       await updateFoodVendor(vendorId, { address: newAddress.trim() });
       toast.success("Address updated successfully!");
       setIsEditingAddress(false);
       // We don't necessarily need to reload profile here as VendorHero will pick it up on next render 
       // if it fetches fresh, or the user can refresh.
     } catch (err) {
+      console.error("Error updating vendor address:", err);
+      if (err.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+      }
       toast.error("Failed to update address. Please try again.");
-      console.error(err);
     } finally {
       setIsSavingAddress(false);
     }
