@@ -190,17 +190,17 @@ export const fetchVendorSubscriptions = async (params = {}) => {
 // ─────────────────────────────────────────────
 
 /**
- * GET /vendor/menu/
+ * GET /meals/vendors/{vendorId}/
  * Returns all meals for this vendor.
  * Response: [{ id, name, price, size_category, image_url, is_available, created_at }]
  */
-export const fetchVendorMenu = async () => {
-  const response = await api.get("/foods/vendor/menu/");
+export const fetchVendorMenu = async (vendorId) => {
+  const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
   return response.data;
 };
 
 /**
- * POST /vendor/menu/
+ * POST /meals/
  * Adds a new meal to the vendor's menu.
  * Body (multipart/form-data): name, price, size_category (small|medium|large),
  *                              description?, image (file), video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
@@ -229,56 +229,51 @@ export const addMeal = async (mealData) => {
     });
   }
 
-  const response = await api.post("/foods/vendor/menu/", formData, {
+  const response = await api.post("/foods/meals/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
 };
 
-/**
- * PATCH /vendor/menu/{mealId}/
- * Updates an existing meal.
- * Body (multipart/form-data): name?, price?, size_category?, description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
- * Response: updated meal object
- */
-export const updateMeal = async (mealId, mealData) => {
-  const formData = new FormData();
-  if (mealData.name) formData.append("name", mealData.name);
-  if (mealData.price !== undefined)
-    formData.append("price", mealData.price.toString());
-  if (mealData.size_category) formData.append("size_category", mealData.size_category);
-  if (mealData.description !== undefined)
-    formData.append("description", mealData.description);
-  if (mealData.image instanceof File) formData.append("image", mealData.image);
-  if (mealData.video_url) formData.append("video_url", mealData.video_url);
-  if (mealData.calories) formData.append("calories", mealData.calories);
-  if (mealData.protein) formData.append("protein", mealData.protein);
-  if (mealData.carbs) formData.append("carbs", mealData.carbs);
-  if (mealData.fat) formData.append("fat", mealData.fat);
-  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
-  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
-  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
-  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
-  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
-  if (mealData.media && mealData.media.length > 0) {
-    mealData.media.forEach((file) => {
-      formData.append("media", file);
-    });
-  }
-
-  const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return response.data;
-};
+// NOTE: Backend endpoint for updating meals not registered in urls.py
+// export const updateMeal = async (mealId, mealData) => {
+//   const formData = new FormData();
+//   if (mealData.name) formData.append("name", mealData.name);
+//   if (mealData.price !== undefined)
+//     formData.append("price", mealData.price.toString());
+//   if (mealData.size_category) formData.append("size_category", mealData.size_category);
+//   if (mealData.description !== undefined)
+//     formData.append("description", mealData.description);
+//   if (mealData.image instanceof File) formData.append("image", mealData.image);
+//   if (mealData.video_url) formData.append("video_url", mealData.video_url);
+//   if (mealData.calories) formData.append("calories", mealData.calories);
+//   if (mealData.protein) formData.append("protein", mealData.protein);
+//   if (mealData.carbs) formData.append("carbs", mealData.carbs);
+//   if (mealData.fat) formData.append("fat", mealData.fat);
+//   if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
+//   if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
+//   if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+//   if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
+//   if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+//   if (mealData.media && mealData.media.length > 0) {
+//     mealData.media.forEach((file) => {
+//       formData.append("media", file);
+//     });
+//   }
+//
+//   const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
+//     headers: { "Content-Type": "multipart/form-data" },
+//   });
+//   return response.data;
+// };
 
 /**
- * DELETE /vendor/menu/{mealId}/
+ * DELETE /meals/{menu_item_id}/delete/
  * Removes a meal from the vendor's menu.
  * Response: 204 No Content
  */
 export const deleteMealItem = async (mealId) => {
-  const response = await api.delete(`/foods/vendor/menu/${mealId}/`);
+  const response = await api.delete(`/foods/meals/${mealId}/delete/`);
   return response.data;
 };
 
