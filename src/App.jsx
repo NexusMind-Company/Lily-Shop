@@ -325,7 +325,6 @@ function App() {
             <Route path="/ChangePassword" element={<ChangePasswordPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/DeleteAccount" element={<DeleteAccountPage />} />
-            <Route path="/delete-vendor-profile" element={<DeleteVendorProfilePage />} />
             <Route path="/password" element={<PasswordModalPage />} />
           </Route>
 
@@ -347,6 +346,7 @@ function App() {
             <Route path="/vendor/dashboard/subscriptions" element={<VendorSubscriptionsPage />} />
             <Route path="/vendor/dashboard/menu" element={<VendorMenuPage />} />
             <Route path="/vendor/dashboard/availability" element={<VendorAvailabilityPage />} />
+            <Route path="/delete-vendor-profile" element={<DeleteVendorProfilePage />} />
             <Route path="/vendor/dashboard/cutoff" element={<VendorCutoffPage />} />
             <Route path="/vendor/dashboard/pause" element={<VendorPauseShopPage />} />
             <Route path="/vendor/dashboard/earnings" element={<VendorEarningsPage />} />
