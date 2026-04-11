@@ -1,11 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    dedupe: ['react', 'react-dom', 'react-router-dom'],
+    dedupe: ["react", "react-dom", "react-router-dom"],
   },
   build: {
     rollupOptions: {
@@ -19,15 +18,21 @@ export default defineConfig({
     },
   },
   server: {
-    host: "0.0.0.0", // This makes the server accessible from outside the container
+    host: "0.0.0.0",
     port: 5173,
-     historyApiFallback: true,
-    headers: {
-      "Cache-Control": "public, max-age=31536000",
-    },
+    historyApiFallback: true,
     hmr: {
       host: "localhost",
       port: 5173,
+    },
+    // ✅ FIX: proxy all /api/* calls through Vite's server to avoid CORS
+    proxy: {
+      "/api": {
+        target: "https://api.lilyshops.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
     },
   },
 });

@@ -123,7 +123,8 @@ import VendorRatingsPage from "./pages/vendor/VendorRatingsPage";
 import VendorChurnPage from "./pages/vendor/VendorChurnPage";
 import VendorAnalyticsPage from "./pages/vendor/VendorAnalyticsPage";
 import VendorPackagesPage from "./pages/vendor/VendorPackagesPage";
-import EditVendorProfilePage from "./pages/vendor/EditVendorProfilePage";
+import VendorEditProfilePage from "./pages/vendor/VendorEditProfilePage";
+import SupportPage from "./pages/SupportPage";
 
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
@@ -210,6 +211,7 @@ function App() {
               element={<AddProducts />}
             />
             <Route path="/food" element={<VendorsList />} />
+            <Route path="/support" element={<SupportPage />} />
 
             {/* Vendor browsing */}
             <Route
@@ -357,7 +359,8 @@ function App() {
             <Route path="/vendor/dashboard/churn" element={<VendorChurnPage />} />
             <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
             <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
-            <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} />
+            <Route path="/vendor/dashboard/profile" element={<VendorEditProfilePage />} />
+//             <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} />
 
             <Route
               path="/vendor/subscriptions"

@@ -13,6 +13,9 @@ const FeedContext = createContext(null);
 
 const FEED_PAGE_SIZE = 20;
 
+// const fetchFeedPage = async ({ pageParam, activeTab }) => {
+//   // ✅ FIX: default here instead of in the destructure signature
+//   const page = pageParam ?? 1;
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -27,16 +30,15 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
     activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
 
   const response = await api.get(endpoint, {
-    params: {
-      page: pageParam,
-      page_size: FEED_PAGE_SIZE,
-    },
+    params: { page, page_size: FEED_PAGE_SIZE },
   });
 
   const data = response.data;
 
   if (data && data.results) {
     return {
+//       items: data.results,
+//       nextPage: data.next ? page + 1 : null,
       items: shuffleArray(data.results),
       nextPage: data.next ? pageParam + 1 : null,
       hasMore: !!data.next,
@@ -45,6 +47,8 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (data && data.feed) {
     return {
+//       items: data.feed,
+//       nextPage: data.feed.length > 0 ? page + 1 : null,
       items: shuffleArray(data.feed),
       nextPage: data.feed.length > 0 ? pageParam + 1 : null,
       hasMore: data.feed.length === FEED_PAGE_SIZE,
@@ -53,6 +57,8 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 
   if (Array.isArray(data)) {
     return {
+//       items: data,
+//       nextPage: data.length > 0 ? page + 1 : null,
       items: shuffleArray(data),
       nextPage: data.length > 0 ? pageParam + 1 : null,
       hasMore: data.length === FEED_PAGE_SIZE,
@@ -81,16 +87,22 @@ export const FeedProvider = ({ children }) => {
   } = useInfiniteQuery({
     queryKey: ["feed", activeTab],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, activeTab }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage?.hasMore ? lastPage.nextPage : undefined,
+    // ✅ FIX: removed initialPageParam (v4 doesn't support it).
+    // pageParam defaults to undefined → fetchFeedPage handles it with ?? 1
+    getNextPageParam: (lastPage) => {
+      // ✅ FIX: guard against undefined lastPage (crash source)
+      if (!lastPage) return undefined;
+      return lastPage.hasMore ? lastPage.nextPage : undefined;
+    },
     staleTime: 0,
     gcTime: 1000 * 60 * 10,
+    // ✅ If on v4, gcTime is called cacheTime instead:
+    // cacheTime: 1000 * 60 * 10,
   });
 
   const posts = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap((page) => page.items);
+    return data.pages.flatMap((page) => page?.items ?? []);
   }, [data]);
 
   const loadMore = useCallback(() => {
@@ -137,22 +149,9 @@ export const FeedProvider = ({ children }) => {
       scrollPositionRef,
     }),
     [
-      posts,
-      isLoading,
-      isError,
-      isFetching,
-      error,
-      loadMore,
-      hasNextPage,
-      isFetchingNextPage,
-      refreshFeed,
-      toggleMute,
-      saveCurrentPost,
-      getRestoreIndex,
-      isMuted,
-      activeTab,
-      setActiveTab,
-      scrollPositionRef,
+      posts, isLoading, isError, isFetching, error, loadMore,
+      hasNextPage, isFetchingNextPage, refreshFeed, toggleMute,
+      saveCurrentPost, getRestoreIndex, isMuted, activeTab,
     ],
   );
 
@@ -161,8 +160,6 @@ export const FeedProvider = ({ children }) => {
 
 export const useFeed = () => {
   const context = useContext(FeedContext);
-  if (!context) {
-    throw new Error("useFeed must be used within a FeedProvider");
-  }
+  if (!context) throw new Error("useFeed must be used within a FeedProvider");
   return context;
 };
