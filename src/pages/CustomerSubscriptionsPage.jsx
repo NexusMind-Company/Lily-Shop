@@ -190,12 +190,13 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
                 state: {
                   plan: plan,
                   vendorId: vendor?.id || sub?.vendor_id,
+                  excluded_meals: sub?.excluded_meals ?? [],
                 },
               })
             }
             className="w-full py-2.5 rounded-xl bg-[#13ec49] text-[#111813] text-sm font-bold hover:bg-[#11d842] transition-colors"
           >
-            Select/Manage Meals
+            Customise Meals
           </button>
           <button
             onClick={() => onUnsubscribe(plan)}
