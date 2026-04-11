@@ -14,6 +14,8 @@ import {
   Loader2,
   Search,
   UtensilsCrossed,
+  Receipt,
+  BadgeCheck,
 } from "lucide-react";
 
 // Import from your api.js — adjust path if needed
@@ -145,6 +147,36 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
           </span>
           <span className="text-xs text-[#111813] font-medium">
             {formatDate(plan?.next_payment_date || sub?.next_payment_date)}
+          </span>
+        </div>
+      </div>
+
+      {/* Proof Information */}
+      <div className="border-t border-gray-100 pt-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs flex items-center gap-1">
+            <Receipt size={11} /> Subscription ID
+          </span>
+          <span className="text-xs text-[#111813] font-medium font-mono">
+            {sub?.id?.slice(0, 8) || "N/A"}
+          </span>
+        </div>
+        {sub?.collection_code && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <BadgeCheck size={11} /> Collection Code
+            </span>
+            <span className="text-xs text-[#13ec49] font-semibold">
+              {sub.collection_code}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs flex items-center gap-1">
+            <Clock size={11} /> Subscribed on
+          </span>
+          <span className="text-xs text-[#111813] font-medium">
+            {formatDate(sub?.created_at || sub?.start_date)}
           </span>
         </div>
       </div>
