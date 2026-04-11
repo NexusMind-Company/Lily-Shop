@@ -259,7 +259,7 @@ const VendorDashboardOverview = () => {
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => navigate("/editProfile")}
+            onClick={() => navigate("/vendor/dashboard/edit-profile")}
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
           >
             <Edit3 size={16} className="text-[#4eb75e]" />

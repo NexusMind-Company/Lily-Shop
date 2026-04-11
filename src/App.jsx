@@ -123,6 +123,7 @@ import VendorRatingsPage from "./pages/vendor/VendorRatingsPage";
 import VendorChurnPage from "./pages/vendor/VendorChurnPage";
 import VendorAnalyticsPage from "./pages/vendor/VendorAnalyticsPage";
 import VendorPackagesPage from "./pages/vendor/VendorPackagesPage";
+import EditVendorProfilePage from "./pages/vendor/EditVendorProfilePage";
 
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
@@ -356,6 +357,7 @@ function App() {
             <Route path="/vendor/dashboard/churn" element={<VendorChurnPage />} />
             <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
             <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
+            <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} />
 
             <Route
               path="/vendor/subscriptions"
