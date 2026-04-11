@@ -42,14 +42,7 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
               {vendor.cuisine ? `${vendor.cuisine} • ` : ""} 
-              {(() => {
-                const addr = vendor.address || "";
-                const loc = vendor.location || "";
-                if (addr && loc && !loc.includes(addr) && !addr.includes(loc)) {
-                  return `${addr}, ${loc}`;
-                }
-                return addr || loc || "No address provided";
-              })()}
+              {vendor.address || "No address provided"}
             </p>
             {vendor.phone && (
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
