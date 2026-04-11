@@ -31,6 +31,7 @@ const [quantity, setQuantity] = useState(1);
 const [addExtra, setAddExtra] = useState(false);
 const [preferredTime, setPreferredTime] = useState("12:00");
 const [deliveryType, setDeliveryType] = useState("delivery");
+const [collectionCode, setCollectionCode] = useState("");
 
 
 const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -154,10 +155,6 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
       alert("Please select a plan to continue");
       return;
     }
-    if (selectedDays.length === 0) {
-      alert("Please select at least one delivery day");
-      return;
-    }
 
     const plan = selectedPlans[0];
     const subscriptionFlowState = {
@@ -172,6 +169,7 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
       preferredTime,
       deliveryType,
       address: plan.address,
+      collectionCode,
     };
 
     saveSubscriptionFlowState(subscriptionFlowState);
@@ -305,31 +303,6 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
 {selectedPlanIds.length > 0 && (
   <div className="px-4 py-4 space-y-6">
 
-    {/* Delivery Days */}
-    <div>
-      <h3 className="text-base font-bold mb-3">
-        Select Delivery Days <span className="text-red-500">*</span>
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {DELIVERY_DAYS.map((day) => (
-          <button
-            key={day}
-            onClick={() => handleDayToggle(day)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-              selectedDays.includes(day)
-                ? "bg-[#13ec49] text-[#111813] border-[#13ec49]"
-                : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-gray-200"
-            }`}
-          >
-            {day}
-          </button>
-        ))}
-      </div>
-      {selectedDays.length === 0 && (
-        <p className="text-xs text-red-400 mt-2">Please select at least one day</p>
-      )}
-    </div>
-
     {/* Quantity */}
     <div>
       <h3 className="text-base font-bold mb-3">
@@ -392,6 +365,22 @@ const totalPrice = selectedPlans.reduce((sum, plan) => sum + Number(plan.price |
         />
       </div>
       <p className="text-[10px] text-gray-400 mt-2">Vendors will try their best to meet this time daily.</p>
+    </div>
+
+    {/* Collection Code */}
+    <div>
+      <h3 className="text-base font-bold mb-3">Collection Code (Optional)</h3>
+      <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200">
+        <BadgeCheck className="text-gray-400" size={20} />
+        <input
+          type="text"
+          value={collectionCode}
+          onChange={(e) => setCollectionCode(e.target.value)}
+          placeholder="Enter vendor's collection code"
+          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold dark:text-white"
+        />
+      </div>
+      <p className="text-[10px] text-gray-400 mt-2">If the vendor provided a collection code, enter it here.</p>
     </div>
 
     {/* Delivery Method Selector (New) */}
