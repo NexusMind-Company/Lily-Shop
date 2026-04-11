@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { Phone, Mail, MessageCircle, Clock, ArrowLeft, ChevronRight } from "lucide-react";
 
-const SUPPORT_EMAIL = "support@lilyshops.com";
-const SUPPORT_PHONE = "+234 800 000 0000";
-const SUPPORT_WHATSAPP = "+234 800 000 0000";
+const SUPPORT_EMAIL = "info.lilyshops@gmail.com";
+const SUPPORT_PHONE = "+234 903 332 5971";
+const SUPPORT_WHATSAPP = "+234 903 332 5971";
 
 const ContactCard = ({ icon: Icon, label, value, action, color }) => (
   <a
