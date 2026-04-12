@@ -68,13 +68,14 @@ const CreateSubscriptionVendor = () => {
     setSuccessMsg("");
 
     const vendorData = {
-      name: validatedTextValues.name.trim(),
-      cuisine: validatedTextValues.cuisine.trim(),
+      shop_name: validatedTextValues.name.trim(),
+      category: validatedTextValues.cuisine.trim(),
       description: validatedTextValues.description.trim(),
       contact_email: validatedTextValues.contact_email.trim(),
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
-      media: mediaFiles,
+      banner_image: mediaFiles[0] || null,
+      profile_image: mediaFiles[1] || null,
     };
 
     try {
