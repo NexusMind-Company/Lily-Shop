@@ -1,16 +1,22 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
-import { TrendingUp, Users, Store, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TrendingUp, Users, Store, Wallet, ArrowUpRight, ArrowDownRight, Calendar } from "lucide-react";
 import api from "../services/api";
 
 const COLORS = ['#4eb75e', '#13ec49', '#f59e0b', '#6366f1', '#ec4899'];
 
 const AdminDashboard = () => {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const { data: adminData, isLoading, error } = useQuery({
-    queryKey: ['adminStatistics'],
+    queryKey: ['adminStatistics', startDate, endDate],
     queryFn: async () => {
-      const response = await api.get('/foods/admin/statistics/');
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const response = await api.get('/foods/admin/statistics/', { params });
       return response.data;
     },
   });
@@ -72,7 +78,42 @@ const AdminDashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Lilyshops Admin Dashboard</h1>
-          <p className="text-gray-500">Platform overview and revenue analytics</p>
+          <p className="text-gray-500 mb-4">Platform overview and revenue analytics</p>
+          
+          {/* Date Range Filter */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm text-gray-700 dark:text-gray-300"
+                placeholder="Start Date"
+              />
+            </div>
+            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm text-gray-700 dark:text-gray-300"
+                placeholder="End Date"
+              />
+            </div>
+            {(startDate || endDate) && (
+              <button
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}
