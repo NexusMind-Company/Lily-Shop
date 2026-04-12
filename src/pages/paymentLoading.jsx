@@ -53,8 +53,8 @@ const PaymentLoadingPage = () => {
   }, [error, navigate]);
 
   const handleCancel = () => {
-    // TODO: Add logic to attempt to cancel the payment on the backend if possible
-    console.log("User cancelled payment check");
+    // Cancel payment check - navigate back to checkout
+    // Note: No backend cancel endpoint available, transaction will expire naturally
     navigate("/checkout");
   };
 
