@@ -10,7 +10,7 @@ import api from "../services/api";
 const SkeletonCard = () => {
   return (
     <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 flex items-center gap-5">
-      <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse"></div>
+      <div className="w-24 h-24 rounded-xl bg-gray-200 animate-pulse"></div>
       <div className="flex-1 space-y-3">
         <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
         <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
@@ -51,7 +51,7 @@ const VendorCard = ({ vendor, onClick }) => {
             src={imageUrl}
             alt={vendor.name}
             onError={() => setImageError(true)}
-            className="w-full h-full object-cover rounded-full
+            className="w-full h-full object-cover rounded-xl
             ring-4 ring-white shadow-sm
             transition-transform duration-300
             group-hover:scale-105"
@@ -59,7 +59,7 @@ const VendorCard = ({ vendor, onClick }) => {
         ) : (
           <div
             className="w-full h-full flex items-center justify-center
-            rounded-full bg-gray-200 text-gray-600 font-semibold text-lg
+            rounded-xl bg-gray-200 text-gray-600 font-semibold text-lg
             ring-4 ring-white shadow-sm"
           >
             {initials}
