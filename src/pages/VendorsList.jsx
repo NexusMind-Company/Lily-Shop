@@ -96,15 +96,21 @@ const VendorsList = () => {
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
 
 const { data, isLoading, error } = useQuery({
-  queryKey: ["vendors"],
+  queryKey: ["vendors", currentPage, searchQuery],
   queryFn: async () => {
-    const response = await api.get("/foods/vendors/");
+    const params = { page: currentPage, page_size: itemsPerPage };
+    if (searchQuery) params.search = searchQuery;
+    const response = await api.get("/foods/vendors/", { params });
     return response.data;
   },
 });
 const vendors = data?.results || [];
+const totalCount = data?.count || 0;
+const totalPages = Math.ceil(totalCount / itemsPerPage);
 
 // const mockVendors = [
 //   {
@@ -174,18 +180,13 @@ const vendors = data?.results || [];
 // const error = null;
 
 
-  const filteredVendors = vendors.filter((vendor) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      vendor.name?.toLowerCase().includes(searchLower) ||
-      vendor.cuisine?.toLowerCase().includes(searchLower) ||
-      vendor.description?.toLowerCase().includes(searchLower) ||
-      vendor.address?.toLowerCase().includes(searchLower)
-    );
-  });
-
   const handleVendorClick = (vendorId) => {
     navigate(`/vendor-subscription/${vendorId}`);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handleBack = () => {
@@ -211,11 +212,11 @@ const vendors = data?.results || [];
           type="text"
           placeholder="Search vendors..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-gray-400 bg-white text-sm"
         />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <button onClick={() => handleSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -239,22 +240,46 @@ const vendors = data?.results || [];
 
       {/* Vendors Grid */}
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredVendors.length > 0 ? (
-  filteredVendors.map((vendor) => (
-    <VendorCard
-      key={vendor.id}
-      vendor={vendor}
-      onClick={handleVendorClick}
-    />
-  ))
-) : (
-  <p className="text-gray-400 text-sm col-span-3 text-center py-10">
-    No vendors found for "{searchQuery}"
-  </p>
-)}
-          
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {vendors.length > 0 ? (
+              vendors.map((vendor) => (
+                <VendorCard
+                  key={vendor.id}
+                  vendor={vendor}
+                  onClick={handleVendorClick}
+                />
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm col-span-3 text-center py-10">
+                No vendors found
+              </p>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
