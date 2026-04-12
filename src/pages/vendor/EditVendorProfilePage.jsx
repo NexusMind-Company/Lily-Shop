@@ -87,10 +87,8 @@ const EditVendorProfilePage = () => {
         category: form.category,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
-        media: [
-          ...(profileImageFile ? [profileImageFile] : []),
-          ...(bannerImageFile ? [bannerImageFile] : []),
-        ],
+        banner_image: bannerImageFile || null,
+        profile_image: profileImageFile || null,
       });
       toast.success("Vendor profile updated successfully!");
       dispatch(fetchProfile());
