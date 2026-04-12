@@ -72,8 +72,6 @@ const DELIVERY_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   // });
 
   //  Derived state 
- 
- // 🔌 TODO: Remove mock data and uncomment useQuery calls when API is ready
 
 const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
   queryKey: ["vendorDetails", vendorId],
