@@ -215,10 +215,17 @@ const CustomerSubscriptionsPage = () => {
   const queryClient = useQueryClient();
   const [planToCancel, setPlanToCancel] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["mySubscriptions"],
-    queryFn: getUserSubscriptions,
+    queryKey: ["mySubscriptions", currentPage, searchQuery],
+    queryFn: async () => {
+      const params = { page: currentPage, page_size: itemsPerPage };
+      if (searchQuery) params.search = searchQuery;
+      const response = await api.get("/foods/subscriptions/me/", { params });
+      return response.data;
+    },
   });
 
   const unsubscribeMutation = useMutation({
@@ -233,14 +240,13 @@ const CustomerSubscriptionsPage = () => {
   });
 
   const subscriptions = data?.results || data || [];
-  const filtered = searchQuery
-    ? subscriptions.filter((s) => {
-        const name = s?.plan?.plan_name || s?.plan_name || "";
-        const vendor = s?.plan?.vendor?.name || s?.vendor?.name || "";
-        const q = searchQuery.toLowerCase();
-        return name.toLowerCase().includes(q) || vendor.toLowerCase().includes(q);
-      })
-    : subscriptions;
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
@@ -263,7 +269,7 @@ const CustomerSubscriptionsPage = () => {
             type="text"
             placeholder="Search subscriptions..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 bg-[#f6f8f6] rounded-xl text-sm outline-none text-[#111813] placeholder-gray-400"
           />
         </div>
@@ -288,7 +294,7 @@ const CustomerSubscriptionsPage = () => {
         )}
 
         {/* Empty state */}
-        {!isLoading && !isError && filtered.length === 0 && (
+        {!isLoading && !isError && subscriptions.length === 0 && (
           <div className="flex flex-col items-center justify-center pt-20 gap-4 text-center px-8">
             <div className="w-20 h-20 rounded-2xl bg-[#13ec49]/10 flex items-center justify-center">
               <UtensilsCrossed size={36} className="text-[#13ec49]" />
@@ -317,9 +323,32 @@ const CustomerSubscriptionsPage = () => {
         {/* Subscription cards */}
         {!isLoading &&
           !isError &&
-          filtered.map((sub, i) => (
+          subscriptions.map((sub, i) => (
             <SubscriptionCard key={sub?.id || sub?.plan?.id || i} sub={sub} onUnsubscribe={setPlanToCancel} />
           ))}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Unsubscribe Modal */}
