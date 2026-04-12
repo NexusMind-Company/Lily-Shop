@@ -125,6 +125,7 @@ import VendorAnalyticsPage from "./pages/vendor/VendorAnalyticsPage";
 import VendorPackagesPage from "./pages/vendor/VendorPackagesPage";
 import VendorEditProfilePage from "./pages/vendor/VendorEditProfilePage";
 import SupportPage from "./pages/SupportPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
@@ -212,6 +213,7 @@ function App() {
             />
             <Route path="/food" element={<VendorsList />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
             {/* Vendor browsing */}
             <Route
