@@ -1,5 +1,6 @@
-import { Check, CheckCircle } from "lucide-react";
+import { Check, CheckCircle, Image as ImageIcon, Video } from "lucide-react";
 import PropTypes from "prop-types";
+import { useState } from "react";
 
 // import { Check, CheckCircle } from "lucide-react";
 // import PropTypes from "prop-types";
@@ -111,12 +112,18 @@ import PropTypes from "prop-types";
  * @param {Function} props.onSelect - Function to handle plan selection
  */
 const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
+  const [imageError, setImageError] = useState(false);
+  
   // Map API fields to component expectations
   const planName = plan.plan_name || plan.name || 'Unnamed Plan';
   const planPrice = plan.price || 0;
   const planDescription = plan.description || '';
   const planFrequency = plan.frequency || 'week';
   const mealsPerCycle = plan.meals_per_cycle || plan.meal_per_cycle || 0;
+
+  // Get media URL - try multiple possible field names
+  const mediaUrl = plan.image_url || plan.image || plan.media || plan.all_media_urls?.[0] || null;
+  const isVideo = mediaUrl && (mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov'));
 
   // Generate features from available data
   const features = [
@@ -148,10 +155,39 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
 
       >
         {isPopular && (
-          <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+          <div className="absolute top-0 right-0 bg-[#13ec49] text-green-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider z-10">
             Most Popular
           </div>
         )}
+        
+        {/* Media Display */}
+        {mediaUrl && !imageError && (
+          <div className="relative w-full h-40 rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
+            {isVideo ? (
+              <video
+                src={mediaUrl}
+                className="w-full h-full object-cover"
+                controls
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <img
+                src={mediaUrl}
+                alt={planName}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            )}
+            <div className="absolute bottom-2 right-2 bg-black/50 rounded-full p-1.5">
+              {isVideo ? (
+                <Video size={14} className="text-white" />
+              ) : (
+                <ImageIcon size={14} className="text-white" />
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
