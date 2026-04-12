@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
+import { addToCart } from "../../redux/cartSlice";
+import toast from "react-hot-toast";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
@@ -413,6 +415,28 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart");
+      return navigate("/login");
+    }
+
+    const productId = isProduct ? post.id : post.product?.id;
+    if (!productId) {
+      toast.error("Product not found");
+      return;
+    }
+
+    dispatch(addToCart({ product_id: productId, quantity: 1 }))
+      .unwrap()
+      .then(() => {
+        toast.success("Added to cart!");
+      })
+      .catch((error) => {
+        toast.error(error || "Failed to add to cart");
+      });
+  };
+
   const shareUrl = `${window.location.origin}/?postId=${post.id}`;
 
   return (
@@ -557,6 +581,13 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
             {(isProduct || hasLinkedProduct) && (
               <div className="flex items-center space-x-2 pt-2 shrink-0">
+                <button
+                  onClick={handleAddToCart}
+                  className="bg-[#4eb75e] text-white inline-flex w-fit items-center font-normal p-2 gap-1.5 rounded-full text-sm hover:bg-[#3da04d] transition-colors"
+                >
+                  <ShoppingCart size={16} />
+                  Add to Cart
+                </button>
                 <Link
                   to={`/product/${isProduct ? post.id : post.product.id}`}
                   state={{ itemType: isProduct ? "product" : "content", post }}
