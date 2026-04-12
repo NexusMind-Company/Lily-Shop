@@ -20,7 +20,12 @@ const BankTransferPage = () => {
       setPaymentData((prev) => ({ ...prev, orderId: data.orderId }));
       setTimeLeft(data.expiresInMinutes * 60);
     },
-    // TODO: Add onError handler
+    onError: (error) => {
+      console.error("Bank transfer initiation failed:", error);
+      navigate("/checkout", {
+        state: { error: error.response?.data?.detail || "Failed to initiate bank transfer. Please try again." },
+      });
+    },
   });
 
   // Initiate the transfer request on page load
