@@ -108,12 +108,8 @@ export default function AddBankAccount() {
       return;
     }
 
-    // TODO: Save to backend
-    console.log("Saving bank account:", {
-      accountNumber,
-      bankName: selectedBank,
-      accountName,
-    });
+    // Bank account details are passed directly with withdrawal requests
+    // No separate save endpoint needed
 
     // Navigate to confirmation or back
     navigate("/bankAccountDetails", {
