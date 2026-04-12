@@ -17,17 +17,53 @@ export default function WithdrawSuccess() {
   };
 
   const handleDownloadReceipt = () => {
-    // TODO: Implement receipt download
-    console.log("Downloading receipt...");
+    const receiptContent = `
+LILYSHOP WITHDRAWAL RECEIPT
+================================
+Date: ${new Date(transaction.date).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+Amount: ₦${parseFloat(transaction.amount).toLocaleString()}
+Transaction Fee: ₦${parseFloat(transaction.fee).toLocaleString()}
+Bank: ${transaction.bankName}
+Account Number: ${transaction.accountNumber}
+Account Name: ${transaction.accountName}
+================================
+This receipt serves as proof of withdrawal.
+Processing time: Up to 24 hours
+    `.trim();
+
+    const blob = new Blob([receiptContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `withdrawal-receipt-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
-  const handleShareReceipt = () => {
-    // TODO: Implement share functionality
+  const handleShareReceipt = async () => {
+    const shareData = {
+      title: "LilyShop Withdrawal Receipt",
+      text: `Withdrawal of ₦${parseFloat(transaction.amount).toLocaleString()} successful. Bank: ${transaction.bankName}, Account: ${transaction.accountNumber}`,
+    };
+
     if (navigator.share) {
-      navigator.share({
-        title: "Withdrawal Receipt",
-        text: `Withdrawal of ₦${transaction.amount} successful`,
-      });
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log("Share failed:", err);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(shareData.text);
+      alert("Receipt details copied to clipboard");
     }
   };
 
