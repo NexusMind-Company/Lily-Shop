@@ -60,7 +60,8 @@ const BankTransferPage = () => {
   };
 
   const handleCancel = () => {
-    // TODO: Add logic to cancel the transaction via API if needed
+    // Cancel transaction - navigate back to checkout
+    // Note: No backend cancel endpoint available, transaction will expire naturally
     navigate("/checkout");
   };
 
