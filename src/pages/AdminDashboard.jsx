@@ -2,34 +2,47 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
 import { TrendingUp, Users, Store, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import api from "../services/api";
 
 const COLORS = ['#4eb75e', '#13ec49', '#f59e0b', '#6366f1', '#ec4899'];
 
 const AdminDashboard = () => {
-  // Mock data - in production, this would come from the API
+  const { data: adminData, isLoading, error } = useQuery({
+    queryKey: ['adminStatistics'],
+    queryFn: async () => {
+      const response = await api.get('/foods/admin/statistics/');
+      return response.data;
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f6f8f6] dark:bg-background-dark p-6 flex items-center justify-center">
+        <div className="text-gray-500">Loading admin dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#f6f8f6] dark:bg-background-dark p-6 flex items-center justify-center">
+        <div className="text-red-500">Error loading admin dashboard: {error.message}</div>
+      </div>
+    );
+  }
+
   const stats = {
-    totalRevenue: 15000000,
-    lilyshopsShare: 2250000,
-    lilyshopsPercentage: 15,
-    totalVendors: 45,
-    totalCustomers: 1250,
-    totalSubscriptions: 320,
-    monthlyGrowth: 12.5,
+    totalRevenue: adminData?.total_revenue || 0,
+    lilyshopsShare: adminData?.lilyshops_share || 0,
+    lilyshopsPercentage: adminData?.lilyshops_percentage || 10,
+    totalVendors: adminData?.total_vendors || 0,
+    totalCustomers: adminData?.total_customers || 0,
+    totalSubscriptions: adminData?.total_subscriptions || 0,
+    monthlyGrowth: adminData?.monthly_growth || 0,
   };
 
-  const revenueData = [
-    { name: 'Jan', revenue: 8000000, lilyshops: 1200000 },
-    { name: 'Feb', revenue: 9500000, lilyshops: 1425000 },
-    { name: 'Mar', revenue: 11000000, lilyshops: 1650000 },
-    { name: 'Apr', revenue: 13000000, lilyshops: 1950000 },
-    { name: 'May', revenue: 15000000, lilyshops: 2250000 },
-  ];
-
-  const subscriptionData = [
-    { name: 'Weekly', value: 180, color: COLORS[0] },
-    { name: 'Bi-weekly', value: 90, color: COLORS[1] },
-    { name: 'Monthly', value: 50, color: COLORS[2] },
-  ];
+  const revenueData = adminData?.monthly_data || [];
+  const subscriptionData = adminData?.subscription_data || [];
 
   const formatCurrency = (value) => {
     return `₦${(value / 1000000).toFixed(1)}M`;
