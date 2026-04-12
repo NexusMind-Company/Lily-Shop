@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, AlertTriangle, Eye, EyeOff, Loader2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
+import api from "../../services/api";
 
 export default function WithdrawConfirm() {
   const navigate = useNavigate();
@@ -61,25 +62,15 @@ export default function WithdrawConfirm() {
   };
 
   const handleConfirm = async () => {
-    if (!password) {
-      setError("Please enter your password");
-      return;
-    }
-
     setProcessing(true);
 
     try {
-      // TODO: Replace with actual API call to backend
-      // const response = await api.post("/wallet/withdraw/", {
-      //   amount_kobo: parseFloat(amount) * 100,
-      //   bank_name: bankDetails.bankName,
-      //   account_number: bankDetails.accountNumber,
-      //   account_name: bankDetails.accountName,
-      //   password: password,
-      // });
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await api.post("/wallet/withdraw/", {
+        amount_kobo: Math.round(parseFloat(amount) * 100),
+        bank_name: bankDetails.bankName,
+        account_number: bankDetails.accountNumber,
+        account_name: bankDetails.accountName,
+      });
 
       // Navigate to success page
       navigate("/withdraw/success", {
@@ -90,10 +81,12 @@ export default function WithdrawConfirm() {
           accountName: bankDetails.accountName,
           bankName: bankDetails.bankName,
           date: new Date().toLocaleString(),
+          withdrawalId: response.data.withdrawal_id,
         },
       });
     } catch (err) {
-      setError("Withdrawal failed. Please try again.");
+      const errorMsg = err.response?.data?.error || err.response?.data?.detail || "Withdrawal failed. Please try again.";
+      setError(errorMsg);
       setProcessing(false);
       setShowModal(false);
     }
