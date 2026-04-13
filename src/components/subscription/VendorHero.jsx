@@ -22,7 +22,7 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
               style={{
                 backgroundImage: `url("${
                   (() => {
-                    const media = vendor.profile_pic || vendor.user?.profile_pic || vendor.logo || vendor.image || vendor.all_media_urls || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
+                    const media = vendor.logo || vendor.image || vendor.all_media_urls?.[0] || vendor.profile_pic || vendor.banner_image || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
                     const urlStr = Array.isArray(media) ? media[0] : media;
                     return typeof urlStr === 'string' ? urlStr.replace(/^http:\/\//i, 'https://') : urlStr;
                   })()
