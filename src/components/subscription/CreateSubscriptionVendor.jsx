@@ -86,7 +86,7 @@ const CreateSubscriptionVendor = () => {
 
       setTimeout(() => {
         setSuccessMsg("");
-        navigate("/vendor/dashboard");
+        navigate("/profile");
       }, 3000);
     } catch (err) {
       let errorMsg = "Failed to create food vendor. ";
