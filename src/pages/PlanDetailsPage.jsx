@@ -14,7 +14,7 @@ const PlanDetailsPage = () => {
   const navigate = useNavigate();
   const { planId } = useParams();
   const location = useLocation();
-  const isEdit = location.state?.mode === "edit" || planId;
+  const isEdit = location.state?.mode === "edit";
 
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);

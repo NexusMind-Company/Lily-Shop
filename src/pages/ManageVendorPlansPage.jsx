@@ -122,7 +122,7 @@ const ManageVendorPlansPage = () => {
   const handleCancel = () => navigate("/vendor/plans");
 
   const handleEditPlan = (id) => {
-    navigate(`/vendor/plans/${id}`);
+    navigate(`/vendor/plans/${id}`, { state: { mode: "edit" } });
   };
 
   const handleViewPlan = (id) => {
