@@ -494,8 +494,8 @@ export const createSubscription = async (plan_id) => {
 };
 
 
-export const getUserSubscriptions = async () => {
-  const response = await api.get("/foods/subscriptions/me/");
+export const getUserSubscriptions = async (params = {}) => {
+  const response = await api.get("/foods/subscriptions/me/", { params });
   return response.data;
 };
 

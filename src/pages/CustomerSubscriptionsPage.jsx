@@ -218,13 +218,12 @@ const CustomerSubscriptionsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["mySubscriptions", currentPage, searchQuery],
     queryFn: async () => {
       const params = { page: currentPage, page_size: itemsPerPage };
       if (searchQuery) params.search = searchQuery;
-      const response = await api.get("/foods/subscriptions/me/", { params });
-      return response.data;
+      return await getUserSubscriptions(params);
     },
   });
 
