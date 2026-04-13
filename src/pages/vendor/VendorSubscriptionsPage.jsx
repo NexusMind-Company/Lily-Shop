@@ -94,14 +94,13 @@ const VendorSubscriptionsPage = () => {
   const {
     data: subsData, isLoading: subsLoading, isError: subsError, error: subsErr, refetch: refetchSubs,
   } = useQuery({
-    queryKey: ["vendorSubscriptions", planFilter],
-    queryFn: () => fetchVendorSubscriptions({
-      plan_type: planFilter !== "all" ? planFilter : undefined,
-    }),
+    queryKey: ["vendorSubscriptions"],
+    queryFn: () => fetchVendorSubscriptions(),
     staleTime: 1000 * 60,
+    retry: 1,
   });
 
-  // Filter by status and plan type client-side to avoid backend 500 error
+  // Filter by status and plan type client-side to avoid backend 500 errors
   const subs = (subsData?.results ?? []).filter((s) => {
     const matchesPlan = planFilter !== "all" ? s.plan_type === planFilter : true;
     const matchesStatus = activeTab === "active" 
