@@ -178,7 +178,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
                 onError={() => setImageError(true)}
               />
             )}
-            <div className="absolute bottom-2 right-2 bg-black/50 rounded-md p-1.5">
+            <div className="absolute bottom-2 right-2 bg-black/50 rounded-full p-1.5">
               {isVideo ? (
                 <Video size={14} className="text-white" />
               ) : (
