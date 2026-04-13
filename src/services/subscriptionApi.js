@@ -563,13 +563,20 @@ export const updateMealPlan = async (id, payload) => {
   const { plan_name, price, trial_days, description, meals_per_cycle, media } =
     payload;
 
-  // If media is a file, use FormData; otherwise use JSON
-  if (media instanceof File) {
+  // Check if media is a single File or array of Files
+  const hasMedia = media && (media instanceof File || (Array.isArray(media) && media.length > 0));
+  
+  if (hasMedia) {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (!allowedTypes.includes(media.type)) {
-      throw new Error(
-        "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
-      );
+    
+    // Validate media type
+    const filesToValidate = Array.isArray(media) ? media : [media];
+    for (const file of filesToValidate) {
+      if (file instanceof File && !allowedTypes.includes(file.type)) {
+        throw new Error(
+          "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
+        );
+      }
     }
 
     const formData = new FormData();
@@ -588,7 +595,14 @@ export const updateMealPlan = async (id, payload) => {
       formData.append("meals_per_cycle", meals_per_cycle.toString());
     }
 
-    formData.append("media", media);
+    // Append media - handle both single File and array
+    if (Array.isArray(media)) {
+      media.forEach((file) => {
+        formData.append("media", file);
+      });
+    } else if (media instanceof File) {
+      formData.append("media", media);
+    }
 
     const response = await api.patch(
       `/foods/subscriptions/${id}/update/`,

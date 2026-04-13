@@ -222,10 +222,14 @@ export const addMeal = async (mealData) => {
   if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
   if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
   if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
-  if (mealData.media && mealData.media.length > 0) {
-    mealData.media.forEach((file) => {
-      formData.append("media", file);
-    });
+  if (mealData.media) {
+    if (Array.isArray(mealData.media)) {
+      mealData.media.forEach((file) => {
+        formData.append("media", file);
+      });
+    } else if (mealData.media instanceof File) {
+      formData.append("media", mealData.media);
+    }
   }
 
   const response = await api.post("/foods/vendor/menu/", formData, {
@@ -259,10 +263,14 @@ export const updateMeal = async (mealId, mealData) => {
   if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
   if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
   if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
-  if (mealData.media && mealData.media.length > 0) {
-    mealData.media.forEach((file) => {
-      formData.append("media", file);
-    });
+  if (mealData.media) {
+    if (Array.isArray(mealData.media)) {
+      mealData.media.forEach((file) => {
+        formData.append("media", file);
+      });
+    } else if (mealData.media instanceof File) {
+      formData.append("media", mealData.media);
+    }
   }
 
   const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
