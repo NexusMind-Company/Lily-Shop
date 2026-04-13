@@ -271,7 +271,7 @@ const VendorDashboardOverview = () => {
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
           >
             <Users size={16} className="text-blue-500" />
-            <span className="text-xs font-semibold text-[#111813] dark:text-white">My Subscribers</span>
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">View Subscribers</span>
           </button>
           <button
             onClick={() => navigate("/vendor/plans")}
@@ -281,11 +281,11 @@ const VendorDashboardOverview = () => {
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
           </button>
           <button
-            onClick={() => navigate("/vendor/plans")}
+            onClick={() => navigate("/vendor/plans/create")}
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-left"
           >
-            <Package size={16} className="text-orange-500" />
-            <span className="text-xs font-semibold text-[#111813] dark:text-white">Plan Controls</span>
+            <Plus size={16} className="text-orange-500" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
           </button>
           <button
             onClick={() => navigate("/delete-vendor-profile")}
