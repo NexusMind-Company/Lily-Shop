@@ -266,6 +266,13 @@ const VendorDashboardOverview = () => {
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Edit Profile</span>
           </button>
           <button
+            onClick={() => navigate("/vendor/dashboard/subscriptions")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
+          >
+            <Users size={16} className="text-blue-500" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">View Subscribers</span>
+          </button>
+          <button
             onClick={() => navigate("/vendor/plans")}
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
           >
@@ -281,7 +288,7 @@ const VendorDashboardOverview = () => {
           </button>
           <button
             onClick={() => navigate("/delete-vendor-profile")}
-            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left col-span-2"
           >
             <Trash2 size={16} className="text-red-500" />
             <span className="text-xs font-semibold text-red-600 dark:text-red-400">Delete Profile</span>
