@@ -78,7 +78,7 @@ const SubscriptionItem = ({ subscription, onClick }) => {
     >
       <div className="flex items-center gap-4">
         <div className="relative">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center border-2 border-primary">
             <span className="text-primary dark:text-[#13ec49] font-bold text-lg">
               {planName?.charAt(0) || "P"}
             </span>

@@ -14,7 +14,7 @@ const ProfileSection = ({ profile, onEditProfile }) => {
     <section className="flex flex-col items-center text-center space-y-4">
       <div className="relative">
         <div
-          className="w-24 h-24 rounded-full bg-cover bg-center border-4 border-[#ffffff] dark:border-surface-dark shadow-md"
+          className="w-24 h-24 rounded-lg bg-cover bg-center border-4 border-[#ffffff] dark:border-surface-dark shadow-md"
           style={{
             backgroundImage: `url("${
               profile.profile_pic ||
