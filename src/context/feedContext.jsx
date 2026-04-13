@@ -30,7 +30,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
     activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
 
   const response = await api.get(endpoint, {
-    params: { page, page_size: FEED_PAGE_SIZE },
+    params: { page: pageParam, page_size: FEED_PAGE_SIZE },
   });
 
   const data = response.data;
