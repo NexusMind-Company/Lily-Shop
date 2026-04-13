@@ -94,17 +94,21 @@ const VendorSubscriptionsPage = () => {
   const {
     data: subsData, isLoading: subsLoading, isError: subsError, error: subsErr, refetch: refetchSubs,
   } = useQuery({
-    queryKey: ["vendorSubscriptions", activeTab, planFilter],
+    queryKey: ["vendorSubscriptions", planFilter],
     queryFn: () => fetchVendorSubscriptions({
-      status: activeTab,
       plan_type: planFilter !== "all" ? planFilter : undefined,
     }),
     staleTime: 1000 * 60,
   });
 
-  const subs = (subsData?.results ?? []).filter((s) =>
-    planFilter !== "all" ? s.plan_type === planFilter : true
-  );
+  // Filter by status and plan type client-side to avoid backend 500 error
+  const subs = (subsData?.results ?? []).filter((s) => {
+    const matchesPlan = planFilter !== "all" ? s.plan_type === planFilter : true;
+    const matchesStatus = activeTab === "active" 
+      ? s.status?.toLowerCase() === "active" || !s.status
+      : s.status?.toLowerCase() === activeTab;
+    return matchesPlan && matchesStatus;
+  });
 
   return (
     <VendorLayout title="Subscriptions">
@@ -132,7 +136,11 @@ const VendorSubscriptionsPage = () => {
       {subsLoading && !subsData ? <VendorPageLoader />
         : subsError && !subsData ? <VendorPageError message={getErrorMessage(subsErr)} onRetry={refetchSubs} />
           : subs.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 text-sm">No {activeTab} subscriptions found</div>
+            <div className="text-center py-12 text-gray-400 text-sm">
+              {subsData?.results?.length === 0 
+                ? "No subscribers yet. Share your plans to get started!"
+                : `No ${activeTab} subscribers found`}
+            </div>
           ) : (
             <div className="space-y-3">{subs.map((sub) => <SubscriptionCard key={sub.id} sub={sub} />)}</div>
           )}
