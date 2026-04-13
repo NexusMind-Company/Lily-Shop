@@ -362,7 +362,7 @@ function App() {
             <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
             <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
             <Route path="/vendor/dashboard/profile" element={<VendorEditProfilePage />} />
-//             <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} />
+            {/* <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} /> */}
 
             <Route
               path="/vendor/subscriptions"
