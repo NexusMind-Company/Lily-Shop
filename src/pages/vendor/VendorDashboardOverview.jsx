@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag, UtensilsCrossed, Users, TrendingUp,
   UserPlus, UserMinus, Activity, ChevronRight,
-  ArrowUpRight, ArrowDownRight,
+  ArrowUpRight, ArrowDownRight, Edit3, Settings,
+  Plus, Trash2, PauseCircle, Clock, Package,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -19,7 +20,7 @@ import {
 import { updateFoodVendor } from "../../services/api";
 import { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { MapPin, Edit3, Check, X, Camera, Settings, Plus, Trash2 } from "lucide-react";
+import { MapPin, Camera, Check, X } from "lucide-react";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-2">
@@ -270,7 +271,7 @@ const VendorDashboardOverview = () => {
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
           >
             <Users size={16} className="text-blue-500" />
-            <span className="text-xs font-semibold text-[#111813] dark:text-white">View Subscribers</span>
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">My Subscribers</span>
           </button>
           <button
             onClick={() => navigate("/vendor/plans")}
@@ -280,11 +281,11 @@ const VendorDashboardOverview = () => {
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
           </button>
           <button
-            onClick={() => navigate("/vendor/plans/create")}
-            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+            onClick={() => navigate("/vendor/plans")}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-left"
           >
-            <Plus size={16} className="text-[#4eb75e]" />
-            <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
+            <Package size={16} className="text-orange-500" />
+            <span className="text-xs font-semibold text-[#111813] dark:text-white">Plan Controls</span>
           </button>
           <button
             onClick={() => navigate("/delete-vendor-profile")}
