@@ -1,4 +1,4 @@
-import { Check, CheckCircle, Image as ImageIcon, Video } from "lucide-react";
+import { Check, CheckCircle } from "lucide-react";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -162,7 +162,7 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
         
         {/* Media Display */}
         {mediaUrl && !imageError && (
-          <div className="relative w-full h-40 rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
+          <div className="relative w-full h-52 rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800 shadow-md">
             {isVideo ? (
               <video
                 src={mediaUrl}
@@ -175,16 +175,10 @@ const PricingCard = ({ plan, isSelected, isPopular, onSelect }) => {
                 src={mediaUrl}
                 alt={planName}
                 className="w-full h-full object-cover"
+                loading="eager"
                 onError={() => setImageError(true)}
               />
             )}
-            <div className="absolute bottom-2 right-2 bg-black/50 rounded-full p-1.5">
-              {isVideo ? (
-                <Video size={14} className="text-white" />
-              ) : (
-                <ImageIcon size={14} className="text-white" />
-              )}
-            </div>
           </div>
         )}
         
