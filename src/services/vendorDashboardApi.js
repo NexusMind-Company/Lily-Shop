@@ -457,6 +457,12 @@ export const createVendorWithdrawal = async (withdrawalData) => {
 };
 
 /**
+ * Alias for createVendorWithdrawal - used by VendorEarningsPage
+ * Initiates an earnings payout/withdrawal
+ */
+export const initiateEarningsPayout = createVendorWithdrawal;
+
+/**
  * GET /vendor/withdrawals/{id}/
  * Returns withdrawal details.
  * Response: withdrawal object
@@ -666,22 +672,7 @@ export const fetchVendorAnalytics = async (period = "monthly") => {
 };
 
 // ─────────────────────────────────────────────
-// 16. EARNINGS PAYOUT / BANK TRANSFER
-// ─────────────────────────────────────────────
-
-/**
- * POST /vendor/earnings/payout/
- * Initiates a bank transfer of vendor earnings.
- * Body: { bank_name, account_number, account_name, amount }
- * Response: { success: true, reference, estimated_arrival }
- */
-export const initiateEarningsPayout = async (payoutData) => {
-  const response = await api.post("/foods/vendor/earnings/payout/", payoutData);
-  return response.data;
-};
-
-// ─────────────────────────────────────────────
-// 17. PACKAGE PRICING
+// 16. PACKAGE PRICING
 // ─────────────────────────────────────────────
 
 /**
