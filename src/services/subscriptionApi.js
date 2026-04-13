@@ -244,14 +244,19 @@ export const fetchCustomerSubscriptions = async (customerId) => {
 export const createMealPlan = async (payload) => {
   try {
     let response;
-    // Check if we have media files
-    if (payload.media && payload.media.length > 0) {
+    // Check if we have media files (single File or array of Files)
+    const hasMedia = payload.media && (payload.media instanceof File || (Array.isArray(payload.media) && payload.media.length > 0));
+    if (hasMedia) {
       const formData = new FormData();
       Object.keys(payload).forEach(key => {
         if (key === 'media') {
-          payload.media.forEach(file => {
-            formData.append('media', file);
-          });
+          if (Array.isArray(payload.media)) {
+            payload.media.forEach(file => {
+              formData.append('media', file);
+            });
+          } else if (payload.media instanceof File) {
+            formData.append('media', payload.media);
+          }
         } else if (key === 'features') {
           payload.features.forEach(feature => {
             formData.append('features', feature);
