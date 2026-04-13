@@ -146,8 +146,25 @@ if (!plan) return null;
           className="bg-white rounded-2xl p-4 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[#13ec49]/10 flex items-center justify-center">
-              <ChefHat size={22} className="text-[#13ec49]" />
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+              {(() => {
+                const media = vendor?.logo || vendor?.image || vendor?.all_media_urls?.[0] || vendor?.profile_pic;
+                const urlStr = Array.isArray(media) ? media[0] : media;
+                if (urlStr && typeof urlStr === 'string') {
+                  return (
+                    <img
+                      src={urlStr.replace(/^http:\/\//i, 'https://')}
+                      alt={vendor?.name || "Vendor"}
+                      className="w-full h-full object-cover"
+                    />
+                  );
+                }
+                return (
+                  <div className="w-full h-full bg-[#13ec49]/10 flex items-center justify-center">
+                    <ChefHat size={22} className="text-[#13ec49]" />
+                  </div>
+                );
+              })()}
             </div>
             <div>
               <p className="text-sm text-gray-500">Subscribing to</p>
