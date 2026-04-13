@@ -13,32 +13,21 @@ import { fetchNotifications } from "../../redux/notificationSlice";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview",      path: "/vendor/dashboard" },
-  { icon: ShoppingBag,     label: "Orders",        path: "/vendor/dashboard/orders" },
-  { icon: Users,           label: "Subscriptions", path: "/vendor/dashboard/subscriptions" },
-  { icon: UtensilsCrossed, label: "Menu",          path: "/vendor/dashboard/menu" },
-  { icon: Package,         label: "Packages",      path: "/vendor/dashboard/packages" },
-  { icon: PlusCircle,      label: "Add-ons",       path: "/vendor/dashboard/addons" },
-  { icon: Calendar,        label: "Availability",  path: "/vendor/dashboard/availability" },
-  { icon: Clock,           label: "Cut-off Times", path: "/vendor/dashboard/cutoff" },
-  { icon: PauseCircle,     label: "Pause Shop",    path: "/vendor/dashboard/pause" },
   { icon: Wallet,          label: "Earnings",      path: "/vendor/dashboard/earnings" },
-  { icon: MessageCircle,   label: "Messages",      path: "/vendor/dashboard/messages" },
-  { icon: Megaphone,       label: "Broadcast",     path: "/vendor/dashboard/broadcast" },
   { icon: Star,            label: "Ratings",       path: "/vendor/dashboard/ratings" },
-  { icon: TrendingDown,    label: "Churn",         path: "/vendor/dashboard/churn" },
   { icon: BarChart2,       label: "Analytics",     path: "/vendor/dashboard/analytics" },
 ];
 
 const planItems = [
   { icon: ListPlus,   label: "Manage Plans", path: "/vendor/plans" },
-  { icon: PlusCircle, label: "Create Plan",  path: "/vendor/plans/create" },
 ];
 
 const appItems = [
-  { icon: Home,        label: "Home / Feed",   path: "/" },
-  { icon: User,        label: "My Profile",    path: "/profile" },
-  { icon: ShoppingBag, label: "My Orders",     path: "/orders" },
-  { icon: PhoneCall,   label: "Support",       path: "/support" },
+  { icon: Home,        label: "Home / Feed",       path: "/" },
+  { icon: User,        label: "My Profile",        path: "/profile" },
+  { icon: PhoneCall,   label: "Support",           path: "/support" },
+  { icon: UserCircle,  label: "Edit Vendor Profile", path: "/vendor/dashboard/edit-profile" },
+  { icon: ChevronLeft, label: "Go Back",           path: "/vendor/dashboard" },
 ];
 
 const VendorLayout = ({ children, title = "Dashboard" }) => {
