@@ -216,17 +216,17 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
             </button>
           </div>
           {/* Right */}
-//           <button 
-//             onClick={() => navigate("/vendor/dashboard/messages")}
-//             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-//           >
-//             <Bell size={20} />
-//             {unreadCount > 0 && (
-//               <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-//                 {unreadCount > 9 ? '9+' : unreadCount}
-//               </span>
-//             )}
-//           </button>
+          {/* <button 
+            onClick={() => navigate("/vendor/dashboard/messages")}
+            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button> */}
         </header>
 
         {/* Content */}
