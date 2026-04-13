@@ -41,7 +41,7 @@ const SubscriptionListItem = ({ subscription, onClick }) => {
       <div className="flex items-center gap-4">
         <div className="relative">
           <div
-            className="h-12 w-12 rounded-full bg-cover bg-center border-2 border-primary"
+            className="h-12 w-12 rounded-lg bg-cover bg-center border-2 border-primary"
             style={{
               backgroundImage: `url("${
                 subscription.customer?.avatar ||

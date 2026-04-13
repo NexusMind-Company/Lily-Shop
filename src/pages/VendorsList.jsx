@@ -51,7 +51,7 @@ const VendorCard = ({ vendor, onClick }) => {
             src={imageUrl}
             alt={vendor.name}
             onError={() => setImageError(true)}
-            className="w-full h-full object-cover rounded-xl
+            className="w-full h-full object-cover rounded-none
             ring-4 ring-white shadow-sm
             transition-transform duration-300
             group-hover:scale-105"
@@ -59,7 +59,7 @@ const VendorCard = ({ vendor, onClick }) => {
         ) : (
           <div
             className="w-full h-full flex items-center justify-center
-            rounded-xl bg-gray-200 text-gray-600 font-semibold text-lg
+            rounded-none bg-gray-200 text-gray-600 font-semibold text-lg
             ring-4 ring-white shadow-sm"
           >
             {initials}
