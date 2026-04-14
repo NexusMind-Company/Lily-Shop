@@ -83,43 +83,45 @@ const handlePayWithWallet = () => {
 
   const handleDirectPayment = async () => {
     try {
-      // Store current subscription state in localStorage
-      const pendingData = {
-        ...flowState,
-        planId: plan?.id,
-        plan,
-        vendor,
-        totalPrice,
-        selectedDays,
-        quantity,
-        addExtra,
-        extraPrice,
-        deliveryType,
-        preferredTime,
-        address,
-        phone,
-        collectionCode,
+      // Prepare subscription payment data
+      const paymentData = {
+        plan_id: plan?.id,
+        amount: parseFloat(totalPrice),
+        delivery_type: deliveryType,
+        address: address,
+        phone: phone,
+        preferred_time: preferredTime,
+        customizations: selectedDays.map(day => ({
+          day: day.day,
+          meal_type: day.mealType,
+          preference: day.preference,
+          extras: day.extras || [],
+        })),
+        quantity: quantity,
+        add_extra: addExtra,
+        extra_price: extraPrice,
+        payment_method: "direct_pay", // Direct pay via Paystack
       };
-      
-      saveSubscriptionFlowState(pendingData);
-      localStorage.setItem("lily_pending_subscription_data", JSON.stringify(pendingData));
-      localStorage.setItem("lily_subscription_redirect", "true");
 
-      // Amount to top up (the exact cost of the plan)
-      const amountValue = parseFloat(totalPrice);
+      // Call subscription payment API
+      const response = await api.post("/foods/subscriptions/pay/", paymentData);
       
-      // Call topUpWallet API
-      const response = await topUpWallet(amountValue);
-      
-      if (response && response.authorization_url) {
+      if (response.data && response.data.authorization_url) {
+        // Store minimal data for callback reference
+        localStorage.setItem("lily_subscription_payment_ref", response.data.reference || "");
+        localStorage.setItem("lily_subscription_redirect", "true");
+        
         // Redirect to Paystack
-        window.location.href = response.authorization_url;
+        window.location.href = response.data.authorization_url;
+      } else if (response.data && response.data.status === "success") {
+        // Payment completed immediately (e.g., wallet payment)
+        navigate("/subscription-success", { state: { subscription: response.data.subscription } });
       } else {
-        alert("Failed to initialize direct payment. Please try again.");
+        alert("Failed to initialize payment. Please try again.");
       }
     } catch (error) {
       console.error("Direct payment error:", error);
-      alert("An error occurred during direct payment initialization.");
+      alert(error.response?.data?.error || "An error occurred during payment initialization.");
     }
   };
 

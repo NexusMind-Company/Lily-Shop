@@ -1,11 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
 import { ChevronLeft, Landmark, Plus, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
+
+const loadBankAccounts = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 export default function Withdraw() {
   const navigate = useNavigate();
-  const [hasBankAccounts] = useState(false); // This should come from backend/state
+  const bankAccounts = loadBankAccounts();
+  const defaultAccount =
+    bankAccounts.find((account) => account.isDefault) || bankAccounts[0];
+  const hasBankAccounts = bankAccounts.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
@@ -44,19 +57,19 @@ export default function Withdraw() {
               <h3 className="font-bold text-blue-900 mb-1">Withdrawal Information</h3>
               <ul className="space-y-2 text-sm text-blue-800">
                 <li className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>Minimum withdrawal: ₦1,000</span>
+                  <span className="mr-2">-</span>
+                  <span>Minimum withdrawal: NGN 1,000</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="mr-2">-</span>
                   <span>Platform fee: 5% per transaction</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="mr-2">-</span>
                   <span>Processing time: Instant to 24 hours</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="mr-2">-</span>
                   <span>Maximum: 3 withdrawals per day</span>
                 </li>
               </ul>
@@ -91,7 +104,7 @@ export default function Withdraw() {
                   <p className="font-bold text-gray-800 text-lg">Bank Transfer</p>
                   <p className="text-sm text-gray-600 mt-1">
                     {hasBankAccounts
-                      ? "Withdraw to your saved bank account"
+                      ? `${defaultAccount.bankName} - ${defaultAccount.accountNumber}`
                       : "Add a bank account to get started"}
                   </p>
                 </div>

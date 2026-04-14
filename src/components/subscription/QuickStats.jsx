@@ -25,8 +25,8 @@ const QuickStats = ({ stats }) => {
     },
     {
       IconComponent: CreditCard,
-      value: `$${stats.revenue}`,
-      label: "Revenue",
+      value: `₦${Number(stats.revenue ?? 0).toLocaleString()}`,
+      label: "Earnings",
       color: colorMap.green,
     },
     {

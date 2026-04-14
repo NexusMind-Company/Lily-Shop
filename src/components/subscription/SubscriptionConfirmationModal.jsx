@@ -67,7 +67,10 @@ const totalPrice = selectedPlans?.reduce(
                 {vendor?.name}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {vendor?.cuisine} • {vendor?.location}
+                {vendor?.cuisine} 
+                {vendor?.address && vendor?.cuisine ? ` • ${vendor.address}` : ""}
+                {!vendor?.cuisine && vendor?.address ? vendor.address : ""}
+                {!vendor?.address && !vendor?.cuisine && vendor?.location ? ` • ${vendor.location}` : ""}
               </p>
             </div>
           </div>

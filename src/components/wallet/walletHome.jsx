@@ -211,14 +211,14 @@ export default function WalletHome() {
                 <div className="mb-4">
                   <h2 className="text-5xl font-bold text-white mb-2">
                     {showBalance
-                      ? `₦${(balance_naira || 0).toLocaleString()}`
-                      : "₦••••••"}
+                      ? `NGN ${(balance_naira || 0).toLocaleString()}`
+                      : "NGN ------"}
                   </h2>
                   {pendingAmount > 0 && (
                     <p className="text-white/80 text-sm flex items-center space-x-1">
                       <Clock className="w-4 h-4" />
                       <span>
-                        ₦{pendingAmount.toLocaleString()} pending
+                        NGN {pendingAmount.toLocaleString()} pending
                       </span>
                     </p>
                   )}
@@ -379,7 +379,7 @@ export default function WalletHome() {
                             isCredit ? "text-success" : "text-error"
                           }`}
                         >
-                          {isCredit ? "+" : "-"}₦
+                          {isCredit ? "+" : "-"}NGN 
                           {Math.abs(tx.amount_naira || 0).toLocaleString()}
                         </p>
                         <p className={`text-xs ${getStatusColor(tx.status)}`}>

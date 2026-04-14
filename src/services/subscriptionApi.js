@@ -244,25 +244,37 @@ export const fetchCustomerSubscriptions = async (customerId) => {
 export const createMealPlan = async (payload) => {
   try {
     let response;
+    const normalized = {
+      plan_name: payload.plan_name ?? payload.name,
+      price: payload.price,
+      trial_days: payload.trial_days ?? 0,
+      description: payload.description ?? "",
+      meals_per_cycle: payload.meals_per_cycle ?? payload.mealsPerWeek ?? 1,
+      frequency: payload.frequency ?? payload.type ?? "weekly",
+      service_days: payload.service_days,
+      media: payload.media,
+    };
     // Check if we have media files (single File or array of Files)
-    const hasMedia = payload.media && (payload.media instanceof File || (Array.isArray(payload.media) && payload.media.length > 0));
+    const hasMedia = normalized.media && (normalized.media instanceof File || (Array.isArray(normalized.media) && normalized.media.length > 0));
     if (hasMedia) {
       const formData = new FormData();
-      Object.keys(payload).forEach(key => {
+      Object.keys(normalized).forEach(key => {
         if (key === 'media') {
-          if (Array.isArray(payload.media)) {
-            payload.media.forEach(file => {
+          if (Array.isArray(normalized.media)) {
+            normalized.media.forEach(file => {
               formData.append('media', file);
             });
-          } else if (payload.media instanceof File) {
-            formData.append('media', payload.media);
+          } else if (normalized.media instanceof File) {
+            formData.append('media', normalized.media);
           }
-        } else if (key === 'features') {
-          payload.features.forEach(feature => {
-            formData.append('features', feature);
-          });
         } else {
-          formData.append(key, payload[key]);
+          if (normalized[key] !== undefined && normalized[key] !== null) {
+            if (Array.isArray(normalized[key])) {
+              formData.append(key, JSON.stringify(normalized[key]));
+            } else {
+              formData.append(key, normalized[key]);
+            }
+          }
         }
       });
       // The endpoint must accept multipart/form-data
@@ -271,7 +283,7 @@ export const createMealPlan = async (payload) => {
       });
     } else {
       // Fallback JSON if no media
-      response = await api.post("/foods/subscriptions/create/", payload);
+      response = await api.post("/foods/subscriptions/create/", normalized);
     }
     
     console.log(" API createMealPlan response:", response.data);

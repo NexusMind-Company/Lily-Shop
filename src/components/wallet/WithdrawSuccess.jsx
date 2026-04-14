@@ -27,8 +27,8 @@ Date: ${new Date(transaction.date).toLocaleString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     })}
-Amount: ₦${parseFloat(transaction.amount).toLocaleString()}
-Transaction Fee: ₦${parseFloat(transaction.fee).toLocaleString()}
+Amount: NGN ${parseFloat(transaction.amount).toLocaleString()}
+Transaction Fee: NGN ${parseFloat(transaction.fee).toLocaleString()}
 Bank: ${transaction.bankName}
 Account Number: ${transaction.accountNumber}
 Account Name: ${transaction.accountName}
@@ -51,7 +51,7 @@ Processing time: Up to 24 hours
   const handleShareReceipt = async () => {
     const shareData = {
       title: "LilyShop Withdrawal Receipt",
-      text: `Withdrawal of ₦${parseFloat(transaction.amount).toLocaleString()} successful. Bank: ${transaction.bankName}, Account: ${transaction.accountNumber}`,
+      text: `Withdrawal of NGN ${parseFloat(transaction.amount).toLocaleString()} successful. Bank: ${transaction.bankName}, Account: ${transaction.accountNumber}`,
     };
 
     if (navigator.share) {
@@ -134,7 +134,7 @@ Processing time: Up to 24 hours
             <div className="text-center mb-6">
               <p className="text-sm text-gray-600 mb-2">Amount Sent</p>
               <p className="text-5xl font-bold bg-gradient-to-r from-lily-600 to-purple-600 bg-clip-text text-transparent">
-                ₦{parseFloat(transaction.amount).toLocaleString()}
+                NGN {parseFloat(transaction.amount).toLocaleString()}
               </p>
             </div>
 
@@ -153,7 +153,7 @@ Processing time: Up to 24 hours
               </div>
               <div className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Transaction Fee</span>
-                <span className="font-semibold text-error">₦{parseFloat(transaction.fee).toLocaleString()}</span>
+                <span className="font-semibold text-error">NGN {parseFloat(transaction.fee).toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-gray-600">Date & Time</span>

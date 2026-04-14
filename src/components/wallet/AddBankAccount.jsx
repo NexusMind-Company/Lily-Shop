@@ -1,7 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Search, X, CheckCircle, AlertCircle, Building2, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+
+const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
+
+const loadBankAccounts = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const saveBankAccounts = (accounts) => {
+  sessionStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(accounts));
+};
 
 export default function AddBankAccount() {
   const navigate = useNavigate();
@@ -73,7 +87,7 @@ export default function AddBankAccount() {
       // Simulate API call
       setTimeout(() => {
         // Mock verification
-        setAccountName("John Doe Sample"); // Replace with actual API response
+        setAccountName("Verified Account");
         setVerified(true);
         setVerifying(false);
       }, 1500);
@@ -108,8 +122,24 @@ export default function AddBankAccount() {
       return;
     }
 
-    // Bank account details are passed directly with withdrawal requests
-    // No separate save endpoint needed
+    const existingAccounts = loadBankAccounts();
+    const nextAccounts = [
+      ...existingAccounts.filter(
+        (account) =>
+          !(
+            account.accountNumber === accountNumber &&
+            account.bankName === selectedBank
+          ),
+      ),
+      {
+        id: crypto.randomUUID(),
+        bankName: selectedBank,
+        accountNumber,
+        accountName,
+        isDefault: existingAccounts.length === 0,
+      },
+    ];
+    saveBankAccounts(nextAccounts);
 
     // Navigate to confirmation or back
     navigate("/bankAccountDetails", {

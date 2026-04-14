@@ -15,6 +15,7 @@ import {
 import {
   selectCartItems,
   fetchCart,
+  clearCart,
   selectCartIsLoading,
   selectCartId,
 } from "../../../redux/cartSlice";
@@ -52,7 +53,7 @@ const CartPage = () => {
     }
   });
 
-  const { creating: isCreatingOrder, createError } = useSelector(
+  const { createOrderLoading: isCreatingOrder, createOrderError } = useSelector(
     (state) => state.orders || state.order || {},
   );
 
@@ -388,6 +389,9 @@ const CartPage = () => {
     try {
       const actionResult = await dispatch(createOrder(orderData)).unwrap();
       const newOrder = actionResult;
+      const authorizationUrl =
+        newOrder.authorization_url ||
+        newOrder.payment_result?.authorization_url;
 
       setPaymentData((prev) => ({
         ...prev,
@@ -398,13 +402,24 @@ const CartPage = () => {
       }));
 
       if (apiPaymentMethod === "wallet") {
-        navigate("/password");
+        if (!isDirectBuy) {
+          await dispatch(clearCart());
+        }
+        sessionStorage.removeItem("checkout_ids");
+        sessionStorage.removeItem("lily_pending_order");
+        navigate("/order-success", {
+          state: {
+            order: newOrder,
+            paymentMethod: "wallet",
+          },
+        });
       } else {
-        if (newOrder.authorization_url) {
-          window.location.href = newOrder.authorization_url;
+        if (authorizationUrl) {
+          sessionStorage.setItem("lily_pending_order", JSON.stringify(newOrder));
+          window.location.href = authorizationUrl;
         } else {
           console.warn("No authorization URL returned for Paystack payment");
-          navigate("/payment-loading");
+          alert("Payment initialization failed. Please try again.");
         }
       }
     } catch (err) {
@@ -414,7 +429,11 @@ const CartPage = () => {
           "The server encountered an error (500). The backend rejected the payload. Please ensure you have selected a valid address.",
         );
       } else {
-        alert(err.message || "Failed to initiate payment. Please try again.");
+        alert(
+          err.message ||
+            createOrderError?.detail ||
+            "Failed to initiate payment. Please try again.",
+        );
       }
     }
   };
@@ -510,7 +529,7 @@ const CartPage = () => {
                         {item.productName || item.product?.name || "Product"}
                       </p>
                       <p className="text-sm font-semibold text-pink">
-                        ₦{formatPrice(unitPrice)}
+                        NGN {formatPrice(unitPrice)}
                       </p>
                       <p className="text-sm text-gray-600">
                         Qty: {item.quantity}
@@ -706,7 +725,7 @@ const CartPage = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900">Lily wallet</p>
                 <p className="text-xs font-semibold text-pink mt-1">
-                  ₦{formatPrice(walletBalance)}
+                  NGN {formatPrice(walletBalance)}
                 </p>
               </div>
             </div>
@@ -751,13 +770,13 @@ const CartPage = () => {
               {isCalculating ? (
                 <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
               ) : (
-                <span>₦{formatPrice(finalSubtotal)}</span>
+                <span>NGN {formatPrice(finalSubtotal)}</span>
               )}
             </div>
             {appliedDiscount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount</span>
-                <span>- ₦{formatPrice(appliedDiscount)}</span>
+                <span>- NGN {formatPrice(appliedDiscount)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-800">
@@ -765,7 +784,7 @@ const CartPage = () => {
               {isCalculating ? (
                 <span className="animate-pulse bg-gray-200 h-4 w-16 rounded"></span>
               ) : (
-                <span>₦{formatPrice(finalDeliveryFee)}</span>
+                <span>NGN {formatPrice(finalDeliveryFee)}</span>
               )}
             </div>
             {finalPlatformFee > 0 && (
@@ -774,7 +793,7 @@ const CartPage = () => {
                 {isCalculating ? (
                   <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
                 ) : (
-                  <span>₦{formatPrice(finalPlatformFee)}</span>
+                  <span>NGN {formatPrice(finalPlatformFee)}</span>
                 )}
               </div>
             )}
@@ -783,7 +802,7 @@ const CartPage = () => {
               {isCalculating ? (
                 <span className="animate-pulse bg-gray-200 h-4 w-20 rounded"></span>
               ) : (
-                <span>₦{formatPrice(estimatedTotal)}</span>
+                <span>NGN {formatPrice(estimatedTotal)}</span>
               )}
             </div>
             <div className="flex justify-between text-gray-500 pt-2">
@@ -840,7 +859,7 @@ const CartPage = () => {
               {isCalculating ? (
                 <span className="animate-pulse bg-gray-200 h-6 w-24 rounded inline-block mt-1"></span>
               ) : (
-                `₦${formatPrice(estimatedTotal)}`
+                `NGN ${formatPrice(estimatedTotal)}`
               )}
             </span>
           </div>
