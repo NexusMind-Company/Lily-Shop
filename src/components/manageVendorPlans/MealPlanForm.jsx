@@ -23,6 +23,7 @@ const MealPlanForm = ({
     mealsPerWeek: initialType === "weekly" ? 5 : 20,
     features: [],
     address: "",
+    service_days_preset: "mon_fri",
   });
 
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -146,6 +147,10 @@ const MealPlanForm = ({
       ...planData,
       price: parseFloat(planData.price),
       features: planData.features.filter((f) => f.trim()),
+      service_days:
+        planData.service_days_preset === "mon_sun"
+          ? ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+          : ["monday","tuesday","wednesday","thursday","friday"],
       media: mediaFiles,
     });
   };
@@ -193,6 +198,39 @@ const MealPlanForm = ({
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
+              Service Days
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handlePlanChange("service_days_preset", "mon_fri")}
+                className={`px-3 py-2 rounded-md border text-sm font-semibold ${
+                  planData.service_days_preset === "mon_fri"
+                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
+                    : "bg-white dark:bg-surface-dark text-text-main dark:text-white border-gray-300 dark:border-gray-600"
+                }`}
+              >
+                Mon – Fri
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePlanChange("service_days_preset", "mon_sun")}
+                className={`px-3 py-2 rounded-md border text-sm font-semibold ${
+                  planData.service_days_preset === "mon_sun"
+                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
+                    : "bg-white dark:bg-surface-dark text-text-main dark:text-white border-gray-300 dark:border-gray-600"
+                }`}
+              >
+                Mon – Sun
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Set pricing based on the days you’ll deliver.
+            </p>
           </div>
 
           <div>

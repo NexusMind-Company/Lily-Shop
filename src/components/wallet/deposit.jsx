@@ -42,12 +42,12 @@ export default function Deposit() {
     }
 
     if (amountValue < 100) {
-      setError("Minimum deposit amount is ₦100");
+      setError("Minimum deposit amount is NGN 100");
       return;
     }
 
     if (amountValue > 1000000) {
-      setError("Maximum deposit amount is ₦1,000,000");
+      setError("Maximum deposit amount is NGN 1,000,000");
       return;
     }
 
@@ -126,20 +126,20 @@ export default function Deposit() {
               Enter Amount
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-400">
-                ₦
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                NGN
               </span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={amount}
                 onChange={handleAmountChange}
-                className="w-full pl-12 pr-4 py-4 text-3xl font-bold bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
+                className="w-full pl-16 pr-4 py-4 text-3xl font-bold bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
                 placeholder="0"
               />
             </div>
             <p className="text-sm text-gray-500 mt-2">
-              Min: ₦100 • Max: ₦1,000,000
+              Min: NGN 100 - Max: NGN 1,000,000
             </p>
           </div>
 
@@ -159,7 +159,7 @@ export default function Deposit() {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  ₦{(amt / 1000).toFixed(0)}k
+                  NGN {(amt / 1000).toFixed(0)}k
                 </motion.button>
               ))}
             </div>
@@ -318,7 +318,7 @@ export default function Deposit() {
             <>
               <span>
                 Proceed to Pay{" "}
-                {amount ? `₦${parseFloat(amount).toLocaleString()}` : ""}
+                {amount ? `NGN ${parseFloat(amount).toLocaleString()}` : ""}
               </span>
             </>
           )}
@@ -335,7 +335,7 @@ export default function Deposit() {
             Powered by{" "}
             <span className="font-semibold text-lily-600">Paystack</span>
           </p>
-          <p className="mt-1">🔒 Your payment information is secure</p>
+          <p className="mt-1">Your payment information is secure.</p>
         </motion.div>
       </div>
     </div>

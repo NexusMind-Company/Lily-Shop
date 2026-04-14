@@ -95,7 +95,7 @@ const VendorDashboard = ({ vendorId }) => {
 
   const handleBack = () => navigate(-1);
   const handleHelp = () => {};
-  const handleEditProfile = () => navigate("/editProfile");
+  const handleEditProfile = () => navigate("/vendor/dashboard/profile");
   const handleManagePlans = () => {
     if (!validVendorId) return;
     navigate("/vendor/plans", { state: { vendorId: validVendorId } });

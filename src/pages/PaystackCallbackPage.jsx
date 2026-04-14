@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../redux/cartSlice';
+import api from "../services/api";
 
 const PaystackCallbackPage = () => {
   const [searchParams] = useSearchParams();
@@ -9,26 +10,41 @@ const PaystackCallbackPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const reference = searchParams.get('reference');
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
     const status = searchParams.get('status');
+    const storedOrder = sessionStorage.getItem('lily_pending_order');
+    const pendingOrder = storedOrder ? JSON.parse(storedOrder) : null;
 
-    if (status === 'success' && reference) {
-      // Clear cart on successful payment
-      dispatch(clearCart());
-      
-      // Redirect to success page
-      navigate('/order-success', {
-        state: {
-          order: { reference },
-          paymentMethod: 'paystack'
-        }
-      });
-    } else {
-      // Payment failed
-      navigate('/checkout', {
-        state: { error: 'Payment failed. Please try again.' }
-      });
-    }
+    const run = async () => {
+      if (!reference || status === "failed" || status === "cancelled") {
+        navigate('/checkout', { state: { error: 'Payment failed. Please try again.' } });
+        return;
+      }
+
+      try {
+        // Verify with backend so webhook/callback always finalizes the order
+        await api.get("/wallet/paystack/callback/", { params: { reference } });
+
+        dispatch(clearCart());
+        sessionStorage.removeItem('checkout_ids');
+        sessionStorage.removeItem('lily_pending_order');
+
+        navigate('/order-success', {
+          state: {
+            order: pendingOrder
+              ? { ...pendingOrder, reference, status: 'paid' }
+              : { reference, status: 'paid' },
+            paymentMethod: 'paystack',
+          },
+        });
+      } catch (e) {
+        navigate('/checkout', {
+          state: { error: 'Payment verification failed. Please try again.' },
+        });
+      }
+    };
+
+    run();
   }, [searchParams, navigate, dispatch]);
 
   return (

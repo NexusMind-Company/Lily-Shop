@@ -1,36 +1,25 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Building2, Plus, Trash2, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
+
+const loadBankAccounts = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const saveBankAccounts = (accounts) => {
+  sessionStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(accounts));
+};
+
 export default function BankAccountDetails() {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Get newly added account from navigation state or use mock data
-  const newAccount = location.state;
-
-  // Mock saved accounts (replace with actual backend data)
-  const [savedAccounts, setSavedAccounts] = useState([
-    {
-      id: 1,
-      bankName: "Access Bank",
-      accountNumber: "0123456789",
-      accountName: "John Doe",
-      isDefault: true,
-    },
-    ...(newAccount
-      ? [
-          {
-            id: 2,
-            bankName: newAccount.bankName,
-            accountNumber: newAccount.accountNumber,
-            accountName: newAccount.accountName,
-            isDefault: false,
-          },
-        ]
-      : []),
-  ]);
+  const [savedAccounts, setSavedAccounts] = useState(() => loadBankAccounts());
 
   const [selectedAccount, setSelectedAccount] = useState(
     savedAccounts.find((acc) => acc.isDefault)?.id || savedAccounts[0]?.id
@@ -38,20 +27,30 @@ export default function BankAccountDetails() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   const handleSetDefault = (accountId) => {
-    setSavedAccounts((accounts) =>
-      accounts.map((acc) => ({
+    setSavedAccounts((accounts) => {
+      const nextAccounts = accounts.map((acc) => ({
         ...acc,
         isDefault: acc.id === accountId,
-      }))
-    );
+      }));
+      saveBankAccounts(nextAccounts);
+      return nextAccounts;
+    });
+    setSelectedAccount(accountId);
   };
 
   const handleDelete = (accountId) => {
-    setSavedAccounts((accounts) => accounts.filter((acc) => acc.id !== accountId));
+    setSavedAccounts((accounts) => {
+      const nextAccounts = accounts.filter((acc) => acc.id !== accountId);
+      if (nextAccounts.length > 0 && !nextAccounts.some((acc) => acc.isDefault)) {
+        nextAccounts[0] = { ...nextAccounts[0], isDefault: true };
+      }
+      saveBankAccounts(nextAccounts);
+      setSelectedAccount(
+        nextAccounts.find((acc) => acc.isDefault)?.id || nextAccounts[0]?.id || null,
+      );
+      return nextAccounts;
+    });
     setShowDeleteConfirm(null);
-    if (selectedAccount === accountId) {
-      setSelectedAccount(savedAccounts[0]?.id);
-    }
   };
 
   const handleProceedToWithdraw = () => {

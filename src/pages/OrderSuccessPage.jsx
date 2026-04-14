@@ -102,7 +102,7 @@ const OrderSuccessPage = () => {
             transition={{ delay: 0.3 }}
           >
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              Order Confirmed! 🎉
+              Order Confirmed!
             </h1>
             <p className="text-lg text-gray-600">
               Thank you for shopping with Lily Shop
@@ -147,7 +147,7 @@ const OrderSuccessPage = () => {
                   {paymentMethod === 'wallet' ? (
                     <>
                       <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">₦</span>
+                        <span className="text-white text-xs font-bold">LW</span>
                       </div>
                       <p className="font-bold text-gray-800">Lily Wallet</p>
                     </>
@@ -192,7 +192,7 @@ const OrderSuccessPage = () => {
               >
                 <p className="text-sm text-gray-600 mb-1">Total Amount</p>
                 <p className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  ₦{order.total_amount_naira?.toLocaleString() || (order.total_amount_kobo / 100).toLocaleString()}
+                  NGN {order.total_amount_naira?.toLocaleString() || (order.total_amount_kobo / 100).toLocaleString()}
                 </p>
               </motion.div>
             </div>
@@ -227,12 +227,12 @@ const OrderSuccessPage = () => {
                         {item.product?.name || 'Product'}
                       </h4>
                       <p className="text-sm text-gray-500 mt-1">
-                        ₦{(item.price_kobo / 100).toLocaleString()} × {item.quantity}
+                        NGN {(item.price_kobo / 100).toLocaleString()} x {item.quantity}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-800">
-                        ₦{(item.subtotal_kobo / 100).toLocaleString()}
+                        NGN {(item.subtotal_kobo / 100).toLocaleString()}
                       </p>
                     </div>
                   </motion.div>

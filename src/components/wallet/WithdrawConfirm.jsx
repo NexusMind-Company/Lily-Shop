@@ -1,31 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, AlertTriangle, Eye, EyeOff, Loader2, Info } from "lucide-react";
+import { ChevronLeft, AlertTriangle, Loader2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../services/api";
+import { fetchWallet } from "../../redux/walletSlice";
+
+const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
+
+const loadBankAccounts = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
 
 export default function WithdrawConfirm() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const bankDetails = location.state || {
-    bankName: "Unknown Bank",
-    accountNumber: "0000000000",
-    accountName: "Unknown Account",
-  };
+  const storedDefaultAccount = useMemo(() => {
+    const bankAccounts = loadBankAccounts();
+    return bankAccounts.find((account) => account.isDefault) || bankAccounts[0];
+  }, []);
+  const bankDetails = location.state || storedDefaultAccount;
 
-  const { balance_naira } = useSelector((state) => state.wallet);
+  const { withdrawable_naira = 0 } = useSelector((state) => state.wallet || {});
 
   const [amount, setAmount] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
 
   const platformFee = amount ? parseFloat(amount) * 0.05 : 0;
   const receivable = amount ? parseFloat(amount) - platformFee : 0;
+
+  useEffect(() => {
+    dispatch(fetchWallet());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!bankDetails) {
+      navigate("/bankAccountDetails", { replace: true });
+    }
+  }, [bankDetails, navigate]);
+
+  if (!bankDetails) {
+    return null;
+  }
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
@@ -44,12 +68,12 @@ export default function WithdrawConfirm() {
     }
 
     if (amountValue < 1000) {
-      setError("Minimum withdrawal is ₦1,000");
+      setError("Minimum withdrawal is NGN 1,000");
       return false;
     }
 
-    if (amountValue > balance_naira) {
-      setError(`Insufficient balance. You have ₦${balance_naira.toLocaleString()}`);
+    if (amountValue > withdrawable_naira) {
+      setError(`Insufficient withdrawable balance. You have NGN ${withdrawable_naira.toLocaleString()}`);
       return false;
     }
 
@@ -169,22 +193,22 @@ export default function WithdrawConfirm() {
           <label className="block text-sm font-semibold text-gray-700 mb-3">
             Enter Amount
           </label>
-          <div className="relative mb-4">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-400">
-              ₦
+                    <div className="relative mb-4">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+              NGN
             </span>
             <input
               type="text"
               inputMode="decimal"
               value={amount}
               onChange={handleAmountChange}
-              className="w-full pl-12 pr-4 py-4 text-3xl font-bold bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
+              className="w-full pl-16 pr-4 py-4 text-3xl font-bold bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
               placeholder="0.00"
             />
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Min: ₦1,000</span>
-            <span>Available: ₦{(balance_naira || 0).toLocaleString()}</span>
+                    <div className="flex justify-between text-sm text-gray-600">
+            <span>Min: NGN 1,000</span>
+            <span>Available: NGN {(withdrawable_naira || 0).toLocaleString()}</span>
           </div>
         </motion.div>
 
@@ -199,19 +223,19 @@ export default function WithdrawConfirm() {
             <h3 className="font-semibold text-gray-800 mb-4">Breakdown</h3>
             <div className="flex justify-between text-gray-600">
               <span>Withdrawal Amount</span>
-              <span className="font-semibold">₦{parseFloat(amount).toLocaleString()}</span>
+              <span className="font-semibold">NGN {parseFloat(amount).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Platform Fee (5%)</span>
               <span className="font-semibold text-error">
-                -₦{platformFee.toLocaleString()}
+                -NGN {platformFee.toLocaleString()}
               </span>
             </div>
             <div className="h-px bg-gray-200" />
             <div className="flex justify-between text-lg">
               <span className="font-bold text-gray-800">You'll Receive</span>
               <span className="font-bold bg-gradient-to-r from-lily-600 to-purple-600 bg-clip-text text-transparent">
-                ₦{receivable.toLocaleString()}
+                NGN {receivable.toLocaleString()}
               </span>
             </div>
           </motion.div>
@@ -275,35 +299,11 @@ export default function WithdrawConfirm() {
                 Confirm Withdrawal
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Enter your password to authorize this withdrawal
+                Review the amount and destination account, then confirm this withdrawal.
               </p>
 
-              {/* Password Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
-                    placeholder="Enter your password"
-                    disabled={processing}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5 text-gray-500" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-gray-500" />
-                    )}
-                  </button>
-                </div>
+              <div className="mb-6 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                This request will be submitted immediately and may take up to 24 hours to land in your bank account.
               </div>
 
               {/* Action Buttons */}
@@ -317,9 +317,9 @@ export default function WithdrawConfirm() {
                 </button>
                 <button
                   onClick={handleConfirm}
-                  disabled={!password || processing}
+                  disabled={processing}
                   className={`flex-1 py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 ${
-                    password && !processing
+                    !processing
                       ? "bg-gradient-to-r from-lily-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}

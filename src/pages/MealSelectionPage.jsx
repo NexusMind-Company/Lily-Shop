@@ -58,6 +58,7 @@ const MealSelectionPage = () => {
 
   const [search, setSearch] = useState("");
   const [excluded, setExcluded] = useState(new Set(initialExcluded.map(String)));
+  const [notes, setNotes] = useState("");
 
   const { data: mealsData, isLoading, isError, error } = useQuery({
     queryKey: ["vendorMeals", vendorId],
@@ -87,6 +88,7 @@ const MealSelectionPage = () => {
     mutationFn: () =>
       api.put(`/foods/subscriptions/${subscriptionId}/meals/`, {
         excluded_meals: Array.from(excluded),
+        notes,
       }),
     onSuccess: () => {
       toast.success("Meal preferences saved!");
@@ -167,6 +169,16 @@ const MealSelectionPage = () => {
 
       {/* Meal list */}
       <div className="flex-1 px-4 pt-4 pb-36 space-y-3">
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <p className="text-xs font-bold text-[#111813] mb-2">Notes for the vendor (optional)</p>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="E.g. no onions, please deliver by 1pm, extra spicy…"
+            className="w-full text-sm bg-[#f6f8f6] rounded-xl p-3 outline-none text-[#111813] placeholder-gray-400"
+            rows={3}
+          />
+        </div>
         {excluded.size > 0 && (
           <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5">
             <p className="text-xs text-orange-700 dark:text-orange-400">

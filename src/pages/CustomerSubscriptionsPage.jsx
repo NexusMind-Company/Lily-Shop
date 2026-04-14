@@ -16,7 +16,22 @@ import {
   UtensilsCrossed,
   Receipt,
   BadgeCheck,
+  Timer,
+  Phone,
+  Truck,
+  MapPin,
+  CreditCard,
 } from "lucide-react";
+
+// Helper function to calculate days remaining
+const daysRemaining = (dateStr) => {
+  if (!dateStr) return 0;
+  const target = new Date(dateStr);
+  const now = new Date();
+  const diffTime = target - now;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays);
+};
 
 // Import from your api.js — adjust path if needed
 
@@ -179,6 +194,83 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
             {formatDate(sub?.created_at || sub?.start_date)}
           </span>
         </div>
+        {/* Expiry Date */}
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs flex items-center gap-1">
+            <Calendar size={11} /> Expires on
+          </span>
+          <span className="text-xs text-[#111813] font-medium">
+            {formatDate(sub?.next_payment_date || sub?.end_date)}
+          </span>
+        </div>
+        {/* Days Remaining */}
+        {sub?.next_payment_date && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <Timer size={11} /> Days remaining
+            </span>
+            <span className={`text-xs font-medium ${
+              daysRemaining(sub?.next_payment_date) <= 3 ? 'text-red-500' : 'text-[#13ec49]'
+            }`}>
+              {daysRemaining(sub?.next_payment_date)} days
+            </span>
+          </div>
+        )}
+        {/* Vendor Phone */}
+        {vendor?.contact_phone && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <Phone size={11} /> Vendor Phone
+            </span>
+            <a href={`tel:${vendor.contact_phone}`} className="text-xs text-blue-500 font-medium hover:underline">
+              {vendor.contact_phone}
+            </a>
+          </div>
+        )}
+        {/* Delivery Method */}
+        {sub?.delivery_type && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <Truck size={11} /> Delivery
+            </span>
+            <span className="text-xs text-[#111813] font-medium capitalize">
+              {sub.delivery_type}
+            </span>
+          </div>
+        )}
+        {/* Preferred Time */}
+        {sub?.preferred_time && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <Clock size={11} /> Preferred Time
+            </span>
+            <span className="text-xs text-[#111813] font-medium">
+              {sub.preferred_time}
+            </span>
+          </div>
+        )}
+        {/* Address */}
+        {sub?.address && (
+          <div className="flex items-start justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <MapPin size={11} /> Address
+            </span>
+            <span className="text-xs text-[#111813] font-medium text-right max-w-[60%]">
+              {sub.address}
+            </span>
+          </div>
+        )}
+        {/* Payment Info */}
+        {sub?.amount_paid && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <CreditCard size={11} /> Amount Paid
+            </span>
+            <span className="text-xs text-[#111813] font-medium">
+              ₦{sub.amount_paid.toLocaleString()}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Action buttons — only show for active */}

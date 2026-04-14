@@ -16,7 +16,8 @@ const updateMyVendorProfile = async (data) => {
     if (data[k] !== undefined && data[k] !== null) formData.append(k, data[k]);
   });
   if (data.media instanceof File) formData.append("media", data.media);
-  const res = await api.patch("/foods/food-vendors/me/", formData, {
+  // Use the correct endpoint for vendor profile update
+  const res = await api.patch("/food-vendors/me/update/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
