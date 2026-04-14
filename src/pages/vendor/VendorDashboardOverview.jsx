@@ -287,56 +287,19 @@ const VendorDashboardOverview = () => {
             <Plus size={16} className="text-orange-500" />
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Add Plan</span>
           </button>
-          <button
-            onClick={() => navigate("/delete-vendor-profile")}
-            className="flex items-center gap-2 px-3 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left col-span-2"
-          >
-            <Trash2 size={16} className="text-red-500" />
-            <span className="text-xs font-semibold text-red-600 dark:text-red-400">Delete Profile</span>
-          </button>
         </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <StatCard icon={ShoppingBag} label="Today's Orders" value={o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
-        <StatCard icon={UtensilsCrossed} label="Meals to Prepare" value={o.meals_to_prepare ?? "—"} color="bg-orange-400" />
-        <StatCard icon={Users} label="Active Subscriptions" value={o.active_subscriptions ?? "—"} color="bg-blue-500" sub={`+${o.new_subscribers_this_week ?? 0} this week`} subUp />
+        <StatCard icon={ShoppingBag} label="Today's Subscriptions" value={o.today_subscriptions ?? o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
+        <StatCard icon={Users} label="This Week's Subscriptions" value={o.this_week_subscriptions ?? o.active_subscriptions ?? "—"} color="bg-blue-500" sub={`+${o.new_subscribers_this_week ?? 0} this week`} subUp />
         <StatCard icon={TrendingUp} label="Weekly Revenue" value={`₦${(o.weekly_revenue ?? 0).toLocaleString()}`} color="bg-purple-500" sub="vs last week" subUp />
+        <StatCard icon={UserPlus} label="New Subscribers" value={o.new_subscribers_this_week ?? 0} color="bg-orange-400" />
       </div>
 
-      <div className="bg-[#4eb75e] rounded-2xl px-5 py-4 flex items-center justify-between shadow-md cursor-pointer mb-4" onClick={() => navigate("/vendor/dashboard/earnings")}>
-        <div>
-          <p className="text-green-100 text-xs font-medium mb-0.5">Total Earnings</p>
-          <p className="text-white text-2xl font-bold">₦{(o.total_earnings ?? 0).toLocaleString()}</p>
-        </div>
-        <div className="bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center text-white font-bold text-xl">₦</div>
-      </div>
-
+      {/* Subscriber Growth Chart */}
       <div className="mb-4">
-        <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-3">This Week's Growth</h3>
-        <div className="flex gap-3">
-          {[
-            { label: "New Subscribers", value: o.new_subscribers_this_week ?? 0, icon: UserPlus, color: "bg-[#4eb75e]" },
-            { label: "Cancelled", value: o.cancelled_subscriptions ?? 0, icon: UserMinus, color: "bg-red-400" },
-            { label: "Net Growth", value: `+${o.net_growth ?? 0}`, icon: TrendingUp, color: "bg-blue-500" },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="flex-1 bg-white dark:bg-surface-dark rounded-2xl p-3 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
-              <div className={`w-7 h-7 rounded-full mx-auto mb-1 flex items-center justify-center ${color}`}><Icon size={14} className="text-white" /></div>
-              <p className="text-lg font-bold text-[#111813] dark:text-white">{value}</p>
-              <p className="text-[10px] text-gray-400 font-medium">{label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-[#111813] dark:text-white">Subscriber Growth</h3>
-          <div className="flex gap-3 text-[10px] font-medium">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#4eb75e] inline-block" />New</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />Lost</span>
-          </div>
-        </div>
         {growthError ? (
           <p className="text-xs text-gray-400 text-center py-8">Chart unavailable</p>
         ) : (
