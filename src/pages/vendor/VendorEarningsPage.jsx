@@ -237,19 +237,77 @@ const VendorEarningsPage = () => {
         ) : (
           <div className="divide-y divide-gray-50 dark:divide-gray-800">
             {(h?.results ?? []).map((p) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-9 h-9 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-xs font-bold text-[#4eb75e] flex-shrink-0">
-                  ₦
+              <div key={p.id} className="px-4 py-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-sm font-bold text-[#4eb75e] flex-shrink-0">
+                    {p.customer_name?.charAt(0) ?? "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#111813] dark:text-white truncate">{p.customer_name}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">{p.subscription_plan}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-bold text-[#4eb75e]">₦{(p.amount ?? 0).toLocaleString()}</p>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${STATUS_COLORS[p.status] ?? "bg-gray-100 text-gray-600"}`}>
+                      {p.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#111813] dark:text-white">₦{(p.amount ?? 0).toLocaleString()}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(p.created_at).toLocaleDateString()}</p>
+                {/* Subscriber Details */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {p.customer_phone && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">Phone:</span>
+                      <span className="text-gray-700 dark:text-gray-300">{p.customer_phone}</span>
+                    </div>
+                  )}
+                  {p.customer_email && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">Email:</span>
+                      <span className="text-gray-700 dark:text-gray-300 truncate">{p.customer_email}</span>
+                    </div>
+                  )}
+                  {p.subscription_status && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">Status:</span>
+                      <span className={`font-medium ${p.subscription_status === 'active' ? 'text-green-600' : 'text-gray-600'}`}>
+                        {p.subscription_status}
+                      </span>
+                    </div>
+                  )}
+                  {p.subscribed_at && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">Subscribed:</span>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {new Date(p.subscribed_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${STATUS_COLORS[p.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {p.status}
-                  </span>
-                </div>
+                {/* Delivery Address */}
+                {p.delivery_address && Object.keys(p.delivery_address).length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 mb-1">Delivery Address:</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                      {p.delivery_address.address_line1 && <span>{p.delivery_address.address_line1}</span>}
+                      {p.delivery_address.city && <span>, {p.delivery_address.city}</span>}
+                      {p.delivery_address.state && <span>, {p.delivery_address.state}</span>}
+                    </p>
+                  </div>
+                )}
+                {/* Preferences */}
+                {p.preferences && Object.keys(p.preferences).length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 mb-1">Preferences:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {Object.entries(p.preferences).map(([key, value]) => (
+                        <span key={key} className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
+                          {key}: {String(value)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
