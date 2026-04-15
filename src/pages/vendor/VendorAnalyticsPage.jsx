@@ -25,7 +25,7 @@ const VendorAnalyticsPage = () => {
 
   return (
     <VendorLayout title="Analytics">
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 mb-4">
         {PERIODS.map(({ key, label }) => (
           <button key={key} onClick={() => setPeriod(key)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${period === key ? "bg-[#4eb75e] text-white shadow-sm" : "bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500"}`}>
@@ -35,13 +35,13 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {isError && (
-        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2 flex items-center justify-between">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2 flex items-center justify-between mb-4">
           <p className="text-xs text-orange-600">Showing cached data</p>
           <button onClick={refetch} className="text-xs text-[#4eb75e] font-semibold">Refresh</button>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         {[
           { label: "Growth Rate", value: `${a.subscriber_growth_rate ?? 0}%`, icon: TrendingUp, color: "bg-[#4eb75e]", sub: "vs last period" },
           { label: "Retention Rate", value: `${a.retention_rate ?? 0}%`, icon: Users, color: "bg-blue-500", sub: "customers renewing" },
@@ -56,7 +56,7 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Retention Donut */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-4">Retention vs Churn</h3>
         <div className="flex items-center gap-4">
           <PieChart width={120} height={120}>
@@ -84,7 +84,7 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Meal Popularity */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
         <h3 className="text-sm font-bold text-[#111813] dark:text-white mb-4">Meal Popularity</h3>
         {(a.meal_popularity ?? []).length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-4">No meal data yet</p>
@@ -105,7 +105,7 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Ingredient Insights */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Lightbulb size={14} className="text-yellow-500" />
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">Ingredient Insights</h3>
@@ -137,7 +137,7 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Top Plans */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-4">
         <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800">
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">Top Performing Plans</h3>
         </div>

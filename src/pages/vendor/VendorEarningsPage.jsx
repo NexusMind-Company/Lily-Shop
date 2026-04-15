@@ -161,7 +161,7 @@ const VendorEarningsPage = () => {
     <VendorLayout title="Earnings">
 
       {/* Total Earnings Card */}
-      <div className="bg-[#111813] dark:bg-gray-900 rounded-2xl p-5 text-white">
+      <div className="bg-[#111813] dark:bg-gray-900 rounded-2xl p-5 text-white mb-4">
         <p className="text-gray-400 text-xs mb-1">Total Earnings (All Time)</p>
         <p className="text-3xl font-bold mb-3">₦{(s.total_earnings ?? 0).toLocaleString()}</p>
         <div className="flex gap-4 mb-4">
@@ -188,7 +188,7 @@ const VendorEarningsPage = () => {
       </div>
 
       {/* Period Tabs */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 mb-4">
         {PERIODS.map(({ key, label }) => (
           <button key={key} onClick={() => setPeriod(key)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${period === key ? "bg-[#4eb75e] text-white shadow-sm" : "bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500"}`}>
@@ -198,7 +198,7 @@ const VendorEarningsPage = () => {
       </div>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">
             {PERIODS.find((p) => p.key === period)?.label} Earnings
@@ -226,7 +226,7 @@ const VendorEarningsPage = () => {
       </div>
 
       {/* Payment History */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-4">
         <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800">
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">Payment History</h3>
         </div>
