@@ -243,7 +243,7 @@ const VendorEarningsPage = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[#111813] dark:text-white">₦{(p.amount ?? 0).toLocaleString()}</p>
-                  <p className="text-xs text-gray-400">{new Date(p.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${STATUS_COLORS[p.status] ?? "bg-gray-100 text-gray-600"}`}>
