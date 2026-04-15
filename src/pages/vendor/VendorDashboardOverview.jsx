@@ -292,9 +292,9 @@ const VendorDashboardOverview = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <StatCard icon={ShoppingBag} label="Today's Subscriptions" value={o.today_subscriptions ?? o.today_orders ?? "—"} color="bg-[#4eb75e]" sub="+3 from yesterday" subUp />
+        <StatCard icon={ShoppingBag} label="Today's Subscriptions" value={o.today_subscriptions ?? o.today_orders ?? "—"} color="bg-[#4eb75e]" sub={o.net_growth > 0 ? `+${o.net_growth} vs yesterday` : `${o.net_growth} vs yesterday`} subUp={o.net_growth > 0} />
         <StatCard icon={Users} label="This Week's Subscriptions" value={o.this_week_subscriptions ?? o.active_subscriptions ?? "—"} color="bg-blue-500" sub={`+${o.new_subscribers_this_week ?? 0} this week`} subUp />
-        <StatCard icon={TrendingUp} label="Weekly Revenue" value={`₦${(o.weekly_revenue ?? 0).toLocaleString()}`} color="bg-purple-500" sub="vs last week" subUp />
+        <StatCard icon={TrendingUp} label="Weekly Revenue" value={`₦${(o.weekly_revenue ?? 0).toLocaleString()}`} color="bg-purple-500" sub={o.weekly_revenue > 0 ? "↑ Revenue" : "No revenue"} subUp={o.weekly_revenue > 0} />
         <StatCard icon={UserPlus} label="New Subscribers" value={o.new_subscribers_this_week ?? 0} color="bg-orange-400" />
       </div>
 
