@@ -60,7 +60,33 @@ const CreateSubscriptionVendor = () => {
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [submissionError, setSubmissionError] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
-  const [mediaFiles, setMediaFiles] = useState([]);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [profileFile, setProfileFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+  const [profilePreview, setProfilePreview] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+      if (profilePreview) URL.revokeObjectURL(profilePreview);
+    };
+  }, [bannerPreview, profilePreview]);
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleProfileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileFile(file);
+      setProfilePreview(URL.createObjectURL(file));
+    }
+  };
 
   const actualSubmitLogic = async (validatedTextValues) => {
     setSubmissionStatus("loading");
@@ -74,8 +100,8 @@ const CreateSubscriptionVendor = () => {
       contact_email: validatedTextValues.contact_email.trim(),
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
-      banner_image: mediaFiles[0] || null,
-      profile_image: mediaFiles[1] || null,
+      banner_image: bannerFile,
+      profile_image: profileFile,
     };
 
     try {
@@ -298,24 +324,50 @@ const CreateSubscriptionVendor = () => {
         </div>
 
         {/* Media */}
-        <div>
-          <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-1">
-            Photos / Media
-          </label>
-          <input
-            type="file"
-            id="media"
-            name="media"
-            multiple
-            accept="image/*,video/*"
-            onChange={(e) => setMediaFiles(Array.from(e.target.files))}
-            className="input h-[46px] w-full border-gray-300"
-          />
-          {mediaFiles.length > 0 && (
-            <p className="text-sm text-gray-600 mt-1">
-              {mediaFiles.length} file(s) selected
-            </p>
-          )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Banner Image */}
+            <div>
+              <label htmlFor="banner_image" className="block text-sm font-medium text-[#111813] mb-1">
+                Banner Image
+              </label>
+              <div className="flex flex-col gap-2 relative">
+                 {bannerPreview ? (
+                    <div className="relative w-full h-[120px] rounded-xl overflow-hidden shadow-sm">
+                      <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => { setBannerFile(null); setBannerPreview(null); }} className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                  ) : (
+                    <label className="w-full h-[120px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#13ec49] hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span className="text-xs font-semibold text-gray-500">Upload Banner (Optional)</span>
+                      <input type="file" id="banner_image" name="banner_image" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                    </label>
+                  )}
+              </div>
+            </div>
+
+            {/* Profile Image */}
+            <div>
+               <label htmlFor="profile_image" className="block text-sm font-medium text-[#111813] mb-1">
+                Logo / Profile
+              </label>
+              <div className="flex flex-col gap-2 relative">
+                  {profilePreview ? (
+                    <div className="relative w-full h-[120px] rounded-xl overflow-hidden shadow-sm">
+                      <img src={profilePreview} alt="Cover" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => { setProfileFile(null); setProfilePreview(null); }} className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                  ) : (
+                    <label className="w-full h-[120px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#13ec49] hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span className="text-xs font-semibold text-gray-500">Upload Profile (Optional)</span>
+                      <input type="file" id="profile_image" name="profile_image" accept="image/*" onChange={handleProfileChange} className="hidden" />
+                    </label>
+                  )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <button

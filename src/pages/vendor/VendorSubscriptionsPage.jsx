@@ -69,6 +69,12 @@ const SubscriptionCard = ({ sub }) => {
             <span className="text-gray-600 dark:text-gray-300 capitalize">{sub.delivery_type}</span>
           </div>
         )}
+        {sub.customer_address && (
+          <div className="flex items-start gap-2 text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded-lg/50 mt-1">
+            <MapPin size={12} className="text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300 leading-relaxed font-medium">{sub.customer_address}</span>
+          </div>
+        )}
       </div>
 
       {sub.status === "active" && (

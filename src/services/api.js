@@ -486,9 +486,11 @@ export const topUpWallet = async (amountNaira) => {
   return response.data;
 };
 
-export const createSubscription = async (plan_id) => {
+export const createSubscription = async (plan_id, deliveryMeta = {}) => {
   const response = await api.post("/foods/subscribe/", {
     plan_id,
+    payment_method: "wallet",
+    ...deliveryMeta,
   });
   return response.data;
 };
@@ -795,7 +797,7 @@ export const fetchMealPlans = async () => {
 };
 
 export const fetchMealPlan = async (id) => {
-  const res = await api.get(`/foods/subscriptions/plan/${id}/`);
+  const res = await api.get(`/foods/subscriptions/${id}/`);
   return res.data;
 };
 
@@ -804,9 +806,11 @@ export const subscribeToPlan = async () => {
   return response.data;
 };
 
-export const unsubscribeFromPlan = async (planId) => {
+export const unsubscribeFromPlan = async (subscriptionId) => {
+  // Uses the subscription record ID (UserSubscription.id), not plan_id
+  // Backend: POST /foods/subscriptions/{subscription_id}/cancel/
   const response = await api.post(
-    `/foods/subscriptions/plan/${planId}/unsubscribe/`,
+    `/foods/subscriptions/${subscriptionId}/cancel/`,
   );
   return response.data;
 };
