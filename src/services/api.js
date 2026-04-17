@@ -710,7 +710,7 @@ export const fetchAllFoodVendors = async (params = {}) => {
 };
 
 export const updateSubscriptionPlan = async (planId, planData) => {
-  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
     planData;
 
   if (!plan_name || !price) {
@@ -729,8 +729,8 @@ export const updateSubscriptionPlan = async (planId, planData) => {
     formData.append("description", description);
   }
 
-  if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
-    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
+    formData.append("meals_per_cycle", meals_per_cycle.toString());
   }
 
   if (media && Array.isArray(media)) {
@@ -816,7 +816,7 @@ export const unsubscribeFromPlan = async (subscriptionId) => {
 };
 
 export const createSubscriptionPlan = async (planData) => {
-  const { plan_name, price, trial_days, description, meal_per_cycle, media } =
+  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
     planData;
 
   if (!plan_name || !price) {
@@ -851,8 +851,8 @@ export const createSubscriptionPlan = async (planData) => {
     formData.append("description", description);
   }
 
-  if (meal_per_cycle !== undefined && meal_per_cycle !== null) {
-    formData.append("meal_per_cycle", meal_per_cycle.toString());
+  if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
+    formData.append("meals_per_cycle", meals_per_cycle.toString());
   }
 
   if (media) {

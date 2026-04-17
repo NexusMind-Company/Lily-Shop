@@ -170,6 +170,7 @@ const ManageVendorPlansPage = () => {
             onCancel={handleCancel}
             initialType={planType}
             isEdit={isEdit}
+            planId={searchParams.get("id")} // ✅ Pass the specific plan ID for editing
             vendorId={vendorId} // ✅ pass vendorId to form
           />
         </div>
