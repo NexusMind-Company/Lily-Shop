@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import TopAppBar from "../components/manageVendorPlans/TopAppBar";
 import PlanSelectionCard from "../components/subscription/PlanSelectionCard";
 import HelpSection from "../components/subscription/HelpSection";
@@ -11,6 +11,7 @@ import { CalendarDays, CalendarRange } from "lucide-react";
  */
 const EditPlanPage = () => {
   const navigate = useNavigate();
+  const { planId } = useParams();
 
   const handleBackClick = () => {
     // Handle back navigation
@@ -19,12 +20,12 @@ const EditPlanPage = () => {
 
   const handleWeeklyEdit = () => {
     // Handle weekly plan edit
-    navigate("/vendor/plans?type=weekly&mode=edit");
+    navigate(`/vendor/plans?type=weekly&mode=edit&id=${planId}`);
   };
 
   const handleMonthlyEdit = () => {
     // Handle monthly plan edit
-    navigate("/vendor/plans?type=monthly&mode=edit");
+    navigate(`/vendor/plans?type=monthly&mode=edit&id=${planId}`);
   };
 
   return (
