@@ -870,7 +870,7 @@ export const createSubscriptionPlan = async (planData) => {
 
 export const deleteMealPlan = async (mealPlanId) => {
   const response = await api.delete(
-    `/foods/subscriptions/plan/${mealPlanId}/delete/`,
+    `/foods/subscriptions/${mealPlanId}/delete/`,
   );
   return response.data;
 };
