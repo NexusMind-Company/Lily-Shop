@@ -17,9 +17,6 @@ const ManageVendorPlansPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const planType = searchParams.get("type");
-  const mode = searchParams.get("mode");
-  const isEdit = mode === "edit";
 
   // Get vendorId from navigate state (passed from VendorDashboard) or from Redux profile
   const { data: profileData } = useSelector((state) => state.profile); // Note: changed from profileData to data
@@ -109,8 +106,7 @@ const ManageVendorPlansPage = () => {
 
   // ---------------- Navigation Handlers ----------------
   const handleBackClick = () => {
-    if (planType) navigate("/vendor/plans");
-    else navigate(-1);
+    navigate(-1);
   };
 
   const handleSuccess = (plan) => {
@@ -122,7 +118,7 @@ const ManageVendorPlansPage = () => {
   const handleCancel = () => navigate("/vendor/plans");
 
   const handleEditPlan = (id) => {
-    navigate(`/vendor/plans/${id}`, { state: { mode: "edit" } });
+    navigate(`/vendor/plans/${id}/edit`);
   };
 
   const handleViewPlan = (id) => {
@@ -156,27 +152,6 @@ const ManageVendorPlansPage = () => {
   if (loading) return <div>Loading vendor information...</div>;
   if (!vendorId) return <div>Vendor information not found.</div>;
 
-  // ---------------- Render Meal Plan Form for Create/Edit Mode ----------------
-  if (planType) {
-    return (
-      <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
-        <TopAppBar
-          title={`${isEdit ? "Edit" : "Create"} ${planType.charAt(0).toUpperCase() + planType.slice(1)} Plan`}
-          onBackClick={handleBackClick}
-        />
-        <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-4xl mx-auto w-full">
-          <MealPlanForm
-            onSuccess={handleSuccess}
-            onCancel={handleCancel}
-            initialType={planType}
-            isEdit={isEdit}
-            planId={searchParams.get("id")} // ✅ Pass the specific plan ID for editing
-            vendorId={vendorId} // ✅ pass vendorId to form
-          />
-        </div>
-      </div>
-    );
-  }
 
   // ---------------- Separate Active / Inactive Plans ----------------
   // Since there's no is_active property, we'll consider all plans as active for now

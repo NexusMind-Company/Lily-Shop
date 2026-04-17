@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
 import { TrendingUp, Users, Store, Wallet, ArrowUpRight, ArrowDownRight, Calendar } from "lucide-react";
-import api from "../services/api";
+import { api } from "../services/api";
 
 const COLORS = ['#4eb75e', '#13ec49', '#f59e0b', '#6366f1', '#ec4899'];
 

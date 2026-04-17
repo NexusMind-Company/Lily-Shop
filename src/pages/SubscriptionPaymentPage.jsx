@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { fetchWallet, topUpWallet } from "../services/api";
+import { api, fetchWallet, topUpWallet } from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,

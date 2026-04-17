@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import ProductDetails from "../components/feed/product/productDetails";
 import { useFeed } from "../context/feedContext";
 import { addToCart } from "../redux/cartSlice";
-import api from "../services/api";
+import { api } from "../services/api";
 
 const FeedProductDetails = () => {
   const { id } = useParams();

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../services/api";
+import { api } from "../services/api";
 
 //  Async thunk: Fetch *all* user activities (flattened, all pages)
 export const fetchActivities = createAsyncThunk(

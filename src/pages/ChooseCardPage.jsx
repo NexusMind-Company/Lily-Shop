@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Plus, Loader2, AlertCircle } from "lucide-react";
 import { usePayment } from "../context/paymentContext";
-import api from "../services/api";
+import { api } from "../services/api";
 
 const fetchSavedCards = async () => {
   // Anticipated endpoint to be created by the backend developer

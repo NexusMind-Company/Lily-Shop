@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, AlertTriangle, Loader2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import api from "../../services/api";
+import { api } from "../../services/api";
 import { fetchWallet } from "../../redux/walletSlice";
 
 const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";

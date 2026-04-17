@@ -189,7 +189,7 @@ const VendorDashboardOverview = () => {
         <div className="pt-1">
           <p className="text-xs text-gray-400 font-medium">Welcome back 👋</p>
           <h2 className="text-xl font-bold text-[#111813] dark:text-white">
-            {profileData?.user?.username ?? "Vendor"}
+            {o.vendor_name ?? profileData?.user?.username ?? "Vendor"}
           </h2>
         </div>
         <div className="flex gap-2">
@@ -281,7 +281,7 @@ const VendorDashboardOverview = () => {
             <span className="text-xs font-semibold text-[#111813] dark:text-white">Manage Plans</span>
           </button>
           <button
-            onClick={() => navigate("/vendor/plans/create")}
+            onClick={() => navigate("/subscription/create-meal-plan")}
             className="flex items-center gap-2 px-3 py-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-left"
           >
             <Plus size={16} className="text-orange-500" />

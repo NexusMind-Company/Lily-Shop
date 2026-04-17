@@ -1,74 +1,54 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import TopAppBar from "../components/manageVendorPlans/TopAppBar";
-import PlanSelectionCard from "../components/subscription/PlanSelectionCard";
-import HelpSection from "../components/subscription/HelpSection";
-import { CalendarDays, CalendarRange } from "lucide-react";
+import MealPlanForm from "../components/manageVendorPlans/MealPlanForm";
 
 /**
  * EditPlanPage component for editing an existing subscription plan.
- * Allows users to modify plan details.
+ * Uses the standardized MealPlanForm for a consistent full-page experience.
  */
 const EditPlanPage = () => {
   const navigate = useNavigate();
   const { planId } = useParams();
+  const location = useLocation();
 
-  const handleBackClick = () => {
-    // Handle back navigation
-    navigate(-1);
+  // Get vendorId from state or profile
+  const { data: profileData } = useSelector((state) => state.profile);
+  const vendorId = location.state?.vendorId || profileData?.user?.vendor_id;
+
+  const handleBackClick = () => navigate(-1);
+
+  const handleSuccess = (plan) => {
+    navigate("/vendor/plans", {
+      state: { message: `Meal plan "${plan.plan_name}" updated successfully!` },
+    });
   };
 
-  const handleWeeklyEdit = () => {
-    // Handle weekly plan edit
-    navigate(`/vendor/plans?type=weekly&mode=edit&id=${planId}`);
-  };
-
-  const handleMonthlyEdit = () => {
-    // Handle monthly plan edit
-    navigate(`/vendor/plans?type=monthly&mode=edit&id=${planId}`);
-  };
+  const handleCancel = () => navigate("/vendor/plans");
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased overflow-x-hidden transition-colors duration-300">
-      <TopAppBar title="Edit Plan" onBackClick={handleBackClick} />
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto p-4 md:p-6 pb-24">
-        {/* Headline Section */}
+    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased transition-colors duration-300">
+      <TopAppBar title="Edit Meal Plan" onBackClick={handleBackClick} />
+      
+      <main className="flex-1 flex flex-col w-full max-w-4xl mx-auto p-4 md:p-6 pb-24">
         <div className="mb-8 mt-2 animate-fade-in-up">
-          <h2 className="text-[#111813] dark:text-white tracking-tight text-[32px] font-extrabold leading-tight mb-2">
-            Edit Plan
-          </h2>
+          <h1 className="text-[#111813] dark:text-white tracking-tight text-3xl font-extrabold leading-tight mb-2">
+            Update Plan Details
+          </h1>
           <p className="text-[#61896b] dark:text-gray-400 text-base font-normal leading-relaxed">
-            Modify your subscription plan details.
+            Modify the pricing, frequency, and details of your subscription plan.
           </p>
         </div>
-        {/* Selection Cards Container */}
-        <div className="flex flex-col gap-5">
-          <PlanSelectionCard
-            icon={<CalendarRange />}
-            badge="Short Term"
-            title="Weekly Meal Plan"
-            description="Edit your 7-day menu plan."
-            imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Tjy7xd0cR5LT4akA5XfNh7qu17h7sGSTS7U4S-FrskGJgpNBDCkllNKTGEhNy-rOH_NyH_r6y9mKSG-amJ45DBcy8NXARPFd0YajXDBDAwOdk-SiI7uMUQtPA2AwyJgxDLfnyc0eiwntUwZV6hSXKQ2otfud9i9V-Hwguj51Vnn1TdJrHVaJuLHvVeYuTZCguxJil3QTS72211iZdJuuxXIjpKqTNZXpDQ_LqWzmJpdokfXchCkfC9xExo12p6HPIozZ7rPRCew4"
-            onClick={handleWeeklyEdit}
-          />
-          <PlanSelectionCard
-            icon={<CalendarDays />}
-            badge="Recurring"
-            title="Monthly Meal Plan"
-            description="Edit your 4-week recurring menu."
-            imageUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tW_Vj0swJcH8RIkmksm5lRXlqa8tx5AUqzdsj6s-_ezogqG9qSTXdbDptkyXj6EuK5Bw1FPCbcK2bkO8qNSfwKq_JbeEsZuUW41ptgaKkCzgGjs9hRvG2xePMG-obVekOexYF0WY1ywyNNl7i_xhQyZCSadaqcrwj4AuTsY1_98HMahhdEuoIggckL2RFstIKHRvKDV6Ccw88tGJUivNJZ9tb8gbH-Y29shFtBGPiZmAZG5qBI-TadU_xbEYYP22znhYlMOEMzbO"
-            onClick={handleMonthlyEdit}
-          />
-        </div>
-        <HelpSection
-          message="Need help editing?"
-          linkText="View Vendor Guide"
-          linkHref="#"
+
+        <MealPlanForm
+          isEdit={true}
+          planId={planId}
+          onSuccess={handleSuccess}
+          onCancel={handleCancel}
+          vendorId={vendorId}
         />
       </main>
-      {/* Bottom Action (Optional placeholder if needed in flow, otherwise just spacing) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#102215] dark:via-[#102215] h-20 pointer-events-none"></div>
     </div>
   );
 };
