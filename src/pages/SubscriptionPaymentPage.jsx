@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 import { api, fetchWallet, topUpWallet } from "../services/api";
 import {
   resolveSubscriptionFlowState,
@@ -38,6 +39,14 @@ useEffect(() => {
     navigate("/subscriptions", { replace: true });
     return;
   }
+  
+  // If user is already subscribed (backend usually handles this but frontend check is better)
+  if (plan.is_subscribed) {
+    toast.error("You are already subscribed to this plan.");
+    navigate("/subscriptions", { replace: true });
+    return;
+  }
+  
   saveSubscriptionFlowState(flowState);
 }, [plan, navigate, flowState]);
 
@@ -97,6 +106,7 @@ const handlePayWithWallet = () => {
       const response = await api.post("/foods/subscribe/", paymentData);
       
       if (response.data && response.data.authorization_url) {
+        toast.loading("Redirecting to payment gateway...");
         // Store minimal data for callback reference
         localStorage.setItem("lily_subscription_payment_ref", response.data.reference || "");
         localStorage.setItem("lily_subscription_redirect", "true");
@@ -104,14 +114,15 @@ const handlePayWithWallet = () => {
         // Redirect to Paystack
         window.location.href = response.data.authorization_url;
       } else if (response.data && response.data.status === "success") {
+        toast.success("Subscribed successfully!");
         // Payment completed immediately (e.g., wallet payment)
         navigate("/subscription-success", { state: { subscription: response.data.subscription } });
       } else {
-        alert("Failed to initialize payment. Please try again.");
+        toast.error("Failed to initialize payment. Please try again.");
       }
     } catch (error) {
       console.error("Direct payment error:", error);
-      alert(error.response?.data?.error || "An error occurred during payment initialization.");
+      toast.error(error.response?.data?.error || "An error occurred during payment initialization.");
     }
   };
 

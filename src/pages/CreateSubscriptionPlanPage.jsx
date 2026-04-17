@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { toast } from "react-hot-toast";
 import TopAppBar from "../components/manageVendorPlans/TopAppBar";
 import PlanSelectionCard from "../components/subscription/PlanSelectionCard";
 import HelpSection from "../components/subscription/HelpSection";
@@ -30,9 +31,11 @@ const CreateSubscriptionPlanPage = () => {
       await api.post("/foods/subscriptions/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      toast.success("Weekly plan created!");
       navigate("/vendor/plans?type=weekly");
     } catch (error) {
       console.error("Error creating weekly plan:", error);
+      toast.error("Failed to create plan.");
     } finally {
       setLoading(false);
     }
@@ -49,9 +52,11 @@ const CreateSubscriptionPlanPage = () => {
       await api.post("/foods/subscriptions/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      toast.success("Monthly plan created!");
       navigate("/vendor/plans?type=monthly");
     } catch (error) {
       console.error("Error creating monthly plan:", error);
+      toast.error("Failed to create plan.");
     } finally {
       setLoading(false);
     }
