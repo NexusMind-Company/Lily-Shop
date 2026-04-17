@@ -100,11 +100,11 @@ const handlePayWithWallet = () => {
         quantity: quantity,
         add_extra: addExtra,
         extra_price: extraPrice,
-        payment_method: "direct_pay", // Direct pay via Paystack
+        payment_method: "paystack", // Direct pay via Paystack
       };
 
       // Call subscription payment API
-      const response = await api.post("/foods/subscriptions/pay/", paymentData);
+      const response = await api.post("/foods/subscribe/", paymentData);
       
       if (response.data && response.data.authorization_url) {
         // Store minimal data for callback reference
