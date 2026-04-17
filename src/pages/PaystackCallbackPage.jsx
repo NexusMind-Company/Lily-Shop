@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../redux/cartSlice';
-import api from "../services/api";
+import { api } from "../services/api";
 
 const PaystackCallbackPage = () => {
   const [searchParams] = useSearchParams();

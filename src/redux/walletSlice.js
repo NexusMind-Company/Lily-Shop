@@ -1,6 +1,5 @@
-// src/redux/walletSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../services/api";
+import { api } from "../services/api";
 
 /** Helper to attach token */
 const setAuthHeader = () => {

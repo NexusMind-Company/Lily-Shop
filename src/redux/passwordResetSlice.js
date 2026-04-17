@@ -1,6 +1,5 @@
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../services/api"; 
+import { api } from "../services/api"; 
 
 // 1️⃣ REQUEST PASSWORD RESET (send email)
 export const requestPasswordReset = createAsyncThunk(

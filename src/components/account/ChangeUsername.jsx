@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Info } from "lucide-react";
-import api from "../../services/api"; // axios instance with token
+import { api } from "../../services/api"; // axios instance with token
 
 const ChangeUsername = () => {
   const navigate = useNavigate();

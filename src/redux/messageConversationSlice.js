@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../services/api";
+import { api } from "../services/api";
 
 // Fetch paginated messages but flatten into one list
 export const fetchConversationMessages = createAsyncThunk(

@@ -2,7 +2,7 @@ import { ArrowLeft, Search, X, MapPin } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import api from "../services/api";
+import { api } from "../services/api";
 
 /* =========================
    Skeleton Card Component
