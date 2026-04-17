@@ -33,12 +33,20 @@ const SubscriptionProcessingPage = () => {
 
     const subscribe = async () => {
       try {
-        const result = await createSubscription(planId);
-        
-        // Generate a simple pickup code if applicable
-        let generatedCode = null;
-        if (flowState?.deliveryType === "pickup") {
-           generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        // Pass delivery preferences alongside plan_id so backend can log them
+        const deliveryMeta = {};
+        if (flowState?.deliveryType) deliveryMeta.delivery_type = flowState.deliveryType;
+        if (flowState?.address) deliveryMeta.address = flowState.address;
+        if (flowState?.phone) deliveryMeta.phone = flowState.phone;
+        if (flowState?.preferredTime) deliveryMeta.preferred_time = flowState.preferredTime;
+        if (flowState?.specialInstructions) deliveryMeta.special_instructions = flowState.specialInstructions;
+
+        const result = await createSubscription(planId, deliveryMeta);
+
+        // Use server-provided collection_code, or generate one locally for pickup
+        let generatedCode = result?.collection_code || null;
+        if (!generatedCode && flowState?.deliveryType === "pickup") {
+          generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         }
 
         // Short pause so animation doesn't flash
@@ -49,6 +57,7 @@ const SubscriptionProcessingPage = () => {
           plan,
           vendor,
           subscription: result?.subscription || result,
+          subscriptionId: result?.subscription_id || result?.id,
           pickupCode: generatedCode,
           deliveryType: flowState?.deliveryType,
           preferredTime: flowState?.preferredTime,

@@ -186,6 +186,36 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
             </span>
           </div>
         )}
+        {sub?.delivery_type && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <MapPin size={11} /> Delivery Mode
+            </span>
+            <span className="text-xs text-[#111813] font-medium capitalize">
+              {sub.delivery_type}
+            </span>
+          </div>
+        )}
+        {sub?.preferred_time && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <Clock size={11} /> Preferred Time
+            </span>
+            <span className="text-xs text-[#111813] font-medium">
+              {sub.preferred_time}
+            </span>
+          </div>
+        )}
+        {sub?.address && (
+          <div className="flex flex-col gap-1 mt-2">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              <MapPin size={11} /> Delivery Address
+            </span>
+            <span className="text-xs text-[#111813] leading-relaxed bg-gray-50 p-2 rounded-xl border border-gray-100">
+              {sub.address}
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-gray-400 text-xs flex items-center gap-1">
             <Clock size={11} /> Subscribed on

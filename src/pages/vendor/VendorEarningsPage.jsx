@@ -44,7 +44,7 @@ const WithdrawModal = ({ netPayout, onClose, onConfirm, isPending }) => {
     const amt = parseFloat(amount);
     if (!amount || isNaN(amt) || amt <= 0) { toast.error("Enter a valid amount."); return; }
     if (amt > netPayout) { toast.error(`You can only withdraw up to ₦${netPayout.toLocaleString()}`); return; }
-    onConfirm({ bank_name: bankName, account_number: accountNumber, account_name: accountName, amount: amt });
+    onConfirm({ bank_name: bankName, account_number: accountNumber, account_name: accountName, amount_kobo: Math.round(amt * 100) });
   };
 
   return (
