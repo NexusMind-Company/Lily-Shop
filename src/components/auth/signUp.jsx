@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { registerUser, clearError } from "../../redux/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
+import { toast } from "react-hot-toast";
 
 const SignUp = () => {
   const dispatch = useDispatch();
@@ -31,11 +32,18 @@ const SignUp = () => {
   // Redirect to login on successful registration
   useEffect(() => {
     if (registrationSuccess) {
+      toast.success("Registration successful! Redirecting to login...");
       setTimeout(() => {
         navigate("/login");
       }, 2000);
     }
   }, [registrationSuccess, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -128,19 +136,7 @@ const SignUp = () => {
         ter
       </h2>
 
-      {/* Success Message */}
-      {registrationSuccess && (
-        <p className="text-green-700 py-3 border border-green-300 bg-green-100 text-center my-2 rounded-lg flex items-center justify-center gap-2">
-          <FiCheck /> Registration successful. Please Login...
-        </p>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
-          {error}
-        </p>
-      )}
+      {/* Success/Error handled by Toasts */}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* Phone or Email */}

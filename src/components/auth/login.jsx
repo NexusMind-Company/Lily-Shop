@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "../../redux/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -53,10 +54,13 @@ const Login = () => {
     const resultAction = await dispatch(loginUser(formData));
 
     if (loginUser.fulfilled.match(resultAction)) {
+      toast.success("Login successful!");
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/");
-      }, 1500); // Faster redirect from snippet 1
+      }, 1500);
+    } else if (loginUser.rejected.match(resultAction)) {
+      toast.error(resultAction.payload || "Login failed. Please check your credentials.");
     }
   };
 
@@ -75,19 +79,7 @@ const Login = () => {
         in
       </h2>
 
-      {/* Success Message UI from snippet 2 */}
-      {showSuccess && (
-        <p className="text-green-700 py-3 border border-green-300 bg-green-100 text-center my-2 rounded-lg">
-          Login successful. Redirecting...
-        </p>
-      )}
-
-      {/* Error Message UI from snippet 2 */}
-      {error && (
-        <p className="text-red-700 bg-red-100 border border-red-300 text-center my-2 rounded-lg py-3">
-          {error}
-        </p>
-      )}
+      {/* Success/Error messages handled by Toasts */}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">

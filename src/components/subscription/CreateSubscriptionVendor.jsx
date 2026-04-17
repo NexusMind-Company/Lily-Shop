@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
 import useFormValidation from "../../hooks/useFormValidation";
+import { toast } from "react-hot-toast";
 import ErrorDisplay from "../common/ErrorDisplay";
 
 const INITIAL_FORM_STATE = {
@@ -106,14 +107,13 @@ const CreateSubscriptionVendor = () => {
 
     try {
       await dispatch(createSubscriptionVendor(vendorData)).unwrap();
-      setSuccessMsg("Food vendor created successfully! Redirecting...");
+      toast.success("Food vendor created successfully!");
       setSubmissionStatus("succeeded");
       resetForm();
 
       setTimeout(() => {
-        setSuccessMsg("");
         navigate("/profile");
-      }, 3000);
+      }, 2000);
     } catch (err) {
       let errorMsg = "Failed to create food vendor. ";
       if (err && err.message && err.message.includes("timeout")) {
@@ -129,9 +129,7 @@ const CreateSubscriptionVendor = () => {
         typeof err.detail === "string" &&
         err.detail.includes("already has")
       ) {
-        setSuccessMsg(
-          "You already have a vendor profile. Redirecting to dashboard...",
-        );
+        toast.success("Redirecting to dashboard...");
         setSubmissionStatus("succeeded");
         setTimeout(() => {
           navigate("/vendor/dashboard");
@@ -156,6 +154,7 @@ const CreateSubscriptionVendor = () => {
       } else {
         errorMsg += "Please try again later.";
       }
+      toast.error(errorMsg);
       setSubmissionError(errorMsg);
       setSubmissionStatus("failed");
     }
@@ -177,17 +176,7 @@ const CreateSubscriptionVendor = () => {
         </div>
       </div>
 
-      {submissionStatus === "failed" && submissionError && (
-        <div className="w-full my-3">
-          <ErrorDisplay message={submissionError} />
-        </div>
-      )}
-
-      {submissionStatus === "succeeded" && successMsg && (
-        <div className="w-full my-3 p-3 text-green-700 bg-green-100 rounded-md border border-green-300 text-center">
-          {successMsg}
-        </div>
-      )}
+      {/* Manual error/success UI removed in favor of Toasts */}
 
       <form
         className="w-full flex flex-col gap-5"

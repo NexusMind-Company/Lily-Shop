@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../redux/cartSlice';
 import { api } from "../services/api";
+import { toast } from "react-hot-toast";
 
 const PaystackCallbackPage = () => {
   const [searchParams] = useSearchParams();
@@ -29,15 +30,29 @@ const PaystackCallbackPage = () => {
         sessionStorage.removeItem('checkout_ids');
         sessionStorage.removeItem('lily_pending_order');
 
-        navigate('/order-success', {
-          state: {
-            order: pendingOrder
-              ? { ...pendingOrder, reference, status: 'paid' }
-              : { reference, status: 'paid' },
-            paymentMethod: 'paystack',
-          },
-        });
+        // Check if this was a subscription payment
+        const isSubscription = localStorage.getItem("lily_subscription_redirect") === "true";
+        if (isSubscription) {
+          localStorage.removeItem("lily_subscription_redirect");
+          localStorage.removeItem("lily_subscription_payment_ref");
+          toast.success("Subscription activated!");
+          navigate('/subscription-success', {
+            state: { reference, status: 'paid', paymentMethod: 'paystack' }
+          });
+        } else {
+          toast.success("Payment successful!");
+          navigate('/order-success', {
+            state: {
+              order: pendingOrder
+                ? { ...pendingOrder, reference, status: 'paid' }
+                : { reference, status: 'paid' },
+              paymentMethod: 'paystack',
+            },
+          });
+        }
       } catch (e) {
+        console.error("Paystack verification error:", e);
+        toast.error("Payment verification failed.");
         navigate('/checkout', {
           state: { error: 'Payment verification failed. Please try again.' },
         });
