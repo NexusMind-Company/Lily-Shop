@@ -153,34 +153,57 @@ const MealPlanForm = ({
     handleMealChange(mealIndex, "tags", tags);
   };
 
-  const submissionData = {
-    plan_name: planData.name,
-    description: planData.description,
-    price: parseFloat(planData.price),
-    meals_per_cycle: parseInt(planData.mealsPerWeek),
-    frequency: planData.type,
-    service_days:
-      planData.service_days_preset === "mon_sun"
-        ? ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        : ["monday", "tuesday", "wednesday", "thursday", "friday"],
-    media: mediaFiles,
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Validation
+    if (!planData.name.trim()) {
+      alert("Please enter a plan name");
+      return;
+    }
+    if (!planData.description.trim()) {
+      alert("Please enter a plan description");
+      return;
+    }
+    if (!planData.price || isNaN(planData.price)) {
+      alert("Please enter a valid price");
+      return;
+    }
+
+    const validMeals = meals.filter((meal) => meal.name.trim());
+    if (validMeals.length === 0) {
+      alert("Please add at least one meal");
+      return;
+    }
+
+    const submissionData = {
+      plan_name: planData.name,
+      description: planData.description,
+      price: parseFloat(planData.price),
+      meals_per_cycle: parseInt(planData.mealsPerWeek),
+      frequency: planData.type,
+      service_days:
+        planData.service_days_preset === "mon_sun"
+          ? ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+          : ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      media: mediaFiles,
+    };
+
+    if (isEdit) {
+      updatePlanMutation.mutate(submissionData);
+    } else {
+      createPlanMutation.mutate(submissionData);
+    }
   };
 
-  if (isEdit) {
-    updatePlanMutation.mutate(submissionData);
-  } else {
-    createPlanMutation.mutate(submissionData);
+  if (isFetchingPlan) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12">
+        <Loader2 className="animate-spin text-lily mb-2" />
+        <p className="text-gray-500">Loading plan details...</p>
+      </div>
+    );
   }
-};
-
-if (isFetchingPlan) {
-  return (
-    <div className="flex flex-col items-center justify-center p-12">
-      <Loader2 className="animate-spin text-lily mb-2" />
-      <p className="text-gray-500">Loading plan details...</p>
-    </div>
-  );
-}
 
 return (
   <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-surface-dark rounded-lg shadow-lg">
@@ -490,7 +513,8 @@ return (
       </div>
     </form>
   </div>
-);
+  );
+};
 
 
 MealPlanForm.propTypes = {
