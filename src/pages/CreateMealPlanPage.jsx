@@ -19,7 +19,7 @@ const CreateMealPlanPage = () => {
   
   const handleSuccess = (plan) => {
     navigate("/vendor/plans", {
-      state: { message: `Meal plan "${plan.plan_name}" created successfully!` },
+      state: { message: `Meal plan "${plan.name}" created successfully!` },
     });
   };
 
