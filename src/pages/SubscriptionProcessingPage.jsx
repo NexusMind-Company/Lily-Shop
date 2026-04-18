@@ -66,7 +66,8 @@ const SubscriptionProcessingPage = () => {
         saveSubscriptionSuccessState(successState);
         clearSubscriptionFlowState();
 
-        navigate("/subscription/success", {
+        toast.success("Subscription active! Redirecting...");
+        navigate("/subscriptions", {
           replace: true,
           state: successState,
         });

@@ -39,6 +39,17 @@ const ManageVendorPlansPage = () => {
     }
   }, [validVendorId]);
 
+  // Handle success messages/toasts from other pages
+  useEffect(() => {
+    if (location.state?.message) {
+      import("react-hot-toast").then(({ toast }) => {
+        toast.success(location.state.message);
+        // Clear state to prevent toast on re-renders/refresh
+        navigate(location.pathname, { replace: true, state: {} });
+      });
+    }
+  }, [location.state, navigate, location.pathname]);
+
   const [stats, setStats] = useState({
     activeSubs: 0,
     revenue: "0.00",

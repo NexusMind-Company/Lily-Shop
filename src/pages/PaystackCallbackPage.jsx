@@ -35,8 +35,8 @@ const PaystackCallbackPage = () => {
         if (isSubscription) {
           localStorage.removeItem("lily_subscription_redirect");
           localStorage.removeItem("lily_subscription_payment_ref");
-          toast.success("Subscription activated!");
-          navigate('/subscription-success', {
+          toast.success("Subscription activated! Redirecting to your subscriptions...");
+          navigate('/subscriptions', {
             state: { reference, status: 'paid', paymentMethod: 'paystack' }
           });
         } else {

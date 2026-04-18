@@ -116,7 +116,7 @@ const handlePayWithWallet = () => {
       } else if (response.data && response.data.status === "success") {
         toast.success("Subscribed successfully!");
         // Payment completed immediately (e.g., wallet payment)
-        navigate("/subscription-success", { state: { subscription: response.data.subscription } });
+        navigate("/subscriptions", { state: { subscription: response.data.subscription } });
       } else {
         toast.error("Failed to initialize payment. Please try again.");
       }
