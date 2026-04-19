@@ -99,6 +99,13 @@ const handlePayWithWallet = () => {
         address: address,
         phone: phone,
         preferred_time: preferredTime,
+        selected_days: selectedDays,
+        quantity,
+        dietary_preferences: flowState?.dietaryPreferences || "",
+        allergies: flowState?.allergies || "",
+        portion_size: flowState?.portionSize || "",
+        special_instructions: flowState?.specialInstructions || "",
+        collection_code: collectionCode,
         payment_method: "paystack", // Direct pay via Paystack
       };
 

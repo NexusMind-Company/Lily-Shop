@@ -31,6 +31,9 @@ export default function WalletHome() {
   const { balance_naira, recent_transactions, loading, error } = useSelector(
     (state) => state.wallet || {}
   );
+  const vendorId = useSelector(
+    (state) => state.auth?.user_data?.vendor_id || state.profile?.data?.user?.vendor_id || null
+  );
 
   // Get token
   const reduxToken = useSelector((state) => state.auth?.user_data?.token?.access);
@@ -236,7 +239,10 @@ export default function WalletHome() {
                       <span>Deposit</span>
                     </motion.button>
                   </Link>
-                  <Link to="/withdraw" className="flex-1">
+                  <Link
+                    to={vendorId ? "/vendor/dashboard/earnings" : "/withdraw"}
+                    className="flex-1"
+                  >
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

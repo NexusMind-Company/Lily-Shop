@@ -157,7 +157,7 @@ const { data: reviews, isLoading: reviewsLoading } = useQuery({
       quantity,
       preferredTime,
       deliveryType,
-      address: plan.address,
+      address: "",
       collectionCode,
     };
 

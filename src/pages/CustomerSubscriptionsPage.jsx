@@ -1,29 +1,28 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
 import {
-  ChevronLeft,
-  ChefHat,
-  Calendar,
-  Repeat,
   AlertCircle,
-  CheckCircle,
-  Clock,
-  Loader2,
-  Search,
-  UtensilsCrossed,
-  Receipt,
   BadgeCheck,
-  Timer,
-  Phone,
-  Truck,
-  MapPin,
+  Calendar,
+  CheckCircle,
+  ChefHat,
+  ChevronLeft,
+  Clock,
   CreditCard,
+  Loader2,
+  MapPin,
+  Phone,
+  Receipt,
+  Repeat,
+  Search,
+  Timer,
+  Truck,
+  UtensilsCrossed,
 } from "lucide-react";
+import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
 
-// Helper function to calculate days remaining
 const daysRemaining = (dateStr) => {
   if (!dateStr) return 0;
   const target = new Date(dateStr);
@@ -33,20 +32,48 @@ const daysRemaining = (dateStr) => {
   return Math.max(0, diffDays);
 };
 
-// Import from your api.js — adjust path if needed
-
 const formatPrice = (price) =>
-  Number(price)
+  Number(price || 0)
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 const formatDate = (dateStr) => {
-  if (!dateStr) return "—";
+  if (!dateStr) return "-";
   return new Date(dateStr).toLocaleDateString("en-NG", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleString("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+const formatPaymentMethod = (method) => {
+  if (!method) return "N/A";
+  const normalized = String(method).trim().toLowerCase();
+  if (normalized === "wallet") return "Lily Wallet";
+  if (normalized === "paystack") return "Paystack";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const formatList = (items) => {
+  if (!Array.isArray(items) || items.length === 0) return "";
+  return items
+    .map((item) => {
+      const text = String(item || "").trim();
+      return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+    })
+    .filter(Boolean)
+    .join(", ");
 };
 
 const StatusBadge = ({ status }) => {
@@ -58,11 +85,40 @@ const StatusBadge = ({ status }) => {
   };
   const cfg = map[status?.toLowerCase()] || map.pending;
   const Icon = cfg.icon;
+
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${cfg.cls}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${cfg.cls}`}>
       <Icon size={11} />
       {cfg.label}
     </span>
+  );
+};
+
+const InfoRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
+  if (!value) return null;
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex items-center gap-1 text-xs text-gray-400">
+        <Icon size={11} /> {label}
+      </span>
+      <span className={`text-right text-xs font-medium text-[#111813] ${valueClassName}`}>{value}</span>
+    </div>
+  );
+};
+
+const InfoBlock = ({ icon: Icon, label, value }) => {
+  if (!value) return null;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="flex items-center gap-1 text-xs text-gray-400">
+        <Icon size={11} /> {label}
+      </span>
+      <span className="rounded-xl border border-gray-100 bg-gray-50 p-2 text-xs leading-relaxed text-[#111813]">
+        {value}
+      </span>
+    </div>
   );
 };
 
@@ -71,39 +127,40 @@ const UnsubscribeModal = ({ plan, onConfirm, onCancel, isLoading }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center p-4"
+    className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm"
     onClick={onCancel}
   >
     <motion.div
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 60, opacity: 0 }}
-      onClick={(e) => e.stopPropagation()}
-      className="bg-white rounded-2xl p-6 w-full max-w-sm"
+      onClick={(event) => event.stopPropagation()}
+      className="w-full max-w-sm rounded-2xl bg-white p-6"
     >
-      <div className="text-center mb-5">
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
+      <div className="mb-5 text-center">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
           <AlertCircle size={28} className="text-red-500" />
         </div>
-        <h3 className="font-bold text-[#111813] text-lg">Cancel Subscription?</h3>
-        <p className="text-gray-500 text-sm mt-1">
-          You're about to cancel{" "}
-          <span className="font-semibold text-[#111813]">{plan?.plan_name}</span>. You'll lose
-          access at the end of your current cycle.
+        <h3 className="text-lg font-bold text-[#111813]">Cancel Subscription?</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          You are about to cancel{" "}
+          <span className="font-semibold text-[#111813]">{plan?.plan_name}</span>. You will keep
+          access until the end of the current cycle.
         </p>
       </div>
+
       <div className="space-y-2">
         <button
           onClick={onConfirm}
           disabled={isLoading}
-          className="w-full bg-red-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3 font-bold text-white disabled:opacity-60"
         >
           {isLoading ? <Loader2 size={18} className="animate-spin" /> : null}
           {isLoading ? "Cancelling..." : "Yes, Cancel"}
         </button>
         <button
           onClick={onCancel}
-          className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl"
+          className="w-full rounded-xl bg-gray-100 py-3 font-semibold text-gray-700"
         >
           Keep Subscription
         </button>
@@ -116,213 +173,114 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
   const navigate = useNavigate();
   const plan = sub?.plan || sub;
   const vendor = plan?.vendor || sub?.vendor;
+  const paymentAmount = sub?.amount_paid ?? plan?.price;
+  const preferredDays = formatList(sub?.preferred_delivery_days);
+  const receiptId = sub?.id ? String(sub.id).slice(0, 8) : "N/A";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl p-4 shadow-sm"
+      className="rounded-2xl bg-white p-4 shadow-sm"
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#13ec49]/10 flex items-center justify-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#13ec49]/10">
             <ChefHat size={20} className="text-[#13ec49]" />
           </div>
           <div>
-            <p className="font-bold text-[#111813] text-sm leading-tight">{plan?.plan_name}</p>
-            <p className="text-gray-400 text-xs mt-0.5">{vendor?.name || "Vendor"}</p>
+            <p className="text-sm font-bold leading-tight text-[#111813]">{plan?.plan_name}</p>
+            <p className="mt-0.5 text-xs text-gray-400">{vendor?.name || "Vendor"}</p>
           </div>
         </div>
         <StatusBadge status={sub?.status || "active"} />
       </div>
 
-      {/* Details */}
-      <div className="bg-[#f6f8f6] rounded-xl p-3 mb-3 space-y-2">
+      <div className="mb-3 space-y-2 rounded-xl bg-[#f6f8f6] p-3">
         <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <span className="font-medium text-[#111813]">₦{formatPrice(plan?.price)}</span>
-          </span>
-          <span className="text-gray-400 text-xs flex items-center gap-1">
+          <span className="text-sm font-medium text-[#111813]">N{formatPrice(plan?.price)}</span>
+          <span className="flex items-center gap-1 text-xs text-gray-400">
             <Repeat size={11} />
             <span className="capitalize">{plan?.frequency || "weekly"}</span>
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <Calendar size={11} /> Last paid
-          </span>
-          <span className="text-xs text-[#111813] font-medium">
-            {formatDate(plan?.last_payment_date || sub?.last_payment_date)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <Calendar size={11} /> Next renewal
-          </span>
-          <span className="text-xs text-[#111813] font-medium">
-            {formatDate(plan?.next_payment_date || sub?.next_payment_date)}
-          </span>
-        </div>
+        <InfoRow icon={Calendar} label="Last paid" value={formatDate(plan?.last_payment_date || sub?.last_payment_date)} />
+        <InfoRow icon={Calendar} label="Next renewal" value={formatDate(plan?.next_payment_date || sub?.next_payment_date)} />
       </div>
 
-      {/* Proof Information */}
-      <div className="border-t border-gray-100 pt-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <Receipt size={11} /> Subscription ID
-          </span>
-          <span className="text-xs text-[#111813] font-medium font-mono">
-            {sub?.id?.slice(0, 8) || "N/A"}
-          </span>
-        </div>
-        {sub?.collection_code && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <BadgeCheck size={11} /> Collection Code
-            </span>
-            <span className="text-xs text-[#13ec49] font-semibold">
-              {sub.collection_code}
-            </span>
-          </div>
-        )}
-        {sub?.delivery_type && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <MapPin size={11} /> Delivery Mode
-            </span>
-            <span className="text-xs text-[#111813] font-medium capitalize">
-              {sub.delivery_type}
-            </span>
-          </div>
-        )}
-        {sub?.preferred_time && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <Clock size={11} /> Preferred Time
-            </span>
-            <span className="text-xs text-[#111813] font-medium">
-              {sub.preferred_time}
-            </span>
-          </div>
-        )}
+      <div className="space-y-2 border-t border-gray-100 pt-3">
+        <InfoRow icon={Receipt} label="Subscription ID" value={receiptId} valueClassName="font-mono" />
+        <InfoRow icon={BadgeCheck} label="Collection Code" value={sub?.collection_code} valueClassName="text-[#13ec49]" />
+        <InfoRow icon={Phone} label="Contact" value={sub?.phone} />
+        <InfoRow icon={MapPin} label="Delivery Mode" value={sub?.delivery_type} valueClassName="capitalize" />
+        <InfoRow icon={Clock} label="Preferred Time" value={sub?.preferred_time} />
+        <InfoRow icon={Calendar} label="Delivery Days" value={preferredDays} />
+        <InfoRow
+          icon={UtensilsCrossed}
+          label="Plates"
+          value={sub?.plates_per_delivery ? `${sub.plates_per_delivery} per delivery` : ""}
+        />
+        <InfoRow icon={ChefHat} label="Portion Size" value={sub?.portion_size} valueClassName="capitalize" />
+
         {sub?.address && (
-          <div className="flex flex-col gap-1 mt-2">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
+          <div className="flex flex-col gap-1 pt-1">
+            <span className="flex items-center gap-1 text-xs text-gray-400">
               <MapPin size={11} /> Delivery Address
             </span>
-            <span className="text-xs text-[#111813] leading-relaxed bg-gray-50 p-2 rounded-xl border border-gray-100">
+            <span className="rounded-xl border border-gray-100 bg-gray-50 p-2 text-xs leading-relaxed text-[#111813]">
               {sub.address}
             </span>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <Clock size={11} /> Subscribed on
-          </span>
-          <span className="text-xs text-[#111813] font-medium">
-            {formatDate(sub?.created_at || sub?.start_date)}
-          </span>
-        </div>
-        {/* Expiry Date */}
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs flex items-center gap-1">
-            <Calendar size={11} /> Expires on
-          </span>
-          <span className="text-xs text-[#111813] font-medium">
-            {formatDate(sub?.next_payment_date || sub?.end_date)}
-          </span>
-        </div>
-        {/* Days Remaining */}
-        {sub?.next_payment_date && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <Timer size={11} /> Days remaining
-            </span>
-            <span className={`text-xs font-medium ${
-              daysRemaining(sub?.next_payment_date) <= 3 ? 'text-red-500' : 'text-[#13ec49]'
-            }`}>
-              {daysRemaining(sub?.next_payment_date)} days
-            </span>
-          </div>
-        )}
-        {/* Vendor Phone */}
-        {vendor?.contact_phone && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <Phone size={11} /> Vendor Phone
-            </span>
-            <a href={`tel:${vendor.contact_phone}`} className="text-xs text-blue-500 font-medium hover:underline">
-              {vendor.contact_phone}
-            </a>
-          </div>
-        )}
-        {/* Delivery Method */}
-        {sub?.delivery_type && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <Truck size={11} /> Delivery
-            </span>
-            <span className="text-xs text-[#111813] font-medium capitalize">
-              {sub.delivery_type}
-            </span>
-          </div>
-        )}
-        {/* Preferred Time */}
-        {sub?.preferred_time && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <Clock size={11} /> Preferred Time
-            </span>
-            <span className="text-xs text-[#111813] font-medium">
-              {sub.preferred_time}
-            </span>
-          </div>
-        )}
-        {/* Address */}
-        {sub?.address && (
-          <div className="flex items-start justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <MapPin size={11} /> Address
-            </span>
-            <span className="text-xs text-[#111813] font-medium text-right max-w-[60%]">
-              {sub.address}
-            </span>
-          </div>
-        )}
-        {/* Payment Info */}
-        {sub?.amount_paid && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs flex items-center gap-1">
-              <CreditCard size={11} /> Amount Paid
-            </span>
-            <span className="text-xs text-[#111813] font-medium">
-              ₦{sub.amount_paid.toLocaleString()}
-            </span>
-          </div>
-        )}
+
+        <InfoRow icon={Clock} label="Subscribed on" value={formatDateTime(sub?.created_at || sub?.start_date)} />
+        <InfoRow icon={Calendar} label="Expires on" value={formatDate(sub?.next_payment_date || sub?.end_date)} />
+        <InfoRow
+          icon={Timer}
+          label="Days remaining"
+          value={sub?.next_payment_date ? `${daysRemaining(sub.next_payment_date)} days` : ""}
+          valueClassName={daysRemaining(sub?.next_payment_date) <= 3 ? "text-red-500" : "text-[#13ec49]"}
+        />
+        <InfoRow icon={Phone} label="Vendor Phone" value={vendor?.contact_phone} />
+        <InfoRow icon={CreditCard} label="Amount Paid" value={paymentAmount ? `N${Number(paymentAmount).toLocaleString()}` : ""} />
+        <InfoRow
+          icon={Truck}
+          label="Paid With"
+          value={sub?.payment_method ? formatPaymentMethod(sub.payment_method) : ""}
+        />
+        <InfoRow icon={CheckCircle} label="Payment Status" value={sub?.payment_status} valueClassName="capitalize" />
+        <InfoRow icon={Receipt} label="Receipt Ref" value={sub?.receipt_reference} valueClassName="font-mono" />
+        <InfoRow icon={Clock} label="Payment Time" value={sub?.receipt_date ? formatDateTime(sub.receipt_date) : ""} />
+        <InfoRow
+          icon={Receipt}
+          label="Customisation Fee"
+          value={sub?.extra_fee_kobo > 0 ? `N${Number(sub.extra_fee_kobo / 100).toLocaleString()}` : ""}
+        />
+
+        <InfoBlock icon={ChefHat} label="Dietary Notes" value={sub?.dietary_notes} />
+        <InfoBlock icon={AlertCircle} label="Allergies" value={sub?.allergies_summary} />
+        <InfoBlock icon={Receipt} label="Additional Notes" value={sub?.special_instructions} />
       </div>
 
-      {/* Action buttons — only show for active */}
       {(sub?.status === "active" || !sub?.status) && (
-        <div className="flex flex-col gap-2">
+        <div className="mt-4 flex flex-col gap-2">
           <button
             onClick={() =>
               navigate(`/meal-selection/${sub?.id}`, {
                 state: {
-                  plan: plan,
+                  plan,
                   vendorId: vendor?.id || sub?.vendor_id,
                   excluded_meals: sub?.excluded_meals ?? [],
                 },
               })
             }
-            className="w-full py-2.5 rounded-xl bg-[#13ec49] text-[#111813] text-sm font-bold hover:bg-[#11d842] transition-colors"
+            className="w-full rounded-xl bg-[#13ec49] py-2.5 text-sm font-bold text-[#111813] transition-colors hover:bg-[#11d842]"
           >
             Customise Meals
           </button>
           <button
             onClick={() => onUnsubscribe(plan)}
-            className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors"
+            className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
           >
             Cancel Subscription
           </button>
@@ -340,23 +298,23 @@ const CustomerSubscriptionsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["mySubscriptions", currentPage, searchQuery],
     queryFn: async () => {
       const params = { page: currentPage, page_size: itemsPerPage };
       if (searchQuery) params.search = searchQuery;
-      return await getUserSubscriptions(params);
+      return getUserSubscriptions(params);
     },
   });
 
   const unsubscribeMutation = useMutation({
     mutationFn: (planId) => unsubscribeFromPlan(planId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["mySubscriptions"]);
+      queryClient.invalidateQueries({ queryKey: ["mySubscriptions"] });
       setPlanToCancel(null);
     },
-    onError: (err) => {
-      console.error("Unsubscribe error:", err);
+    onError: (error) => {
+      console.error("Unsubscribe error:", error);
     },
   });
 
@@ -366,74 +324,67 @@ const CustomerSubscriptionsPage = () => {
 
   const handleSearchChange = (value) => {
     setSearchQuery(value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
-      {/* Header */}
-      <div className="relative bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-center flex-shrink-0">
+    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col bg-[#f6f8f6]">
+      <div className="relative flex flex-shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors hover:text-gray-800"
         >
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-lg font-bold text-[#111813]">My Subscriptions</h1>
       </div>
 
-      {/* Search */}
-      <div className="bg-white px-4 pb-4 border-b border-gray-100">
+      <div className="border-b border-gray-100 bg-white px-4 pb-4">
         <div className="relative mt-3">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search subscriptions..."
             value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-[#f6f8f6] rounded-xl text-sm outline-none text-[#111813] placeholder-gray-400"
+            onChange={(event) => handleSearchChange(event.target.value)}
+            className="w-full rounded-xl bg-[#f6f8f6] py-2.5 pl-9 pr-4 text-sm text-[#111813] outline-none placeholder:text-gray-400"
           />
         </div>
       </div>
 
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-        {/* Loading */}
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center pt-20 gap-3">
-            <Loader2 size={32} className="text-[#13ec49] animate-spin" />
-            <p className="text-gray-400 text-sm">Loading your subscriptions...</p>
+          <div className="flex flex-col items-center justify-center gap-3 pt-20">
+            <Loader2 size={32} className="animate-spin text-[#13ec49]" />
+            <p className="text-sm text-gray-400">Loading your subscriptions...</p>
           </div>
         )}
 
-        {/* Error */}
         {isError && (
-          <div className="flex flex-col items-center justify-center pt-20 gap-3 text-center px-8">
+          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20 text-center">
             <AlertCircle size={40} className="text-red-400" />
             <p className="font-semibold text-[#111813]">Failed to load subscriptions</p>
-            <p className="text-gray-400 text-sm">Please check your connection and try again.</p>
+            <p className="text-sm text-gray-400">Please check your connection and try again.</p>
           </div>
         )}
 
-        {/* Empty state */}
         {!isLoading && !isError && subscriptions.length === 0 && (
-          <div className="flex flex-col items-center justify-center pt-20 gap-4 text-center px-8">
-            <div className="w-20 h-20 rounded-2xl bg-[#13ec49]/10 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-4 px-8 pt-20 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#13ec49]/10">
               <UtensilsCrossed size={36} className="text-[#13ec49]" />
             </div>
             <div>
-              <p className="font-bold text-[#111813] text-lg">
+              <p className="text-lg font-bold text-[#111813]">
                 {searchQuery ? "No results found" : "No subscriptions yet"}
               </p>
-              <p className="text-gray-400 text-sm mt-1">
-                {searchQuery
-                  ? "Try a different search term"
-                  : "Subscribe to a food vendor to get started!"}
+              <p className="mt-1 text-sm text-gray-400">
+                {searchQuery ? "Try a different search term" : "Subscribe to a food vendor to get started!"}
               </p>
             </div>
             {!searchQuery && (
               <button
                 onClick={() => navigate("/food")}
-                className="bg-[#13ec49] text-[#111813] font-bold px-6 py-3 rounded-xl text-sm"
+                className="rounded-xl bg-[#13ec49] px-6 py-3 text-sm font-bold text-[#111813]"
               >
                 Explore Vendors
               </button>
@@ -441,20 +392,22 @@ const CustomerSubscriptionsPage = () => {
           </div>
         )}
 
-        {/* Subscription cards */}
         {!isLoading &&
           !isError &&
-          subscriptions.map((sub, i) => (
-            <SubscriptionCard key={sub?.id || sub?.plan?.id || i} sub={sub} onUnsubscribe={setPlanToCancel} />
+          subscriptions.map((sub, index) => (
+            <SubscriptionCard
+              key={sub?.id || sub?.plan?.id || index}
+              sub={sub}
+              onUnsubscribe={setPlanToCancel}
+            />
           ))}
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 flex items-center justify-center gap-2 border-t border-gray-200 pt-4">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
             </button>
@@ -464,7 +417,7 @@ const CustomerSubscriptionsPage = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
             </button>
@@ -472,7 +425,6 @@ const CustomerSubscriptionsPage = () => {
         )}
       </div>
 
-      {/* Unsubscribe Modal */}
       <AnimatePresence>
         {planToCancel && (
           <UnsubscribeModal
