@@ -1,112 +1,165 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { ArrowDownToLine, X, Building2, CreditCard } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowDownToLine, Building2, CreditCard, Wallet, X } from "lucide-react";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";
-import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
-import { fetchEarningsSummary, fetchEarningsHistory, fetchEarningsChart, initiateEarningsPayout } from "../../services/vendorDashboardApi";
+import {
+  VendorPageError,
+  VendorPageLoader,
+  getErrorMessage,
+} from "../../components/vendor/VendorErrorStates";
+import {
+  fetchEarningsChart,
+  fetchEarningsHistory,
+  fetchEarningsSummary,
+  fetchVendorWallet,
+  initiateEarningsPayout,
+} from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
   paid: "bg-green-100 text-green-700",
   pending: "bg-orange-100 text-orange-600",
   failed: "bg-red-100 text-red-600",
 };
+
 const PERIODS = [
   { key: "daily", label: "Today" },
   { key: "weekly", label: "This Week" },
   { key: "monthly", label: "This Month" },
 ];
 
+const formatMoney = (amount) => `N${Number(amount || 0).toLocaleString()}`;
+
 const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl px-3 py-2 text-xs border border-gray-100 dark:border-gray-700">
-        <p className="text-gray-500 mb-1">{label}</p>
-        <p className="font-bold text-[#4eb75e]">₦{payload[0].value.toLocaleString()}</p>
-      </div>
-    );
-  }
-  return null;
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      <p className="mb-1 text-gray-500">{label}</p>
+      <p className="font-bold text-[#4eb75e]">{formatMoney(payload[0].value)}</p>
+    </div>
+  );
 };
 
-// ── Withdraw Modal ──────────────────────────────────────────────
-const WithdrawModal = ({ netPayout, onClose, onConfirm, isPending }) => {
+const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [amount, setAmount] = useState("");
 
   const handleSubmit = () => {
-    if (!bankName.trim()) { toast.error("Enter your bank name."); return; }
-    if (!accountNumber.trim() || accountNumber.length < 10) { toast.error("Enter a valid 10-digit account number."); return; }
-    if (!accountName.trim()) { toast.error("Enter account name."); return; }
-    const amt = parseFloat(amount);
-    if (!amount || isNaN(amt) || amt <= 0) { toast.error("Enter a valid amount."); return; }
-    if (amt > netPayout) { toast.error(`You can only withdraw up to ₦${netPayout.toLocaleString()}`); return; }
-    onConfirm({ bank_name: bankName, account_number: accountNumber, account_name: accountName, amount_kobo: Math.round(amt * 100) });
+    if (!bankName.trim()) {
+      toast.error("Enter your bank name.");
+      return;
+    }
+    if (!accountNumber.trim() || accountNumber.trim().length < 10) {
+      toast.error("Enter a valid 10-digit account number.");
+      return;
+    }
+    if (!accountName.trim()) {
+      toast.error("Enter account name.");
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    if (!amount || Number.isNaN(numericAmount) || numericAmount <= 0) {
+      toast.error("Enter a valid amount.");
+      return;
+    }
+    if (numericAmount > availableBalance) {
+      toast.error(`You can only withdraw up to ${formatMoney(availableBalance)}.`);
+      return;
+    }
+
+    onConfirm({
+      bank_name: bankName.trim(),
+      account_number: accountNumber.trim(),
+      account_name: accountName.trim(),
+      amount_kobo: Math.round(numericAmount * 100),
+    });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white dark:bg-surface-dark rounded-t-3xl p-5 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-2xl dark:bg-surface-dark">
+        <div className="mb-5 flex items-center justify-between">
           <div>
             <h3 className="font-bold text-[#111813] dark:text-white">Withdraw Earnings</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Available: ₦{netPayout.toLocaleString()}</p>
+            <p className="mt-0.5 text-xs text-gray-400">Available now: {formatMoney(availableBalance)}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800">
             <X size={16} className="text-gray-400" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Amount to Withdraw (₦)</label>
+            <label className="mb-1.5 block text-xs font-semibold text-gray-500">Amount to Withdraw</label>
             <input
-              type="number" min="0" max={netPayout}
-              placeholder={`Max ₦${netPayout.toLocaleString()}`}
-              value={amount} onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]"
+              type="number"
+              min="0"
+              max={availableBalance}
+              placeholder={`Max ${formatMoney(availableBalance)}`}
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
-            {amount && parseFloat(amount) > 0 && parseFloat(amount) <= netPayout && (
-              <p className="text-xs text-[#4eb75e] mt-1">
-                You'll receive ₦{parseFloat(amount).toLocaleString()} in your account
-              </p>
+            {amount && Number(amount) > 0 && Number(amount) <= availableBalance && (
+              <p className="mt-1 text-xs text-[#4eb75e]">You will receive {formatMoney(Number(amount))} in your account.</p>
             )}
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="space-y-3 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+            <div className="mb-2 flex items-center gap-2">
               <Building2 size={14} className="text-[#4eb75e]" />
               <p className="text-xs font-bold text-[#111813] dark:text-white">Bank Details</p>
             </div>
+
             {[
-              { label: "Bank Name", key: "bankName", val: bankName, set: setBankName, placeholder: "e.g. GTBank, First Bank" },
-              { label: "Account Number", key: "accountNumber", val: accountNumber, set: setAccountNumber, placeholder: "10-digit account number" },
-              { label: "Account Name", key: "accountName", val: accountName, set: setAccountName, placeholder: "Name on the account" },
-            ].map(({ label, val, set, placeholder }) => (
-              <div key={label}>
-                <label className="text-[10px] font-semibold text-gray-400 mb-1 block">{label}</label>
+              {
+                label: "Bank Name",
+                value: bankName,
+                setter: setBankName,
+                placeholder: "e.g. GTBank, First Bank",
+              },
+              {
+                label: "Account Number",
+                value: accountNumber,
+                setter: setAccountNumber,
+                placeholder: "10-digit account number",
+              },
+              {
+                label: "Account Name",
+                value: accountName,
+                setter: setAccountName,
+                placeholder: "Name on the account",
+              },
+            ].map((field) => (
+              <div key={field.label}>
+                <label className="mb-1 block text-[10px] font-semibold text-gray-400">{field.label}</label>
                 <input
-                  type="text" placeholder={placeholder} value={val}
-                  onChange={(e) => set(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e]"
+                  type="text"
+                  placeholder={field.placeholder}
+                  value={field.value}
+                  onChange={(event) => field.setter(event.target.value)}
+                  className="w-full rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
             ))}
           </div>
 
-          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl px-4 py-2.5">
+          <div className="rounded-xl border border-orange-100 bg-orange-50 px-4 py-2.5 dark:border-orange-800 dark:bg-orange-900/20">
             <p className="text-xs text-orange-700 dark:text-orange-400">
-              ⚠️ Transfers are processed within 1–3 business days. Make sure your account details are correct.
+              Transfers are processed within 1 to 3 business days. Make sure your account details are correct.
             </p>
           </div>
 
           <button
-            onClick={handleSubmit} disabled={isPending}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:opacity-60"
           >
             <CreditCard size={15} />
             {isPending ? "Processing..." : "Confirm Withdrawal"}
@@ -117,14 +170,25 @@ const WithdrawModal = ({ netPayout, onClose, onConfirm, isPending }) => {
   );
 };
 
-// ── Main Page ───────────────────────────────────────────────────
 const VendorEarningsPage = () => {
   const [period, setPeriod] = useState("weekly");
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: summary, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: summary,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["earningsSummary"],
     queryFn: fetchEarningsSummary,
+  });
+
+  const { data: wallet, isError: walletError } = useQuery({
+    queryKey: ["vendorWallet"],
+    queryFn: fetchVendorWallet,
   });
 
   const { data: history, isError: histErr } = useQuery({
@@ -138,77 +202,115 @@ const VendorEarningsPage = () => {
   });
 
   const { mutate: payout, isPending: payoutPending } = useMutation({
-    mutationFn: (data) => initiateEarningsPayout(data),
+    mutationFn: (payload) => initiateEarningsPayout(payload),
     onSuccess: () => {
       setShowWithdraw(false);
-      toast.success("Withdrawal initiated! You'll receive funds within 1–3 business days.");
-      refetch();
+      toast.success("Withdrawal initiated. Funds should arrive within 1 to 3 business days.");
+      queryClient.invalidateQueries({ queryKey: ["earningsSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorWallet"] });
+      queryClient.invalidateQueries({ queryKey: ["earningsHistory"] });
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
+    onError: (mutationError) => toast.error(getErrorMessage(mutationError)),
   });
 
-  if (isLoading) return <VendorLayout title="Earnings"><VendorPageLoader /></VendorLayout>;
-  if (isError) return <VendorLayout title="Earnings"><VendorPageError message={getErrorMessage(error)} onRetry={refetch} /></VendorLayout>;
+  if (isLoading) {
+    return (
+      <VendorLayout title="Earnings">
+        <VendorPageLoader />
+      </VendorLayout>
+    );
+  }
 
-  const s = summary ?? {};
-  const h = history ?? {};
-  const c = chart ?? {};
-  const chartData = (c?.labels ?? []).map((label, i) => ({ name: label, value: c.amounts?.[i] ?? 0 }));
-  const periodEarnings = chartData.reduce((sum, d) => sum + d.value, 0);
-  const netPayout = s.net_earnings ?? 0;
+  if (isError) {
+    return (
+      <VendorLayout title="Earnings">
+        <VendorPageError message={getErrorMessage(error)} onRetry={refetch} />
+      </VendorLayout>
+    );
+  }
+
+  const summaryData = summary ?? {};
+  const historyData = history ?? {};
+  const chartData = (chart?.labels ?? []).map((label, index) => ({
+    name: label,
+    value: chart?.amounts?.[index] ?? 0,
+  }));
+
+  const highestValue = Math.max(...chartData.map((item) => item.value), 0);
+  const periodEarnings = chartData.reduce((sum, entry) => sum + entry.value, 0);
+  const availableBalance = Number(wallet?.balance_naira ?? 0);
+  const totalEarnings = Number(summaryData.total_earnings ?? 0);
+  const platformFee = Number(summaryData.platform_fee ?? 0);
+  const netEarnings = Number(summaryData.net_earnings ?? 0);
 
   return (
     <VendorLayout title="Earnings">
+      <div className="mb-4 rounded-2xl bg-[#111813] p-5 text-white dark:bg-gray-900">
+        <p className="mb-1 text-xs text-gray-400">Total Earnings (All Time)</p>
+        <p className="mb-3 text-3xl font-bold">{formatMoney(totalEarnings)}</p>
 
-      {/* Total Earnings Card */}
-      <div className="bg-[#111813] dark:bg-gray-900 rounded-2xl p-5 text-white mb-4">
-        <p className="text-gray-400 text-xs mb-1">Total Earnings (All Time)</p>
-        <p className="text-3xl font-bold mb-3">₦{(s.total_earnings ?? 0).toLocaleString()}</p>
-        <div className="flex gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
-            <p className="text-gray-400 text-[10px]">Platform Fee (10%)</p>
-            <p className="text-orange-400 text-sm font-bold">−₦{(s.platform_fee ?? 0).toLocaleString()}</p>
+            <p className="text-[10px] text-gray-400">Platform Fee</p>
+            <p className="text-sm font-bold text-orange-400">-{formatMoney(platformFee)}</p>
           </div>
-          <div className="w-px bg-gray-700" />
           <div>
-            <p className="text-gray-400 text-[10px]">Net Payout</p>
-            <p className="text-[#4eb75e] text-sm font-bold">₦{netPayout.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-400">Net Earnings</p>
+            <p className="text-sm font-bold text-[#4eb75e]">{formatMoney(netEarnings)}</p>
+          </div>
+          <div>
+            <p className="flex items-center gap-1 text-[10px] text-gray-400">
+              <Wallet size={11} />
+              Available Now
+            </p>
+            <p className="text-sm font-bold text-white">{formatMoney(availableBalance)}</p>
           </div>
         </div>
 
-        {/* Withdraw Button */}
+        {walletError && (
+          <p className="mb-3 text-xs text-orange-300">
+            Wallet balance could not be refreshed. Withdrawal availability may be temporarily outdated.
+          </p>
+        )}
+
         <button
           onClick={() => setShowWithdraw(true)}
-          disabled={netPayout <= 0}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={availableBalance <= 0}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ArrowDownToLine size={15} />
           Withdraw to Bank Account
         </button>
       </div>
 
-      {/* Period Tabs */}
-      <div className="flex gap-1.5 mb-4">
+      <div className="mb-4 flex gap-1.5">
         {PERIODS.map(({ key, label }) => (
-          <button key={key} onClick={() => setPeriod(key)}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${period === key ? "bg-[#4eb75e] text-white shadow-sm" : "bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500"}`}>
+          <button
+            key={key}
+            onClick={() => setPeriod(key)}
+            className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-all ${
+              period === key
+                ? "bg-[#4eb75e] text-white shadow-sm"
+                : "border border-gray-100 bg-white text-gray-500 dark:border-gray-800 dark:bg-surface-dark"
+            }`}
+          >
             {label}
           </button>
         ))}
       </div>
 
-      {/* Chart */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-surface-dark">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">
-            {PERIODS.find((p) => p.key === period)?.label} Earnings
+            {PERIODS.find((entry) => entry.key === period)?.label} Earnings
           </h3>
-          <p className="text-lg font-bold text-[#4eb75e]">₦{periodEarnings.toLocaleString()}</p>
+          <p className="text-lg font-bold text-[#4eb75e]">{formatMoney(periodEarnings)}</p>
         </div>
+
         {chartErr ? (
-          <p className="text-xs text-gray-400 text-center py-8">Chart data unavailable</p>
+          <p className="py-8 text-center text-xs text-gray-400">Chart data unavailable</p>
         ) : chartData.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-8">No earnings data yet</p>
+          <p className="py-8 text-center text-xs text-gray-400">No earnings data yet</p>
         ) : (
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
@@ -216,8 +318,8 @@ const VendorEarningsPage = () => {
               <YAxis tick={{ fontSize: 9, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f0fdf4" }} />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                {chartData.map((entry, i) => (
-                  <Cell key={i} fill={entry.value === Math.max(...chartData.map((d) => d.value)) ? "#4eb75e" : "#d1fae5"} />
+                {chartData.map((entry, index) => (
+                  <Cell key={`${entry.name}-${index}`} fill={entry.value === highestValue ? "#4eb75e" : "#d1fae5"} />
                 ))}
               </Bar>
             </BarChart>
@@ -225,83 +327,94 @@ const VendorEarningsPage = () => {
         )}
       </div>
 
-      {/* Payment History */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-4">
-        <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800">
+      <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-surface-dark">
+        <div className="border-b border-gray-50 px-4 py-3 dark:border-gray-800">
           <h3 className="text-sm font-bold text-[#111813] dark:text-white">Payment History</h3>
         </div>
+
         {histErr ? (
-          <p className="text-xs text-gray-400 text-center py-6">Payment history unavailable</p>
-        ) : (h?.results ?? []).length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-6">No payment history yet</p>
+          <p className="py-6 text-center text-xs text-gray-400">Payment history unavailable</p>
+        ) : (historyData?.results ?? []).length === 0 ? (
+          <p className="py-6 text-center text-xs text-gray-400">No payment history yet</p>
         ) : (
           <div className="divide-y divide-gray-50 dark:divide-gray-800">
-            {(h?.results ?? []).map((p) => (
-              <div key={p.id} className="px-4 py-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-sm font-bold text-[#4eb75e] flex-shrink-0">
-                    {p.customer_name?.charAt(0) ?? "?"}
+            {(historyData?.results ?? []).map((payment) => (
+              <div key={payment.id} className="px-4 py-4">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
+                    {payment.customer_name?.charAt(0) ?? "?"}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#111813] dark:text-white truncate">{p.customer_name}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">{p.subscription_plan}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[#111813] dark:text-white">{payment.customer_name}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">{payment.subscription_plan}</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#4eb75e]">₦{(p.amount ?? 0).toLocaleString()}</p>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${STATUS_COLORS[p.status] ?? "bg-gray-100 text-gray-600"}`}>
-                      {p.status}
+                  <div className="flex-shrink-0 text-right">
+                    <p className="text-sm font-bold text-[#4eb75e]">{formatMoney(payment.amount)}</p>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                        STATUS_COLORS[payment.status] ?? "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {payment.status}
                     </span>
                   </div>
                 </div>
-                {/* Subscriber Details */}
+
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  {p.customer_phone && (
+                  {payment.customer_phone && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">Phone:</span>
-                      <span className="text-gray-700 dark:text-gray-300">{p.customer_phone}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{payment.customer_phone}</span>
                     </div>
                   )}
-                  {p.customer_email && (
+                  {payment.customer_email && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">Email:</span>
-                      <span className="text-gray-700 dark:text-gray-300 truncate">{p.customer_email}</span>
+                      <span className="truncate text-gray-700 dark:text-gray-300">{payment.customer_email}</span>
                     </div>
                   )}
-                  {p.subscription_status && (
+                  {payment.subscription_status && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">Status:</span>
-                      <span className={`font-medium ${p.subscription_status === 'active' ? 'text-green-600' : 'text-gray-600'}`}>
-                        {p.subscription_status}
+                      <span
+                        className={`font-medium ${
+                          payment.subscription_status === "active" ? "text-green-600" : "text-gray-600"
+                        }`}
+                      >
+                        {payment.subscription_status}
                       </span>
                     </div>
                   )}
-                  {p.subscribed_at && (
+                  {payment.subscribed_at && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">Subscribed:</span>
                       <span className="text-gray-700 dark:text-gray-300">
-                        {new Date(p.subscribed_at).toLocaleDateString()}
+                        {new Date(payment.subscribed_at).toLocaleDateString("en-NG")}
                       </span>
                     </div>
                   )}
                 </div>
-                {/* Delivery Address */}
-                {p.delivery_address && Object.keys(p.delivery_address).length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-xs text-gray-500 mb-1">Delivery Address:</p>
+
+                {payment.delivery_address && Object.keys(payment.delivery_address).length > 0 && (
+                  <div className="mt-2 border-t border-gray-100 pt-2 dark:border-gray-800">
+                    <p className="mb-1 text-xs text-gray-500">Delivery Address:</p>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
-                      {p.delivery_address.address_line1 && <span>{p.delivery_address.address_line1}</span>}
-                      {p.delivery_address.city && <span>, {p.delivery_address.city}</span>}
-                      {p.delivery_address.state && <span>, {p.delivery_address.state}</span>}
+                      {payment.delivery_address.address_line1 && <span>{payment.delivery_address.address_line1}</span>}
+                      {payment.delivery_address.city && <span>, {payment.delivery_address.city}</span>}
+                      {payment.delivery_address.state && <span>, {payment.delivery_address.state}</span>}
                     </p>
                   </div>
                 )}
-                {/* Preferences */}
-                {p.preferences && Object.keys(p.preferences).length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-xs text-gray-500 mb-1">Preferences:</p>
+
+                {payment.preferences && Object.keys(payment.preferences).length > 0 && (
+                  <div className="mt-2 border-t border-gray-100 pt-2 dark:border-gray-800">
+                    <p className="mb-1 text-xs text-gray-500">Preferences:</p>
                     <div className="flex flex-wrap gap-1">
-                      {Object.entries(p.preferences).map(([key, value]) => (
-                        <span key={key} className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
+                      {Object.entries(payment.preferences).map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        >
                           {key}: {String(value)}
                         </span>
                       ))}
@@ -316,10 +429,10 @@ const VendorEarningsPage = () => {
 
       {showWithdraw && (
         <WithdrawModal
-          netPayout={netPayout}
+          availableBalance={availableBalance}
           isPending={payoutPending}
           onClose={() => setShowWithdraw(false)}
-          onConfirm={(data) => payout(data)}
+          onConfirm={(payload) => payout(payload)}
         />
       )}
     </VendorLayout>

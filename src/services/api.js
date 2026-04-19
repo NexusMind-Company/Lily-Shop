@@ -642,6 +642,25 @@ export const createMeal = async (mealData) => {
   return response.data;
 };
 
+const appendVendorMedia = (formData, vendorData = {}) => {
+  const files = [];
+
+  if (vendorData.banner_image instanceof File) files.push(vendorData.banner_image);
+  if (vendorData.profile_image instanceof File) files.push(vendorData.profile_image);
+
+  if (Array.isArray(vendorData.media)) {
+    vendorData.media.forEach((file) => {
+      if (file instanceof File) files.push(file);
+    });
+  } else if (vendorData.media instanceof File) {
+    files.push(vendorData.media);
+  }
+
+  files.forEach((file) => {
+    formData.append("media", file);
+  });
+};
+
 export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
   formData.append("name", vendorData.shop_name);
@@ -652,10 +671,7 @@ export const createFoodVendor = async (vendorData) => {
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
-  if (vendorData.banner_image)
-    formData.append("media", vendorData.banner_image);
-  if (vendorData.profile_image)
-    formData.append("media", vendorData.profile_image);
+  appendVendorMedia(formData, vendorData);
 
   const response = await api.post("/foods/food-vendors/", formData, {
     headers: {
@@ -678,15 +694,7 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_email", vendorData.contact_email);
   if (vendorData.contact_phone)
     formData.append("contact_phone", vendorData.contact_phone);
-  if (vendorData.media) {
-    if (Array.isArray(vendorData.media)) {
-      vendorData.media.forEach((file) => {
-        formData.append("media", file);
-      });
-    } else if (vendorData.media instanceof File) {
-      formData.append("media", vendorData.media);
-    }
-  }
+  appendVendorMedia(formData, vendorData);
 
   const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
     headers: {

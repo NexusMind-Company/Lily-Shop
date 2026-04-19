@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 
 // Import from your api.js — adjust path if needed
 import { createSubscription } from "../services/api";
@@ -40,6 +41,12 @@ const SubscriptionProcessingPage = () => {
         if (flowState?.phone) deliveryMeta.phone = flowState.phone;
         if (flowState?.preferredTime) deliveryMeta.preferred_time = flowState.preferredTime;
         if (flowState?.specialInstructions) deliveryMeta.special_instructions = flowState.specialInstructions;
+        if (flowState?.selectedDays?.length) deliveryMeta.selected_days = flowState.selectedDays;
+        if (flowState?.quantity) deliveryMeta.quantity = flowState.quantity;
+        if (flowState?.dietaryPreferences) deliveryMeta.dietary_preferences = flowState.dietaryPreferences;
+        if (flowState?.allergies) deliveryMeta.allergies = flowState.allergies;
+        if (flowState?.portionSize) deliveryMeta.portion_size = flowState.portionSize;
+        if (flowState?.collectionCode) deliveryMeta.collection_code = flowState.collectionCode;
 
         const result = await createSubscription(planId, deliveryMeta);
 
@@ -61,6 +68,9 @@ const SubscriptionProcessingPage = () => {
           pickupCode: generatedCode,
           deliveryType: flowState?.deliveryType,
           preferredTime: flowState?.preferredTime,
+          paymentMethod: "wallet",
+          paymentStatus: "success",
+          nextPaymentDate: result?.next_payment_date,
         };
 
         saveSubscriptionSuccessState(successState);

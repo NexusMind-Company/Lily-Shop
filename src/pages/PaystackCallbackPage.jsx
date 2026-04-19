@@ -4,6 +4,16 @@ import { useDispatch } from 'react-redux';
 import { clearCart } from '../redux/cartSlice';
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";
+import {
+  clearSubscriptionFlowState,
+  getSubscriptionFlowState,
+  saveSubscriptionSuccessState,
+} from "../utils/subscriptionFlow";
+
+const clearSubscriptionRedirectMarkers = () => {
+  localStorage.removeItem("lily_subscription_redirect");
+  localStorage.removeItem("lily_subscription_payment_ref");
+};
 
 const PaystackCallbackPage = () => {
   const [searchParams] = useSearchParams();
@@ -15,31 +25,75 @@ const PaystackCallbackPage = () => {
     const status = searchParams.get('status');
     const storedOrder = sessionStorage.getItem('lily_pending_order');
     const pendingOrder = storedOrder ? JSON.parse(storedOrder) : null;
+    const pendingSubscription = getSubscriptionFlowState();
+    const subscriptionRedirectRequested =
+      localStorage.getItem("lily_subscription_redirect") === "true" ||
+      Boolean(pendingSubscription);
+
+    const redirectSubscriptionFailure = (message) => {
+      clearSubscriptionRedirectMarkers();
+      navigate(
+        pendingSubscription?.plan ? "/subscription/payment" : "/subscriptions",
+        {
+          replace: true,
+          state: pendingSubscription
+            ? { ...pendingSubscription, error: message }
+            : { error: message },
+        },
+      );
+    };
 
     const run = async () => {
       if (!reference || status === "failed" || status === "cancelled") {
+        if (subscriptionRedirectRequested) {
+          redirectSubscriptionFailure("Payment failed. Please try again.");
+          return;
+        }
+
         navigate('/checkout', { state: { error: 'Payment failed. Please try again.' } });
         return;
       }
 
       try {
         // Verify with backend so webhook/callback always finalizes the order
-        await api.get("/wallet/paystack/callback/", { params: { reference } });
+        const verificationResponse = await api.get("/wallet/paystack/callback/", {
+          params: { reference },
+        });
+        const payload = verificationResponse.data || {};
 
-        dispatch(clearCart());
-        sessionStorage.removeItem('checkout_ids');
-        sessionStorage.removeItem('lily_pending_order');
+        if (
+          payload.payment_context === "subscription" ||
+          subscriptionRedirectRequested
+        ) {
+          const successState = {
+            ...(pendingSubscription || {}),
+            plan: pendingSubscription?.plan || payload.subscription?.plan || null,
+            vendor:
+              pendingSubscription?.vendor ||
+              payload.subscription?.plan?.vendor ||
+              payload.subscription?.vendor ||
+              null,
+            subscription: payload.subscription || null,
+            subscriptionId: payload.subscription_id || payload.subscription?.id,
+            nextPaymentDate:
+              payload.next_payment_date || payload.subscription?.next_payment_date,
+            paymentMethod: 'paystack',
+            paymentReference: reference,
+            paymentFinalized: Boolean(payload.payment_finalized),
+          };
 
-        // Check if this was a subscription payment
-        const isSubscription = localStorage.getItem("lily_subscription_redirect") === "true";
-        if (isSubscription) {
-          localStorage.removeItem("lily_subscription_redirect");
-          localStorage.removeItem("lily_subscription_payment_ref");
+          saveSubscriptionSuccessState(successState);
+          clearSubscriptionFlowState();
+          clearSubscriptionRedirectMarkers();
           toast.success("Subscription activated! Redirecting to your subscriptions...");
           navigate('/subscriptions', {
-            state: { reference, status: 'paid', paymentMethod: 'paystack' }
+            replace: true,
+            state: successState,
           });
         } else {
+          dispatch(clearCart());
+          sessionStorage.removeItem('checkout_ids');
+          sessionStorage.removeItem('lily_pending_order');
           toast.success("Payment successful!");
           navigate('/order-success', {
             state: {
@@ -53,6 +107,12 @@ const PaystackCallbackPage = () => {
       } catch (e) {
         console.error("Paystack verification error:", e);
         toast.error("Payment verification failed.");
+
+        if (subscriptionRedirectRequested) {
+          redirectSubscriptionFailure("Payment verification failed. Please try again.");
+          return;
+        }
+
         navigate('/checkout', {
           state: { error: 'Payment verification failed. Please try again.' },
         });
