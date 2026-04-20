@@ -1,221 +1,192 @@
-import React from "react";
-import { CheckCircle2, Download, Share2, ArrowLeft } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  CheckCircle,
+  ArrowRight,
+  Share2,
+  Download,
+  Landmark,
+  Calendar,
+  ShieldCheck,
+  Home,
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import Confetti from "react-confetti";
 
 export default function WithdrawSuccess() {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { amount, account, total, date, reference } = location.state || {};
 
-  const transaction = location.state || {
-    amount: "0.00",
-    fee: "0.00",
-    accountNumber: "XXXXXXXXXX",
-    accountName: "Unknown",
-    bankName: "Unknown Bank",
-    date: new Date().toLocaleString(),
-  };
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
-  const handleDownloadReceipt = () => {
-    const receiptContent = `
-LILYSHOP WITHDRAWAL RECEIPT
-================================
-Date: ${new Date(transaction.date).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })}
-Amount: NGN ${parseFloat(transaction.amount).toLocaleString()}
-Transaction Fee: NGN ${parseFloat(transaction.fee).toLocaleString()}
-Bank: ${transaction.bankName}
-Account Number: ${transaction.accountNumber}
-Account Name: ${transaction.accountName}
-================================
-This receipt serves as proof of withdrawal.
-Processing time: Up to 24 hours
-    `.trim();
-
-    const blob = new Blob([receiptContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `withdrawal-receipt-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleShareReceipt = async () => {
-    const shareData = {
-      title: "LilyShop Withdrawal Receipt",
-      text: `Withdrawal of NGN ${parseFloat(transaction.amount).toLocaleString()} successful. Bank: ${transaction.bankName}, Account: ${transaction.accountNumber}`,
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(false), 5000);
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.log("Share failed:", err);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareData.text);
-      alert("Receipt details copied to clipboard");
-    }
-  };
+  if (!amount) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <button
+          onClick={() => navigate("/wallet")}
+          className="text-lily-600 font-black uppercase"
+        >
+          Back to Wallet
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white flex flex-col">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto">
-          <button
-            onClick={() => navigate("/wallet")}
-            className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-medium"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Wallet</span>
-          </button>
-        </div>
+    <div className="min-h-screen bg-white font-display py-12 px-4 relative overflow-hidden">
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={300}
+          gravity={0.2}
+          colors={["#4eb75e", "#22c55e", "#bbf7d0", "#ffffff"]}
+        />
+      )}
+
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
-          {/* Success Icon */}
+      <div className="max-w-xl mx-auto relative z-10">
+        <div className="text-center mb-10">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="flex justify-center mb-6"
+            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+            className="w-24 h-24 bg-lily-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow"
           >
-            <div className="relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-success/20 to-success/5 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-20 h-20 text-success" />
-              </div>
-              {/* Animated ring */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1.2, opacity: 0 }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="absolute inset-0 border-4 border-success rounded-full"
-              />
-            </div>
+            <CheckCircle className="w-14 h-14 text-lily-600" />
           </motion.div>
-
-          {/* Success Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-center mb-8"
-          >
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Withdrawal Successful!
-            </h1>
-            <p className="text-gray-600">
-              Your withdrawal is being processed
-            </p>
-          </motion.div>
-
-          {/* Amount Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-3xl shadow-card p-6 mb-6"
+            className="text-4xl font-black text-gray-800 tracking-tight mb-2"
           >
-            <div className="text-center mb-6">
-              <p className="text-sm text-gray-600 mb-2">Amount Sent</p>
-              <p className="text-5xl font-bold bg-gradient-to-r from-lily-600 to-purple-600 bg-clip-text text-transparent">
-                NGN {parseFloat(transaction.amount).toLocaleString()}
-              </p>
-            </div>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Bank</span>
-                <span className="font-semibold text-gray-800">{transaction.bankName}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Account Number</span>
-                <span className="font-semibold text-gray-800">{transaction.accountNumber}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Account Name</span>
-                <span className="font-semibold text-gray-800">{transaction.accountName}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Transaction Fee</span>
-                <span className="font-semibold text-error">NGN {parseFloat(transaction.fee).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-gray-600">Date & Time</span>
-                <span className="font-semibold text-gray-800">
-                  {new Date(transaction.date).toLocaleString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="space-y-3"
-          >
-            {/* Download Receipt */}
-            <button
-              onClick={handleDownloadReceipt}
-              className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download Receipt</span>
-            </button>
-
-            {/* Share Receipt */}
-            <button
-              onClick={handleShareReceipt}
-              className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
-            >
-              <Share2 className="w-5 h-5" />
-              <span>Share Receipt</span>
-            </button>
-
-            {/* Back to Wallet */}
-            <Link to="/wallet">
-              <button className="w-full bg-gradient-to-r from-lily-500 to-purple-600 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all">
-                Back to Wallet
-              </button>
-            </Link>
-          </motion.div>
-
-          {/* Info Notice */}
-          <motion.div
+            Request Received!
+          </motion.h1>
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6 bg-blue-50 border-2 border-blue-100 rounded-2xl p-4"
+            transition={{ delay: 0.5 }}
+            className="text-gray-400 font-bold uppercase tracking-widest text-xs"
           >
-            <p className="text-sm text-blue-800 text-center leading-relaxed">
-              <strong>Note:</strong> It may take up to 24 hours for the funds to
-              reflect in your bank account depending on your bank's processing time.
+            Withdrawal Processing
+          </motion.p>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white rounded-[2.5rem] shadow-soft border border-lily-50 overflow-hidden mb-8"
+        >
+          <div className="bg-lily-gradient p-8 text-white text-center">
+            <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80 mb-2">
+              Total Amount
             </p>
-          </motion.div>
+            <h2 className="text-5xl font-black tracking-tighter">
+              ₦{amount.toLocaleString()}
+            </h2>
+          </div>
+
+          <div className="p-8 space-y-5">
+            <div className="flex justify-between items-center pb-4 border-b border-lily-50">
+              <div className="flex items-center space-x-3 text-gray-400">
+                <Landmark className="w-4 h-4" />
+                <span className="text-xs font-black uppercase tracking-widest">
+                  To Bank
+                </span>
+              </div>
+              <span className="font-black text-gray-800 uppercase text-sm tracking-tight">
+                {account.bankName}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center pb-4 border-b border-lily-50">
+              <div className="flex items-center space-x-3 text-gray-400">
+                <Calendar className="w-4 h-4" />
+                <span className="text-xs font-black uppercase tracking-widest">
+                  Date
+                </span>
+              </div>
+              <span className="font-black text-gray-800 text-sm">
+                {new Date(date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center pb-4 border-b border-lily-50">
+              <div className="flex items-center space-x-3 text-gray-400">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="text-xs font-black uppercase tracking-widest">
+                  Ref ID
+                </span>
+              </div>
+              <span className="font-black text-gray-800 text-xs tracking-widest">
+                {reference}
+              </span>
+            </div>
+
+            <div className="pt-4 flex flex-col items-center">
+              <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100 flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <span>Credited within 24 hours</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
+
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <button className="flex items-center justify-center space-x-2 py-4 bg-lily-50 text-lily-700 rounded-2xl font-black text-sm active:scale-95 transition-all">
+            <Download className="w-4 h-4" />
+            <span>Receipt</span>
+          </button>
+          <button className="flex items-center justify-center space-x-2 py-4 bg-lily-50 text-lily-700 rounded-2xl font-black text-sm active:scale-95 transition-all">
+            <Share2 className="w-4 h-4" />
+            <span>Share</span>
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate("/wallet")}
+            className="w-full py-6 bg-lily-500 text-white rounded-3xl font-black text-xl shadow-glow hover:shadow-glow-lg transition-all active:scale-95 flex items-center justify-center space-x-3"
+          >
+            <Home className="w-6 h-6" />
+            <span>Back to Wallet</span>
+          </button>
+          <button
+            onClick={() => navigate("/feed")}
+            className="w-full py-4 text-gray-400 font-black uppercase tracking-widest text-sm hover:text-lily-600 transition-colors"
+          >
+            Continue Browsing
+          </button>
+        </div>
       </div>
     </div>
   );
