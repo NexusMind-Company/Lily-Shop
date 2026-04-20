@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   ChevronLeft,
   Loader2,
@@ -11,7 +11,10 @@ import {
   ShieldCheck,
   Undo2,
   Plus,
+  AlertCircle,
+  X,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   selectCartItems,
   fetchCart,
@@ -19,9 +22,14 @@ import {
   selectCartIsLoading,
   selectCartId,
 } from "../../../redux/cartSlice";
+import { fetchWallet } from "../../../redux/walletSlice";
 import { createOrder } from "../../../redux/orderSlice";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserProfile, calculateCheckout } from "../../../services/api";
+import {
+  fetchUserProfile,
+  calculateCheckout,
+  fetchDeliveryAddresses,
+} from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 
@@ -33,14 +41,21 @@ const CartPage = () => {
 
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
+  const { balance_naira: walletBalance } = useSelector(
+    (state) => state.wallet || {},
+  );
 
   const cartId = useSelector(selectCartId);
+
+  useEffect(() => {
+    dispatch(fetchWallet());
+  }, [dispatch]);
 
   const isDirectBuy = location.state?.directBuy;
   const directProduct = location.state?.product;
   const directQuantity = location.state?.quantity || 1;
 
-  const [selectedItemIds, setSelectedItemIds] = useState(() => {
+  const [selectedItemIds] = useState(() => {
     const locStateIds = location.state?.selectedItemIds;
     if (locStateIds) {
       sessionStorage.setItem("checkout_ids", JSON.stringify(locStateIds));
@@ -65,6 +80,35 @@ const CartPage = () => {
     queryKey: ["userProfile"],
     queryFn: fetchUserProfile,
   });
+
+  const { data: addresses } = useQuery({
+    queryKey: ["deliveryAddresses"],
+    queryFn: fetchDeliveryAddresses,
+  });
+
+  // Auto-select default address if none is selected in paymentData
+  useEffect(() => {
+    const addressList = addresses?.results || addresses;
+    if (
+      !paymentData?.selectedAddress &&
+      addressList &&
+      Array.isArray(addressList)
+    ) {
+      const defaultAddr = addressList.find((addr) => addr.is_default);
+      if (defaultAddr) {
+        setPaymentData((prev) => ({
+          ...prev,
+          selectedAddress: defaultAddr,
+        }));
+      } else if (addressList.length > 0) {
+        // Fallback to first address if no default is explicitly marked
+        setPaymentData((prev) => ({
+          ...prev,
+          selectedAddress: addressList[0],
+        }));
+      }
+    }
+  }, [addresses, paymentData?.selectedAddress, setPaymentData]);
 
   useEffect(() => {
     if (!isDirectBuy) {
@@ -187,6 +231,8 @@ const CartPage = () => {
     paymentData?.deliveryType || "delivery",
   );
   const [paymentMethod, setPaymentMethod] = useState("bank");
+  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+  const [balanceModalMessage, setBalanceModalMessage] = useState("");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
@@ -249,13 +295,7 @@ const CartPage = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [
-    itemsToCheckout,
-    isInitialized,
-    navigate,
-    isDirectBuy,
-    directProduct,
-  ]);
+  }, [itemsToCheckout, isInitialized, navigate, isDirectBuy, directProduct]);
 
   // Fetch authoritative checkout details from the backend
   useEffect(() => {
@@ -365,6 +405,13 @@ const CartPage = () => {
     let apiPaymentMethod = "paystack";
     if (paymentMethod === "wallet") {
       apiPaymentMethod = "wallet";
+      if (walletBalance < backendTotal) {
+        setBalanceModalMessage(
+          `Insufficient wallet balance. You need NGN ${formatPrice(backendTotal)} but you have NGN ${formatPrice(walletBalance)}. Please top up your wallet to proceed.`,
+        );
+        setIsBalanceModalOpen(true);
+        return;
+      }
     }
 
     const orderData = {
@@ -415,7 +462,10 @@ const CartPage = () => {
         });
       } else {
         if (authorizationUrl) {
-          sessionStorage.setItem("lily_pending_order", JSON.stringify(newOrder));
+          sessionStorage.setItem(
+            "lily_pending_order",
+            JSON.stringify(newOrder),
+          );
           window.location.href = authorizationUrl;
         } else {
           console.warn("No authorization URL returned for Paystack payment");
@@ -424,16 +474,21 @@ const CartPage = () => {
       }
     } catch (err) {
       console.error("Failed to create order:", err);
-      if (err.response?.status === 500) {
+      const errorMessage =
+        err.message ||
+        err.detail ||
+        createOrderError?.detail ||
+        "Failed to initiate payment. Please try again.";
+
+      if (errorMessage.toLowerCase().includes("insufficient")) {
+        setBalanceModalMessage(errorMessage);
+        setIsBalanceModalOpen(true);
+      } else if (err.response?.status === 500) {
         alert(
           "The server encountered an error (500). The backend rejected the payload. Please ensure you have selected a valid address.",
         );
       } else {
-        alert(
-          err.message ||
-            createOrderError?.detail ||
-            "Failed to initiate payment. Please try again.",
-        );
+        alert(errorMessage);
       }
     }
   };
@@ -485,7 +540,6 @@ const CartPage = () => {
     userProfile?.phone_number || userProfile?.phone || "No phone provided";
 
   const savedCard = userProfile?.cards?.[0] || userProfile?.card;
-  const walletBalance = userProfile?.wallet_balance || 0;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50 border-x border-gray-100">
@@ -722,11 +776,36 @@ const CartPage = () => {
                   <Circle className="text-gray-400 w-6 h-6" />
                 )}
               </button>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">Lily wallet</p>
-                <p className="text-xs font-semibold text-pink mt-1">
-                  NGN {formatPrice(walletBalance)}
-                </p>
+              <div className="ml-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Lily wallet
+                    </p>
+                    <Link
+                      to="/wallet"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs font-semibold text-pink mt-1 hover:underline"
+                    >
+                      NGN {formatPrice(walletBalance)}
+                    </Link>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/wallet");
+                    }}
+                    className="flex items-center text-pink font-medium text-sm hover:opacity-80 transition-opacity focus:outline-none"
+                  >
+                    <Plus size={14} className="mr-0.5" strokeWidth={3} /> Top up
+                  </button>
+                </div>
+                {paymentMethod === "wallet" && walletBalance < backendTotal && (
+                  <p className="text-[10px] text-pink font-medium mt-1 flex items-center">
+                    <AlertCircle size={10} className="mr-1" /> Insufficient
+                    balance for this order
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -881,6 +960,61 @@ const CartPage = () => {
           </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isBalanceModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-pink" />
+
+              <button
+                onClick={() => setIsBalanceModalOpen(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex flex-col items-center text-center pt-2">
+                <div className="w-16 h-16 bg-pink/10 rounded-full flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-pink" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Insufficient Balance
+                </h3>
+
+                <p className="text-gray-600 leading-relaxed mb-8">
+                  {balanceModalMessage}
+                </p>
+
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={() => {
+                      setIsBalanceModalOpen(false);
+                      navigate("/wallet");
+                    }}
+                    className="w-full bg-lily text-white py-3.5 rounded-2xl font-bold hover:bg-opacity-90 transition-colors shadow-lg shadow-lily/20"
+                  >
+                    Top up now
+                  </button>
+
+                  <button
+                    onClick={() => setIsBalanceModalOpen(false)}
+                    className="w-full bg-gray-50 text-gray-600 py-3.5 rounded-2xl font-semibold hover:bg-gray-100 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

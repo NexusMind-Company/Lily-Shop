@@ -1,5 +1,5 @@
 // src/pages/Receipt.jsx
-import { ChevronLeft, CheckCircle2, Clock4, } from "lucide-react";
+import { ChevronLeft, CheckCircle2, Clock4 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -33,24 +33,34 @@ export default function Receipt() {
     method: "Lily Wallet",
   };
 
-
   // Status text and icon color
   const getStatusData = () => {
     if (receipt.type === "refund" && receipt.status.includes("Pending")) {
-      return { icon: <Clock4 className="text-yellow-500 w-10 h-10 mb-2" />, color: "text-yellow-500" };
+      return {
+        icon: <Clock4 className="text-yellow-500 w-10 h-10 mb-2" />,
+        color: "text-yellow-500",
+      };
     }
-    return { icon: <CheckCircle2 className="text-green-500 w-10 h-10 mb-2" />, color: "text-green-500" };
+    return {
+      icon: <CheckCircle2 className="text-lily-500 w-10 h-10 mb-2" />,
+      color: "text-lily-500",
+    };
   };
 
   const statusData = getStatusData();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <header className="relative p-4 ">
-        <Link onClick={() => {navigate(-1)}}>
-          <ChevronLeft className="absolute w-8 h-8" />
-        </Link>
-        <h1 className="text-lg font-semibold text-center">Withdraw</h1>
+    <div className="min-h-screen bg-white flex flex-col font-display">
+      <header className="relative p-6 border-b border-lily-50">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-4 p-2 hover:bg-lily-50 rounded-full transition-colors"
+        >
+          <ChevronLeft className="w-6 h-6 text-lily-700" />
+        </button>
+        <h1 className="text-xl font-black text-lily-700 text-center tracking-tight">
+          Receipt
+        </h1>
       </header>
 
       {/* Body */}
@@ -77,12 +87,12 @@ export default function Receipt() {
               {receipt.type === "refund"
                 ? "Order Refund"
                 : receipt.type === "affiliate"
-                ? "Affiliate Earnings"
-                : receipt.type === "withdrawal"
-                ? "Wallet Withdrawal"
-                : receipt.type === "deposit"
-                ? "Wallet Deposit"
-                : "Order Payment"}
+                  ? "Affiliate Earnings"
+                  : receipt.type === "withdrawal"
+                    ? "Wallet Withdrawal"
+                    : receipt.type === "deposit"
+                      ? "Wallet Deposit"
+                      : "Order Payment"}
             </p>
             <p>
               Status:{" "}
@@ -98,13 +108,19 @@ export default function Receipt() {
                 <h3 className="font-semibold mb-1">Refund Details</h3>
                 <p>Order: {receipt.details.orderNo}</p>
                 <p>Vendor: {receipt.details.vendor}</p>
-                <p>• {receipt.details.item} – ₦{receipt.details.price.toLocaleString()}</p>
+                <p>
+                  • {receipt.details.item} – ₦
+                  {receipt.details.price.toLocaleString()}
+                </p>
                 <p>Reason: {receipt.details.reason}</p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="font-semibold mb-1">Refund Summary</h3>
-                <p>Amount refunded: ₦{receipt.summary.refundAmount.toLocaleString()}</p>
+                <p>
+                  Amount refunded: ₦
+                  {receipt.summary.refundAmount.toLocaleString()}
+                </p>
               </div>
 
               <div className="space-y-1">
@@ -132,7 +148,7 @@ export default function Receipt() {
       </div>
 
       {/* Footer border */}
-      <div  className="border-t-4 border-dashed border-lily rounded-full" />
+      <div className="border-t-4 border-dashed border-lily rounded-full" />
     </div>
   );
 }

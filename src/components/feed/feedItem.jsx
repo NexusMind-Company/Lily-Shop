@@ -190,6 +190,14 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.shop?.user_id ||
     post.shop_id ||
     displayUsername;
+
+  const isProduct =
+    post.type?.toLowerCase() === "product" ||
+    post.price_in_naira !== undefined ||
+    post.price !== undefined ||
+    post.name !== undefined ||
+    post.productName !== undefined;
+
   const profileLink = profileId ? `/profile/${profileId}` : "#";
   const postState = { itemType: isProduct ? "product" : "content", post };
 
@@ -199,13 +207,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   const isOwnPost =
     (currentUsername && currentUsername === displayUsername) ||
     (currentUserId && currentUserId === profileId);
-
-  const isProduct =
-    post.type?.toLowerCase() === "product" ||
-    post.price_in_naira !== undefined ||
-    post.price !== undefined ||
-    post.name !== undefined ||
-    post.productName !== undefined;
 
   const hasLinkedProduct = !isProduct && post.product != null;
 
