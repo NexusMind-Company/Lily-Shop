@@ -1,343 +1,185 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
+import {
+  ChevronLeft,
+  Landmark,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, AlertTriangle, Loader2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDispatch, useSelector } from "react-redux";
-import { api } from "../../services/api";
-import { fetchWallet } from "../../redux/walletSlice";
-
-const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
-
-const loadBankAccounts = () => {
-  try {
-    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-};
 
 export default function WithdrawConfirm() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { amount, account } = location.state || {};
 
-  const storedDefaultAccount = useMemo(() => {
-    const bankAccounts = loadBankAccounts();
-    return bankAccounts.find((account) => account.isDefault) || bankAccounts[0];
-  }, []);
-  const bankDetails = location.state || storedDefaultAccount;
-
-  const { withdrawable_naira = 0 } = useSelector((state) => state.wallet || {});
-
-  const [amount, setAmount] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const platformFee = amount ? parseFloat(amount) * 0.05 : 0;
-  const receivable = amount ? parseFloat(amount) - platformFee : 0;
+  const fee = amount * 0.05;
+  const total = amount - fee;
 
-  useEffect(() => {
-    dispatch(fetchWallet());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!bankDetails) {
-      navigate("/bankAccountDetails", { replace: true });
-    }
-  }, [bankDetails, navigate]);
-
-  if (!bankDetails) {
-    return null;
-  }
-
-  const handleAmountChange = (e) => {
-    const value = e.target.value;
-    if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
-      setAmount(value);
-      setError("");
-    }
-  };
-
-  const validateWithdrawal = () => {
-    const amountValue = parseFloat(amount);
-
-    if (!amountValue || amountValue <= 0) {
-      setError("Please enter a valid amount");
-      return false;
-    }
-
-    if (amountValue < 1000) {
-      setError("Minimum withdrawal is NGN 1,000");
-      return false;
-    }
-
-    if (amountValue > withdrawable_naira) {
-      setError(`Insufficient withdrawable balance. You have NGN ${withdrawable_naira.toLocaleString()}`);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleProceed = () => {
-    if (!validateWithdrawal()) return;
-    setShowModal(true);
-  };
-
-  const handleConfirm = async () => {
-    setProcessing(true);
+  const handleWithdraw = async () => {
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await api.post("/wallet/withdraw/", {
-        amount_kobo: Math.round(parseFloat(amount) * 100),
-        bank_name: bankDetails.bankName,
-        account_number: bankDetails.accountNumber,
-        account_name: bankDetails.accountName,
-      });
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Navigate to success page
       navigate("/withdraw/success", {
         state: {
-          amount: amount,
-          fee: platformFee.toFixed(2),
-          accountNumber: bankDetails.accountNumber,
-          accountName: bankDetails.accountName,
-          bankName: bankDetails.bankName,
-          date: new Date().toLocaleString(),
-          withdrawalId: response.data.withdrawal_id,
+          amount,
+          account,
+          total,
+          date: new Date().toISOString(),
+          reference: `WTH-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
         },
       });
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.response?.data?.detail || "Withdrawal failed. Please try again.";
-      setError(errorMsg);
-      setProcessing(false);
-      setShowModal(false);
+      setError("Withdrawal request failed. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!amount || !account) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-500 font-bold">Invalid withdrawal session</p>
+          <button
+            onClick={() => navigate("/wallet")}
+            className="mt-4 text-lily-600 font-black uppercase"
+          >
+            Back to Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
+    <div className="min-h-screen bg-white font-display">
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-lily-100">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors mr-3"
+              className="p-2 hover:bg-lily-50 rounded-full transition-colors mr-3"
             >
-              <ChevronLeft className="w-6 h-6 text-gray-700" />
+              <ChevronLeft className="w-6 h-6 text-lily-700" />
             </button>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-lily-600 to-purple-600 bg-clip-text text-transparent">
-                Confirm Withdrawal
+              <h1 className="text-xl font-bold text-lily-700">
+                Confirm Transfer
               </h1>
-              <p className="text-sm text-gray-600">Review your withdrawal details</p>
+              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                Withdrawal Review
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Error Alert */}
-        <AnimatePresence>
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] shadow-soft border border-lily-50 p-8 text-center"
+        >
+          <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+            Total Withdrawal
+          </p>
+          <h2 className="text-5xl font-black text-gray-800 mb-8 tracking-tighter">
+            ₦{amount.toLocaleString()}
+          </h2>
+
+          <div className="bg-lily-50/30 rounded-3xl p-6 space-y-4 border border-lily-100 mb-8">
+            <div className="flex justify-between items-center pb-4 border-b border-lily-100/50">
+              <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                To Bank
+              </span>
+              <span className="font-black text-gray-800">
+                {account.bankName}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pb-4 border-b border-lily-100/50">
+              <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                Account
+              </span>
+              <span className="font-black text-gray-800">
+                •••• {account.accountNumber.slice(-4)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pb-4 border-b border-lily-100/50 text-red-500">
+              <span className="text-sm font-bold uppercase tracking-widest">
+                Fee (5%)
+              </span>
+              <span className="font-black">-₦{fee.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-sm font-black text-lily-700 uppercase tracking-widest">
+                Expected Credited
+              </span>
+              <span className="font-black text-2xl text-lily-700 tracking-tighter">
+                ₦{total.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 p-4 bg-blue-50/50 border border-blue-100/50 rounded-2xl mb-8">
+            <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
+            <p className="text-[10px] font-bold text-blue-700 text-left leading-relaxed">
+              Withdrawals are typically processed within 24 hours. You will
+              receive a notification once the transfer is successful.
+            </p>
+          </div>
+
           {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-error/10 border-2 border-error/20 rounded-2xl p-4"
-            >
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-error">{error}</p>
-              </div>
-            </motion.div>
+            <div className="flex items-center space-x-2 text-red-500 mb-6 p-4 bg-red-50 rounded-2xl border border-red-100">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="text-xs font-bold">{error}</p>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Bank Details Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-3xl shadow-card p-6"
-        >
-          <h2 className="text-sm font-semibold text-gray-600 mb-4">Withdraw To</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Bank</span>
-              <span className="font-semibold text-gray-800">{bankDetails.bankName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Account Number</span>
-              <span className="font-semibold text-gray-800">
-                {bankDetails.accountNumber}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Account Name</span>
-              <span className="font-semibold text-gray-800">
-                {bankDetails.accountName}
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Amount Input */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl shadow-card p-6"
-        >
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Enter Amount
-          </label>
-                    <div className="relative mb-4">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
-              NGN
-            </span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={amount}
-              onChange={handleAmountChange}
-              className="w-full pl-16 pr-4 py-4 text-3xl font-bold bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-100 transition-all"
-              placeholder="0.00"
-            />
-          </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-            <span>Min: NGN 1,000</span>
-            <span>Available: NGN {(withdrawable_naira || 0).toLocaleString()}</span>
-          </div>
-        </motion.div>
-
-        {/* Fee Breakdown */}
-        {amount && parseFloat(amount) > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-3xl shadow-card p-6 space-y-3"
+          <button
+            onClick={handleWithdraw}
+            disabled={loading}
+            className="w-full py-6 bg-lily-500 text-white rounded-3xl font-black text-xl shadow-glow hover:shadow-glow-lg transition-all active:scale-95 flex items-center justify-center space-x-3 disabled:opacity-30 disabled:grayscale"
           >
-            <h3 className="font-semibold text-gray-800 mb-4">Breakdown</h3>
-            <div className="flex justify-between text-gray-600">
-              <span>Withdrawal Amount</span>
-              <span className="font-semibold">NGN {parseFloat(amount).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Platform Fee (5%)</span>
-              <span className="font-semibold text-error">
-                -NGN {platformFee.toLocaleString()}
-              </span>
-            </div>
-            <div className="h-px bg-gray-200" />
-            <div className="flex justify-between text-lg">
-              <span className="font-bold text-gray-800">You'll Receive</span>
-              <span className="font-bold bg-gradient-to-r from-lily-600 to-purple-600 bg-clip-text text-transparent">
-                NGN {receivable.toLocaleString()}
-              </span>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Info Notice */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-4"
-        >
-          <div className="flex items-start space-x-3">
-            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-blue-800 leading-relaxed">
-                <strong>Processing Time:</strong> Withdrawals are usually processed
-                instantly but may take up to 24 hours depending on your bank.
-              </p>
-            </div>
-          </div>
+            {loading ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <span>Confirm Withdrawal</span>
+                <ArrowRight className="w-6 h-6" />
+              </>
+            )}
+          </button>
         </motion.div>
 
-        {/* Proceed Button */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          whileHover={amount && parseFloat(amount) >= 1000 ? { scale: 1.02 } : {}}
-          whileTap={amount && parseFloat(amount) >= 1000 ? { scale: 0.98 } : {}}
-          onClick={handleProceed}
-          disabled={!amount || parseFloat(amount) < 1000}
-          className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
-            amount && parseFloat(amount) >= 1000
-              ? "bg-gradient-to-r from-lily-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+        <button
+          onClick={() => navigate(-1)}
+          className="w-full py-4 text-gray-400 font-black uppercase tracking-widest text-sm hover:text-lily-600 transition-colors"
         >
-          Proceed to Withdraw
-        </motion.button>
+          Cancel Request
+        </button>
       </div>
-
-      {/* Password Confirmation Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => !processing && setShowModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
-            >
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Confirm Withdrawal
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                Review the amount and destination account, then confirm this withdrawal.
-              </p>
-
-              <div className="mb-6 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                This request will be submitted immediately and may take up to 24 hours to land in your bank account.
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  disabled={processing}
-                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirm}
-                  disabled={processing}
-                  className={`flex-1 py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 ${
-                    !processing
-                      ? "bg-gradient-to-r from-lily-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <span>Confirm</span>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

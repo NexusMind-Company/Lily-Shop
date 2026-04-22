@@ -36,3 +36,5 @@ build/
 
 .env*
 netlify.toml
+api_corrections.txt
+Lily Shop API.yaml

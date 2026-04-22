@@ -78,16 +78,34 @@ const formatList = (items) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    active: { label: "Active", cls: "bg-green-50 text-green-600", icon: CheckCircle },
-    pending: { label: "Pending", cls: "bg-yellow-50 text-yellow-600", icon: Clock },
-    cancelled: { label: "Cancelled", cls: "bg-red-50 text-red-500", icon: AlertCircle },
-    expired: { label: "Expired", cls: "bg-gray-100 text-gray-500", icon: AlertCircle },
+    active: {
+      label: "Active",
+      cls: "bg-green-50 text-green-600",
+      icon: CheckCircle,
+    },
+    pending: {
+      label: "Pending",
+      cls: "bg-yellow-50 text-yellow-600",
+      icon: Clock,
+    },
+    cancelled: {
+      label: "Cancelled",
+      cls: "bg-red-50 text-red-500",
+      icon: AlertCircle,
+    },
+    expired: {
+      label: "Expired",
+      cls: "bg-gray-100 text-gray-500",
+      icon: AlertCircle,
+    },
   };
   const cfg = map[status?.toLowerCase()] || map.pending;
   const Icon = cfg.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${cfg.cls}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${cfg.cls}`}
+    >
       <Icon size={11} />
       {cfg.label}
     </span>
@@ -102,7 +120,11 @@ const InfoRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
       <span className="flex items-center gap-1 text-xs text-gray-400">
         <Icon size={11} /> {label}
       </span>
-      <span className={`text-right text-xs font-medium text-[#111813] ${valueClassName}`}>{value}</span>
+      <span
+        className={`text-right text-xs font-medium text-[#111813] ${valueClassName}`}
+      >
+        {value}
+      </span>
     </div>
   );
 };
@@ -141,11 +163,15 @@ const UnsubscribeModal = ({ plan, onConfirm, onCancel, isLoading }) => (
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
           <AlertCircle size={28} className="text-red-500" />
         </div>
-        <h3 className="text-lg font-bold text-[#111813]">Cancel Subscription?</h3>
+        <h3 className="text-lg font-bold text-[#111813]">
+          Cancel Subscription?
+        </h3>
         <p className="mt-1 text-sm text-gray-500">
           You are about to cancel{" "}
-          <span className="font-semibold text-[#111813]">{plan?.plan_name}</span>. You will keep
-          access until the end of the current cycle.
+          <span className="font-semibold text-[#111813]">
+            {plan?.plan_name}
+          </span>
+          . You will keep access until the end of the current cycle.
         </p>
       </div>
 
@@ -189,8 +215,12 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
             <ChefHat size={20} className="text-[#13ec49]" />
           </div>
           <div>
-            <p className="text-sm font-bold leading-tight text-[#111813]">{plan?.plan_name}</p>
-            <p className="mt-0.5 text-xs text-gray-400">{vendor?.name || "Vendor"}</p>
+            <p className="text-sm font-bold leading-tight text-[#111813]">
+              {plan?.plan_name}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {vendor?.name || "Vendor"}
+            </p>
           </div>
         </div>
         <StatusBadge status={sub?.status || "active"} />
@@ -198,29 +228,67 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
 
       <div className="mb-3 space-y-2 rounded-xl bg-[#f6f8f6] p-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#111813]">N{formatPrice(plan?.price)}</span>
+          <span className="text-sm font-medium text-[#111813]">
+            N{formatPrice(plan?.price)}
+          </span>
           <span className="flex items-center gap-1 text-xs text-gray-400">
             <Repeat size={11} />
             <span className="capitalize">{plan?.frequency || "weekly"}</span>
           </span>
         </div>
-        <InfoRow icon={Calendar} label="Last paid" value={formatDate(plan?.last_payment_date || sub?.last_payment_date)} />
-        <InfoRow icon={Calendar} label="Next renewal" value={formatDate(plan?.next_payment_date || sub?.next_payment_date)} />
+        <InfoRow
+          icon={Calendar}
+          label="Last paid"
+          value={formatDate(plan?.last_payment_date || sub?.last_payment_date)}
+        />
+        <InfoRow
+          icon={Calendar}
+          label="Next renewal"
+          value={formatDate(plan?.next_payment_date || sub?.next_payment_date)}
+        />
       </div>
 
       <div className="space-y-2 border-t border-gray-100 pt-3">
-        <InfoRow icon={Receipt} label="Subscription ID" value={receiptId} valueClassName="font-mono" />
-        <InfoRow icon={BadgeCheck} label="Collection Code" value={sub?.collection_code} valueClassName="text-[#13ec49]" />
+        <InfoRow
+          icon={Receipt}
+          label="Subscription ID"
+          value={receiptId}
+          valueClassName="font-mono"
+        />
+        <InfoRow
+          icon={BadgeCheck}
+          label="Collection Code"
+          value={sub?.collection_code}
+          valueClassName="text-[#13ec49]"
+        />
         <InfoRow icon={Phone} label="Contact" value={sub?.phone} />
-        <InfoRow icon={MapPin} label="Delivery Mode" value={sub?.delivery_type} valueClassName="capitalize" />
-        <InfoRow icon={Clock} label="Preferred Time" value={sub?.preferred_time} />
+        <InfoRow
+          icon={MapPin}
+          label="Delivery Mode"
+          value={sub?.delivery_type}
+          valueClassName="capitalize"
+        />
+        <InfoRow
+          icon={Clock}
+          label="Preferred Time"
+          value={sub?.preferred_time}
+        />
         <InfoRow icon={Calendar} label="Delivery Days" value={preferredDays} />
         <InfoRow
           icon={UtensilsCrossed}
           label="Plates"
-          value={sub?.plates_per_delivery ? `${sub.plates_per_delivery} per delivery` : ""}
+          value={
+            sub?.plates_per_delivery
+              ? `${sub.plates_per_delivery} per delivery`
+              : ""
+          }
         />
-        <InfoRow icon={ChefHat} label="Portion Size" value={sub?.portion_size} valueClassName="capitalize" />
+        <InfoRow
+          icon={ChefHat}
+          label="Portion Size"
+          value={sub?.portion_size}
+          valueClassName="capitalize"
+        />
 
         {sub?.address && (
           <div className="flex flex-col gap-1 pt-1">
@@ -233,33 +301,91 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
           </div>
         )}
 
-        <InfoRow icon={Clock} label="Subscribed on" value={formatDateTime(sub?.created_at || sub?.start_date)} />
-        <InfoRow icon={Calendar} label="Expires on" value={formatDate(sub?.next_payment_date || sub?.end_date)} />
+        <InfoRow
+          icon={Clock}
+          label="Subscribed on"
+          value={formatDateTime(sub?.created_at || sub?.start_date)}
+        />
+        <InfoRow
+          icon={Calendar}
+          label="Expires on"
+          value={formatDate(sub?.next_payment_date || sub?.end_date)}
+        />
         <InfoRow
           icon={Timer}
           label="Days remaining"
-          value={sub?.next_payment_date ? `${daysRemaining(sub.next_payment_date)} days` : ""}
-          valueClassName={daysRemaining(sub?.next_payment_date) <= 3 ? "text-red-500" : "text-[#13ec49]"}
+          value={
+            sub?.next_payment_date
+              ? `${daysRemaining(sub.next_payment_date)} days`
+              : ""
+          }
+          valueClassName={
+            daysRemaining(sub?.next_payment_date) <= 3
+              ? "text-red-500"
+              : "text-[#13ec49]"
+          }
         />
-        <InfoRow icon={Phone} label="Vendor Phone" value={vendor?.contact_phone} />
-        <InfoRow icon={CreditCard} label="Amount Paid" value={paymentAmount ? `N${Number(paymentAmount).toLocaleString()}` : ""} />
+        <InfoRow
+          icon={Phone}
+          label="Vendor Phone"
+          value={vendor?.contact_phone}
+        />
+        <InfoRow
+          icon={CreditCard}
+          label="Amount Paid"
+          value={
+            paymentAmount ? `N${Number(paymentAmount).toLocaleString()}` : ""
+          }
+        />
         <InfoRow
           icon={Truck}
           label="Paid With"
-          value={sub?.payment_method ? formatPaymentMethod(sub.payment_method) : ""}
+          value={
+            sub?.payment_method ? formatPaymentMethod(sub.payment_method) : ""
+          }
         />
-        <InfoRow icon={CheckCircle} label="Payment Status" value={sub?.payment_status} valueClassName="capitalize" />
-        <InfoRow icon={Receipt} label="Receipt Ref" value={sub?.receipt_reference} valueClassName="font-mono" />
-        <InfoRow icon={Clock} label="Payment Time" value={sub?.receipt_date ? formatDateTime(sub.receipt_date) : ""} />
+        <InfoRow
+          icon={CheckCircle}
+          label="Payment Status"
+          value={sub?.payment_status}
+          valueClassName="capitalize"
+        />
+        <InfoRow
+          icon={Receipt}
+          label="Receipt Ref"
+          value={sub?.receipt_reference}
+          valueClassName="font-mono"
+        />
+        <InfoRow
+          icon={Clock}
+          label="Payment Time"
+          value={sub?.receipt_date ? formatDateTime(sub.receipt_date) : ""}
+        />
         <InfoRow
           icon={Receipt}
           label="Customisation Fee"
-          value={sub?.extra_fee_kobo > 0 ? `N${Number(sub.extra_fee_kobo / 100).toLocaleString()}` : ""}
+          value={
+            sub?.extra_fee_kobo > 0
+              ? `N${Number(sub.extra_fee_kobo / 100).toLocaleString()}`
+              : ""
+          }
         />
 
-        <InfoBlock icon={ChefHat} label="Dietary Notes" value={sub?.dietary_notes} />
-        <InfoBlock icon={AlertCircle} label="Allergies" value={sub?.allergies_summary} />
-        <InfoBlock icon={Receipt} label="Additional Notes" value={sub?.special_instructions} />
+        <InfoBlock
+          icon={ChefHat}
+          label="Dietary Notes"
+          value={sub?.dietary_notes}
+        />
+        <InfoBlock
+          icon={AlertCircle}
+          label="Allergies"
+          value={sub?.allergies_summary}
+        />
+        <InfoBlock
+          icon={Receipt}
+          label="Additional Notes"
+          value={sub?.special_instructions}
+        />
       </div>
 
       {(sub?.status === "active" || !sub?.status) && (
@@ -290,7 +416,7 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
   );
 };
 
-const CustomerSubscriptionsPage = () => {
+const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [planToCancel, setPlanToCancel] = useState(null);
@@ -327,21 +453,36 @@ const CustomerSubscriptionsPage = () => {
     setCurrentPage(1);
   };
 
+  const handleExplore = () => {
+    if (onExplore) {
+      onExplore();
+    } else {
+      navigate("/food");
+    }
+  };
+
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col bg-[#f6f8f6]">
-      <div className="relative flex flex-shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors hover:text-gray-800"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-[#111813]">My Subscriptions</h1>
-      </div>
+    <div
+      className={`mx-auto flex w-full max-w-5xl flex-col bg-[#f6f8f6] ${hideHeader ? "" : "min-h-screen"}`}
+    >
+      {!hideHeader && (
+        <div className="relative flex flex-shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors hover:text-gray-800"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="text-lg font-bold text-[#111813]">My Subscriptions</h1>
+        </div>
+      )}
 
       <div className="border-b border-gray-100 bg-white px-4 pb-4">
         <div className="relative mt-3">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
           <input
             type="text"
             placeholder="Search subscriptions..."
@@ -356,15 +497,21 @@ const CustomerSubscriptionsPage = () => {
         {isLoading && (
           <div className="flex flex-col items-center justify-center gap-3 pt-20">
             <Loader2 size={32} className="animate-spin text-[#13ec49]" />
-            <p className="text-sm text-gray-400">Loading your subscriptions...</p>
+            <p className="text-sm text-gray-400">
+              Loading your subscriptions...
+            </p>
           </div>
         )}
 
         {isError && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20 text-center">
             <AlertCircle size={40} className="text-red-400" />
-            <p className="font-semibold text-[#111813]">Failed to load subscriptions</p>
-            <p className="text-sm text-gray-400">Please check your connection and try again.</p>
+            <p className="font-semibold text-[#111813]">
+              Failed to load subscriptions
+            </p>
+            <p className="text-sm text-gray-400">
+              Please check your connection and try again.
+            </p>
           </div>
         )}
 
@@ -378,12 +525,14 @@ const CustomerSubscriptionsPage = () => {
                 {searchQuery ? "No results found" : "No subscriptions yet"}
               </p>
               <p className="mt-1 text-sm text-gray-400">
-                {searchQuery ? "Try a different search term" : "Subscribe to a food vendor to get started!"}
+                {searchQuery
+                  ? "Try a different search term"
+                  : "Subscribe to a food vendor to get started!"}
               </p>
             </div>
             {!searchQuery && (
               <button
-                onClick={() => navigate("/food")}
+                onClick={handleExplore}
                 className="rounded-xl bg-[#13ec49] px-6 py-3 text-sm font-bold text-[#111813]"
               >
                 Explore Vendors
@@ -415,7 +564,9 @@ const CustomerSubscriptionsPage = () => {
               Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
