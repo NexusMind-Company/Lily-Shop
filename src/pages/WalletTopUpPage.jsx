@@ -64,51 +64,67 @@ const WalletTopUpPage = () => {
   // Success screen (if no Paystack redirect)
   if (successData) {
     return (
-      <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6] items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-[#13ec49]/10 border-4 border-[#13ec49] flex items-center justify-center mb-6">
-          <CheckCircle size={40} className="text-[#13ec49]" />
+      <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white items-center justify-center p-6 text-center font-display">
+        <div className="w-24 h-24 rounded-full bg-lily-100 flex items-center justify-center mb-8 shadow-sm">
+          <CheckCircle size={48} className="text-lily-500" />
         </div>
-        <h2 className="text-2xl font-extrabold text-[#111813] mb-2">Top Up Successful!</h2>
-        <p className="text-gray-500 text-sm mb-8">
+        <h2 className="text-3xl font-black text-gray-800 mb-3 tracking-tight">
+          Top Up Successful!
+        </h2>
+        <p className="text-gray-500 font-bold mb-10 max-w-[280px] leading-relaxed">
           ₦{formatPrice(parsedAmount)} has been added to your Lily Wallet.
         </p>
         <button
-          onClick={() => navigate(-1)}
-          className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base"
+          onClick={() => navigate("/wallet")}
+          className="w-full max-w-sm bg-lily-500 text-white font-black py-5 rounded-[2rem] text-lg shadow-glow active:scale-95 transition-all"
         >
-          Continue
+          Go to Wallet
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
+    <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white font-display">
       {/* Header */}
-      <div className="relative bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-center">
+      <div className="relative bg-white px-4 py-6 border-b border-lily-50 flex items-center justify-center">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 hover:bg-lily-50 rounded-full transition-colors"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={24} className="text-lily-700" />
         </button>
-        <h1 className="text-lg font-bold text-[#111813]">Top Up Wallet</h1>
+        <h1 className="text-xl font-black text-lily-700 tracking-tight">
+          Add Funds
+        </h1>
       </div>
 
-      <div className="flex-1 p-4 space-y-4 pb-36 overflow-y-auto">
+      <div className="flex-1 p-6 space-y-6 pb-36 overflow-y-auto relative">
+        {/* Background Decorative Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-lily-50 rounded-full blur-3xl opacity-30" />
+          <div className="absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-lily-50 rounded-full blur-3xl opacity-30" />
+        </div>
+
         {/* Wallet icon banner */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm"
+          className="bg-lily-50/50 rounded-3xl p-6 flex items-center gap-5 border border-lily-100/50 relative z-10"
         >
-          <div className="w-14 h-14 rounded-2xl bg-[#13ec49]/10 flex items-center justify-center">
-            <Wallet size={28} className="text-[#13ec49]" />
+          <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+            <Wallet size={32} className="text-lily-500" />
           </div>
           <div>
-            <p className="text-sm text-gray-400">Adding to</p>
-            <p className="font-bold text-[#111813] text-lg">Lily Wallet</p>
-            <p className="text-xs text-gray-400">Powered by Paystack</p>
+            <p className="text-xs font-black text-lily-400 uppercase tracking-widest">
+              Adding to
+            </p>
+            <p className="font-black text-lily-700 text-xl tracking-tight">
+              Lily Wallet
+            </p>
+            <p className="text-[10px] font-bold text-gray-400">
+              Powered by Paystack Secure
+            </p>
           </div>
         </motion.div>
 
@@ -117,18 +133,20 @@ const WalletTopUpPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="bg-white rounded-2xl p-4 shadow-sm"
+          className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-lily-50 relative z-10"
         >
-          <p className="font-semibold text-[#111813] mb-3 text-sm">Select amount</p>
-          <div className="grid grid-cols-3 gap-2">
+          <p className="font-black text-gray-400 uppercase tracking-widest mb-5 text-xs">
+            Select amount
+          </p>
+          <div className="grid grid-cols-3 gap-3">
             {QUICK_AMOUNTS.map((val) => (
               <button
                 key={val}
                 onClick={() => handleQuickSelect(val)}
-                className={`py-3 rounded-xl text-sm font-semibold border transition-all ${
+                className={`py-4 rounded-2xl text-lg font-black transition-all ${
                   amount === String(val) && !customInput
-                    ? "bg-[#13ec49] border-[#13ec49] text-[#111813]"
-                    : "bg-[#f6f8f6] border-transparent text-gray-600 hover:border-[#13ec49]/40"
+                    ? "bg-lily-500 text-white shadow-glow"
+                    : "bg-lily-50/50 text-lily-700 hover:bg-lily-100/50 border border-lily-100/20"
                 }`}
               >
                 ₦{formatPrice(val)}
@@ -142,13 +160,13 @@ const WalletTopUpPage = () => {
               setCustomInput(true);
               setAmount("");
             }}
-            className={`mt-3 w-full py-3 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${
+            className={`mt-4 w-full py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all ${
               customInput
-                ? "bg-[#13ec49]/10 border-[#13ec49] text-[#111813]"
-                : "bg-[#f6f8f6] border-transparent text-gray-500"
+                ? "bg-lily-50 border border-lily-200 text-lily-700"
+                : "bg-gray-50/50 text-gray-400 hover:bg-gray-100/50"
             }`}
           >
-            <Plus size={15} /> Enter custom amount
+            <Plus size={16} /> Enter custom amount
           </button>
 
           {/* Custom input field */}
@@ -158,10 +176,10 @@ const WalletTopUpPage = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-3 overflow-hidden"
+                className="mt-4 overflow-hidden"
               >
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lily-300 font-black text-xl">
                     ₦
                   </span>
                   <input
@@ -171,11 +189,11 @@ const WalletTopUpPage = () => {
                     value={amount ? formatPrice(amount) : ""}
                     onChange={handleCustomChange}
                     autoFocus
-                    className="w-full pl-8 pr-4 py-3.5 bg-[#f6f8f6] rounded-xl text-[#111813] font-bold text-base outline-none focus:ring-2 focus:ring-[#13ec49]/40"
+                    className="w-full pl-12 pr-6 py-5 bg-lily-50/30 rounded-2xl text-gray-800 font-black text-2xl outline-none border-2 border-lily-100 focus:border-lily-500 focus:ring-4 focus:ring-lily-50 transition-all"
                   />
                 </div>
                 {parsedAmount > 0 && parsedAmount < 100 && (
-                  <p className="text-red-400 text-xs mt-1 px-1">
+                  <p className="text-red-500 text-[10px] font-bold mt-2 px-2 uppercase tracking-tight">
                     Minimum top-up amount is ₦100
                   </p>
                 )}
@@ -191,16 +209,18 @@ const WalletTopUpPage = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="bg-white rounded-2xl p-4 shadow-sm"
+              className="bg-lily-50/30 rounded-3xl p-6 border border-lily-100/50 relative z-10"
             >
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">You're adding</span>
-                <span className="font-extrabold text-[#13ec49] text-xl">
+                <span className="text-lily-400 font-bold text-sm">
+                  Total Deposit
+                </span>
+                <span className="font-black text-lily-600 text-2xl tracking-tighter">
                   ₦{formatPrice(parsedAmount)}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                You'll be redirected to Paystack to complete payment securely.
+              <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-wide">
+                Secure redirection to Paystack checkout
               </p>
             </motion.div>
           )}
@@ -213,43 +233,54 @@ const WalletTopUpPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-start gap-3"
+              className="bg-red-50 border-2 border-red-100 rounded-3xl p-6 flex items-start gap-4 relative z-10"
             >
-              <AlertCircle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-600 text-sm">
-                {topUpMutation.error?.response?.data?.message ||
-                  "Top up failed. Please try again."}
-              </p>
+              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
+              <div>
+                <p className="text-red-700 font-black text-sm uppercase tracking-tight">
+                  Top up failed
+                </p>
+                <p className="text-red-600/80 text-xs font-bold mt-1">
+                  {topUpMutation.error?.response?.data?.message ||
+                    "Please check your network and try again."}
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Info note */}
-        <div className="flex items-start gap-2 bg-blue-50 rounded-2xl p-4">
-          <Shield size={15} className="text-blue-400 mt-0.5 flex-shrink-0" />
-          <p className="text-blue-600 text-xs leading-relaxed">
-            Your payment is secured by Paystack. After completing payment, your wallet balance
-            will be updated automatically.
+        <div className="flex items-start gap-4 bg-blue-50/50 rounded-3xl p-6 border border-blue-100/50 relative z-10">
+          <div className="p-2 bg-white rounded-xl shadow-sm">
+            <Shield size={20} className="text-blue-500" />
+          </div>
+          <p className="text-blue-700 text-xs font-bold leading-relaxed">
+            Your payment information is never stored on our servers. All
+            transactions are handled securely by Paystack.
           </p>
         </div>
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl bg-white border-t border-gray-100 p-4">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl bg-white border-t border-lily-50 p-6 z-20">
         <button
           onClick={handleSubmit}
           disabled={!isValid || topUpMutation.isPending}
-          className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-95"
+          className="w-full bg-lily-500 text-white font-black py-5 rounded-[2rem] text-lg disabled:opacity-30 disabled:grayscale transition-all active:scale-95 shadow-glow flex items-center justify-center gap-3"
         >
           {topUpMutation.isPending ? (
             <>
-              <Loader2 size={18} className="animate-spin" />
-              Redirecting to Paystack...
+              <Loader2 size={24} className="animate-spin" />
+              <span>Initializing...</span>
             </>
           ) : (
             <>
-              <Wallet size={18} />
-              {isValid ? `Top Up ₦${formatPrice(parsedAmount)}` : "Select an Amount"}
+              <Wallet size={24} />
+              <span>
+                {isValid
+                  ? `Pay ₦${formatPrice(parsedAmount)}`
+                  : "Select Amount"}
+              </span>
             </>
           )}
         </button>

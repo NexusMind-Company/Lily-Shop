@@ -261,8 +261,6 @@ export const addProductComment = async (
 ) => {
   const payload = {
     comment_text: commentText,
-    text: commentText,
-    content: commentText,
     product: productId,
   };
 
@@ -296,8 +294,6 @@ export const addContentComment = async (
 ) => {
   const payload = {
     comment_text: commentText,
-    text: commentText,
-    content: commentText,
     content_id: contentId,
   };
 
