@@ -10,12 +10,13 @@ import {
 } from "../../../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
 
+const EMPTY_ARRAY = [];
+
 const CartModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const cart = useSelector(selectCart);
-  const cartItems = useSelector(selectCartItems) || [];
+  const cartItems = useSelector(selectCartItems) || EMPTY_ARRAY;
   const cartItemCount = cartItems.length;
 
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -188,7 +189,7 @@ const CartModal = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[70] bg-black/50 flex justify-center items-end pointer-events-auto"
+      className="fixed inset-0 z-70 bg-black/50 flex justify-center items-end pointer-events-auto"
       onClick={onClose}
     >
       <div

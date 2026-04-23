@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
  * @param {Function} props.onBack - Function to handle back navigation
  * @param {Function} props.onFilter - Function to handle filter action
  */
-const MealSelectionHeader = ({ onBack, onFilter }) => {
+const MealSelectionHeader = ({ onBack, _onFilter }) => {
   return (
     <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
       <div className="flex items-center p-4 justify-between">
@@ -15,7 +15,7 @@ const MealSelectionHeader = ({ onBack, onFilter }) => {
           onClick={onBack}
           className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-surface-dark transition-colors"
         >
-          <ArrowLeft/>
+          <ArrowLeft />
         </button>
         <h2 className="text-text-main dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">
           Customize Your Plan
@@ -27,7 +27,7 @@ const MealSelectionHeader = ({ onBack, onFilter }) => {
 
 MealSelectionHeader.propTypes = {
   onBack: PropTypes.func.isRequired,
-  onFilter: PropTypes.func,
+  _onFilter: PropTypes.func,
 };
 
 export default MealSelectionHeader;

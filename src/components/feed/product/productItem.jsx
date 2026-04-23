@@ -29,10 +29,6 @@ import ProductReview from "./productReview";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
-// Utility to format large numbers (e.g., 1500 -> 1.5k)
-const formatCount = (num) =>
-  num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
-
 // --- Sub-component: Video Player for Carousel ---
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
@@ -126,9 +122,6 @@ const ProductItem = ({ product }) => {
       product.is_followed === "true" ||
       product.has_followed === true,
   );
-  const [viewCount, setViewCount] = useState(
-    Number(product.visit_count || product.view_count || product.views || 0),
-  );
 
   // Stock status logic
   const isOutOfStock =
@@ -187,13 +180,9 @@ const ProductItem = ({ product }) => {
     let timer;
     if (!hasViewed && product?.id) {
       timer = setTimeout(() => {
-        setViewCount((prev) => prev + 1);
         setHasViewed(true);
-
         recordProductView(product.id).catch((err) => {
-          console.log(err);
-          // Rollback view count on failure
-          setViewCount((prev) => Math.max(0, prev - 1));
+          console.error(err);
           setHasViewed(false);
         });
       }, 2000);

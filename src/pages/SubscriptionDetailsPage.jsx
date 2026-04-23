@@ -165,11 +165,11 @@ const handleCloseModal = () => setIsModalOpen(false);
               onClick={() => setDeliveryType("delivery")}
               className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                 deliveryType === "delivery"
-                  ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+                  ? "border-lily bg-lily/50 dark:bg-darklily/20"
                   : "border-gray-200 bg-white dark:bg-slate-800"
               }`}
             >
-              <Truck className={deliveryType === "delivery" ? "text-[#13ec49]" : "text-gray-400"} />
+              <Truck className={deliveryType === "delivery" ? "text-lily" : "text-gray-400"} />
               <span className="text-sm font-semibold">Deliver to me</span>
             </button>
 
@@ -178,11 +178,11 @@ const handleCloseModal = () => setIsModalOpen(false);
               onClick={() => setDeliveryType("pickup")}
               className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                 deliveryType === "pickup"
-                  ? "border-[#13ec49] bg-green-50 dark:bg-green-900/20"
+                  ? "border-lily bg-lily/50 dark:bg-lily/50"
                   : "border-gray-200 bg-white dark:bg-slate-800"
               }`}
             >
-              <ShoppingBag className={deliveryType === "pickup" ? "text-[#13ec49]" : "text-gray-400"} />
+              <ShoppingBag className={deliveryType === "pickup" ? "text-lily" : "text-gray-400"} />
               <span className="text-sm font-semibold">I'll pick up</span>
             </button>
 
@@ -206,7 +206,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                     placeholder="Enter delivery address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm"
                   />
                 </div>
               </div>
@@ -225,7 +225,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                     placeholder="Enter collection code if you have one"
                     value={collectionCode}
                     onChange={(e) => setCollectionCode(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm"
                   />
                 </div>
               </div>
@@ -243,7 +243,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                   placeholder="Enter phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm"
                 />
               </div>
             </div>
@@ -252,10 +252,10 @@ const handleCloseModal = () => setIsModalOpen(false);
             <div>
               <button
                 onClick={() => setShowCustomization(!showCustomization)}
-                className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-[#13ec49] transition-colors bg-gray-50 dark:bg-slate-800"
+                className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-lily transition-colors bg-gray-50 dark:bg-slate-800"
               >
                 <span className="text-sm font-semibold text-[#111813] dark:text-white">Customize Your Meal Plan</span>
-                <ShoppingBag className={showCustomization ? "text-[#13ec49] rotate-180" : "text-gray-400"} />
+                <ShoppingBag className={showCustomization ? "text-lily rotate-180" : "text-gray-400"} />
               </button>
             </div>
 
@@ -271,7 +271,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                     placeholder="e.g. Vegetarian, Keto, Low-sodium"
                     value={dietaryPreferences}
                     onChange={(e) => setDietaryPreferences(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm resize-none"
                   />
                 </div>
 
@@ -285,7 +285,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                     placeholder="e.g. Peanuts, Dairy, Gluten"
                     value={allergies}
                     onChange={(e) => setAllergies(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm"
                   />
                 </div>
 
@@ -301,7 +301,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                         onClick={() => setPortionSize(size)}
                         className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
                           portionSize === size
-                            ? "bg-[#13ec49] text-white shadow-sm"
+                            ? "bg-lily text-white shadow-sm"
                             : "bg-white dark:bg-slate-800 text-gray-500 border border-gray-200"
                         }`}
                       >
@@ -321,7 +321,7 @@ const handleCloseModal = () => setIsModalOpen(false);
                     placeholder="Any special requests for your meals..."
                     value={specialInstructions}
                     onChange={(e) => setSpecialInstructions(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#13ec49] bg-white dark:bg-slate-800 text-sm resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm resize-none"
                   />
                 </div>
               </div>
@@ -339,7 +339,7 @@ const handleCloseModal = () => setIsModalOpen(false);
           disabled={!isValid()}
           className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
             isValid()
-              ? "bg-[#13ec49] text-[#111813]"
+              ? "bg-lily text-[#111813]"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >

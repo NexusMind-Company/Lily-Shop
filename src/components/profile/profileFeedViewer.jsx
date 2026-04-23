@@ -55,9 +55,10 @@ const ProfileFeedViewer = ({ posts, initialIndex = 0, onClose }) => {
     );
 
     observerRef.current = observer;
+    const currentMediaRefs = mediaRefs.current;
     return () => {
       observer.disconnect();
-      mediaRefs.current.clear();
+      currentMediaRefs.clear();
     };
   }, []);
 

@@ -6,6 +6,8 @@ import {
   Loader2,
   AlertCircle,
   Sparkles,
+  ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";

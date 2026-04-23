@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchConversationMessages,
   sendMessageToUser,
-  clearConversation
+  clearConversation,
 } from "../../redux/messageConversationSlice";
 
 const ChatPage = () => {
@@ -28,8 +28,13 @@ const ChatPage = () => {
   const { conversationId } = useParams();
   console.log("Recipient ID:", conversationId);
 
-  const { messages: conversation, loading, sending, currentPage, nextPage } =
-    useSelector((state) => state.messages);
+  const {
+    messages: conversation,
+    loading,
+    sending,
+    currentPage,
+    nextPage,
+  } = useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
 
   //  On mount & user change
@@ -37,15 +42,18 @@ const ChatPage = () => {
     dispatch(clearConversation());
 
     if (conversationId) {
-      dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }))
-        .catch((error) => {
-          console.error("Error fetching conversation messages:", error);
-        });
+      dispatch(
+        fetchConversationMessages({ userId: conversationId, page: 1 }),
+      ).catch((error) => {
+        console.error("Error fetching conversation messages:", error);
+      });
 
       // Polling for new messages every 5 seconds
       const interval = setInterval(() => {
         try {
-          dispatch(fetchConversationMessages({ userId: conversationId, page: 1 }));
+          dispatch(
+            fetchConversationMessages({ userId: conversationId, page: 1 }),
+          );
         } catch (error) {
           console.error("Error fetching conversation messages:", error);
         }
@@ -53,7 +61,7 @@ const ChatPage = () => {
 
       return () => clearInterval(interval);
     }
-  }, [conversationId]);
+  }, [conversationId, dispatch]);
 
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
@@ -66,13 +74,17 @@ const ChatPage = () => {
     if (top === 0 && nextPage && !isFetchingMore) {
       setIsFetchingMore(true);
 
-      dispatch(fetchConversationMessages({ userId: conversationId, page: currentPage + 1 }))
-        .then(() => {
-          setTimeout(() => {
-            chatBoxRef.current.scrollTop = 10;
-            setIsFetchingMore(false);
-          }, 100);
-        });
+      dispatch(
+        fetchConversationMessages({
+          userId: conversationId,
+          page: currentPage + 1,
+        }),
+      ).then(() => {
+        setTimeout(() => {
+          chatBoxRef.current.scrollTop = 10;
+          setIsFetchingMore(false);
+        }, 100);
+      });
     }
   };
 
@@ -136,16 +148,18 @@ const ChatPage = () => {
           conversation.map((msg) => (
             <div
               key={msg.id}
-              className={`flex ${msg.sender === user_data?.user?.id
-                ? "justify-end"
-                : "justify-start"
-                }`}
+              className={`flex ${
+                msg.sender === user_data?.user?.id
+                  ? "justify-end"
+                  : "justify-start"
+              }`}
             >
               <div
-                className={`max-w-[75%] p-3 rounded-2xl text-sm ${msg.sender === user_data?.user?.id
-                  ? "bg-green-100 text-gray-800 rounded-br-none"
-                  : "bg-pink-100 text-gray-800 rounded-bl-none"
-                  }`}
+                className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                  msg.sender === user_data?.user?.id
+                    ? "bg-green-100 text-gray-800 rounded-br-none"
+                    : "bg-pink-100 text-gray-800 rounded-bl-none"
+                }`}
               >
                 {msg.content}
                 <p className="text-[10px] mt-1 opacity-70 text-right">
@@ -189,8 +203,9 @@ const ChatPage = () => {
 
         <button onClick={handleSend} disabled={sending}>
           <SendHorizontal
-            className={`h-8 w-8 ${sending ? "text-gray-400" : "text-lily"
-              } transition-all`}
+            className={`h-8 w-8 ${
+              sending ? "text-gray-400" : "text-lily"
+            } transition-all`}
           />
         </button>
       </div>
