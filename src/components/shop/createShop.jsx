@@ -72,13 +72,14 @@ const CreateShop = () => {
         if (value.length > 500)
           return "Description must not exceed 500 characters";
         return "";
-      case "phone":
+      case "phone": {
         if (!value.trim()) return "Phone number is required";
         const phoneRegex = /^(\+234|0)[789]\d{9}$/;
         if (!phoneRegex.test(value)) {
           return "Please enter a valid Nigerian phone number";
         }
         return "";
+      }
       default:
         return "";
     }

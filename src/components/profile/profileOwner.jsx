@@ -23,7 +23,6 @@ import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import ProfileFeedViewer from "./profileFeedViewer";
 
-
 const API_BASE_URL = "//api.lilyshops.com";
 
 const ProfileOwner = () => {
@@ -41,13 +40,17 @@ const ProfileOwner = () => {
   const [likedLoading, setLikedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
 
-  const [openMenuId, setOpenMenuId] = useState(null);
-
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
     items: [],
     initialIndex: 0,
   });
+
+  useEffect(() => {
+    if (error) {
+      navigate("/login");
+    }
+  }, [error, navigate]);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -310,34 +313,6 @@ const ProfileOwner = () => {
     return `${cleanBase}/${cleanPath}`;
   }, [user.profile_pic]);
 
-  const handleDeletePost = async (e, post) => {
-    e.stopPropagation();
-    setOpenMenuId(null);
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this post?",
-    );
-    if (!confirmDelete) return;
-
-    try {
-      if (post.itemType === "product") {
-        await deleteProductPost(post.id);
-      } else {
-        await deleteContentPost(post.id);
-      }
-
-      setUserPosts((prev) => prev.filter((p) => p.id !== post.id));
-      if (feedOverlay.isOpen) {
-        setFeedOverlay((prev) => ({
-          ...prev,
-          items: prev.items.filter((p) => p.id !== post.id),
-        }));
-      }
-    } catch (error) {
-      console.error("Failed to delete post", error);
-      alert("Failed to delete post. Please try again.");
-    }
-  };
-
   if (!auth?.isAuthenticated) return null;
 
   if (loading && !data)
@@ -346,13 +321,6 @@ const ProfileOwner = () => {
         <LoaderSd />
       </div>
     );
-
-  // ✅ AFTER — add this alongside your existing useEffects
-  useEffect(() => {
-    if (error) {
-      navigate("/login");
-    }
-  }, [error, navigate]);
 
   if (auth?.isAuthenticated && !data)
     return (

@@ -2,12 +2,18 @@ import { ChevronLeft, CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../../redux/notificationSlice";
+import {
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from "../../redux/notificationSlice";
 
 const Notifications = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { notifications, loading, error } = useSelector((state) => state.notifications);
+  const { notifications, loading } = useSelector(
+    (state) => state.notifications,
+  );
   const [filter, setFilter] = useState("all"); // 'all' or 'unread'
 
   useEffect(() => {
@@ -45,8 +51,8 @@ const Notifications = () => {
     return date.toLocaleDateString();
   };
 
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'unread') return !n.read;
+  const filteredNotifications = notifications.filter((n) => {
+    if (filter === "unread") return !n.read;
     return true;
   });
 
@@ -73,14 +79,14 @@ const Notifications = () => {
       {/* Filter Tabs */}
       <div className="flex px-4 py-3 gap-2 bg-white border-t border-gray-100">
         <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === 'all' ? 'bg-lily text-white' : 'bg-gray-100 text-gray-600'}`}
+          onClick={() => setFilter("all")}
+          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === "all" ? "bg-lily text-white" : "bg-gray-100 text-gray-600"}`}
         >
           All
         </button>
         <button
-          onClick={() => setFilter('unread')}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === 'unread' ? 'bg-lily text-white' : 'bg-gray-100 text-gray-600'}`}
+          onClick={() => setFilter("unread")}
+          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === "unread" ? "bg-lily text-white" : "bg-gray-100 text-gray-600"}`}
         >
           Unread
         </button>
@@ -89,7 +95,9 @@ const Notifications = () => {
       {/* List */}
       <div className="px-2 py-2 space-y-2">
         {loading && notifications.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 text-sm">Loading notifications...</div>
+          <div className="text-center py-10 text-gray-500 text-sm">
+            Loading notifications...
+          </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3">
@@ -102,27 +110,40 @@ const Notifications = () => {
             <div
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              className={`p-3 rounded-xl border flex items-start cursor-pointer transition-colors ${notification.read ? "bg-white border-gray-100" : "bg-purple-50 border-lily/20"
-                }`}
+              className={`p-3 rounded-xl border flex items-start cursor-pointer transition-colors ${
+                notification.read
+                  ? "bg-white border-gray-100"
+                  : "bg-purple-50 border-lily/20"
+              }`}
             >
               {/* Icon based on type */}
-              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-3 text-lg
-                    ${notification.type === 'ORDER' ? 'bg-orange-100 text-orange-600' :
-                  notification.type === 'MESSAGE' ? 'bg-blue-100 text-blue-600' :
-                    notification.type === 'FOLLOW' ? 'bg-pink-100 text-pink-600' :
-                      'bg-gray-100 text-gray-600'
-                }
-                `}>
-                {notification.type === 'ORDER' && '📦'}
-                {notification.type === 'MESSAGE' && '💬'}
-                {notification.type === 'FOLLOW' && '👤'}
-                {notification.type === 'SYSTEM' && '📢'}
-                {notification.type === 'PRODUCT' && '🛍️'}
-                {!['ORDER', 'MESSAGE', 'FOLLOW', 'SYSTEM', 'PRODUCT'].includes(notification.type) && '🔔'}
+              <div
+                className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-3 text-lg
+                    ${
+                      notification.type === "ORDER"
+                        ? "bg-orange-100 text-orange-600"
+                        : notification.type === "MESSAGE"
+                          ? "bg-blue-100 text-blue-600"
+                          : notification.type === "FOLLOW"
+                            ? "bg-pink-100 text-pink-600"
+                            : "bg-gray-100 text-gray-600"
+                    }
+                `}
+              >
+                {notification.type === "ORDER" && "📦"}
+                {notification.type === "MESSAGE" && "💬"}
+                {notification.type === "FOLLOW" && "👤"}
+                {notification.type === "SYSTEM" && "📢"}
+                {notification.type === "PRODUCT" && "🛍️"}
+                {!["ORDER", "MESSAGE", "FOLLOW", "SYSTEM", "PRODUCT"].includes(
+                  notification.type,
+                ) && "🔔"}
               </div>
 
               <div className="flex-1">
-                <p className={`text-sm leading-snug mb-1 ${!notification.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                <p
+                  className={`text-sm leading-snug mb-1 ${!notification.read ? "font-semibold text-gray-900" : "text-gray-700"}`}
+                >
                   {notification.message}
                 </p>
                 <p className="text-[10px] text-gray-500">
@@ -139,7 +160,9 @@ const Notifications = () => {
       </div>
 
       {loading && notifications.length > 0 && (
-        <div className="text-center py-4 text-xs text-gray-400">Updating...</div>
+        <div className="text-center py-4 text-xs text-gray-400">
+          Updating...
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -76,6 +76,12 @@ const CreatePost = () => {
   const loading = localLoading || reduxLoading;
   const success = productState.success || funState.success;
 
+  // Ref for cleanup
+  const mediaRef = useRef(formData.media);
+  useEffect(() => {
+    mediaRef.current = formData.media;
+  }, [formData.media]);
+
   // 1. Auth Check
   useEffect(() => {
     if (!isAuthenticated) navigate("/login");
@@ -111,7 +117,7 @@ const CreatePost = () => {
   // 4. Cleanup Object URLs
   useEffect(() => {
     return () => {
-      formData.media.forEach((item) => {
+      mediaRef.current.forEach((item) => {
         if (item.url) URL.revokeObjectURL(item.url);
       });
     };
@@ -127,8 +133,19 @@ const CreatePost = () => {
     const isValidMime = ALLOWED_TYPES.includes(file.type);
 
     // Check Extension (Fallback)
-    const fileExtension = file.name ? file.name.split(".").pop().toLowerCase() : "";
-    const validExtensions = ["jpg", "jpeg", "png", "webp", "mp4", "mov", "mkv", "webm"];
+    const fileExtension = file.name
+      ? file.name.split(".").pop().toLowerCase()
+      : "";
+    const validExtensions = [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "mp4",
+      "mov",
+      "mkv",
+      "webm",
+    ];
     const isValidExtension = validExtensions.includes(fileExtension);
 
     if (!isValidMime && !isValidExtension) {
@@ -212,12 +229,24 @@ const CreatePost = () => {
       const submitFormData = new FormData();
 
       if (formData.postType === "product") {
-        submitFormData.append("name", formData.name?.trim() || "Untitled Product");
+        submitFormData.append(
+          "name",
+          formData.name?.trim() || "Untitled Product",
+        );
         submitFormData.append("caption", formData.caption?.trim() || "");
-        submitFormData.append("price", formData.price ? Number(formData.price) : 0);
+        submitFormData.append(
+          "price",
+          formData.price ? Number(formData.price) : 0,
+        );
         submitFormData.append("in_stock", formData.in_stock);
-        submitFormData.append("quantity_available", formData.quantity_available ? Number(formData.quantity_available) : 0);
-        submitFormData.append("delivery_info", formData.delivery_info?.trim() || "");
+        submitFormData.append(
+          "quantity_available",
+          formData.quantity_available ? Number(formData.quantity_available) : 0,
+        );
+        submitFormData.append(
+          "delivery_info",
+          formData.delivery_info?.trim() || "",
+        );
         submitFormData.append("promotable", formData.promotable);
         submitFormData.append("hashtags", formData.hashtags?.trim() || "");
 
@@ -258,11 +287,17 @@ const CreatePost = () => {
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
           {step > 1 ? (
-            <button onClick={prevStep} className="text-gray-600 hover:text-black transition">
+            <button
+              onClick={prevStep}
+              className="text-gray-600 hover:text-black transition"
+            >
               <ChevronLeft size={30} />
             </button>
           ) : (
-            <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-black transition">
+            <button
+              onClick={() => navigate(-1)}
+              className="text-gray-600 hover:text-black transition"
+            >
               <ChevronLeft size={30} />
             </button>
           )}
@@ -271,7 +306,7 @@ const CreatePost = () => {
             {step === 2 && "Add Details"}
             {step === 3 && "Preview"}
           </h2>
-          <div className="w-[30px]" />
+          <div className="w-7.5" />
         </div>
 
         {/* STEP 1: UPLOAD MEDIA */}
@@ -302,10 +337,11 @@ const CreatePost = () => {
             <button
               onClick={nextStep}
               disabled={formData.media.length === 0}
-              className={`w-full py-3 rounded-full font-semibold mt-4 transition ${formData.media.length > 0
-                ? "bg-lily hover:bg-darklily text-black"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+              className={`w-full py-3 rounded-full font-semibold mt-4 transition ${
+                formData.media.length > 0
+                  ? "bg-lily hover:bg-darklily text-black"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
             >
               Next
             </button>

@@ -1,7 +1,12 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createMealPlan, updateSubscriptionPlan, fetchMealPlan, createMeal } from "../../services/api";
+import {
+  createMealPlan,
+  updateSubscriptionPlan,
+  fetchMealPlan,
+  createMeal,
+} from "../../services/api";
 import { Plus, X, Save, Loader2 } from "lucide-react";
 
 /**
@@ -15,7 +20,6 @@ const MealPlanForm = ({
   planId = null,
   vendorId = null,
 }) => {
-
   const [planData, setPlanData] = useState({
     name: "",
     description: "",
@@ -55,7 +59,8 @@ const MealPlanForm = ({
         mealsPerWeek: data.meals_per_cycle || 5,
         features: [],
         address: data.address || "",
-        service_days_preset: data.service_days?.length > 5 ? "mon_sun" : "mon_fri",
+        service_days_preset:
+          data.service_days?.length > 5 ? "mon_sun" : "mon_fri",
       });
       // Note: Meal combinations loading can be implemented here if backend returns them
     },
@@ -170,11 +175,13 @@ const MealPlanForm = ({
       return;
     }
 
+    /*
     const validMeals = meals.filter((meal) => meal.name.trim());
     if (validMeals.length === 0) {
       alert("Please add at least one meal");
       return;
     }
+    */
 
     const submissionData = {
       plan_name: planData.name,
@@ -184,7 +191,15 @@ const MealPlanForm = ({
       frequency: planData.type,
       service_days:
         planData.service_days_preset === "mon_sun"
-          ? ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+          ? [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday",
+              "sunday",
+            ]
           : ["monday", "tuesday", "wednesday", "thursday", "friday"],
       media: mediaFiles,
     };
@@ -205,317 +220,321 @@ const MealPlanForm = ({
     );
   }
 
-return (
-  <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-surface-dark rounded-lg shadow-lg">
-    <h2 className="text-2xl font-bold mb-6 text-text-main dark:text-white">
-      {isEdit ? "Edit Meal Plan" : "Create Meal Plan"}
-    </h2>
+  return (
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-text-main">
+        {isEdit ? "Edit Meal Plan" : "Create Meal Plan"}
+      </h2>
 
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Plan Details */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-text-main dark:text-white">
-          Plan Details
-        </h3>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Plan Details */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-text-main">Plan Details</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-              Plan Name *
-            </label>
-            <input
-              type="text"
-              value={planData.name}
-              onChange={(e) => handlePlanChange("name", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-              placeholder="e.g., Weekly Standard Plan"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-              Price (₦) *
-            </label>
-            <input
-              type="number"
-              value={planData.price}
-              onChange={(e) => handlePlanChange("price", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-              placeholder="15000"
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-            Service Days
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handlePlanChange("service_days_preset", "mon_fri")}
-              className={`px-3 py-2 rounded-md border text-sm font-semibold ${planData.service_days_preset === "mon_fri"
-                  ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
-                  : "bg-white dark:bg-surface-dark text-text-main dark:text-white border-gray-300 dark:border-gray-600"
-                }`}
-            >
-              Mon – Fri
-            </button>
-            <button
-              type="button"
-              onClick={() => handlePlanChange("service_days_preset", "mon_sun")}
-              className={`px-3 py-2 rounded-md border text-sm font-semibold ${planData.service_days_preset === "mon_sun"
-                  ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
-                  : "bg-white dark:bg-surface-dark text-text-main dark:text-white border-gray-300 dark:border-gray-600"
-                }`}
-            >
-              Mon – Sun
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Set pricing based on the days you’ll deliver.
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-            Restaurant/Pickup Address *
-          </label>
-          <textarea
-            value={planData.address}
-            onChange={(e) => handlePlanChange("address", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-            rows="2"
-            placeholder="Full address where customers can pick up or search for you..."
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-            Description *
-          </label>
-          <textarea
-            value={planData.description}
-            onChange={(e) => handlePlanChange("description", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-            rows="3"
-            placeholder="Describe your meal plan..."
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-            Package Photos & Videos
-          </label>
-          <input
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={(e) => {
-              if (e.target.files) {
-                setMediaFiles(Array.from(e.target.files));
-              }
-            }}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white
-                         file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold 
-                         file:bg-[#13ec49] file:text-green-950 hover:file:bg-[#0ea33b] transition-colors cursor-pointer"
-          />
-          {mediaFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-2">
-              {mediaFiles.length} file(s) selected
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-              Type
-            </label>
-            <select
-              value={planData.type}
-              onChange={(e) => handlePlanChange("type", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-              Meals per {planData.type === "weekly" ? "Week" : "Month"}
-            </label>
-            <input
-              type="number"
-              value={planData.mealsPerWeek}
-              onChange={(e) =>
-                handlePlanChange("mealsPerWeek", e.target.value)
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-              min="1"
-              max="30"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Meals Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-text-main dark:text-white">
-            Food Combinations (Meals)
-          </h3>
-          <button
-            type="button"
-            onClick={addMeal}
-            className="flex items-center gap-2 px-3 py-1 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] transition-colors"
-          >
-            <Plus size={16} />
-            Add Meal
-          </button>
-        </div>
-
-        {meals.map((meal, index) => (
-          <div
-            key={index}
-            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-text-main dark:text-white">
-                Meal {index + 1}
-              </h4>
-              {meals.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeMeal(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-                  Meal Name *
-                </label>
-                <input
-                  type="text"
-                  value={meal.name}
-                  onChange={(e) =>
-                    handleMealChange(index, "name", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-                  placeholder="e.g., Grilled Chicken & Quinoa"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-                  Calories
-                </label>
-                <input
-                  type="number"
-                  value={meal.calories}
-                  onChange={(e) =>
-                    handleMealChange(index, "calories", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-                  placeholder="450"
-                  min="0"
-                />
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-                Description
-              </label>
-              <textarea
-                value={meal.description}
-                onChange={(e) =>
-                  handleMealChange(index, "description", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-                rows="2"
-                placeholder="Describe the meal..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-                Image URL
-              </label>
-              <input
-                type="url"
-                value={meal.image}
-                onChange={(e) =>
-                  handleMealChange(index, "image", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-                placeholder="https://example.com/meal-image.jpg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-main dark:text-white mb-1">
-                Tags (comma separated, format: label:type)
+              <label className="block text-sm font-medium text-text-main mb-1">
+                Plan Name *
               </label>
               <input
                 type="text"
-                value={tagInputs[index] || ""}
-                onChange={(e) => {
-                  const newTagInputs = [...tagInputs];
-                  newTagInputs[index] = e.target.value;
-                  setTagInputs(newTagInputs);
-                  handleTagChange(index, e.target.value);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-surface-dark text-text-main dark:text-white"
-                placeholder="High Protein:protein, 450 kcal:calories"
+                value={planData.name}
+                onChange={(e) => handlePlanChange("name", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                placeholder="e.g., Weekly Standard Plan"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">
+                Price (₦) *
+              </label>
+              <input
+                type="number"
+                value={planData.price}
+                onChange={(e) => handlePlanChange("price", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                placeholder="15000"
+                min="0"
+                step="0.01"
+                required
               />
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Submit Buttons */}
-      <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-text-main dark:text-white rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
-          className="flex-1 px-4 py-2 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          <Save size={16} />
-          {createPlanMutation.isPending || updatePlanMutation.isPending
-            ? isEdit
-              ? "Updating..."
-              : "Creating..."
-            : isEdit
-              ? "Update Plan"
-              : "Create Plan"}
-        </button>
-      </div>
-    </form>
-  </div>
+          <div>
+            <label className="block text-sm font-medium text-text-main mb-1">
+              Service Days
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handlePlanChange("service_days_preset", "mon_fri")
+                }
+                className={`px-3 py-2 rounded-md border text-sm font-semibold ${
+                  planData.service_days_preset === "mon_fri"
+                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
+                    : "bg-white text-text-main border-gray-300"
+                }`}
+              >
+                Mon – Fri
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handlePlanChange("service_days_preset", "mon_sun")
+                }
+                className={`px-3 py-2 rounded-md border text-sm font-semibold ${
+                  planData.service_days_preset === "mon_sun"
+                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
+                    : "bg-white text-text-main border-gray-300"
+                }`}
+              >
+                Mon – Sun
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Set pricing based on the days you’ll deliver.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main mb-1">
+              Restaurant/Pickup Address *
+            </label>
+            <textarea
+              value={planData.address}
+              onChange={(e) => handlePlanChange("address", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+              rows="2"
+              placeholder="Full address where customers can pick up or search for you..."
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main mb-1">
+              Description *
+            </label>
+            <textarea
+              value={planData.description}
+              onChange={(e) => handlePlanChange("description", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+              rows="3"
+              placeholder="Describe your meal plan..."
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-main mb-1">
+              Package Photos & Videos
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setMediaFiles(Array.from(e.target.files));
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main
+                         file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold
+                         file:bg-[#13ec49] file:text-green-950 hover:file:bg-[#0ea33b] transition-colors cursor-pointer"
+            />
+            {mediaFiles.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                {mediaFiles.length} file(s) selected
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">
+                Type
+              </label>
+              <select
+                value={planData.type}
+                onChange={(e) => handlePlanChange("type", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+              >
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">
+                Meals per {planData.type === "weekly" ? "Week" : "Month"}
+              </label>
+              <input
+                type="number"
+                value={planData.mealsPerWeek}
+                onChange={(e) =>
+                  handlePlanChange("mealsPerWeek", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                min="1"
+                max="30"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Meals Section
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-text-main">
+              Food Combinations (Meals)
+            </h3>
+            <button
+              type="button"
+              onClick={addMeal}
+              className="flex items-center gap-2 px-3 py-1 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] transition-colors"
+            >
+              <Plus size={16} />
+              Add Meal
+            </button>
+          </div>
+
+          {meals.map((meal, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 rounded-lg p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-text-main">Meal {index + 1}</h4>
+                {meals.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMeal(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-1">
+                    Meal Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={meal.name}
+                    onChange={(e) =>
+                      handleMealChange(index, "name", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                    placeholder="e.g., Grilled Chicken & Quinoa"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-1">
+                    Calories
+                  </label>
+                  <input
+                    type="number"
+                    value={meal.calories}
+                    onChange={(e) =>
+                      handleMealChange(index, "calories", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                    placeholder="450"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-main mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={meal.description}
+                  onChange={(e) =>
+                    handleMealChange(index, "description", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                  rows="2"
+                  placeholder="Describe the meal..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-main mb-1">
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  value={meal.image}
+                  onChange={(e) =>
+                    handleMealChange(index, "image", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                  placeholder="https://example.com/meal-image.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-main mb-1">
+                  Tags (comma separated, format: label:type)
+                </label>
+                <input
+                  type="text"
+                  value={tagInputs[index] || ""}
+                  onChange={(e) => {
+                    const newTagInputs = [...tagInputs];
+                    newTagInputs[index] = e.target.value;
+                    setTagInputs(newTagInputs);
+                    handleTagChange(index, e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
+                  placeholder="High Protein:protein, 450 kcal:calories"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        */}
+
+        {/* Submit Buttons */}
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-4 py-2 border border-gray-300 text-text-main rounded-md hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={
+              createPlanMutation.isPending || updatePlanMutation.isPending
+            }
+            className="flex-1 px-4 py-2 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Save size={16} />
+            {createPlanMutation.isPending || updatePlanMutation.isPending
+              ? isEdit
+                ? "Updating..."
+                : "Creating..."
+              : isEdit
+                ? "Update Plan"
+                : "Create Plan"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
-
 
 MealPlanForm.propTypes = {
   onSuccess: PropTypes.func,

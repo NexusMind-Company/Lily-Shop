@@ -32,7 +32,7 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
             />
             {vendor.verified && (
               <div className="absolute -bottom-2 -right-2 bg-[#ffffff] dark:bg-surface-dark p-1.5 rounded-full shadow-sm border border-black/5 dark:border-white/5">
-                <BadgeCheck className="text-[#13ec49] text-[20px] fill-1" />
+                <BadgeCheck className="text-lily text-[20px] fill-1" />
               </div>
             )}
           </div>
@@ -40,13 +40,13 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
             <h1 className="text-2xl font-extrabold leading-tight tracking-tight">
               {vendor.name}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+            <p className="text-slate-900 text-sm font-medium mt-1">
               {vendor.cuisine ? `${vendor.cuisine}` : ""} 
               {vendor.address && vendor.address !== "Lagos" && vendor.cuisine ? ` • ${vendor.address}` : ""}
               {vendor.address && vendor.address !== "Lagos" && !vendor.cuisine ? vendor.address : ""}
             </p>
             {(vendor.contact_phone || vendor.phone) && (
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+              <p className="text-slate-900 text-sm font-medium mt-1">
                 <span className="flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
@@ -56,21 +56,21 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
               </p>
             )}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
+              <span className="flex items-center bg-lily text-white px-2 py-0.5 rounded-md text-xs font-bold">
                 {vendor.rating} <Star className="text-[12px] ml-0.5" />
               </span>
-              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+              <span className="text-xs text-slate-900 font-medium">
                 ({vendor.reviewCount} reviews)
               </span>
               {hasSubscriptionPlans && (
-                <span className="flex items-center bg-[#13ec49] text-green-950 px-2 py-0.5 rounded-md text-xs font-bold">
+                <span className="flex items-center bg-lily text-white px-2 py-0.5 rounded-md text-xs font-bold">
                   Subscription Plan Available
                 </span>
               )}
             </div>
           </div>
         </div>
-        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+        <p className="text-slate-900 text-sm leading-relaxed">
           {vendor.description}
         </p>
 

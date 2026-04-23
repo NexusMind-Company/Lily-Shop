@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 const PopUp = ({ copyPopUp, handlePopUp }) => {
   return (
     <section className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">

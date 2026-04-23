@@ -92,19 +92,6 @@ export default function TransactionHistory() {
     return isCredit ? ArrowDownLeft : ArrowUpRight;
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "success":
-        return "text-success bg-success/10";
-      case "failed":
-        return "text-error bg-error/10";
-      case "pending":
-        return "text-warning bg-warning/10";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
     setFilterType("all");

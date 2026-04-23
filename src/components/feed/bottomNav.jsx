@@ -6,7 +6,7 @@ const BottomNav = ({ activePage }) => {
   const location = useLocation();
   const { refreshFeed } = useFeed();
 
-  const handleHomeClick = (e) => {
+  const handleHomeClick = () => {
     if (location.pathname === "/") {
       // If already on home, refresh the feed
       refreshFeed();

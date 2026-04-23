@@ -39,17 +39,18 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
 
   // Handle Play/Pause based on Active State
   useEffect(() => {
+    const videoNode = videoRef.current;
     if (isActive) {
-      const playPromise = videoRef.current?.play();
+      const playPromise = videoNode?.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {});
       }
     } else {
-      videoRef.current?.pause();
+      videoNode?.pause();
     }
 
     return () => {
-      videoRef.current?.pause();
+      videoNode?.pause();
     };
   }, [isActive]);
 
@@ -81,7 +82,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
     };
   }, []);
 
-  const handlePlayerClick = (e) => {
+  const handlePlayerClick = () => {
     if (videoRef.current?.paused) {
       videoRef.current.play();
     } else {
