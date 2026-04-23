@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import SEO from "./SEO";
 
 // ✅ Page-specific SEO configurations
-export const pageSEOConfig = {
+const pageSEOConfig = {
   feed: {
     title:
       "Lily Shop - Turn Every Scroll into a Purchase | Shop Products from Real People",

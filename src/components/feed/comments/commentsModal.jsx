@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,9 +49,11 @@ const CommentsModal = ({
     (state) => state.feedComments.commentsStatus,
   );
 
-  const commentsList = Array.isArray(rawComments)
-    ? rawComments
-    : rawComments?.results || [];
+  const commentsList = useMemo(() => {
+    return Array.isArray(rawComments)
+      ? rawComments
+      : rawComments?.results || [];
+  }, [rawComments]);
 
   const [commentText, setCommentText] = useState("");
   const [replyTarget, setReplyTarget] = useState(null);
@@ -106,7 +108,7 @@ const CommentsModal = ({
     dispatch(toggleCommentLike({ commentId, postId, itemType }));
   };
 
-  const handleDeleteComment = async (commentId, isReply) => {
+  const handleDeleteComment = async (commentId, _isReply) => {
     if (!isAuthenticated) return;
 
     try {
@@ -172,7 +174,9 @@ const CommentsModal = ({
 
     try {
       await dispatch(postComment(newComment)).unwrap();
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to post comment:", error);
+    }
 
     setCommentText("");
     setReplyTarget(null);

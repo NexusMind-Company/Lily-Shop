@@ -8,12 +8,12 @@ const ContactVendorButton = ({
   vendorId,
   vendorName = "this vendor",
   className = "",
-  size = "default"
+  size = "default",
 }) => {
   const navigate = useNavigate();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
-  const { isAuthenticated, user_data } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const { subscription } = useSelector((state) => state.userSubscription);
 
   // Check if user is subscribed
@@ -25,8 +25,8 @@ const ContactVendorButton = ({
       navigate("/login", {
         state: {
           redirectTo: `/chat/${vendorId}`,
-          message: "Please log in to contact vendors"
-        }
+          message: "Please log in to contact vendors",
+        },
       });
       return;
     }
@@ -44,7 +44,7 @@ const ContactVendorButton = ({
   const buttonSizeClasses = {
     small: "px-3 py-2 text-sm",
     default: "px-4 py-3",
-    large: "px-6 py-4 text-lg"
+    large: "px-6 py-4 text-lg",
   };
 
   return (
@@ -61,7 +61,9 @@ const ContactVendorButton = ({
       >
         {isSubscribed ? (
           <>
-            <MessageCircle size={size === "small" ? 16 : size === "large" ? 24 : 20} />
+            <MessageCircle
+              size={size === "small" ? 16 : size === "large" ? 24 : 20}
+            />
             <span>Contact Vendor</span>
           </>
         ) : (

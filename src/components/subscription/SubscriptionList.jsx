@@ -10,7 +10,12 @@ import Pagination from "./Pagination";
  * @param {Object} props.pagination - Pagination information {currentPage, totalPages, totalCount, pageSize}
  * @param {Function} props.onPageChange - Function to handle page change
  */
-const SubscriptionList = ({ subscriptions, onViewAll, pagination, onPageChange }) => {
+const SubscriptionList = ({
+  subscriptions,
+  _onViewAll,
+  pagination,
+  onPageChange,
+}) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
@@ -58,7 +63,8 @@ SubscriptionList.propTypes = {
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       plan_name: PropTypes.string.isRequired,
-      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
       subscribers: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       subscription_date: PropTypes.string,
       trial_days: PropTypes.number,
@@ -68,7 +74,7 @@ SubscriptionList.propTypes = {
       next_payment_date: PropTypes.string,
     }),
   ),
-  onViewAll: PropTypes.func,
+  _onViewAll: PropTypes.func,
   pagination: PropTypes.shape({
     currentPage: PropTypes.number.isRequired,
     totalPages: PropTypes.number.isRequired,

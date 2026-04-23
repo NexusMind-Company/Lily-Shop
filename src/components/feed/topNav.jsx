@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import CartModal from "./cart/cartModal";
 import SearchModal from "./searchModal";
 
@@ -17,7 +17,6 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   );
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     setIsSearchModalOpen(false);

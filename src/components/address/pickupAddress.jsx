@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchShopDetails } from "../../services/api";
@@ -29,7 +28,7 @@ const PickupAddress = () => {
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-white">
       {/* Header */}
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
+      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center shrink-0">
         <button
           onClick={() => navigate("/checkout")}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
@@ -103,7 +102,7 @@ const PickupAddress = () => {
 
       {/* Footer Button */}
       {shop && (
-        <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="p-4 border-t border-gray-200 bg-white shrink-0">
           <button
             onClick={() => {
               // Since the location is fixed to the shop, we just confirm and go back
