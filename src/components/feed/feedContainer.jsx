@@ -71,11 +71,11 @@ const FeedContainer = () => {
   // VIDEO INTERSECTION OBSERVER
   // ========================================
   useEffect(() => {
-    // The individual FeedItem components now handle their own play/pause 
-    // logic using the `isActive` prop. This observer is no longer 
+    // The individual FeedItem components now handle their own play/pause
+    // logic using the `isActive` prop. This observer is no longer
     // responsible for triggering playback to avoid race conditions.
     const observer = new IntersectionObserver(
-      (entries) => {
+      () => {
         // No-op: Playback is now driven by `isActive` prop in FeedItem
       },
       { threshold: 0.8 },
@@ -83,9 +83,10 @@ const FeedContainer = () => {
 
     observerRef.current = observer;
 
+    const currentMediaRefs = mediaRefs.current;
     return () => {
       observer.disconnect();
-      mediaRefs.current.clear();
+      currentMediaRefs.clear();
     };
   }, []);
 

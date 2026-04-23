@@ -9,13 +9,13 @@ import PropTypes from "prop-types";
 const PlanToggle = ({ selectedPlan, onPlanChange }) => {
   return (
     <div className="px-4 py-2">
-      <div className="bg-[#ffffff] dark:bg-surface-dark border border-slate-200 dark:border-slate-700 p-1 rounded-xl flex relative">
+      <div className="bg-white border border-slate-200 p-1 rounded-xl flex relative">
         <button
           onClick={() => onPlanChange("weekly")}
           className={`flex-1 py-2.5 rounded-lg text-sm font-bold text-center transition-all ${
             selectedPlan === "weekly"
-              ? "bg-[#13ec49] text-green-950 shadow-sm"
-              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              ? "bg-lily text-white shadow-sm"
+              : "text-slate-700 hover:text-slate-900"
           }`}
         >
           Weekly
@@ -24,12 +24,12 @@ const PlanToggle = ({ selectedPlan, onPlanChange }) => {
           onClick={() => onPlanChange("monthly")}
           className={`flex-1 py-2.5 rounded-lg text-sm font-medium text-center transition-all relative ${
             selectedPlan === "monthly"
-              ? "bg-[#13ec49] text-green-950 shadow-sm"
-              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              ? "bg-lily text-white shadow-sm"
+              : "text-slate-700 hover:text-slate-900"
           }`}
         >
           Monthly{" "}
-          <span className="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded ml-1">
+          <span className="text-[10px] bg-lily/10 text-darklily px-1.5 py-0.5 rounded ml-1">
             -15%
           </span>
         </button>

@@ -127,9 +127,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
     }
     const currentVideo = videoRefs.current[swiper.realIndex];
     if (currentVideo) {
-      currentVideo
-        .play()
-        .catch((error) => console.log("Autoplay was prevented."));
+      currentVideo.play().catch(() => console.log("Autoplay was prevented."));
     }
   };
 

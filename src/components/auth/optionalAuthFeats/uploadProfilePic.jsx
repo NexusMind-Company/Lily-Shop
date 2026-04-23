@@ -80,7 +80,6 @@ const sanitizeFilename = (filename) => {
 const UploadProfilePic = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationError, setValidationError] = useState("");
   const [isZoomed, setIsZoomed] = useState(false);
@@ -136,7 +135,7 @@ const UploadProfilePic = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Upload failed (${response.status})`
+          errorData.message || `Upload failed (${response.status})`,
         );
       }
 
@@ -165,10 +164,13 @@ const UploadProfilePic = () => {
         (error.name === "AbortError" || error.message.includes("network")) &&
         retryCount < 3
       ) {
-        setTimeout(() => {
-          setRetryCount((prev) => prev + 1);
-          uploadMutation.mutate();
-        }, 2000 * (retryCount + 1)); // Exponential backoff
+        setTimeout(
+          () => {
+            setRetryCount((prev) => prev + 1);
+            uploadMutation.mutate();
+          },
+          2000 * (retryCount + 1),
+        ); // Exponential backoff
       } else {
         setValidationError(`Upload failed: ${error.message}`);
         setUploadProgress(0);
@@ -176,60 +178,66 @@ const UploadProfilePic = () => {
     },
   });
 
+  // Enhanced file processing
+  const handleFileProcess = useCallback(
+    async (file) => {
+      setValidationError("");
+      setIsCompressing(true);
+
+      try {
+        // Validate file
+        const validation = await validateFile(file);
+        if (!validation.valid) {
+          setValidationError(validation.error);
+          setIsCompressing(false);
+          return;
+        }
+
+        // Sanitize filename
+        const sanitizedName = sanitizeFilename(file.name);
+
+        // Compress image
+        const compressedFile = await compressImage(file);
+
+        // Create new file with sanitized name
+        const finalFile = new File([compressedFile], sanitizedName, {
+          type: "image/webp",
+          lastModified: Date.now(),
+        });
+
+        setSelectedImage(finalFile);
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Cleanup previous preview
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+          }
+          setPreviewUrl(e.target.result);
+          setIsCompressing(false);
+        };
+        reader.readAsDataURL(finalFile);
+      } catch (error) {
+        console.error("File processing error:", error);
+        setValidationError("Failed to process image. Please try another file.");
+        setIsCompressing(false);
+      }
+    },
+    [previewUrl],
+  );
+
   // Debounced file selection
   const debounceTimeout = useRef(null);
-  const debouncedFileSelect = useCallback((file) => {
-    clearTimeout(debounceTimeout.current);
-    debounceTimeout.current = setTimeout(async () => {
-      await handleFileProcess(file);
-    }, 300);
-  }, []);
-
-  // Enhanced file processing
-  const handleFileProcess = async (file) => {
-    setValidationError("");
-    setIsCompressing(true);
-
-    try {
-      // Validate file
-      const validation = await validateFile(file);
-      if (!validation.valid) {
-        setValidationError(validation.error);
-        setIsCompressing(false);
-        return;
-      }
-
-      // Sanitize filename
-      const sanitizedName = sanitizeFilename(file.name);
-
-      // Compress image
-      const compressedFile = await compressImage(file);
-
-      // Create new file with sanitized name
-      const finalFile = new File([compressedFile], sanitizedName, {
-        type: "image/webp",
-        lastModified: Date.now(),
-      });
-
-      setSelectedImage(finalFile);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        // Cleanup previous preview
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-        setPreviewUrl(e.target.result);
-        setIsCompressing(false);
-      };
-      reader.readAsDataURL(finalFile);
-    } catch (error) {
-      console.error("File processing error:", error);
-      setValidationError("Failed to process image. Please try another file.");
-      setIsCompressing(false);
-    }
-  };
+  const debouncedFileSelect = useCallback(
+    (file) => {
+      clearTimeout(debounceTimeout.current);
+      debounceTimeout.current = setTimeout(async () => {
+        await handleFileProcess(file);
+      }, 300);
+    },
+    [handleFileProcess],
+  );
 
   // Handle file input change
   const handleFileSelect = (event) => {
@@ -336,7 +344,7 @@ const UploadProfilePic = () => {
               onKeyDown={(e) =>
                 handleKeyDown(
                   e,
-                  previewUrl ? () => setIsZoomed(!isZoomed) : handleCameraClick
+                  previewUrl ? () => setIsZoomed(!isZoomed) : handleCameraClick,
                 )
               }
               tabIndex={0}
@@ -447,7 +455,7 @@ const UploadProfilePic = () => {
         <button
           onClick={handleConfirm}
           disabled={uploadMutation.isPending || isCompressing}
-          className="w-full pt-0 h-[46px] bg-lily border-none rounded-full my-5 font-inter font-bold text-[15px]/[18.51px] text-white cursor-pointer hover:bg-darklily disabled:opacity-50"
+          className="w-full pt-0 h-11.5 bg-lily border-none rounded-full my-5 font-inter font-bold text-[15px]/[18.51px] text-white cursor-pointer hover:bg-darklily disabled:opacity-50"
           aria-label={
             selectedImage
               ? "Confirm and upload profile picture"
@@ -457,10 +465,10 @@ const UploadProfilePic = () => {
           {uploadMutation.isPending
             ? "UPLOADING..."
             : isCompressing
-            ? "PROCESSING..."
-            : selectedImage
-            ? "CONFIRM"
-            : "CONTINUE"}
+              ? "PROCESSING..."
+              : selectedImage
+                ? "CONFIRM"
+                : "CONTINUE"}
         </button>
 
         {/* Back to Login */}

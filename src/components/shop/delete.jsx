@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useDispatch, useSelector } from "react-redux";
 import { deleteShop, resetDeleteShopState } from "../../redux/deleteShopSlice";
 import { useEffect, useRef } from "react";
@@ -7,7 +6,7 @@ import ErrorDisplay from "../common/ErrorDisplay";
 const Delete = ({ delIsOpen, toggleDel, shop_id, entityName = "shop" }) => {
   const dispatch = useDispatch();
   const { deleteStatus: status, error } = useSelector(
-    (state) => state.deleteShop
+    (state) => state.deleteShop,
   );
 
   const cancelBtnRef = useRef();

@@ -13,7 +13,7 @@ const BirthdayPicker = () => {
       type="button"
       onClick={onClick}
       ref={ref}
-      className="input flex items-center text-ash font-medium text-sm rounded-[7px] h-[46px] w-full pr-10 mt-3"
+      className="input flex items-center text-ash font-medium text-sm rounded-[7px] h-11.5 w-full pr-10 mt-3"
     >
       {value ? (
         <>
@@ -29,6 +29,7 @@ const BirthdayPicker = () => {
       )}
     </button>
   ));
+  CustomInput.displayName = "CustomInput";
 
   // Function to send date to backend
   const sendDateToBackend = async (date) => {
@@ -127,7 +128,7 @@ const BirthdayPicker = () => {
         <button
           onClick={handleNext}
           disabled={isLoading}
-          className="w-full pt-0 h-[46px] my-7 bg-lily border-none rounded-full font-inter font-bold text-[15px]/[18.51px] text-white cursor-pointer hover:bg-darklily disabled:opacity-50"
+          className="w-full pt-0 h-11.5 my-7 bg-lily border-none rounded-full font-inter font-bold text-[15px]/[18.51px] text-white cursor-pointer hover:bg-darklily disabled:opacity-50"
         >
           {isLoading ? "SAVING..." : "NEXT"}
         </button>

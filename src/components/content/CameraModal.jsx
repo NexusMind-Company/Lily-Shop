@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   X,
@@ -49,6 +49,29 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
+  const initCamera = useCallback(async () => {
+    try {
+      const constraints = {
+        video: { facingMode: flipped ? "user" : "environment" },
+        audio: mode === "video",
+      };
+      const mediaStream =
+        await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(mediaStream);
+      if (videoRef.current) videoRef.current.srcObject = mediaStream;
+    } catch (error) {
+      console.error("Camera access error:", error);
+      alert("Unable to access camera. Please allow camera permission.");
+    }
+  }, [flipped, mode]);
+
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      setStream(null);
+    }
+  }, [stream]);
+
   useEffect(() => {
     if (isOpen) {
       initCamera();
@@ -57,29 +80,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       stopCamera();
     }
     return () => stopCamera();
-  }, [isOpen, flipped]);
-
-  const initCamera = async () => {
-    try {
-      const constraints = {
-        video: { facingMode: flipped ? "user" : "environment" },
-        audio: mode === "video",
-      };
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
-      if (videoRef.current) videoRef.current.srcObject = mediaStream;
-    } catch (error) {
-      console.error("Camera access error:", error);
-      alert("Unable to access camera. Please allow camera permission.");
-    }
-  };
-
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
-      setStream(null);
-    }
-  };
+  }, [isOpen, initCamera, stopCamera]);
 
   const handleFlip = () => setFlipped((prev) => !prev);
   const clearOverlay = () => {
@@ -133,23 +134,30 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     canvas.toBlob(
       (blob) => {
         if (!blob) return console.error("Photo blob is null");
-        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: "image/jpeg" });
+        const file = new File([blob], `photo-${Date.now()}.jpg`, {
+          type: "image/jpeg",
+        });
         onCapture({ type: "image", file, url: URL.createObjectURL(file) });
         clearOverlay();
         onClose();
       },
       "image/jpeg",
-      1
+      1,
     );
   };
 
   const getDurationMs = () => {
     switch (duration) {
-      case "15s": return 15000;
-      case "30s": return 30000;
-      case "60s": return 60000;
-      case "2m": return 120000;
-      default: return 15000;
+      case "15s":
+        return 15000;
+      case "30s":
+        return 30000;
+      case "60s":
+        return 60000;
+      case "2m":
+        return 120000;
+      default:
+        return 15000;
     }
   };
 
@@ -167,7 +175,9 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       if (chunks.length === 0) return console.error("No video data captured.");
       const blob = new Blob(chunks, { type: "video/mp4" });
-      const file = new File([blob], `video-${Date.now()}.mp4`, { type: "video/mp4" });
+      const file = new File([blob], `video-${Date.now()}.mp4`, {
+        type: "video/mp4",
+      });
       onCapture({ type: "video", file, url: URL.createObjectURL(file) });
       setRecording(false);
       clearOverlay();
@@ -343,7 +353,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
       {overlayText && (
         <div
-          className="absolute z-20 text-white font-bold text-3xl drop-shadow-lg cursor-move select-none text-center max-w-[80%] break-words"
+          className="absolute z-20 text-white font-bold text-3xl drop-shadow-lg cursor-move select-none text-center max-w-[80%] wrap-break-word"
           style={{
             left: textPosition.x,
             top: textPosition.y,
@@ -363,9 +373,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <X className="w-6 h-6" />
           </button>
 
-          <button
-            className="bg-gray-800/80 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1"
-          >
+          <button className="bg-gray-800/80 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
             🎵 coming soon
           </button>
 

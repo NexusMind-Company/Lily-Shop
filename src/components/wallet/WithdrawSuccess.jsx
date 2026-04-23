@@ -16,7 +16,7 @@ import Confetti from "react-confetti";
 export default function WithdrawSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { amount, account, total, date, reference } = location.state || {};
+  const { amount, account, date, reference } = location.state || {};
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({

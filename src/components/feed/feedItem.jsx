@@ -199,7 +199,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     post.productName !== undefined;
 
   const profileLink = profileId ? `/profile/${profileId}` : "#";
-  const postState = { itemType: isProduct ? "product" : "content", post };
 
   const currentUserId = user_data?.id || user_data?.user?.id;
   const currentUsername = user_data?.username || user_data?.user?.username;

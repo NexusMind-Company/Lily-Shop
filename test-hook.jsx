@@ -1,3 +1,4 @@
+/* global global */
 import { useState } from "react";
 import useFormValidation from "./src/hooks/useFormValidation";
 
@@ -6,7 +7,7 @@ global.React = {
   useState,
 };
 
-const testHook = () => {
+const TestHook = () => {
   console.log("Testing useFormValidation hook...");
 
   const INITIAL_FORM_STATE = {
@@ -48,4 +49,4 @@ const testHook = () => {
   }
 };
 
-testHook();
+TestHook();

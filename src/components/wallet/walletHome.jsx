@@ -94,23 +94,10 @@ export default function WalletHome() {
     return ArrowUpRight;
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "success":
-        return "text-success";
-      case "failed":
-        return "text-error";
-      case "pending":
-        return "text-warning";
-      default:
-        return "text-gray-600";
-    }
-  };
-
   if (!token) return null;
 
   return (
-    <div className="min-h-screen bg-white font-display">
+    <div className="min-h-screen bg-lily font-display">
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
@@ -152,7 +139,7 @@ export default function WalletHome() {
               className="bg-lily-100 border-2 border-lily-200 rounded-2xl p-4"
             >
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-6 h-6 text-lily-600 flex-shrink-0" />
+                <CheckCircle className="w-6 h-6 text-lily-600 shrink-0" />
                 <div>
                   <p className="font-semibold text-lily-800">
                     Deposit Successful!
@@ -173,7 +160,7 @@ export default function WalletHome() {
               className="bg-error/10 border-2 border-error/20 rounded-2xl p-4"
             >
               <div className="flex items-center space-x-3">
-                <XCircle className="w-6 h-6 text-error flex-shrink-0" />
+                <XCircle className="w-6 h-6 text-error shrink-0" />
                 <div>
                   <p className="font-semibold text-error">Payment Failed</p>
                   <p className="text-sm text-error/80">
