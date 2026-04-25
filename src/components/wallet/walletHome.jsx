@@ -33,8 +33,8 @@ const WithdrawIcon = ({ className }) => (
     className={className}
   >
     <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
       d="M6.51749 2.2957C3.62495 0.925553 0.587582 3.89045 1.88748 6.81522L3.84319 11.2156C4.06731 11.7198 4.06731 12.2955 3.84318 12.7998L1.88748 17.2001C0.587582 20.1249 3.62495 23.0898 6.51749 21.7196L20.4376 15.1259C23.0687 13.8796 23.0687 10.1358 20.4376 8.88946L6.51749 2.2957ZM3.2582 6.20602C2.52342 4.55275 4.24032 2.87682 5.87536 3.65131L19.7955 10.2451C21.2827 10.9495 21.2827 13.0658 19.7955 13.7703L5.87536 20.364C4.24032 21.1385 2.52342 19.4626 3.2582 17.8093L5.2139 13.409C5.30776 13.1978 5.3794 12.9796 5.42882 12.7576H11.7668C12.181 12.7576 12.5168 12.4218 12.5168 12.0076C12.5168 11.5934 12.181 11.2576 11.7668 11.2576H5.42878C5.37936 11.0357 5.30774 10.8175 5.2139 10.6063L3.2582 6.20602Z"
       fill="currentColor"
     />
@@ -50,7 +50,7 @@ export default function WalletHome() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Get wallet state
-  const { balance_naira, recent_transactions, loading, error } = useSelector(
+  const { balance_naira, recent_transactions, loading } = useSelector(
     (state) => state.wallet || {},
   );
   const vendorId = useSelector(

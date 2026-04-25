@@ -530,7 +530,7 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
       className={`mx-auto flex w-full max-w-5xl flex-col bg-[#f6f8f6] ${hideHeader ? "" : "min-h-screen"}`}
     >
       {!hideHeader && (
-        <div className="relative flex flex-shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
+        <div className="relative flex shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
           <button
             onClick={() => navigate(-1)}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors hover:text-gray-800"
