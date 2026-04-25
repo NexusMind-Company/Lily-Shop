@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
   Plus,
-  ArrowUpRight,
-  ArrowDownLeft,
+  Landmark,
+  ShoppingCart,
+  BadgePercent,
+  Undo2,
   Wallet,
-  TrendingUp,
   Clock,
   CheckCircle,
   XCircle,
@@ -16,8 +17,29 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  Info,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { fetchWallet } from "../../redux/walletSlice";
+
+const WithdrawIcon = ({ className }) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.51749 2.2957C3.62495 0.925553 0.587582 3.89045 1.88748 6.81522L3.84319 11.2156C4.06731 11.7198 4.06731 12.2955 3.84318 12.7998L1.88748 17.2001C0.587582 20.1249 3.62495 23.0898 6.51749 21.7196L20.4376 15.1259C23.0687 13.8796 23.0687 10.1358 20.4376 8.88946L6.51749 2.2957ZM3.2582 6.20602C2.52342 4.55275 4.24032 2.87682 5.87536 3.65131L19.7955 10.2451C21.2827 10.9495 21.2827 13.0658 19.7955 13.7703L5.87536 20.364C4.24032 21.1385 2.52342 19.4626 3.2582 17.8093L5.2139 13.409C5.30776 13.1978 5.3794 12.9796 5.42882 12.7576H11.7668C12.181 12.7576 12.5168 12.4218 12.5168 12.0076C12.5168 11.5934 12.181 11.2576 11.7668 11.2576H5.42878C5.37936 11.0357 5.30774 10.8175 5.2139 10.6063L3.2582 6.20602Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 export default function WalletHome() {
   const navigate = useNavigate();
@@ -28,7 +50,7 @@ export default function WalletHome() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Get wallet state
-  const { balance_naira, recent_transactions, loading, error } = useSelector(
+  const { balance_naira, recent_transactions, loading } = useSelector(
     (state) => state.wallet || {},
   );
   const vendorId = useSelector(
@@ -58,7 +80,6 @@ export default function WalletHome() {
     const status = params.get("status");
 
     if (status === "success") {
-      // Show success notification
       setTimeout(() => navigate("/wallet", { replace: true }), 2000);
     } else if (status === "failed") {
       setTimeout(() => navigate("/wallet", { replace: true }), 2000);
@@ -74,374 +95,310 @@ export default function WalletHome() {
   // Calculate stats
   const pendingAmount =
     recent_transactions
-      ?.filter((t) => t.status === "pending")
+      ?.filter((t) => t.status === "pending" || t.status === "processing")
       ?.reduce((sum, t) => sum + (t.amount_naira || 0), 0) || 0;
 
-  const thisMonthTransactions =
-    recent_transactions?.filter((t) => {
-      const txDate = new Date(t.date || t.created_at);
-      const now = new Date();
-      return (
-        txDate.getMonth() === now.getMonth() &&
-        txDate.getFullYear() === now.getFullYear()
-      );
-    }).length || 0;
+  const totalCredits =
+    recent_transactions?.filter((t) =>
+      ["credit", "wallet_credit", "sale", "deposit"].includes(
+        t.type?.toLowerCase(),
+      ),
+    ).length || 0;
 
-  const getTransactionIcon = (type) => {
-    if (type === "credit" || type === "wallet_credit" || type === "sale") {
-      return ArrowDownLeft;
-    }
-    return ArrowUpRight;
+  const totalDebits =
+    recent_transactions?.filter((t) =>
+      ["debit", "withdrawal"].includes(t.type?.toLowerCase()),
+    ).length || 0;
+
+  const getTransactionIcon = (type, transaction_type = "") => {
+    const typeLower = type?.toLowerCase() || "";
+    const txTypeLower = transaction_type?.toLowerCase() || "";
+
+    if (txTypeLower.includes("refund")) return Undo2;
+    if (txTypeLower.includes("order") || txTypeLower.includes("payment"))
+      return ShoppingCart;
+    if (txTypeLower.includes("affiliate") || txTypeLower.includes("earning"))
+      return BadgePercent;
+    if (typeLower === "withdrawal" || txTypeLower.includes("withdrawal"))
+      return Landmark;
+    if (
+      typeLower === "credit" ||
+      typeLower === "wallet_credit" ||
+      typeLower === "deposit"
+    )
+      return Plus;
+
+    return Plus;
+  };
+
+  const getStatusColor = (status) => {
+    const s = status?.toLowerCase();
+    if (s === "success" || s === "successful") return "text-lily";
+    if (s === "pending" || s === "processing") return "text-yellow-600";
+    return "text-red-500";
   };
 
   if (!token) return null;
 
   return (
-    <div className="min-h-screen bg-lily font-display">
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
-      </div>
-
+    <div className="min-h-screen bg-white font-display">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg border-b border-lily-100">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-20 bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <div className="flex items-center">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-lily-50 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-50 rounded-full transition-colors"
             >
-              <ChevronLeft className="w-6 h-6 text-lily-700" />
+              <ChevronLeft className="w-7 h-7 text-gray-800" />
             </button>
-            <h1 className="text-xl font-bold text-lily-700">Lily Wallet</h1>
+            <h1 className="flex-1 text-center text-xl font-bold text-gray-900 pr-8">
+              Lily Wallet
+            </h1>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="p-2 hover:bg-lily-50 rounded-full transition-colors"
+              className="absolute right-4 p-2 hover:bg-gray-50 rounded-full transition-colors"
             >
               <RefreshCw
-                className={`w-5 h-5 text-lily-700 ${refreshing ? "animate-spin" : ""}`}
+                className={`w-5 h-5 text-gray-400 ${refreshing ? "animate-spin" : ""}`}
               />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 relative z-10">
-        {/* Success/Error Notifications */}
-        <AnimatePresence>
-          {location.search.includes("status=success") && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-lily-100 border-2 border-lily-200 rounded-2xl p-4"
-            >
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-6 h-6 text-lily-600 shrink-0" />
-                <div>
-                  <p className="font-semibold text-lily-800">
+      <div className="max-w-5xl mx-auto px-5 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Main Column */}
+          <div className="lg:col-span-2 space-y-10">
+            {/* Notifications */}
+            <AnimatePresence>
+              {location.search.includes("status=success") && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="bg-lily/10 border border-lily/20 rounded-2xl p-4 flex items-center space-x-3 shadow-sm"
+                >
+                  <CheckCircle className="w-5 h-5 text-lily" />
+                  <p className="text-sm font-semibold text-lily">
                     Deposit Successful!
                   </p>
-                  <p className="text-sm text-lily-600">
-                    Your wallet has been credited.
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Balance Section */}
+            <div className="space-y-2">
+              <p className="text-gray-500 font-medium">Available Balance</p>
+              <div className="flex items-center space-x-4">
+                <h2 className="text-4xl lg:text-6xl font-bold text-gray-900 tracking-tight">
+                  {showBalance
+                    ? `₦${(balance_naira || 0).toLocaleString()}`
+                    : "₦ ••••••••"}
+                </h2>
+                <button
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showBalance ? (
+                    <Eye className="w-8 h-8" />
+                  ) : (
+                    <EyeOff className="w-8 h-8" />
+                  )}
+                </button>
+              </div>
+              {pendingAmount > 0 && (
+                <div className="flex items-center space-x-1.5 pt-1">
+                  <p className="text-sm font-bold">
+                    <span className="text-gray-900">Pending: </span>
+                    <span className="text-pink-500">
+                      ₦{pendingAmount.toLocaleString()}
+                    </span>
                   </p>
+                  <Info className="w-4 h-4 text-gray-400" />
                 </div>
-              </div>
-            </motion.div>
-          )}
-
-          {location.search.includes("status=failed") && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-error/10 border-2 border-error/20 rounded-2xl p-4"
-            >
-              <div className="flex items-center space-x-3">
-                <XCircle className="w-6 h-6 text-error shrink-0" />
-                <div>
-                  <p className="font-semibold text-error">Payment Failed</p>
-                  <p className="text-sm text-error/80">
-                    Please try again or contact support.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Balance Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative overflow-hidden rounded-[2.5rem] bg-lily-gradient p-8 shadow-glow"
-        >
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
-
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm shadow-sm">
-                  <Wallet className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-white/90 font-bold tracking-tight text-lg">
-                  Available Balance
-                </span>
-              </div>
-              <button
-                onClick={() => setShowBalance(!showBalance)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
-                {showBalance ? (
-                  <Eye className="w-6 h-6 text-white" />
-                ) : (
-                  <EyeOff className="w-6 h-6 text-white" />
-                )}
-              </button>
+              )}
             </div>
 
-            {loading ? (
-              <div className="flex items-center space-x-3 py-4">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
-                <span className="text-white text-xl font-medium">
-                  Loading wallet...
-                </span>
-              </div>
-            ) : error ? (
-              <p className="text-white/90 text-sm bg-black/10 p-3 rounded-xl">
-                {error}
-              </p>
-            ) : (
-              <>
-                <div className="mb-8">
-                  <h2 className="text-5xl font-black text-white mb-2 tracking-tighter">
-                    {showBalance
-                      ? `₦${(balance_naira || 0).toLocaleString()}`
-                      : "₦ ••••••••"}
-                  </h2>
-                  {pendingAmount > 0 && (
-                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/20">
-                      <Clock className="w-4 h-4 text-white" />
-                      <span className="text-white text-xs font-bold">
-                        ₦{pendingAmount.toLocaleString()} pending
-                      </span>
-                    </div>
-                  )}
-                </div>
+            {/* Mobile Actions (Hidden on Desktop) */}
+            <div className="flex lg:hidden gap-4">
+              <Link
+                to={vendorId ? "/vendor/dashboard/earnings" : "/withdraw"}
+                className="flex-1"
+              >
+                <button className="w-full flex items-center justify-center space-x-2 py-4 rounded-full border-2 border-lily text-lily font-bold bg-white active:scale-95 transition-transform">
+                  <WithdrawIcon className="w-7 h-7" />
+                  <span>Withdraw</span>
+                </button>
+              </Link>
+              <Link to="/deposit" className="flex-1">
+                <button className="w-full flex items-center justify-center space-x-2 py-4 rounded-full bg-lily text-white font-bold active:scale-95 transition-transform shadow-lg shadow-lily/20">
+                  <Plus className="w-7 h-7" />
+                  <span>Deposit</span>
+                </button>
+              </Link>
+            </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-4">
-                  <Link to="/deposit" className="flex-1">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full flex items-center justify-center space-x-2 bg-white text-lily-700 py-4 rounded-2xl font-black shadow-lg hover:shadow-xl transition-all"
-                    >
-                      <Plus className="w-5 h-5" />
+            {/* History Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-gray-900">History</h3>
+                <Link
+                  to="/transaction-history"
+                  className="text-pink-500 font-bold hover:underline transition-all"
+                >
+                  View all
+                </Link>
+              </div>
+
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                    <Loader2 className="w-10 h-10 text-lily animate-spin" />
+                    <p className="text-gray-400 font-medium">
+                      Loading activity...
+                    </p>
+                  </div>
+                ) : recent_transactions && recent_transactions.length > 0 ? (
+                  recent_transactions.slice(0, 8).map((tx, index) => {
+                    const Icon = getTransactionIcon(
+                      tx.type,
+                      tx.transaction_type,
+                    );
+                    const isCredit = [
+                      "credit",
+                      "wallet_credit",
+                      "sale",
+                      "deposit",
+                    ].includes(tx.type?.toLowerCase());
+
+                    return (
+                      <motion.div
+                        key={tx.id || index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="group p-5 bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-md hover:border-lily/20 transition-all flex items-center space-x-5"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:bg-lily/5 group-hover:border-lily/10 transition-colors">
+                          <Icon className="w-7 h-7 text-gray-700 group-hover:text-lily" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-900 truncate lg:text-lg">
+                            {tx.transaction_type ||
+                              (isCredit ? "Deposit" : "Withdrawal")}
+                          </p>
+                          <p className="text-sm text-gray-400 font-semibold">
+                            {new Date(
+                              tx.date || tx.created_at,
+                            ).toLocaleDateString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+
+                        <div className="text-right">
+                          <p
+                            className={`font-bold lg:text-lg ${isCredit ? "text-lily" : "text-red-500"}`}
+                          >
+                            {isCredit ? "+" : "-"}₦
+                            {(tx.amount_naira || 0).toLocaleString()}
+                          </p>
+                          <p
+                            className={`text-xs font-bold uppercase tracking-wider ${getStatusColor(tx.status)}`}
+                          >
+                            {tx.status}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                ) : (
+                  <div className="py-20 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                      <Wallet className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <p className="text-gray-500 font-bold text-lg">
+                      No transactions yet
+                    </p>
+                    <p className="text-gray-400 text-sm font-medium">
+                      When you make transactions, they'll appear here.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar (Desktop Only) */}
+          <div className="hidden lg:block">
+            <div className="sticky top-28 space-y-6">
+              {/* Action Card */}
+              <div className="bg-gray-50 rounded-4xl p-8 border border-gray-100 space-y-6">
+                <h4 className="text-xl font-bold text-gray-900">
+                  Wallet Actions
+                </h4>
+                <div className="space-y-4 flex flex-col">
+                  <Link to="/deposit">
+                    <button className="w-full flex items-center justify-center space-x-3 py-3 rounded-2xl bg-lily text-white font-bold hover:brightness-105 transition-all shadow-lg shadow-lily/20">
+                      <Plus className="w-7 h-7" />
                       <span>Deposit</span>
-                    </motion.button>
+                    </button>
                   </Link>
                   <Link
                     to={vendorId ? "/vendor/dashboard/earnings" : "/withdraw"}
-                    className="flex-1"
                   >
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full flex items-center justify-center space-x-2 bg-white/20 backdrop-blur-sm text-white py-4 rounded-2xl font-black border-2 border-white/30 hover:bg-white/30 transition-all shadow-lg"
-                    >
-                      <ArrowUpRight className="w-5 h-5" />
+                    <button className="w-full flex items-center justify-center space-x-3 py-3 rounded-2xl border-2 border-lily text-lily font-bold bg-white hover:bg-lily/5 transition-all">
+                      <WithdrawIcon className="w-7 h-7" />
                       <span>Withdraw</span>
-                    </motion.button>
+                    </button>
                   </Link>
                 </div>
-              </>
-            )}
-          </div>
-        </motion.div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-3xl p-5 shadow-soft border border-lily-50"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="p-3 bg-lily-50 rounded-2xl mb-3">
-                <TrendingUp className="w-6 h-6 text-lily-600" />
-              </div>
-              <p className="text-2xl font-black text-gray-800 tracking-tight">
-                {recent_transactions?.filter(
-                  (t) =>
-                    t.type === "credit" ||
-                    t.type === "wallet_credit" ||
-                    t.type === "sale",
-                ).length || 0}
-              </p>
-              <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                Credits
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white rounded-3xl p-5 shadow-soft border border-lily-50"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="p-3 bg-red-50 rounded-2xl mb-3">
-                <ArrowUpRight className="w-6 h-6 text-red-500" />
-              </div>
-              <p className="text-2xl font-black text-gray-800 tracking-tight">
-                {recent_transactions?.filter(
-                  (t) => t.type === "debit" || t.type === "withdrawal",
-                ).length || 0}
-              </p>
-              <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                Debits
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-3xl p-5 shadow-soft border border-lily-50"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="p-3 bg-lily-100 rounded-2xl mb-3">
-                <Clock className="w-6 h-6 text-lily-600" />
-              </div>
-              <p className="text-2xl font-black text-gray-800 tracking-tight">
-                {thisMonthTransactions}
-              </p>
-              <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                Monthly
-              </p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Transaction History */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="bg-white rounded-[2.5rem] shadow-soft overflow-hidden border border-lily-50"
-        >
-          <div className="p-8 border-b border-lily-50">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-gray-800 tracking-tight">
-                Activity
-              </h2>
-              <Link
-                to="/transaction-history"
-                className="text-sm font-black text-lily-600 hover:text-lily-700 transition-colors bg-lily-50 px-4 py-2 rounded-full"
-              >
-                View All
-              </Link>
-            </div>
-          </div>
-
-          <div className="divide-y divide-lily-50">
-            {loading ? (
-              <div className="p-12 text-center">
-                <Loader2 className="w-8 h-8 text-lily-200 animate-spin mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-400">
-                  Loading history...
-                </p>
-              </div>
-            ) : recent_transactions && recent_transactions.length > 0 ? (
-              recent_transactions.slice(0, 5).map((tx, index) => {
-                const Icon = getTransactionIcon(tx.type);
-                const isCredit =
-                  tx.type === "credit" ||
-                  tx.type === "wallet_credit" ||
-                  tx.type === "sale";
-
-                return (
-                  <motion.div
-                    key={tx.id || index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="p-6 hover:bg-lily-50/50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-5">
-                      <div
-                        className={`p-3.5 rounded-2xl shadow-sm ${
-                          isCredit ? "bg-lily-100" : "bg-red-50"
-                        }`}
-                      >
-                        <Icon
-                          className={`w-6 h-6 ${
-                            isCredit ? "text-lily-600" : "text-red-500"
-                          }`}
-                        />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-800 truncate text-lg">
-                          {tx.transaction_type || "Transaction"}
-                        </p>
-                        <p className="text-sm font-bold text-gray-400">
-                          {new Date(
-                            tx.date || tx.created_at,
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p
-                          className={`font-black text-lg ${
-                            isCredit ? "text-lily-600" : "text-red-500"
-                          }`}
-                        >
-                          {isCredit ? "+" : "-"}₦
-                          {Math.abs(tx.amount_naira || 0).toLocaleString()}
-                        </p>
-                        <div
-                          className={`text-[10px] font-black uppercase tracking-widest mt-1 px-2 py-0.5 rounded-full inline-block ${
-                            tx.status?.toLowerCase() === "success"
-                              ? "bg-lily-100 text-lily-700"
-                              : tx.status?.toLowerCase() === "pending"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {tx.status}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm mb-4">
+                    <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                      Account Summary
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-lily/10 rounded-lg">
+                          <TrendingUp className="w-4 h-4 text-lily" />
                         </div>
+                        <span className="text-sm font-bold text-gray-700">
+                          Total Credits
+                        </span>
                       </div>
+                      <span className="font-bold text-gray-900">
+                        {totalCredits}
+                      </span>
                     </div>
-                  </motion.div>
-                );
-              })
-            ) : (
-              <div className="p-12 text-center">
-                <div className="w-20 h-20 bg-lily-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Wallet className="w-10 h-10 text-lily-200" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-red-50 rounded-lg">
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        </div>
+                        <span className="text-sm font-bold text-gray-700">
+                          Total Debits
+                        </span>
+                      </div>
+                      <span className="font-bold text-gray-900">
+                        {totalDebits}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-800 font-black text-xl">Empty Wallet</p>
-                <p className="text-gray-400 font-bold text-sm mt-1">
-                  Start by adding some funds to your wallet.
-                </p>
               </div>
-            )}
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,9 @@ import {
   Calendar,
   CheckCircle,
   ChefHat,
+  ChevronDown,
   ChevronLeft,
+  ChevronUp,
   Clock,
   CreditCard,
   Loader2,
@@ -196,6 +198,7 @@ const UnsubscribeModal = ({ plan, onConfirm, onCancel, isLoading }) => (
 );
 
 const SubscriptionCard = ({ sub, onUnsubscribe }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const plan = sub?.plan || sub;
   const vendor = plan?.vendor || sub?.vendor;
@@ -205,14 +208,24 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
 
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-white p-4 shadow-sm"
+      className="cursor-pointer rounded-2xl bg-white p-4 shadow-sm transition-all hover:shadow-md"
+      onClick={() => setIsExpanded(!isExpanded)}
     >
-      <div className="mb-3 flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#13ec49]/10">
-            <ChefHat size={20} className="text-[#13ec49]" />
+          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-[#13ec49]/10">
+            {vendor?.logo || vendor?.image ? (
+              <img
+                src={vendor.logo || vendor.image}
+                alt={vendor.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ChefHat size={20} className="text-[#13ec49]" />
+            )}
           </div>
           <div>
             <p className="text-sm font-bold leading-tight text-[#111813]">
@@ -223,195 +236,236 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
             </p>
           </div>
         </div>
-        <StatusBadge status={sub?.status || "active"} />
-      </div>
-
-      <div className="mb-3 space-y-2 rounded-xl bg-[#f6f8f6] p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#111813]">
-            N{formatPrice(plan?.price)}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
-            <Repeat size={11} />
-            <span className="capitalize">{plan?.frequency || "weekly"}</span>
-          </span>
+        <div className="flex items-center gap-2">
+          <StatusBadge status={sub?.status || "active"} />
+          {isExpanded ? (
+            <ChevronUp size={18} className="text-gray-400" />
+          ) : (
+            <ChevronDown size={18} className="text-gray-400" />
+          )}
         </div>
-        <InfoRow
-          icon={Calendar}
-          label="Last paid"
-          value={formatDate(plan?.last_payment_date || sub?.last_payment_date)}
-        />
-        <InfoRow
-          icon={Calendar}
-          label="Next renewal"
-          value={formatDate(plan?.next_payment_date || sub?.next_payment_date)}
-        />
       </div>
 
-      <div className="space-y-2 border-t border-gray-100 pt-3">
-        <InfoRow
-          icon={Receipt}
-          label="Subscription ID"
-          value={receiptId}
-          valueClassName="font-mono"
-        />
-        <InfoRow
-          icon={BadgeCheck}
-          label="Collection Code"
-          value={sub?.collection_code}
-          valueClassName="text-[#13ec49]"
-        />
-        <InfoRow icon={Phone} label="Contact" value={sub?.phone} />
-        <InfoRow
-          icon={MapPin}
-          label="Delivery Mode"
-          value={sub?.delivery_type}
-          valueClassName="capitalize"
-        />
-        <InfoRow
-          icon={Clock}
-          label="Preferred Time"
-          value={sub?.preferred_time}
-        />
-        <InfoRow icon={Calendar} label="Delivery Days" value={preferredDays} />
-        <InfoRow
-          icon={UtensilsCrossed}
-          label="Plates"
-          value={
-            sub?.plates_per_delivery
-              ? `${sub.plates_per_delivery} per delivery`
-              : ""
-          }
-        />
-        <InfoRow
-          icon={ChefHat}
-          label="Portion Size"
-          value={sub?.portion_size}
-          valueClassName="capitalize"
-        />
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2 rounded-xl bg-[#f6f8f6] p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-[#111813]">
+                    N{formatPrice(plan?.price)}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <Repeat size={11} />
+                    <span className="capitalize">
+                      {plan?.frequency || "weekly"}
+                    </span>
+                  </span>
+                </div>
+                <InfoRow
+                  icon={Calendar}
+                  label="Last paid"
+                  value={formatDate(
+                    plan?.last_payment_date || sub?.last_payment_date,
+                  )}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Next renewal"
+                  value={formatDate(
+                    plan?.next_payment_date || sub?.next_payment_date,
+                  )}
+                />
+              </div>
 
-        {sub?.address && (
-          <div className="flex flex-col gap-1 pt-1">
-            <span className="flex items-center gap-1 text-xs text-gray-400">
-              <MapPin size={11} /> Delivery Address
-            </span>
-            <span className="rounded-xl border border-gray-100 bg-gray-50 p-2 text-xs leading-relaxed text-[#111813]">
-              {sub.address}
-            </span>
-          </div>
+              <div className="space-y-2 border-t border-gray-100 pt-3">
+                <InfoRow
+                  icon={Receipt}
+                  label="Subscription ID"
+                  value={receiptId}
+                  valueClassName="font-mono"
+                />
+                <InfoRow
+                  icon={BadgeCheck}
+                  label="Collection Code"
+                  value={sub?.collection_code}
+                  valueClassName="text-[#13ec49]"
+                />
+                <InfoRow icon={Phone} label="Contact" value={sub?.phone} />
+                <InfoRow
+                  icon={MapPin}
+                  label="Delivery Mode"
+                  value={sub?.delivery_type}
+                  valueClassName="capitalize"
+                />
+                <InfoRow
+                  icon={Clock}
+                  label="Preferred Time"
+                  value={sub?.preferred_time}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Delivery Days"
+                  value={preferredDays}
+                />
+                <InfoRow
+                  icon={UtensilsCrossed}
+                  label="Plates"
+                  value={
+                    sub?.plates_per_delivery
+                      ? `${sub.plates_per_delivery} per delivery`
+                      : ""
+                  }
+                />
+                <InfoRow
+                  icon={ChefHat}
+                  label="Portion Size"
+                  value={sub?.portion_size}
+                  valueClassName="capitalize"
+                />
+
+                {sub?.address && (
+                  <div className="flex flex-col gap-1 pt-1">
+                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                      <MapPin size={11} /> Delivery Address
+                    </span>
+                    <span className="rounded-xl border border-gray-100 bg-gray-50 p-2 text-xs leading-relaxed text-[#111813]">
+                      {sub.address}
+                    </span>
+                  </div>
+                )}
+
+                <InfoRow
+                  icon={Clock}
+                  label="Subscribed on"
+                  value={formatDateTime(sub?.created_at || sub?.start_date)}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Expires on"
+                  value={formatDate(sub?.next_payment_date || sub?.end_date)}
+                />
+                <InfoRow
+                  icon={Timer}
+                  label="Days remaining"
+                  value={
+                    sub?.next_payment_date
+                      ? `${daysRemaining(sub.next_payment_date)} days`
+                      : ""
+                  }
+                  valueClassName={
+                    daysRemaining(sub?.next_payment_date) <= 3
+                      ? "text-red-500"
+                      : "text-[#13ec49]"
+                  }
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Vendor Phone"
+                  value={vendor?.contact_phone}
+                />
+                <InfoRow
+                  icon={CreditCard}
+                  label="Amount Paid"
+                  value={
+                    paymentAmount
+                      ? `N${Number(paymentAmount).toLocaleString()}`
+                      : ""
+                  }
+                />
+                <InfoRow
+                  icon={Truck}
+                  label="Paid With"
+                  value={
+                    sub?.payment_method
+                      ? formatPaymentMethod(sub.payment_method)
+                      : ""
+                  }
+                />
+                <InfoRow
+                  icon={CheckCircle}
+                  label="Payment Status"
+                  value={sub?.payment_status}
+                  valueClassName="capitalize"
+                />
+                <InfoRow
+                  icon={Receipt}
+                  label="Receipt Ref"
+                  value={sub?.receipt_reference}
+                  valueClassName="font-mono"
+                />
+                <InfoRow
+                  icon={Clock}
+                  label="Payment Time"
+                  value={
+                    sub?.receipt_date ? formatDateTime(sub.receipt_date) : ""
+                  }
+                />
+                <InfoRow
+                  icon={Receipt}
+                  label="Customisation Fee"
+                  value={
+                    sub?.extra_fee_kobo > 0
+                      ? `N${Number(sub.extra_fee_kobo / 100).toLocaleString()}`
+                      : ""
+                  }
+                />
+
+                <InfoBlock
+                  icon={ChefHat}
+                  label="Dietary Notes"
+                  value={sub?.dietary_notes}
+                />
+                <InfoBlock
+                  icon={AlertCircle}
+                  label="Allergies"
+                  value={sub?.allergies_summary}
+                />
+                <InfoBlock
+                  icon={Receipt}
+                  label="Additional Notes"
+                  value={sub?.special_instructions}
+                />
+              </div>
+
+              {(sub?.status === "active" || !sub?.status) && (
+                <div className="mt-4 flex flex-col gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/meal-selection/${sub?.id}`, {
+                        state: {
+                          plan,
+                          vendorId: vendor?.id || sub?.vendor_id,
+                          excluded_meals: sub?.excluded_meals ?? [],
+                        },
+                      });
+                    }}
+                    className="w-full rounded-xl bg-[#13ec49] py-2.5 text-sm font-bold text-[#111813] transition-colors hover:bg-[#11d842]"
+                  >
+                    Customise Meals
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnsubscribe(plan);
+                    }}
+                    className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    Cancel Subscription
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
-
-        <InfoRow
-          icon={Clock}
-          label="Subscribed on"
-          value={formatDateTime(sub?.created_at || sub?.start_date)}
-        />
-        <InfoRow
-          icon={Calendar}
-          label="Expires on"
-          value={formatDate(sub?.next_payment_date || sub?.end_date)}
-        />
-        <InfoRow
-          icon={Timer}
-          label="Days remaining"
-          value={
-            sub?.next_payment_date
-              ? `${daysRemaining(sub.next_payment_date)} days`
-              : ""
-          }
-          valueClassName={
-            daysRemaining(sub?.next_payment_date) <= 3
-              ? "text-red-500"
-              : "text-[#13ec49]"
-          }
-        />
-        <InfoRow
-          icon={Phone}
-          label="Vendor Phone"
-          value={vendor?.contact_phone}
-        />
-        <InfoRow
-          icon={CreditCard}
-          label="Amount Paid"
-          value={
-            paymentAmount ? `N${Number(paymentAmount).toLocaleString()}` : ""
-          }
-        />
-        <InfoRow
-          icon={Truck}
-          label="Paid With"
-          value={
-            sub?.payment_method ? formatPaymentMethod(sub.payment_method) : ""
-          }
-        />
-        <InfoRow
-          icon={CheckCircle}
-          label="Payment Status"
-          value={sub?.payment_status}
-          valueClassName="capitalize"
-        />
-        <InfoRow
-          icon={Receipt}
-          label="Receipt Ref"
-          value={sub?.receipt_reference}
-          valueClassName="font-mono"
-        />
-        <InfoRow
-          icon={Clock}
-          label="Payment Time"
-          value={sub?.receipt_date ? formatDateTime(sub.receipt_date) : ""}
-        />
-        <InfoRow
-          icon={Receipt}
-          label="Customisation Fee"
-          value={
-            sub?.extra_fee_kobo > 0
-              ? `N${Number(sub.extra_fee_kobo / 100).toLocaleString()}`
-              : ""
-          }
-        />
-
-        <InfoBlock
-          icon={ChefHat}
-          label="Dietary Notes"
-          value={sub?.dietary_notes}
-        />
-        <InfoBlock
-          icon={AlertCircle}
-          label="Allergies"
-          value={sub?.allergies_summary}
-        />
-        <InfoBlock
-          icon={Receipt}
-          label="Additional Notes"
-          value={sub?.special_instructions}
-        />
-      </div>
-
-      {(sub?.status === "active" || !sub?.status) && (
-        <div className="mt-4 flex flex-col gap-2">
-          <button
-            onClick={() =>
-              navigate(`/meal-selection/${sub?.id}`, {
-                state: {
-                  plan,
-                  vendorId: vendor?.id || sub?.vendor_id,
-                  excluded_meals: sub?.excluded_meals ?? [],
-                },
-              })
-            }
-            className="w-full rounded-xl bg-[#13ec49] py-2.5 text-sm font-bold text-[#111813] transition-colors hover:bg-[#11d842]"
-          >
-            Customise Meals
-          </button>
-          <button
-            onClick={() => onUnsubscribe(plan)}
-            className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
-          >
-            Cancel Subscription
-          </button>
-        </div>
-      )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -421,14 +475,24 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   const queryClient = useQueryClient();
   const [planToCancel, setPlanToCancel] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["mySubscriptions", currentPage, searchQuery],
+    queryKey: ["mySubscriptions", currentPage, debouncedSearchQuery],
     queryFn: async () => {
       const params = { page: currentPage, page_size: itemsPerPage };
-      if (searchQuery) params.search = searchQuery;
+      if (debouncedSearchQuery) params.search = debouncedSearchQuery;
       return getUserSubscriptions(params);
     },
   });
@@ -466,7 +530,7 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
       className={`mx-auto flex w-full max-w-5xl flex-col bg-[#f6f8f6] ${hideHeader ? "" : "min-h-screen"}`}
     >
       {!hideHeader && (
-        <div className="relative flex flex-shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
+        <div className="relative flex shrink-0 items-center justify-center border-b border-gray-100 bg-white px-4 py-4">
           <button
             onClick={() => navigate(-1)}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors hover:text-gray-800"
