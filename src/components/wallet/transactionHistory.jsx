@@ -473,7 +473,7 @@ export default function TransactionHistory() {
                 <p className="text-base font-bold text-gray-600">
                   No results found
                 </p>
-                <p className="text-sm text-gray-400 mt-1 max-w-[250px]">
+                <p className="text-sm text-gray-400 mt-1 max-w-62.5">
                   Adjust your search or filters to find specific transactions.
                 </p>
               </div>
