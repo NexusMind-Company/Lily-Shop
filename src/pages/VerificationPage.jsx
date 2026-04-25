@@ -57,9 +57,9 @@ const VerificationPage = () => {
 
         // Store tokens and redirect
         if (response.data.token) {
-          localStorage.setItem("access_token", response.data.token.access);
-          localStorage.setItem("refresh_token", response.data.token.refresh);
-          localStorage.setItem("user_id", response.data.user_id);
+          sessionStorage.setItem("access_token", response.data.token.access);
+          sessionStorage.setItem("refresh_token", response.data.token.refresh);
+          sessionStorage.setItem("user_id", response.data.user_id);
         }
 
         setTimeout(() => {
