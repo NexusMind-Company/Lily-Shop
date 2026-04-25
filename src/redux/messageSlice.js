@@ -5,7 +5,7 @@ export const fetchInboxMessages = createAsyncThunk(
   "messages/fetchInbox",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -21,7 +21,7 @@ export const fetchInboxMessages = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data || "Failed to load inbox");
     }
-  }
+  },
 );
 
 const messageSlice = createSlice({

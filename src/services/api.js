@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api.lilyshops.com";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://api.lilyshops.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,7 +11,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
@@ -20,16 +21,16 @@ api.interceptors.request.use((config) => {
 
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
-    localStorage.setItem("access_token", access);
+    sessionStorage.setItem("access_token", access);
     api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
   }
   if (refresh) {
-    localStorage.setItem("refresh_token", refresh);
+    sessionStorage.setItem("refresh_token", refresh);
   }
 };
 
 const setAuthHeader = () => {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
@@ -38,12 +39,12 @@ const setAuthHeader = () => {
 export { api, setAuthHeader };
 
 export const clearAuthTokens = () => {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
+  sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("refresh_token");
   delete api.defaults.headers.common["Authorization"];
 };
 
-const storedAccess = localStorage.getItem("access_token");
+const storedAccess = sessionStorage.getItem("access_token");
 if (storedAccess) {
   api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
@@ -97,7 +98,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem("refresh_token");
+      const refreshToken = sessionStorage.getItem("refresh_token");
       if (!refreshToken) {
         isRefreshing = false;
         clearAuthTokens();
@@ -475,10 +476,13 @@ export const fetchWallet = async () => {
   return response.data;
 };
 
-export const topUpWallet = async (amountNaira) => {
-  const response = await api.post("/wallet/topup/", {
+export const topUpWallet = async (amountNaira, intent_id = null) => {
+  const payload = {
     amount_naira: amountNaira,
-  });
+  };
+  if (intent_id) payload.intent_id = intent_id;
+
+  const response = await api.post("/wallet/topup/", payload);
   return response.data;
 };
 
@@ -491,7 +495,6 @@ export const createSubscription = async (plan_id, deliveryMeta = {}) => {
   return response.data;
 };
 
-
 export const getUserSubscriptions = async (params = {}) => {
   const response = await api.get("/foods/subscriptions/me/", { params });
   return response.data;
@@ -501,28 +504,39 @@ export const updateSubscriptionMeals = async (
   subscriptionId,
   mealSelections,
 ) => {
-  const response = await api.put(`/foods/subscriptions/${subscriptionId}/meals/`, {
-    meal_selections: mealSelections,
-  });
+  const response = await api.put(
+    `/foods/subscriptions/${subscriptionId}/meals/`,
+    {
+      meal_selections: mealSelections,
+    },
+  );
   return response.data;
 };
 
 export const cancelSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/foods/subscriptions/${subscriptionId}/cancel/`, {
-    reason,
-  });
+  const response = await api.post(
+    `/foods/subscriptions/${subscriptionId}/cancel/`,
+    {
+      reason,
+    },
+  );
   return response.data;
 };
 
 export const pauseSubscription = async (subscriptionId, reason = "") => {
-  const response = await api.post(`/foods/subscriptions/${subscriptionId}/pause/`, {
-    reason,
-  });
+  const response = await api.post(
+    `/foods/subscriptions/${subscriptionId}/pause/`,
+    {
+      reason,
+    },
+  );
   return response.data;
 };
 
 export const resumeSubscription = async (subscriptionId) => {
-  const response = await api.post(`/foods/subscriptions/${subscriptionId}/resume/`);
+  const response = await api.post(
+    `/foods/subscriptions/${subscriptionId}/resume/`,
+  );
   return response.data;
 };
 
@@ -606,7 +620,10 @@ export const fetchMealsByVendor = async (vendorId) => {
     const response = await api.get(`/foods/meals/vendors/${vendorId}/`);
     return response.data;
   } catch (error) {
-    console.warn("Error fetching meals by vendor, returning empty list:", error?.message);
+    console.warn(
+      "Error fetching meals by vendor, returning empty list:",
+      error?.message,
+    );
     return [];
   }
 };
@@ -641,8 +658,10 @@ export const createMeal = async (mealData) => {
 const appendVendorMedia = (formData, vendorData = {}) => {
   const files = [];
 
-  if (vendorData.banner_image instanceof File) files.push(vendorData.banner_image);
-  if (vendorData.profile_image instanceof File) files.push(vendorData.profile_image);
+  if (vendorData.banner_image instanceof File)
+    files.push(vendorData.banner_image);
+  if (vendorData.profile_image instanceof File)
+    files.push(vendorData.profile_image);
 
   if (Array.isArray(vendorData.media)) {
     vendorData.media.forEach((file) => {
@@ -680,8 +699,7 @@ export const createFoodVendor = async (vendorData) => {
 
 export const updateFoodVendor = async (vendorData) => {
   const formData = new FormData();
-  if (vendorData.shop_name)
-    formData.append("name", vendorData.shop_name);
+  if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
   if (vendorData.address) formData.append("address", vendorData.address);
@@ -703,9 +721,11 @@ export const updateFoodVendor = async (vendorData) => {
 
 export const fetchFoodVendor = async (vendorId) => {
   // Use list endpoint with filter since /foods/food-vendors/{id}/ returns 405
-  const response = await api.get(`/foods/vendors/`, { params: { id: vendorId } });
+  const response = await api.get(`/foods/vendors/`, {
+    params: { id: vendorId },
+  });
   const results = response.data.results || response.data;
-  return results.find(v => v.id === vendorId) || results[0] || null;
+  return results.find((v) => v.id === vendorId) || results[0] || null;
 };
 
 export const fetchAllFoodVendors = async (params = {}) => {
@@ -923,7 +943,9 @@ export const fetchSubscribedVendors = async () => {
 };
 
 export const fetchVendorSubscriptions = async (vendorId) => {
-  const response = await api.get(`/foods/subscriptions/vendors/${vendorId}/plans/`);
+  const response = await api.get(
+    `/foods/subscriptions/vendors/${vendorId}/plans/`,
+  );
   return response.data;
 };
 
