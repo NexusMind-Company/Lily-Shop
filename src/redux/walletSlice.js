@@ -3,7 +3,7 @@ import { api } from "../services/api";
 
 /** Helper to attach token */
 const setAuthHeader = () => {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
@@ -20,12 +20,15 @@ export const fetchWallet = createAsyncThunk(
       const response = await api.get("/wallet/me/");
       return response.data;
     } catch (error) {
-      console.error("Wallet fetch failed:", error.response?.data || error.message);
+      console.error(
+        "Wallet fetch failed:",
+        error.response?.data || error.message,
+      );
       return rejectWithValue(
-        error.response?.data || { detail: "Failed to load wallet data." }
+        error.response?.data || { detail: "Failed to load wallet data." },
       );
     }
-  }
+  },
 );
 
 /**
@@ -41,10 +44,10 @@ export const topUpWallet = createAsyncThunk(
     } catch (error) {
       console.error("Top-up failed:", error.response?.data || error.message);
       return rejectWithValue(
-        error.response?.data || { detail: "Unable to start top-up process." }
+        error.response?.data || { detail: "Unable to start top-up process." },
       );
     }
-  }
+  },
 );
 
 /**
@@ -55,15 +58,20 @@ export const verifyPaystackCallback = createAsyncThunk(
   async (reference, { rejectWithValue }) => {
     try {
       setAuthHeader();
-      const response = await api.get(`/wallet/paystack/callback/?reference=${reference}`);
+      const response = await api.get(
+        `/wallet/paystack/callback/?reference=${reference}`,
+      );
       return response.data;
     } catch (error) {
-      console.error("Paystack verification failed:", error.response?.data || error.message);
+      console.error(
+        "Paystack verification failed:",
+        error.response?.data || error.message,
+      );
       return rejectWithValue(
-        error.response?.data || { detail: "Verification failed." }
+        error.response?.data || { detail: "Verification failed." },
       );
     }
-  }
+  },
 );
 
 /**
@@ -77,12 +85,15 @@ export const releasePromotionEarnings = createAsyncThunk(
       const response = await api.post("/wallet/release-promotion-earnings/");
       return response.data;
     } catch (error) {
-      console.error("Promotion earnings release failed:", error.response?.data || error.message);
+      console.error(
+        "Promotion earnings release failed:",
+        error.response?.data || error.message,
+      );
       return rejectWithValue(
-        error.response?.data || { detail: "Unable to release earnings." }
+        error.response?.data || { detail: "Unable to release earnings." },
       );
     }
-  }
+  },
 );
 
 /**
@@ -97,10 +108,12 @@ export const createVirtualAccount = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || { detail: "Failed to generate virtual account." }
+        error.response?.data || {
+          detail: "Failed to generate virtual account.",
+        },
       );
     }
-  }
+  },
 );
 
 const walletSlice = createSlice({
@@ -172,8 +185,7 @@ const walletSlice = createSlice({
       })
       .addCase(verifyPaystackCallback.rejected, (state, action) => {
         state.verifying = false;
-        state.error =
-          action.payload?.detail || "Paystack verification failed.";
+        state.error = action.payload?.detail || "Paystack verification failed.";
       })
 
       // Release promotion earnings
@@ -189,7 +201,7 @@ const walletSlice = createSlice({
           action.payload?.detail || "Failed to release promotion earnings.";
       })
 
-      //  Create virtual account 
+      //  Create virtual account
       .addCase(createVirtualAccount.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -200,7 +212,8 @@ const walletSlice = createSlice({
       })
       .addCase(createVirtualAccount.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.detail || "Failed to create virtual account.";
+        state.error =
+          action.payload?.detail || "Failed to create virtual account.";
       });
   },
 });

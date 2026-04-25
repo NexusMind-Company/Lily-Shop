@@ -9,8 +9,8 @@ import {
 } from "../../utils/subscriptionFlow";
 
 const clearSubscriptionRedirectMarkers = () => {
-  localStorage.removeItem("lily_subscription_redirect");
-  localStorage.removeItem("lily_subscription_payment_ref");
+  sessionStorage.removeItem("lily_subscription_redirect");
+  sessionStorage.removeItem("lily_subscription_payment_ref");
 };
 
 export default function SubscriptionCallback() {
@@ -25,10 +25,15 @@ export default function SubscriptionCallback() {
 
     const redirectToPayment = (message) => {
       clearSubscriptionRedirectMarkers();
-      navigate(pendingState?.plan ? "/subscription/payment" : "/subscriptions", {
-        replace: true,
-        state: pendingState ? { ...pendingState, error: message } : { error: message },
-      });
+      navigate(
+        pendingState?.plan ? "/subscription/payment" : "/subscriptions",
+        {
+          replace: true,
+          state: pendingState
+            ? { ...pendingState, error: message }
+            : { error: message },
+        },
+      );
     };
 
     if (!reference) {
@@ -66,7 +71,8 @@ export default function SubscriptionCallback() {
           subscription: verifiedSubscription,
           subscriptionId: payload.subscription_id || verifiedSubscription?.id,
           nextPaymentDate:
-            payload.next_payment_date || verifiedSubscription?.next_payment_date,
+            payload.next_payment_date ||
+            verifiedSubscription?.next_payment_date,
           paymentMethod: "paystack",
           paymentReference: reference,
           paymentFinalized: Boolean(payload.payment_finalized),
@@ -111,7 +117,9 @@ export default function SubscriptionCallback() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <div className="w-12 h-12 border-4 border-lily border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-gray-700 text-sm">Verifying your subscription payment...</p>
+      <p className="text-gray-700 text-sm">
+        Verifying your subscription payment...
+      </p>
     </div>
   );
 }

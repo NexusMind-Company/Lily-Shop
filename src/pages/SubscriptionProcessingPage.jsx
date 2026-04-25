@@ -11,6 +11,7 @@ import {
   saveSubscriptionFlowState,
   saveSubscriptionSuccessState,
 } from "../utils/subscriptionFlow";
+import { formatPhoneForAPI } from "../utils/formatters";
 
 const SubscriptionProcessingPage = () => {
   const navigate = useNavigate();
@@ -36,24 +37,35 @@ const SubscriptionProcessingPage = () => {
       try {
         // Pass delivery preferences alongside plan_id so backend can log them
         const deliveryMeta = {};
-        if (flowState?.deliveryType) deliveryMeta.delivery_type = flowState.deliveryType;
+        if (flowState?.deliveryType)
+          deliveryMeta.delivery_type = flowState.deliveryType;
         if (flowState?.address) deliveryMeta.address = flowState.address;
-        if (flowState?.phone) deliveryMeta.phone = flowState.phone;
-        if (flowState?.preferredTime) deliveryMeta.preferred_time = flowState.preferredTime;
-        if (flowState?.specialInstructions) deliveryMeta.special_instructions = flowState.specialInstructions;
-        if (flowState?.selectedDays?.length) deliveryMeta.selected_days = flowState.selectedDays;
+        if (flowState?.phone)
+          deliveryMeta.phone = formatPhoneForAPI(flowState.phone);
+        if (flowState?.preferredTime)
+          deliveryMeta.preferred_time = flowState.preferredTime;
+        if (flowState?.specialInstructions)
+          deliveryMeta.special_instructions = flowState.specialInstructions;
+        if (flowState?.selectedDays?.length)
+          deliveryMeta.selected_days = flowState.selectedDays;
         if (flowState?.quantity) deliveryMeta.quantity = flowState.quantity;
-        if (flowState?.dietaryPreferences) deliveryMeta.dietary_preferences = flowState.dietaryPreferences;
+        if (flowState?.dietaryPreferences)
+          deliveryMeta.dietary_preferences = flowState.dietaryPreferences;
         if (flowState?.allergies) deliveryMeta.allergies = flowState.allergies;
-        if (flowState?.portionSize) deliveryMeta.portion_size = flowState.portionSize;
-        if (flowState?.collectionCode) deliveryMeta.collection_code = flowState.collectionCode;
+        if (flowState?.portionSize)
+          deliveryMeta.portion_size = flowState.portionSize;
+        if (flowState?.collectionCode)
+          deliveryMeta.collection_code = flowState.collectionCode;
 
         const result = await createSubscription(planId, deliveryMeta);
 
         // Use server-provided collection_code, or generate one locally for pickup
         let generatedCode = result?.collection_code || null;
         if (!generatedCode && flowState?.deliveryType === "pickup") {
-          generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          generatedCode = Math.random()
+            .toString(36)
+            .substring(2, 8)
+            .toUpperCase();
         }
 
         // Short pause so animation doesn't flash
@@ -139,10 +151,14 @@ const SubscriptionProcessingPage = () => {
         transition={{ delay: 0.3 }}
         className="text-center"
       >
-        <h2 className="text-2xl font-bold text-[#111813] mb-2">Processing Payment</h2>
+        <h2 className="text-2xl font-bold text-[#111813] mb-2">
+          Processing Payment
+        </h2>
         <p className="text-gray-500 text-sm">
           Subscribing to{" "}
-          <span className="font-semibold text-[#111813]">{plan?.plan_name || "your plan"}</span>
+          <span className="font-semibold text-[#111813]">
+            {plan?.plan_name || "your plan"}
+          </span>
         </p>
         {vendor?.name && (
           <p className="text-gray-400 text-sm mt-1">at {vendor.name}</p>
@@ -173,7 +189,8 @@ const SubscriptionProcessingPage = () => {
         transition={{ delay: 0.8 }}
         className="text-xs text-gray-400 mt-12 text-center px-8"
       >
-        Please don't close this page. We're confirming your subscription securely.
+        Please don't close this page. We're confirming your subscription
+        securely.
       </motion.p>
     </div>
   );

@@ -13,7 +13,7 @@ export const createFunContent = createAsyncThunk(
   "content/createFunContent",
   async (payload, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
@@ -45,9 +45,11 @@ export const createFunContent = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.error("Fun content failed:", error.response || error);
-      return rejectWithValue(error.response?.data || "Failed to create fun content.");
+      return rejectWithValue(
+        error.response?.data || "Failed to create fun content.",
+      );
     }
-  }
+  },
 );
 
 const funContentSlice = createSlice({

@@ -51,3 +51,33 @@ export const formatTimeAgo = (dateString) => {
     return `${Math.floor(secondsPast / 2592000)}mo ago`;
   return `${Math.floor(secondsPast / 31536000)}y ago`;
 };
+
+/**
+ * Formats a phone number for the backend API.
+ * Ensures it starts with + and follows E.164 format.
+ * @param {string} phone - The phone number to format.
+ * @returns {string} The formatted phone number.
+ */
+export const formatPhoneForAPI = (phone) => {
+  if (!phone) return "";
+
+  // Strip all non-numeric characters
+  const digits = phone.replace(/\D/g, "");
+
+  if (phone.startsWith("+")) {
+    return `+${digits}`;
+  }
+
+  // If it starts with 0, assume Nigerian and replace 0 with +234
+  if (digits.startsWith("0")) {
+    return `+234${digits.substring(1)}`;
+  }
+
+  // If it starts with 234 but no +, just add +
+  if (digits.startsWith("234")) {
+    return `+${digits}`;
+  }
+
+  // Default to adding + if missing
+  return `+${digits}`;
+};
