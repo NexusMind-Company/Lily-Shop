@@ -53,14 +53,14 @@ const ProfileOwner = () => {
   }, [error, navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!auth?.isAuthenticated || !token) {
       navigate("/login", { replace: true });
     }
   }, [auth?.isAuthenticated, navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (auth?.isAuthenticated && token) {
       dispatch(fetchProfile());
     }

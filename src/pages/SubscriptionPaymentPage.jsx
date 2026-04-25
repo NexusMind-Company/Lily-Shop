@@ -1,7 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Wallet, AlertCircle, CheckCircle, ChefHat, Calendar, Zap } from "lucide-react";
+import {
+  ChevronLeft,
+  Wallet,
+  AlertCircle,
+  CheckCircle,
+  ChefHat,
+  Calendar,
+  Zap,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { api, fetchWallet, topUpWallet } from "../services/api";
@@ -9,6 +17,7 @@ import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
 } from "../utils/subscriptionFlow";
+import { formatPhoneForAPI } from "../utils/formatters";
 
 const formatPrice = (price) =>
   Number(price)
@@ -21,69 +30,69 @@ const SubscriptionPaymentPage = () => {
   const flowState = resolveSubscriptionFlowState(state);
 
   const plan = flowState?.plan;
-const vendor = flowState?.vendor;
-const totalPrice = flowState?.totalPrice || 0;
-const selectedDays = flowState?.selectedDays || [];
-const quantity = flowState?.quantity || 1;
-const addExtra = flowState?.addExtra || false;
-const extraPrice = flowState?.extraPrice || 0;
-const deliveryType = flowState?.deliveryType;
-const preferredTime = flowState?.preferredTime;
-const address = flowState?.address;
-const phone = flowState?.phone;
-const collectionCode = flowState?.collectionCode;
+  const vendor = flowState?.vendor;
+  const totalPrice = flowState?.totalPrice || 0;
+  const selectedDays = flowState?.selectedDays || [];
+  const quantity = flowState?.quantity || 1;
+  const addExtra = flowState?.addExtra || false;
+  const extraPrice = flowState?.extraPrice || 0;
+  const deliveryType = flowState?.deliveryType;
+  const preferredTime = flowState?.preferredTime;
+  const address = flowState?.address;
+  const phone = flowState?.phone;
+  const collectionCode = flowState?.collectionCode;
 
   // If no state was passed (e.g. direct URL navigation), go back
-useEffect(() => {
-  if (!plan) {
-    navigate("/subscriptions", { replace: true });
-    return;
-  }
-  
-  // If user is already subscribed (backend usually handles this but frontend check is better)
-  if (plan.is_subscribed) {
-    toast.error("You are already subscribed to this plan.");
-    navigate("/subscriptions", { replace: true });
-    return;
-  }
-  
-  saveSubscriptionFlowState(flowState);
-}, [plan, navigate, flowState]);
+  useEffect(() => {
+    if (!plan) {
+      navigate("/subscriptions", { replace: true });
+      return;
+    }
+
+    // If user is already subscribed (backend usually handles this but frontend check is better)
+    if (plan.is_subscribed) {
+      toast.error("You are already subscribed to this plan.");
+      navigate("/subscriptions", { replace: true });
+      return;
+    }
+
+    saveSubscriptionFlowState(flowState);
+  }, [plan, navigate, flowState]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
     queryFn: fetchWallet,
   });
-const planPrice = parseFloat(totalPrice || 0);
-const walletBalance = parseFloat(wallet?.balance_naira || 0);
-const hasEnoughBalance = walletBalance >= planPrice;
+  const planPrice = parseFloat(totalPrice || 0);
+  const walletBalance = parseFloat(wallet?.balance_naira || 0);
+  const hasEnoughBalance = walletBalance >= planPrice;
 
-const platformFee = planPrice * 0.1;
-const vendorReceives = planPrice * 0.9;
+  const platformFee = planPrice * 0.1;
+  const vendorReceives = planPrice * 0.9;
 
-const handlePayWithWallet = () => {
-  const processingState = {
-    ...flowState,
-    planId: plan?.id,
-    plan,
-    vendor,
-    totalPrice,
-    selectedDays,
-    quantity,
-    addExtra,
-    extraPrice,
-    deliveryType,
-    preferredTime,
-    address,
-    phone,
-    collectionCode,
+  const handlePayWithWallet = () => {
+    const processingState = {
+      ...flowState,
+      planId: plan?.id,
+      plan,
+      vendor,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice,
+      deliveryType,
+      preferredTime,
+      address,
+      phone,
+      collectionCode,
+    };
+
+    saveSubscriptionFlowState(processingState);
+    navigate("/subscription/processing", {
+      state: processingState,
+    });
   };
-
-  saveSubscriptionFlowState(processingState);
-  navigate("/subscription/processing", {
-    state: processingState,
-  });
-};
 
   const handleTopUp = () => {
     saveSubscriptionFlowState(flowState);
@@ -92,53 +101,87 @@ const handlePayWithWallet = () => {
 
   const handleDirectPayment = async () => {
     try {
-      // Prepare subscription payment data
+      toast.loading("Initiating secure payment...");
+
+      // Normalize phone number to E.164 format (+234...) using shared utility
+      const formattedPhone = formatPhoneForAPI(phone);
+
+      // Generate a unique intent_id to link the top-up and the subscription
+      const localIntentId =
+        typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+
+      // 1. First, initiate a wallet top-up for the exact amount with the intent_id
+      const topUpResponse = await topUpWallet(planPrice, localIntentId);
+
+      if (!topUpResponse || !topUpResponse.authorization_url) {
+        toast.dismiss();
+        toast.error("Failed to initialize payment. Please try again.");
+        return;
+      }
+
+      // Use the intent_id from the server if it provided one, otherwise fall back to our local one
+      const intentId = topUpResponse.intent_id || localIntentId;
+      const authorizationUrl = topUpResponse.authorization_url;
+
+      // 2. Prepare subscription payment data with the intent_id
       const paymentData = {
         plan_id: plan?.id,
-        delivery_type: deliveryType,
-        address: address,
-        phone: phone,
-        preferred_time: preferredTime,
-        selected_days: selectedDays,
-        quantity,
-        dietary_preferences: flowState?.dietaryPreferences || "",
-        allergies: flowState?.allergies || "",
-        portion_size: flowState?.portionSize || "",
-        special_instructions: flowState?.specialInstructions || "",
-        collection_code: collectionCode,
-        payment_method: "paystack", // Direct pay via Paystack
+        payment_method: "paystack",
+        intent_id: String(intentId), // Link the top-up intent to this subscription
       };
 
-      // Call subscription payment API
-      const response = await api.post("/foods/subscribe/", paymentData);
-      
-      if (response.data && response.data.authorization_url) {
-        toast.loading("Redirecting to payment gateway...");
-        // Store minimal data for callback reference
-        localStorage.setItem("lily_subscription_payment_ref", response.data.reference || "");
-        localStorage.setItem("lily_subscription_redirect", "true");
-        
-        // Redirect to Paystack
-        window.location.href = response.data.authorization_url;
-      } else if (response.data && response.data.status === "success") {
-        toast.success("Subscribed successfully!");
-        // Payment completed immediately (e.g., wallet payment)
-        navigate("/subscriptions", { state: { subscription: response.data.subscription } });
-      } else {
-        toast.error("Failed to initialize payment. Please try again.");
-      }
+      if (deliveryType) paymentData.delivery_type = deliveryType;
+      if (address) paymentData.address = address;
+      if (formattedPhone) paymentData.phone = formattedPhone;
+      if (preferredTime) paymentData.preferred_time = preferredTime;
+      if (selectedDays && selectedDays.length > 0)
+        paymentData.selected_days = selectedDays;
+      if (quantity) paymentData.quantity = quantity;
+      if (flowState?.dietaryPreferences)
+        paymentData.dietary_preferences = flowState.dietaryPreferences;
+      if (flowState?.allergies) paymentData.allergies = flowState.allergies;
+      if (flowState?.portionSize)
+        paymentData.portion_size = flowState.portionSize;
+      if (flowState?.specialInstructions)
+        paymentData.special_instructions = flowState.specialInstructions;
+      if (collectionCode) paymentData.collection_code = collectionCode;
+
+      // 3. Register the subscription intent with the backend
+      // This tells the backend: "When payment for this intent_id is received, activate this subscription."
+      await api.post("/foods/subscribe/", paymentData);
+
+      toast.dismiss();
+      toast.loading("Redirecting to Paystack...");
+
+      // 4. Store data for callback reference
+      sessionStorage.setItem(
+        "lily_subscription_payment_ref",
+        topUpResponse.reference || "",
+      );
+      sessionStorage.setItem("lily_subscription_redirect", "true");
+
+      // 5. Redirect to Paystack via the top-up authorization URL
+      window.location.href = authorizationUrl;
     } catch (error) {
+      toast.dismiss();
       console.error("Direct payment error:", error);
-      toast.error(error.response?.data?.error || "An error occurred during payment initialization.");
+      toast.error(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "An error occurred during payment initialization.",
+      );
     }
   };
 
-if (!plan) return null;
+  if (!plan) return null;
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-[#f6f8f6]">
       {/* Header */}
-      <div className="relative bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-center flex-shrink-0">
+      <div className="relative bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-center shrink-0">
         <button
           onClick={() => navigate(-1)}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -156,14 +199,18 @@ if (!plan) return null;
           className="bg-white rounded-2xl p-4 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
               {(() => {
-                const media = vendor?.logo || vendor?.image || vendor?.all_media_urls?.[0] || vendor?.profile_pic;
+                const media =
+                  vendor?.logo ||
+                  vendor?.image ||
+                  vendor?.all_media_urls?.[0] ||
+                  vendor?.profile_pic;
                 const urlStr = Array.isArray(media) ? media[0] : media;
-                if (urlStr && typeof urlStr === 'string') {
+                if (urlStr && typeof urlStr === "string") {
                   return (
                     <img
-                      src={urlStr.replace(/^http:\/\//i, 'https://')}
+                      src={urlStr.replace(/^http:\/\//i, "https://")}
                       alt={vendor?.name || "Vendor"}
                       className="w-full h-full object-cover"
                     />
@@ -178,7 +225,9 @@ if (!plan) return null;
             </div>
             <div>
               <p className="text-sm text-gray-500">Subscribing to</p>
-              <p className="font-bold text-[#111813] text-base">{vendor?.name || "Vendor"}</p>
+              <p className="font-bold text-[#111813] text-base">
+                {vendor?.name || "Vendor"}
+              </p>
             </div>
           </div>
 
@@ -214,82 +263,92 @@ if (!plan) return null;
           </div> */}
 
           <div className="border-t border-gray-100 pt-4 space-y-3">
+            {/* Plan details */}
+            {plan && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">{plan.plan_name}</span>
+                <span className="font-semibold text-[#111813] text-sm">
+                  ₦{formatPrice(plan.price)}
+                </span>
+              </div>
+            )}
 
-  {/* Plan details */}
-  {plan && (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">{plan.plan_name}</span>
-      <span className="font-semibold text-[#111813] text-sm">
-        ₦{formatPrice(plan.price)}
-      </span>
-    </div>
-  )}
+            {/* Delivery Days */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-sm flex items-center gap-1">
+                <Calendar size={14} /> Delivery Days
+              </span>
+              <span className="font-semibold text-[#111813] text-sm">
+                {selectedDays?.join(", ")}
+              </span>
+            </div>
 
-  {/* Delivery Days */}
-  <div className="flex items-center justify-between">
-    <span className="text-gray-500 text-sm flex items-center gap-1">
-      <Calendar size={14} /> Delivery Days
-    </span>
-    <span className="font-semibold text-[#111813] text-sm">
-      {selectedDays?.join(", ")}
-    </span>
-  </div>
+            {/* Quantity */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-sm">Plates per delivery</span>
+              <span className="font-semibold text-[#111813] text-sm">
+                {quantity}
+              </span>
+            </div>
 
-  {/* Quantity */}
-  <div className="flex items-center justify-between">
-    <span className="text-gray-500 text-sm">Plates per delivery</span>
-    <span className="font-semibold text-[#111813] text-sm">{quantity}</span>
-  </div>
+            {/* Delivery type */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-sm">Delivery type</span>
+              <span className="font-semibold text-[#111813] text-sm">
+                {deliveryType === "delivery" ? "🚚 Deliver to me" : "🛍️ Pickup"}
+              </span>
+            </div>
 
-  {/* Delivery type */}
-  <div className="flex items-center justify-between">
-    <span className="text-gray-500 text-sm">Delivery type</span>
-    <span className="font-semibold text-[#111813] text-sm">
-      {deliveryType === "delivery" ? "🚚 Deliver to me" : "🛍️ Pickup"}
-    </span>
-  </div>
+            {/* Address or collection code */}
+            {deliveryType === "delivery" && address && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">
+                  {deliveryType === "delivery"
+                    ? "Delivery Address"
+                    : "Pickup Address"}
+                </span>
+                <span className="font-semibold text-[#111813] text-sm text-right max-w-[60%]">
+                  {address}
+                </span>
+              </div>
+            )}
 
-  {/* Address or collection code */}
-  {deliveryType === "delivery" && address && (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">{deliveryType === "delivery" ? "Delivery Address" : "Pickup Address"}</span>
-      <span className="font-semibold text-[#111813] text-sm text-right max-w-[60%]">
-        {address}
-      </span>
-    </div>
-  )}
-  
-  {/* Preferred Time */}
-  {preferredTime && (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">Preferred Time</span>
-      <span className="font-semibold text-[#111813] text-sm">
-        {preferredTime}
-      </span>
-    </div>
-  )}
-  {deliveryType === "pickup" && collectionCode && (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">Collection Code</span>
-      <span className="font-semibold text-[#111813] text-sm">{collectionCode}</span>
-    </div>
-  )}
+            {/* Preferred Time */}
+            {preferredTime && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">Preferred Time</span>
+                <span className="font-semibold text-[#111813] text-sm">
+                  {preferredTime}
+                </span>
+              </div>
+            )}
+            {deliveryType === "pickup" && collectionCode && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">Collection Code</span>
+                <span className="font-semibold text-[#111813] text-sm">
+                  {collectionCode}
+                </span>
+              </div>
+            )}
 
-  {/* Phone */}
-  <div className="flex items-center justify-between">
-    <span className="text-gray-500 text-sm">Phone</span>
-    <span className="font-semibold text-[#111813] text-sm">{phone}</span>
-  </div>
+            {/* Phone */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-sm">Phone</span>
+              <span className="font-semibold text-[#111813] text-sm">
+                {phone}
+              </span>
+            </div>
 
-  {/* Extra */}
-  {addExtra && (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-sm">Extra portion</span>
-      <span className="font-semibold text-[#13ec49] text-sm">+₦{extraPrice}</span>
-    </div>
-  )}
-
-</div>
+            {/* Extra */}
+            {addExtra && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">Extra portion</span>
+                <span className="font-semibold text-[#13ec49] text-sm">
+                  +₦{extraPrice}
+                </span>
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Price Breakdown */}
@@ -303,19 +362,29 @@ if (!plan) return null;
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-gray-500 text-sm">Subscription price</span>
-              <span className="font-semibold text-[#111813]">₦{formatPrice(planPrice)}</span>
+              <span className="font-semibold text-[#111813]">
+                ₦{formatPrice(planPrice)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400 text-xs">Platform fee (10%)</span>
-              <span className="text-gray-400 text-xs">₦{formatPrice(platformFee)}</span>
+              <span className="text-gray-400 text-xs">
+                ₦{formatPrice(platformFee)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-xs">Vendor receives (90%)</span>
-              <span className="text-gray-400 text-xs">₦{formatPrice(vendorReceives)}</span>
+              <span className="text-gray-400 text-xs">
+                Vendor receives (90%)
+              </span>
+              <span className="text-gray-400 text-xs">
+                ₦{formatPrice(vendorReceives)}
+              </span>
             </div>
             <div className="border-t border-gray-100 pt-2 mt-2 flex items-center justify-between">
               <span className="font-bold text-[#111813]">You pay</span>
-              <span className="font-bold text-[#13ec49] text-lg">₦{formatPrice(planPrice)}</span>
+              <span className="font-bold text-[#13ec49] text-lg">
+                ₦{formatPrice(planPrice)}
+              </span>
             </div>
           </div>
         </motion.div>
@@ -326,9 +395,7 @@ if (!plan) return null;
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className={`rounded-2xl p-4 shadow-sm ${
-            hasEnoughBalance
-              ? "bg-white"
-              : "bg-red-50 border border-red-100"
+            hasEnoughBalance ? "bg-white" : "bg-red-50 border border-red-100"
           }`}
         >
           <div className="flex items-center justify-between">
@@ -340,7 +407,9 @@ if (!plan) return null;
               >
                 <Wallet
                   size={20}
-                  className={hasEnoughBalance ? "text-[#13ec49]" : "text-red-500"}
+                  className={
+                    hasEnoughBalance ? "text-[#13ec49]" : "text-red-500"
+                  }
                 />
               </div>
               <div>
@@ -389,9 +458,11 @@ if (!plan) return null;
           transition={{ delay: 0.3 }}
           className="flex items-start gap-2 bg-[#13ec49]/10 rounded-2xl p-4 border border-[#13ec49]/20"
         >
-          <Zap size={16} className="text-[#13ec49] mt-0.5 flex-shrink-0" />
+          <Zap size={16} className="text-[#13ec49] mt-0.5 shrink-0" />
           <p className="text-[#111813] text-xs leading-relaxed font-medium">
-            <strong>Direct Payment Enabled:</strong> You can now pay directly with your card or bank transfer. Your wallet will be topped up and the subscription processed immediately.
+            <strong>Direct Payment Enabled:</strong> You can now pay directly
+            with your card or bank transfer. Your wallet will be topped up and
+            the subscription processed immediately.
           </p>
         </motion.div>
       </div>
@@ -407,7 +478,9 @@ if (!plan) return null;
             >
               Pay ₦{formatPrice(planPrice)} Now (Direct)
             </motion.button>
-            <p className="text-center text-[10px] text-gray-400 font-medium">Safe & Secure via Paystack</p>
+            <p className="text-center text-[10px] text-gray-400 font-medium">
+              Safe & Secure via Paystack
+            </p>
           </>
         ) : (
           <motion.button
@@ -416,25 +489,27 @@ if (!plan) return null;
             disabled={walletLoading}
             className="w-full bg-[#13ec49] text-[#111813] font-bold py-4 rounded-2xl text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
           >
-            {walletLoading ? "Checking balance..." : `Pay ₦${formatPrice(planPrice)} with Wallet`}
+            {walletLoading
+              ? "Checking balance..."
+              : `Pay ₦${formatPrice(planPrice)} with Wallet`}
           </motion.button>
         )}
-        
+
         <div className="flex gap-2">
-           {!hasEnoughBalance && (
-             <button
-               onClick={handleTopUp}
-               className="flex-1 bg-white text-gray-600 border border-gray-100 font-semibold py-3 rounded-2xl text-xs"
-             >
-               Top Up Only
-             </button>
-           )}
-           <button
-             onClick={() => navigate(-1)}
-             className="flex-1 bg-white text-gray-500 font-semibold py-3 rounded-2xl text-xs border border-gray-100"
-           >
-             Go Back
-           </button>
+          {!hasEnoughBalance && (
+            <button
+              onClick={handleTopUp}
+              className="flex-1 bg-white text-gray-600 border border-gray-100 font-semibold py-3 rounded-2xl text-xs"
+            >
+              Top Up Only
+            </button>
+          )}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex-1 bg-white text-gray-500 font-semibold py-3 rounded-2xl text-xs border border-gray-100"
+          >
+            Go Back
+          </button>
         </div>
       </div>
     </div>

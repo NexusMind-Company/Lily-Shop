@@ -5,18 +5,21 @@ const readJson = (key) => {
   if (typeof window === "undefined") return null;
 
   try {
-    const rawValue = window.localStorage.getItem(key);
+    const rawValue = window.sessionStorage.getItem(key);
     return rawValue ? JSON.parse(rawValue) : null;
   } catch (error) {
-    console.error(`Failed to parse stored subscription data for ${key}:`, error);
-    window.localStorage.removeItem(key);
+    console.error(
+      `Failed to parse stored subscription data for ${key}:`,
+      error,
+    );
+    window.sessionStorage.removeItem(key);
     return null;
   }
 };
 
 const writeJson = (key, value) => {
   if (typeof window === "undefined" || !value) return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  window.sessionStorage.setItem(key, JSON.stringify(value));
 };
 
 const mergeState = (primaryState, fallbackState) => {
@@ -43,8 +46,8 @@ export const saveSubscriptionFlowState = (state) => {
 
 export const clearSubscriptionFlowState = () => {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(FLOW_STORAGE_KEY);
-  window.localStorage.removeItem("lily_subscription_redirect");
+  window.sessionStorage.removeItem(FLOW_STORAGE_KEY);
+  window.sessionStorage.removeItem("lily_subscription_redirect");
 };
 
 export const getSubscriptionSuccessState = () => readJson(SUCCESS_STORAGE_KEY);
@@ -62,5 +65,5 @@ export const saveSubscriptionSuccessState = (state) => {
 
 export const clearSubscriptionSuccessState = () => {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(SUCCESS_STORAGE_KEY);
+  window.sessionStorage.removeItem(SUCCESS_STORAGE_KEY);
 };

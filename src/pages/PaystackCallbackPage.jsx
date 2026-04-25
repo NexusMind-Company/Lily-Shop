@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { clearCart } from '../redux/cartSlice';
+import React, { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearCart } from "../redux/cartSlice";
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";
 import {
@@ -11,8 +11,8 @@ import {
 } from "../utils/subscriptionFlow";
 
 const clearSubscriptionRedirectMarkers = () => {
-  localStorage.removeItem("lily_subscription_redirect");
-  localStorage.removeItem("lily_subscription_payment_ref");
+  sessionStorage.removeItem("lily_subscription_redirect");
+  sessionStorage.removeItem("lily_subscription_payment_ref");
 };
 
 const PaystackCallbackPage = () => {
@@ -21,13 +21,14 @@ const PaystackCallbackPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const reference = searchParams.get('reference') || searchParams.get('trxref');
-    const status = searchParams.get('status');
-    const storedOrder = sessionStorage.getItem('lily_pending_order');
+    const reference =
+      searchParams.get("reference") || searchParams.get("trxref");
+    const status = searchParams.get("status");
+    const storedOrder = sessionStorage.getItem("lily_pending_order");
     const pendingOrder = storedOrder ? JSON.parse(storedOrder) : null;
     const pendingSubscription = getSubscriptionFlowState();
     const subscriptionRedirectRequested =
-      localStorage.getItem("lily_subscription_redirect") === "true" ||
+      sessionStorage.getItem("lily_subscription_redirect") === "true" ||
       Boolean(pendingSubscription);
 
     const redirectSubscriptionFailure = (message) => {
@@ -50,15 +51,20 @@ const PaystackCallbackPage = () => {
           return;
         }
 
-        navigate('/checkout', { state: { error: 'Payment failed. Please try again.' } });
+        navigate("/checkout", {
+          state: { error: "Payment failed. Please try again." },
+        });
         return;
       }
 
       try {
         // Verify with backend so webhook/callback always finalizes the order
-        const verificationResponse = await api.get("/wallet/paystack/callback/", {
-          params: { reference },
-        });
+        const verificationResponse = await api.get(
+          "/wallet/paystack/callback/",
+          {
+            params: { reference },
+          },
+        );
         const payload = verificationResponse.data || {};
 
         if (
@@ -67,7 +73,8 @@ const PaystackCallbackPage = () => {
         ) {
           const successState = {
             ...(pendingSubscription || {}),
-            plan: pendingSubscription?.plan || payload.subscription?.plan || null,
+            plan:
+              pendingSubscription?.plan || payload.subscription?.plan || null,
             vendor:
               pendingSubscription?.vendor ||
               payload.subscription?.plan?.vendor ||
@@ -76,8 +83,9 @@ const PaystackCallbackPage = () => {
             subscription: payload.subscription || null,
             subscriptionId: payload.subscription_id || payload.subscription?.id,
             nextPaymentDate:
-              payload.next_payment_date || payload.subscription?.next_payment_date,
-            paymentMethod: 'paystack',
+              payload.next_payment_date ||
+              payload.subscription?.next_payment_date,
+            paymentMethod: "paystack",
             paymentReference: reference,
             paymentFinalized: Boolean(payload.payment_finalized),
           };
@@ -85,22 +93,24 @@ const PaystackCallbackPage = () => {
           saveSubscriptionSuccessState(successState);
           clearSubscriptionFlowState();
           clearSubscriptionRedirectMarkers();
-          toast.success("Subscription activated! Redirecting to your subscriptions...");
-          navigate('/subscriptions', {
+          toast.success(
+            "Subscription activated! Redirecting to your subscriptions...",
+          );
+          navigate("/subscriptions", {
             replace: true,
             state: successState,
           });
         } else {
           dispatch(clearCart());
-          sessionStorage.removeItem('checkout_ids');
-          sessionStorage.removeItem('lily_pending_order');
+          sessionStorage.removeItem("checkout_ids");
+          sessionStorage.removeItem("lily_pending_order");
           toast.success("Payment successful!");
-          navigate('/order-success', {
+          navigate("/order-success", {
             state: {
               order: pendingOrder
-                ? { ...pendingOrder, reference, status: 'paid' }
-                : { reference, status: 'paid' },
-              paymentMethod: 'paystack',
+                ? { ...pendingOrder, reference, status: "paid" }
+                : { reference, status: "paid" },
+              paymentMethod: "paystack",
             },
           });
         }
@@ -109,12 +119,14 @@ const PaystackCallbackPage = () => {
         toast.error("Payment verification failed.");
 
         if (subscriptionRedirectRequested) {
-          redirectSubscriptionFailure("Payment verification failed. Please try again.");
+          redirectSubscriptionFailure(
+            "Payment verification failed. Please try again.",
+          );
           return;
         }
 
-        navigate('/checkout', {
-          state: { error: 'Payment verification failed. Please try again.' },
+        navigate("/checkout", {
+          state: { error: "Payment verification failed. Please try again." },
         });
       }
     };

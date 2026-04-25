@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Hash, Truck, ShoppingBag } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Hash,
+  Truck,
+  ShoppingBag,
+} from "lucide-react";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
 } from "../utils/subscriptionFlow";
-
 
 const SubscriptionDetailsPage = () => {
   const navigate = useNavigate();
@@ -26,16 +34,25 @@ const SubscriptionDetailsPage = () => {
     vendorId,
   } = flowState || {};
 
-
-  const [deliveryType, setDeliveryType] = useState(flowState?.deliveryType || ""); // "delivery" or "pickup"
+  const [deliveryType, setDeliveryType] = useState(
+    flowState?.deliveryType || "",
+  ); // "delivery" or "pickup"
   const [address, setAddress] = useState(flowState?.address || "");
   const [phone, setPhone] = useState(flowState?.phone || "");
-  const [collectionCode, setCollectionCode] = useState(flowState?.collectionCode || "");
+  const [collectionCode, setCollectionCode] = useState(
+    flowState?.collectionCode || "",
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dietaryPreferences, setDietaryPreferences] = useState(flowState?.dietaryPreferences || "");
+  const [dietaryPreferences, setDietaryPreferences] = useState(
+    flowState?.dietaryPreferences || "",
+  );
   const [allergies, setAllergies] = useState(flowState?.allergies || "");
-  const [portionSize, setPortionSize] = useState(flowState?.portionSize || "regular");
-  const [specialInstructions, setSpecialInstructions] = useState(flowState?.specialInstructions || "");
+  const [portionSize, setPortionSize] = useState(
+    flowState?.portionSize || "regular",
+  );
+  const [specialInstructions, setSpecialInstructions] = useState(
+    flowState?.specialInstructions || "",
+  );
   const [showCustomization, setShowCustomization] = useState(false);
 
   useEffect(() => {
@@ -97,47 +114,46 @@ const SubscriptionDetailsPage = () => {
 
   const handleBack = () => navigate(-1);
 
- const handleContinue = () => {
-  if (!isValid()) {
-    alert("Please fill in all required fields");
-    return;
-  }
-  setIsModalOpen(true); // open modal instead
-};
-
-const handleConfirm = () => {
-  setIsModalOpen(false);
-  const paymentState = {
-    ...flowState,
-    plan,
-    vendor,
-    vendorId,
-    totalPrice,
-    selectedDays,
-    quantity,
-    addExtra,
-    extraPrice,
-    preferredTime,
-    deliveryType,
-    address,
-    phone,
-    collectionCode,
-    dietaryPreferences,
-    allergies,
-    portionSize,
-    specialInstructions,
+  const handleContinue = () => {
+    if (!isValid()) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    setIsModalOpen(true); // open modal instead
   };
-  saveSubscriptionFlowState(paymentState);
-  navigate("/subscription/payment", {
-    state: paymentState,
-  });
-};
 
-const handleCloseModal = () => setIsModalOpen(false);
+  const handleConfirm = () => {
+    setIsModalOpen(false);
+    const paymentState = {
+      ...flowState,
+      plan,
+      vendor,
+      vendorId,
+      totalPrice,
+      selectedDays,
+      quantity,
+      addExtra,
+      extraPrice,
+      preferredTime,
+      deliveryType,
+      address,
+      phone,
+      collectionCode,
+      dietaryPreferences,
+      allergies,
+      portionSize,
+      specialInstructions,
+    };
+    saveSubscriptionFlowState(paymentState);
+    navigate("/subscription/payment", {
+      state: paymentState,
+    });
+  };
+
+  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
     <div className="bg-[#f6f8f6] dark:bg-background-dark min-h-screen pb-32">
-
       {/* App Bar */}
       <div className="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
         <div className="flex items-center p-4 gap-3">
@@ -152,14 +168,13 @@ const handleCloseModal = () => setIsModalOpen(false);
       </div>
 
       <div className="px-4 py-6 space-y-6">
-
         {/* Delivery Type */}
         <div>
           <h3 className="text-base font-bold mb-3">
-            How do you want to receive your meals? <span className="text-red-500">*</span>
+            How do you want to receive your meals?{" "}
+            <span className="text-red-500">*</span>
           </h3>
           <div className="grid grid-cols-2 gap-3">
-
             {/* Delivery Option */}
             <button
               onClick={() => setDeliveryType("delivery")}
@@ -169,7 +184,11 @@ const handleCloseModal = () => setIsModalOpen(false);
                   : "border-gray-200 bg-white dark:bg-slate-800"
               }`}
             >
-              <Truck className={deliveryType === "delivery" ? "text-lily" : "text-gray-400"} />
+              <Truck
+                className={
+                  deliveryType === "delivery" ? "text-lily" : "text-gray-400"
+                }
+              />
               <span className="text-sm font-semibold">Deliver to me</span>
             </button>
 
@@ -182,17 +201,19 @@ const handleCloseModal = () => setIsModalOpen(false);
                   : "border-gray-200 bg-white dark:bg-slate-800"
               }`}
             >
-              <ShoppingBag className={deliveryType === "pickup" ? "text-lily" : "text-gray-400"} />
+              <ShoppingBag
+                className={
+                  deliveryType === "pickup" ? "text-lily" : "text-gray-400"
+                }
+              />
               <span className="text-sm font-semibold">I'll pick up</span>
             </button>
-
           </div>
         </div>
 
         {/* Fields only show after delivery type is chosen */}
         {deliveryType && (
           <div className="space-y-4">
-
             {/* Address — only for delivery */}
             {deliveryType === "delivery" && (
               <div>
@@ -216,7 +237,8 @@ const handleCloseModal = () => setIsModalOpen(false);
             {deliveryType === "pickup" && (
               <div>
                 <label className="text-sm font-bold mb-2 block">
-                  Collection Code <span className="text-gray-400 font-normal">(optional)</span>
+                  Collection Code{" "}
+                  <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -236,14 +258,17 @@ const handleCloseModal = () => setIsModalOpen(false);
               <label className="text-sm font-bold mb-2 block">
                 Phone Number <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="tel"
-                  placeholder="Enter phone number"
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 px-3 py-3">
+                <Phone className="text-gray-400 w-4 h-4 shrink-0" />
+                <PhoneInput
+                  international
+                  defaultCountry="NG"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-lily bg-white dark:bg-slate-800 text-sm"
+                  onChange={(value) => setPhone(value || "")}
+                  className="w-full bg-transparent outline-none text-sm"
+                  style={{
+                    "--PhoneInput-color--focus": "transparent",
+                  }}
                 />
               </div>
             </div>
@@ -254,8 +279,14 @@ const handleCloseModal = () => setIsModalOpen(false);
                 onClick={() => setShowCustomization(!showCustomization)}
                 className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-lily transition-colors bg-gray-50 dark:bg-slate-800"
               >
-                <span className="text-sm font-semibold text-[#111813] dark:text-white">Customize Your Meal Plan</span>
-                <ShoppingBag className={showCustomization ? "text-lily rotate-180" : "text-gray-400"} />
+                <span className="text-sm font-semibold text-[#111813] dark:text-white">
+                  Customize Your Meal Plan
+                </span>
+                <ShoppingBag
+                  className={
+                    showCustomization ? "text-lily rotate-180" : "text-gray-400"
+                  }
+                />
               </button>
             </div>
 
@@ -264,7 +295,10 @@ const handleCloseModal = () => setIsModalOpen(false);
                 {/* Dietary Preferences */}
                 <div>
                   <label className="text-sm font-bold mb-2 block">
-                    Dietary Preferences <span className="text-gray-400 font-normal">(optional)</span>
+                    Dietary Preferences{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <textarea
                     rows={2}
@@ -278,7 +312,10 @@ const handleCloseModal = () => setIsModalOpen(false);
                 {/* Allergies */}
                 <div>
                   <label className="text-sm font-bold mb-2 block">
-                    Allergies <span className="text-gray-400 font-normal">(optional)</span>
+                    Allergies{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -292,7 +329,10 @@ const handleCloseModal = () => setIsModalOpen(false);
                 {/* Portion Size */}
                 <div>
                   <label className="text-sm font-bold mb-2 block">
-                    Portion Size <span className="text-gray-400 font-normal">(optional)</span>
+                    Portion Size{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {["small", "regular", "large"].map((size) => (
@@ -314,7 +354,10 @@ const handleCloseModal = () => setIsModalOpen(false);
                 {/* Special Instructions */}
                 <div>
                   <label className="text-sm font-bold mb-2 block">
-                    Special Instructions <span className="text-gray-400 font-normal">(optional)</span>
+                    Special Instructions{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <textarea
                     rows={2}
@@ -326,11 +369,9 @@ const handleCloseModal = () => setIsModalOpen(false);
                 </div>
               </div>
             )}
-
           </div>
         )}
-
-        </div>
+      </div>
 
       {/* Sticky Continue Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-gray-100">
@@ -347,24 +388,23 @@ const handleCloseModal = () => setIsModalOpen(false);
         </button>
       </div>
 
-
-<SubscriptionConfirmationModal
-  isOpen={isModalOpen}
-  onClose={handleCloseModal}
-  onConfirm={handleConfirm}
-  selectedPlans={plan ? [plan] : []}
-  vendor={vendor}
-  totalPrice={totalPrice}
-  selectedDays={selectedDays}
-  quantity={quantity}
-  addExtra={addExtra}
-  extraPrice={extraPrice}
-  deliveryType={deliveryType}
-  address={address}
-  phone={phone}
-  collectionCode={collectionCode}
-  isLoading={false}
-/>
+      <SubscriptionConfirmationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirm}
+        selectedPlans={plan ? [plan] : []}
+        vendor={vendor}
+        totalPrice={totalPrice}
+        selectedDays={selectedDays}
+        quantity={quantity}
+        addExtra={addExtra}
+        extraPrice={extraPrice}
+        deliveryType={deliveryType}
+        address={address}
+        phone={phone}
+        collectionCode={collectionCode}
+        isLoading={false}
+      />
     </div>
   );
 };

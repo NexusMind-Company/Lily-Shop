@@ -7,7 +7,7 @@ export const fetchActivities = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       //  Attach Authorization header
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } else {
@@ -31,10 +31,10 @@ export const fetchActivities = createAsyncThunk(
       return allActivities; // Flattened list
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to load activities"
+        error.response?.data || error.message || "Failed to load activities",
       );
     }
-  }
+  },
 );
 
 const activitySlice = createSlice({

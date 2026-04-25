@@ -71,7 +71,7 @@ const WalletTopUpPage = () => {
         <h2 className="text-3xl font-black text-gray-800 mb-3 tracking-tight">
           Top Up Successful!
         </h2>
-        <p className="text-gray-500 font-bold mb-10 max-w-[280px] leading-relaxed">
+        <p className="text-gray-500 font-bold mb-10 max-w-70 leading-relaxed">
           ₦{formatPrice(parsedAmount)} has been added to your Lily Wallet.
         </p>
         <button
@@ -133,7 +133,7 @@ const WalletTopUpPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-lily-50 relative z-10"
+          className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-lily/50 relative z-10"
         >
           <p className="font-black text-gray-400 uppercase tracking-widest mb-5 text-xs">
             Select amount
@@ -145,8 +145,8 @@ const WalletTopUpPage = () => {
                 onClick={() => handleQuickSelect(val)}
                 className={`py-4 rounded-2xl text-lg font-black transition-all ${
                   amount === String(val) && !customInput
-                    ? "bg-lily-500 text-white shadow-glow"
-                    : "bg-lily-50/50 text-lily-700 hover:bg-lily-100/50 border border-lily-100/20"
+                    ? "bg-lily text-white shadow-glow"
+                    : "bg-lily/50 text-lily-700 hover:bg-lily/50 border border-lily/20"
                 }`}
               >
                 ₦{formatPrice(val)}
@@ -162,7 +162,7 @@ const WalletTopUpPage = () => {
             }}
             className={`mt-4 w-full py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all ${
               customInput
-                ? "bg-lily-50 border border-lily-200 text-lily-700"
+                ? "bg-lily border border-lily text-lily"
                 : "bg-gray-50/50 text-gray-400 hover:bg-gray-100/50"
             }`}
           >
@@ -179,7 +179,7 @@ const WalletTopUpPage = () => {
                 className="mt-4 overflow-hidden"
               >
                 <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lily-300 font-black text-xl">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lily font-black text-xl">
                     ₦
                   </span>
                   <input
@@ -189,7 +189,7 @@ const WalletTopUpPage = () => {
                     value={amount ? formatPrice(amount) : ""}
                     onChange={handleCustomChange}
                     autoFocus
-                    className="w-full pl-12 pr-6 py-5 bg-lily-50/30 rounded-2xl text-gray-800 font-black text-2xl outline-none border-2 border-lily-100 focus:border-lily-500 focus:ring-4 focus:ring-lily-50 transition-all"
+                    className="w-full pl-12 pr-6 py-5 bg-lily/30 rounded-2xl text-gray-800 font-black text-2xl outline-none border-2 border-lily focus:border-lily focus:ring-4 focus:ring-lily transition-all"
                   />
                 </div>
                 {parsedAmount > 0 && parsedAmount < 100 && (
@@ -209,13 +209,13 @@ const WalletTopUpPage = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="bg-lily-50/30 rounded-3xl p-6 border border-lily-100/50 relative z-10"
+              className="bg-lily/30 rounded-3xl p-6 border border-lily/50 relative z-10"
             >
               <div className="flex items-center justify-between">
-                <span className="text-lily-400 font-bold text-sm">
+                <span className="text-lily font-bold text-sm">
                   Total Deposit
                 </span>
-                <span className="font-black text-lily-600 text-2xl tracking-tighter">
+                <span className="font-black text-lily text-2xl tracking-tighter">
                   ₦{formatPrice(parsedAmount)}
                 </span>
               </div>
@@ -235,7 +235,7 @@ const WalletTopUpPage = () => {
               exit={{ opacity: 0 }}
               className="bg-red-50 border-2 border-red-100 rounded-3xl p-6 flex items-start gap-4 relative z-10"
             >
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
+              <AlertCircle size={24} className="text-red-500 shrink-0" />
               <div>
                 <p className="text-red-700 font-black text-sm uppercase tracking-tight">
                   Top up failed
@@ -266,7 +266,7 @@ const WalletTopUpPage = () => {
         <button
           onClick={handleSubmit}
           disabled={!isValid || topUpMutation.isPending}
-          className="w-full bg-lily-500 text-white font-black py-5 rounded-[2rem] text-lg disabled:opacity-30 disabled:grayscale transition-all active:scale-95 shadow-glow flex items-center justify-center gap-3"
+          className="w-full bg-lily text-white font-black py-5 rounded-4xl text-lg disabled:opacity-30 disabled:grayscale transition-all active:scale-95 shadow-glow flex items-center justify-center gap-3"
         >
           {topUpMutation.isPending ? (
             <>
