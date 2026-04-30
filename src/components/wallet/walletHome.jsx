@@ -64,7 +64,7 @@ export default function WalletHome() {
   const reduxToken = useSelector(
     (state) => state.auth?.user_data?.token?.access,
   );
-  const token = reduxToken || sessionStorage.getItem("access_token");
+  const token = reduxToken || localStorage.getItem("access_token");
 
   useEffect(() => {
     if (!token) {

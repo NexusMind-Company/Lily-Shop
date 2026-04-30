@@ -7,7 +7,7 @@ export const fetchActivities = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       //  Attach Authorization header
-      const token = sessionStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } else {

@@ -84,7 +84,9 @@ export const updateOrderStatus = async (orderId, status) => {
  */
 export const fetchDailyPrepList = async (date = null) => {
   const params = date ? { date } : {};
-  const response = await api.get("/foods/vendor/orders/daily-prep-list/", { params });
+  const response = await api.get("/foods/vendor/orders/daily-prep-list/", {
+    params,
+  });
   return response.data;
 };
 
@@ -113,7 +115,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * GET /vendor/subscriptions/requests/
  * Returns pending subscription requests awaiting vendor acceptance.
  * Response: [{ id, customer_name, requested_plan, requested_at, meal_preferences }]
- * 
+ *
  * NOTE: Backend endpoint not implemented yet
  */
 // export const fetchSubscriptionRequests = async () => {
@@ -125,7 +127,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * POST /vendor/subscriptions/requests/{requestId}/accept/
  * Accepts a subscription request.
  * Response: { success: true, subscription_id }
- * 
+ *
  * NOTE: Backend endpoint not implemented yet
  */
 // export const acceptSubscriptionRequest = async (requestId) => {
@@ -140,7 +142,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * Declines a subscription request.
  * Body: { reason? }
  * Response: { success: true }
- * 
+ *
  * NOTE: Backend endpoint not implemented yet
  */
 // export const declineSubscriptionRequest = async (requestId, reason = "") => {
@@ -164,7 +166,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * Enables monthly subscription plans for this vendor.
  * Body: { price, description?, max_subscribers? }
  * Response: { success: true, plan_id }
- * 
+ *
  * NOTE: Backend endpoint not implemented yet
  */
 // export const enableMonthlyPlan = async (planData) => {
@@ -177,7 +179,7 @@ export const fetchVendorSubscriptions = async (params = {}) => {
  * Updates a monthly subscription plan.
  * Body: { price?, description?, max_subscribers?, is_active? }
  * Response: updated plan object
- * 
+ *
  * NOTE: Backend endpoint not implemented yet
  */
 // export const updateMonthlyPlan = async (planId, planData) => {
@@ -210,18 +212,24 @@ export const addMeal = async (mealData) => {
   const formData = new FormData();
   formData.append("name", mealData.name);
   formData.append("price", mealData.price.toString());
-  if (mealData.description) formData.append("description", mealData.description);
+  if (mealData.description)
+    formData.append("description", mealData.description);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
   if (mealData.video_url) formData.append("video_url", mealData.video_url);
   if (mealData.calories) formData.append("calories", mealData.calories);
   if (mealData.protein) formData.append("protein", mealData.protein);
   if (mealData.carbs) formData.append("carbs", mealData.carbs);
   if (mealData.fat) formData.append("fat", mealData.fat);
-  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
-  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
-  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
-  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
-  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.ingredients)
+    formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens)
+    formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags)
+    formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time)
+    formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size)
+    formData.append("serving_size", mealData.serving_size);
   if (mealData.media) {
     if (Array.isArray(mealData.media)) {
       mealData.media.forEach((file) => {
@@ -232,16 +240,14 @@ export const addMeal = async (mealData) => {
     }
   }
 
-  const response = await api.post("/foods/vendor/menu/", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const response = await api.post("/foods/vendor/menu/", formData);
   return response.data;
 };
 
 /**
  * PATCH /vendor/menu/{mealId}/
  * Updates an existing meal.
- * Body (multipart/form-data): name?, price?, 
+ * Body (multipart/form-data): name?, price?,
  *                              description?, image?, video_url?, calories?, protein?, carbs?, fat?, ingredients?, allergens?, dietary_tags?, preparation_time?, serving_size?, media? (file)
  * Response: updated meal object
  */
@@ -258,11 +264,16 @@ export const updateMeal = async (mealId, mealData) => {
   if (mealData.protein) formData.append("protein", mealData.protein);
   if (mealData.carbs) formData.append("carbs", mealData.carbs);
   if (mealData.fat) formData.append("fat", mealData.fat);
-  if (mealData.ingredients) formData.append("ingredients", JSON.stringify(mealData.ingredients));
-  if (mealData.allergens) formData.append("allergens", JSON.stringify(mealData.allergens));
-  if (mealData.dietary_tags) formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
-  if (mealData.preparation_time) formData.append("preparation_time", mealData.preparation_time);
-  if (mealData.serving_size) formData.append("serving_size", mealData.serving_size);
+  if (mealData.ingredients)
+    formData.append("ingredients", JSON.stringify(mealData.ingredients));
+  if (mealData.allergens)
+    formData.append("allergens", JSON.stringify(mealData.allergens));
+  if (mealData.dietary_tags)
+    formData.append("dietary_tags", JSON.stringify(mealData.dietary_tags));
+  if (mealData.preparation_time)
+    formData.append("preparation_time", mealData.preparation_time);
+  if (mealData.serving_size)
+    formData.append("serving_size", mealData.serving_size);
   if (mealData.media) {
     if (Array.isArray(mealData.media)) {
       mealData.media.forEach((file) => {
@@ -273,9 +284,7 @@ export const updateMeal = async (mealId, mealData) => {
     }
   }
 
-  const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const response = await api.patch(`/foods/vendor/menu/${mealId}/`, formData);
   return response.data;
 };
 
@@ -312,7 +321,10 @@ export const fetchAvailability = async () => {
  * Response: updated availability object
  */
 export const updateAvailability = async (availabilityData) => {
-  const response = await api.put("/foods/vendor/availability/", availabilityData);
+  const response = await api.put(
+    "/foods/vendor/availability/",
+    availabilityData,
+  );
   return response.data;
 };
 
@@ -340,7 +352,10 @@ export const fetchCutoffSettings = async () => {
  * Response: updated settings object
  */
 export const updateCutoffSettings = async (settingsData) => {
-  const response = await api.put("/foods/vendor/cutoff-settings/", settingsData);
+  const response = await api.put(
+    "/foods/vendor/cutoff-settings/",
+    settingsData,
+  );
   return response.data;
 };
 
@@ -366,7 +381,10 @@ export const fetchShopStatus = async () => {
  * Response: { success: true, paused_at }
  */
 export const pauseShop = async (pauseData) => {
-  const response = await api.post("/foods/vendor/shop-status/pause/", pauseData);
+  const response = await api.post(
+    "/foods/vendor/shop-status/pause/",
+    pauseData,
+  );
   return response.data;
 };
 
@@ -496,12 +514,12 @@ export const createAddon = async (addonData) => {
   const formData = new FormData();
   formData.append("name", addonData.name);
   formData.append("price", addonData.price.toString());
-  if (addonData.description) formData.append("description", addonData.description);
-  if (addonData.image instanceof File) formData.append("image", addonData.image);
+  if (addonData.description)
+    formData.append("description", addonData.description);
+  if (addonData.image instanceof File)
+    formData.append("image", addonData.image);
 
-  const response = await api.post("/foods/vendor/addons/", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const response = await api.post("/foods/vendor/addons/", formData);
   return response.data;
 };
 
@@ -512,7 +530,10 @@ export const createAddon = async (addonData) => {
  * Response: updated addon object
  */
 export const updateAddon = async (addonId, addonData) => {
-  const response = await api.patch(`/foods/vendor/addons/${addonId}/`, addonData);
+  const response = await api.patch(
+    `/foods/vendor/addons/${addonId}/`,
+    addonData,
+  );
   return response.data;
 };
 
@@ -547,10 +568,13 @@ export const fetchVendorConversations = async () => {
  * Query params: page, page_size
  * Response: { count, next, previous, results: [{ id, sender, text, timestamp, is_read }] }
  */
-export const fetchConversationMessages = async (conversationId, params = {}) => {
+export const fetchConversationMessages = async (
+  conversationId,
+  params = {},
+) => {
   const response = await api.get(
     `/foods/vendor/conversations/${conversationId}/messages/`,
-    { params }
+    { params },
   );
   return response.data;
 };
@@ -564,7 +588,7 @@ export const fetchConversationMessages = async (conversationId, params = {}) => 
 export const sendMessageToCustomer = async (conversationId, text) => {
   const response = await api.post(
     `/foods/vendor/conversations/${conversationId}/messages/`,
-    { text }
+    { text },
   );
   return response.data;
 };
@@ -648,7 +672,7 @@ export const fetchChurnedCustomers = async (params = {}) => {
 export const sendWinbackOffer = async (customerId, offerData) => {
   const response = await api.post(
     `/foods/vendor/churn/${customerId}/offer-discount/`,
-    offerData
+    offerData,
   );
   return response.data;
 };
@@ -667,7 +691,9 @@ export const sendWinbackOffer = async (customerId, offerData) => {
  *             top_performing_plans: [...] }
  */
 export const fetchVendorAnalytics = async (period = "monthly") => {
-  const response = await api.get("/foods/vendor/analytics/", { params: { period } });
+  const response = await api.get("/foods/vendor/analytics/", {
+    params: { period },
+  });
   return response.data;
 };
 
@@ -702,7 +728,10 @@ export const createVendorPackage = async (data) => {
  * Updates an existing package.
  */
 export const updateVendorPackage = async (packageId, data) => {
-  const response = await api.patch(`/foods/vendor/packages/${packageId}/`, data);
+  const response = await api.patch(
+    `/foods/vendor/packages/${packageId}/`,
+    data,
+  );
   return response.data;
 };
 

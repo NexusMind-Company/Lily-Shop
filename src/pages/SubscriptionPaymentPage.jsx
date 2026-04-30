@@ -157,11 +157,11 @@ const SubscriptionPaymentPage = () => {
       toast.loading("Redirecting to Paystack...");
 
       // 4. Store data for callback reference
-      sessionStorage.setItem(
+      localStorage.setItem(
         "lily_subscription_payment_ref",
         topUpResponse.reference || "",
       );
-      sessionStorage.setItem("lily_subscription_redirect", "true");
+      localStorage.setItem("lily_subscription_redirect", "true");
 
       // 5. Redirect to Paystack via the top-up authorization URL
       window.location.href = authorizationUrl;

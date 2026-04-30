@@ -5,32 +5,39 @@ const API_BASE_URL =
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("access_token");
+  const token = localStorage.getItem("access_token");
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  /*
+  // Temporarily disabled to troubleshoot CORS issues
+  const method = config.method?.toLowerCase();
+  if (["post", "put", "patch"].includes(method)) {
+    config.headers["Idempotency-Key"] =
+      config.headers["Idempotency-Key"] || crypto.randomUUID();
+  }
+  */
+
   return config;
 });
 
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
-    sessionStorage.setItem("access_token", access);
+    localStorage.setItem("access_token", access);
     api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
   }
   if (refresh) {
-    sessionStorage.setItem("refresh_token", refresh);
+    localStorage.setItem("refresh_token", refresh);
   }
 };
 
 const setAuthHeader = () => {
-  const token = sessionStorage.getItem("access_token");
+  const token = localStorage.getItem("access_token");
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
@@ -39,12 +46,12 @@ const setAuthHeader = () => {
 export { api, setAuthHeader };
 
 export const clearAuthTokens = () => {
-  sessionStorage.removeItem("access_token");
-  sessionStorage.removeItem("refresh_token");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
   delete api.defaults.headers.common["Authorization"];
 };
 
-const storedAccess = sessionStorage.getItem("access_token");
+const storedAccess = localStorage.getItem("access_token");
 if (storedAccess) {
   api.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
 }
@@ -98,7 +105,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = sessionStorage.getItem("refresh_token");
+      const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
         isRefreshing = false;
         clearAuthTokens();
@@ -164,11 +171,6 @@ export const updateProfilePic = async (imageFile) => {
   const response = await api.patch(
     "/auth/profile/update-profile-pic/",
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };
@@ -184,11 +186,7 @@ export const uploadMediaFile = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/subscriptions/create/", formData);
 
   return response.data;
 };
@@ -682,10 +680,16 @@ export const createFoodVendor = async (vendorData) => {
   formData.append("description", vendorData.description);
   formData.append("address", vendorData.address);
   formData.append("cuisine", vendorData.category);
-  if (vendorData.contact_email)
-    formData.append("contact_email", vendorData.contact_email);
-  if (vendorData.contact_phone)
-    formData.append("contact_phone", vendorData.contact_phone);
+
+  if (vendorData.contact_email) {
+    const email = vendorData.contact_email.trim();
+    formData.append("contact_email", email);
+  }
+
+  if (vendorData.contact_phone) {
+    formData.append("contact_phone", vendorData.contact_phone.trim());
+  }
+
   appendVendorMedia(formData, vendorData);
 
   const response = await api.post("/foods/food-vendors/", formData, {
@@ -704,10 +708,16 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("description", vendorData.description);
   if (vendorData.address) formData.append("address", vendorData.address);
   if (vendorData.category) formData.append("cuisine", vendorData.category);
-  if (vendorData.contact_email)
-    formData.append("contact_email", vendorData.contact_email);
-  if (vendorData.contact_phone)
-    formData.append("contact_phone", vendorData.contact_phone);
+
+  if (vendorData.contact_email) {
+    const email = vendorData.contact_email.trim();
+    formData.append("contact_email", email);
+  }
+
+  if (vendorData.contact_phone) {
+    formData.append("contact_phone", vendorData.contact_phone.trim());
+  }
+
   appendVendorMedia(formData, vendorData);
 
   const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
@@ -768,11 +778,6 @@ export const updateSubscriptionPlan = async (planId, planData) => {
   const response = await api.put(
     `/foods/subscriptions/${planId}/update/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
 
   return response.data;
@@ -805,11 +810,6 @@ export const partialUpdateSubscriptionPlan = async (planId, planData) => {
   const response = await api.patch(
     `/foods/subscriptions/${planId}/update/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
 
   return response.data;
@@ -883,11 +883,7 @@ export const createSubscriptionPlan = async (planData) => {
     formData.append("media", media);
   }
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/subscriptions/create/", formData);
 
   return response.data;
 };
