@@ -5,14 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import BottomNav from "./bottomNav";
 import { fetchConversations } from "../../redux/messageConversationSlice";
 
-export default function MessagesList() {
+function MessagesList() {
   const [activePage, setActivePage] = useState("inbox");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { conversations, conversationsLoading, error } = useSelector(
-    (state) => state.messages
+    (state) => state.messages,
   );
   const { user_data } = useSelector((state) => state.auth);
 
@@ -30,42 +30,56 @@ export default function MessagesList() {
   // Format conversations into a displayable list
   const formattedConversations = Array.isArray(conversations)
     ? conversations.map((conv) => {
-      // Determine the other user (not the current user)
-      const isCurrentUserBuyer = conv.buyer?.id === user_data?.user?.id;
-      const otherUser = isCurrentUserBuyer ? conv.seller : conv.buyer;
+        // Determine the other user (not the current user)
+        const isCurrentUserBuyer = conv.buyer?.id === user_data?.user?.id;
+        const otherUser = isCurrentUserBuyer ? conv.seller : conv.buyer;
 
-      // Get the last message
-      const lastMessage =
-        conv.messages && conv.messages.length > 0
-          ? conv.messages[conv.messages.length - 1]
-          : null;
+        // Get the last message - check various possible backend fields
+        const lastMsgObj =
+          conv.messages && conv.messages.length > 0
+            ? conv.messages[conv.messages.length - 1]
+            : null;
 
-      return {
-        id: conv.id,
-        otherUserId: otherUser?.id,
-        name:
-          otherUser?.username ||
-          otherUser?.display_name ||
-          otherUser?.email ||
-          "Unknown User",
-        profilePic: otherUser?.profile_pic || null,
-        lastMessage: lastMessage?.content || "No messages yet",
-        time: conv.last_message_at
-          ? getTimeAgo(conv.last_message_at)
-          : "",
-        unread: lastMessage && !lastMessage.read && lastMessage.sender !== user_data?.user?.id,
-        productName: conv.product?.name || null,
-        orderRef: conv.order?.reference || null,
-      };
-    })
+        // Ensure we get a string, as the backend might return an object for last_message
+        const rawLastMessage =
+          conv.last_message_content || conv.last_message || lastMsgObj;
+        const lastMessageText =
+          typeof rawLastMessage === "object"
+            ? rawLastMessage?.content || "No messages yet"
+            : rawLastMessage || "No messages yet";
+
+        return {
+          id: conv.id,
+
+          otherUserId: otherUser?.id,
+          displayName:
+            otherUser?.sender_name ||
+            otherUser?.full_name ||
+            otherUser?.name ||
+            otherUser?.display_name ||
+            "Unknown User",
+          username: otherUser?.username || "",
+          profilePic: otherUser?.profile_pic || null,
+          lastMessage: lastMessageText,
+          time: conv.last_message_at ? getTimeAgo(conv.last_message_at) : "",
+          unread:
+            conv.unread_count > 0 ||
+            (lastMsgObj &&
+              !lastMsgObj.read &&
+              lastMsgObj.sender !== user_data?.user?.id),
+          productName: conv.product?.name || null,
+          orderRef: conv.order?.reference || null,
+        };
+      })
     : [];
 
   const filteredConversations = formattedConversations.filter(
     (chat) =>
-      chat.name.toLowerCase().includes(search.toLowerCase()) ||
+      chat.displayName.toLowerCase().includes(search.toLowerCase()) ||
+      chat.username.toLowerCase().includes(search.toLowerCase()) ||
       chat.lastMessage.toLowerCase().includes(search.toLowerCase()) ||
       (chat.productName &&
-        chat.productName.toLowerCase().includes(search.toLowerCase()))
+        chat.productName.toLowerCase().includes(search.toLowerCase())),
   );
 
   const noConversations =
@@ -145,28 +159,36 @@ export default function MessagesList() {
             {filteredConversations.map((chat) => (
               <div
                 key={chat.id}
-                className={`flex items-center justify-between cursor-pointer w-full p-3 rounded-xl transition-colors ${chat.unread ? "bg-purple-50" : "bg-white hover:bg-gray-50"
-                  }`}
+                className={`flex items-center justify-between cursor-pointer w-full p-3 rounded-xl transition-colors ${
+                  chat.unread ? "bg-purple-50" : "bg-white hover:bg-gray-50"
+                }`}
                 onClick={() => navigate(`/chat/${chat.otherUserId}`)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-lily to-purple-400 flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-lily flex items-center justify-center overflow-hidden">
                     {chat.profilePic ? (
                       <img
                         src={chat.profilePic}
-                        alt={chat.name}
+                        alt={chat.displayName}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <span className="text-white font-bold text-lg">
-                        {chat.name.charAt(0).toUpperCase()}
+                        {chat.displayName.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className={`font-semibold truncate ${chat.unread ? "text-gray-900" : "text-gray-700"}`}>
-                        {chat.name}
+                      <h3
+                        className={`font-semibold truncate ${chat.unread ? "text-gray-900" : "text-gray-700"}`}
+                      >
+                        {chat.displayName}{" "}
+                        {chat.username && (
+                          <span className="text-xs font-normal text-gray-400">
+                            ({chat.username})
+                          </span>
+                        )}
                       </h3>
                       {chat.productName && (
                         <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
@@ -174,7 +196,9 @@ export default function MessagesList() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm truncate max-w-[200px] ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}>
+                    <p
+                      className={`text-sm truncate max-w-[200px] ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}
+                    >
                       {chat.lastMessage}
                     </p>
                   </div>
@@ -195,3 +219,5 @@ export default function MessagesList() {
     </div>
   );
 }
+
+export default MessagesList;

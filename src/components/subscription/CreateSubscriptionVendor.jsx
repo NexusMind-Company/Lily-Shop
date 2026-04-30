@@ -29,12 +29,20 @@ const VALIDATION_RULES = {
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
-    required: false,
+    required: true,
+    requiredMessage: "Contact email is required.",
     email: true,
     invalidMessage: "Please enter a valid email.",
     maxLength: 254,
   },
-  contact_phone: { required: false, maxLength: 20 },
+  contact_phone: {
+    required: true,
+    requiredMessage: "Phone number is required.",
+    pattern: /^(\+234|0)[789]\d{9}$/,
+    patternMessage:
+      "Please enter a valid Nigerian phone number (e.g. 08012345678).",
+    maxLength: 20,
+  },
 };
 
 const CreateSubscriptionVendor = () => {

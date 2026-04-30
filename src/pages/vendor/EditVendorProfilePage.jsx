@@ -116,7 +116,9 @@ const EditVendorProfilePage = () => {
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={24} className="text-gray-800 dark:text-white" />
         </button>
-        <h2 className="font-semibold text-lg text-gray-800 dark:text-white">Edit Vendor Profile</h2>
+        <h2 className="font-semibold text-lg text-gray-800 dark:text-white">
+          Edit Vendor Profile
+        </h2>
         <button
           onClick={handleSave}
           disabled={saving}

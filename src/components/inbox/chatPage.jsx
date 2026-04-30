@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Camera,
@@ -26,7 +26,6 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { conversationId } = useParams();
-  console.log("Recipient ID:", conversationId);
 
   const {
     messages: conversation,
@@ -36,6 +35,37 @@ const ChatPage = () => {
     nextPage,
   } = useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
+  const currentUserId = user_data?.id || user_data?.user?.id;
+
+  // Find recipient name from messages
+  const recipientName = useMemo(() => {
+    if (!conversation || conversation.length === 0) return "Chat";
+
+    // Find the message from the other user (matching conversationId)
+    const otherMessage = conversation.find(
+      (msg) => String(msg.sender_id) === String(conversationId),
+    );
+    if (otherMessage) {
+      return otherMessage.sender_name || otherMessage.sender_username || "Chat";
+    }
+
+    // Fallback: any message that isn't from me
+    const anyOtherMessage = conversation.find(
+      (msg) => String(msg.sender_id) !== String(currentUserId),
+    );
+    if (anyOtherMessage) {
+      return (
+        anyOtherMessage.sender_name || anyOtherMessage.sender_username || "Chat"
+      );
+    }
+
+    return "Chat";
+  }, [conversation, conversationId, currentUserId]);
+
+  // Reverse messages for display (since backend returns newest first)
+  const displayMessages = useMemo(() => {
+    return [...conversation].reverse();
+  }, [conversation]);
 
   //  On mount & user change
   useEffect(() => {
@@ -66,7 +96,7 @@ const ChatPage = () => {
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversation]);
+  }, [displayMessages]);
 
   //  Load more messages on scroll top
   const handleScroll = () => {
@@ -120,11 +150,7 @@ const ChatPage = () => {
           </div>
 
           <div>
-            <h2 className="font-semibold text-gray-800">
-              {conversation[0]?.recipient_username ||
-                conversation[0]?.sender_username ||
-                "Chat"}
-            </h2>
+            <h2 className="font-semibold text-gray-800">{recipientName}</h2>
             <p className="text-xs text-green-600">Online</p>
           </div>
         </div>
@@ -140,23 +166,23 @@ const ChatPage = () => {
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {loading && conversation.length === 0 ? (
+        {loading && displayMessages.length === 0 ? (
           <p className="text-center text-gray-500">Loading messages...</p>
-        ) : conversation.length === 0 ? (
+        ) : displayMessages.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
-          conversation.map((msg) => (
+          displayMessages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${
-                msg.sender === user_data?.user?.id
+                String(msg.sender_id) === String(currentUserId)
                   ? "justify-end"
                   : "justify-start"
               }`}
             >
               <div
                 className={`max-w-[75%] p-3 rounded-2xl text-sm ${
-                  msg.sender === user_data?.user?.id
+                  String(msg.sender_id) === String(currentUserId)
                     ? "bg-green-100 text-gray-800 rounded-br-none"
                     : "bg-pink-100 text-gray-800 rounded-bl-none"
                 }`}
