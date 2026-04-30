@@ -59,15 +59,15 @@ export default function WalletCallback() {
 
           // Check if we should redirect back to subscription
           const shouldRedirect =
-            sessionStorage.getItem("lily_subscription_redirect") === "true";
-          const pendingDataStr = sessionStorage.getItem(
+            localStorage.getItem("lily_subscription_redirect") === "true";
+          const pendingDataStr = localStorage.getItem(
             "lily_pending_subscription_data",
           );
 
           if (shouldRedirect && pendingDataStr) {
             setTimeout(() => {
               const pendingData = JSON.parse(pendingDataStr);
-              sessionStorage.removeItem("lily_subscription_redirect");
+              localStorage.removeItem("lily_subscription_redirect");
               navigate("/subscription/processing", { state: pendingData });
             }, 3000);
           }

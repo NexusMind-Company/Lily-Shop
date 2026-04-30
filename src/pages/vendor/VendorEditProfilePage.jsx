@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";
-import { VendorPageLoader, VendorPageError, getErrorMessage } from "../../components/vendor/VendorErrorStates";
+import {
+  VendorPageLoader,
+  VendorPageError,
+  getErrorMessage,
+} from "../../components/vendor/VendorErrorStates";
 import { api } from "../../services/api";
 
 const fetchMyVendorProfile = async () => {
@@ -12,28 +16,43 @@ const fetchMyVendorProfile = async () => {
 
 const updateMyVendorProfile = async (data) => {
   const formData = new FormData();
-  ["name", "cuisine", "description", "contact_email", "contact_phone", "address"].forEach((k) => {
+  [
+    "name",
+    "cuisine",
+    "description",
+    "contact_email",
+    "contact_phone",
+    "address",
+  ].forEach((k) => {
     if (data[k] !== undefined && data[k] !== null) formData.append(k, data[k]);
   });
   if (data.media instanceof File) formData.append("media", data.media);
   // Use the correct endpoint for vendor profile update
-  const res = await api.patch("/food-vendors/me/update/", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const res = await api.patch("/foods/food-vendors/me/update/", formData);
   return res.data;
 };
 
 const VendorEditProfilePage = () => {
   const queryClient = useQueryClient();
 
-  const { data: vendor, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: vendor,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["myVendorProfile"],
     queryFn: fetchMyVendorProfile,
   });
 
   const [form, setForm] = useState({
-    name: "", cuisine: "", description: "",
-    contact_email: "", contact_phone: "", address: "",
+    name: "",
+    cuisine: "",
+    description: "",
+    contact_email: "",
+    contact_phone: "",
+    address: "",
   });
   const [mediaFile, setMediaFile] = useState(null);
 
@@ -74,17 +93,29 @@ const VendorEditProfilePage = () => {
     </div>
   );
 
-  if (isLoading) return <VendorLayout title="Edit Profile"><VendorPageLoader /></VendorLayout>;
-  if (isError) return <VendorLayout title="Edit Profile"><VendorPageError message={getErrorMessage(error)} onRetry={refetch} /></VendorLayout>;
+  if (isLoading)
+    return (
+      <VendorLayout title="Edit Profile">
+        <VendorPageLoader />
+      </VendorLayout>
+    );
+  if (isError)
+    return (
+      <VendorLayout title="Edit Profile">
+        <VendorPageError message={getErrorMessage(error)} onRetry={refetch} />
+      </VendorLayout>
+    );
 
   return (
     <VendorLayout title="Edit Vendor Profile">
-      <div className="max-w-xl space-y-6">
-
+      <div className="max-max-w-xl space-y-6">
         <div className="bg-[#4eb75e]/10 border border-[#4eb75e]/20 rounded-2xl px-4 py-3">
-          <p className="text-xs font-bold text-[#4eb75e] mb-0.5">Vendor Profile</p>
+          <p className="text-xs font-bold text-[#4eb75e] mb-0.5">
+            Vendor Profile
+          </p>
           <p className="text-xs text-gray-500">
-            Update your restaurant details. Changes are visible to customers immediately.
+            Update your restaurant details. Changes are visible to customers
+            immediately.
           </p>
         </div>
 
@@ -100,8 +131,18 @@ const VendorEditProfilePage = () => {
         )}
 
         <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
-          {field("name", "Restaurant / Vendor Name *", "text", "e.g. Mama Nkechi's Kitchen")}
-          {field("address", "Restaurant Address *", "text", "e.g. 12 Adeola Odeku Street, VI, Lagos")}
+          {field(
+            "name",
+            "Restaurant / Vendor Name *",
+            "text",
+            "e.g. Mama Nkechi's Kitchen",
+          )}
+          {field(
+            "address",
+            "Restaurant Address *",
+            "text",
+            "e.g. 12 Adeola Odeku Street, VI, Lagos",
+          )}
           {field("cuisine", "Cuisine", "text", "e.g. Nigerian, Continental")}
 
           <div>
@@ -111,13 +152,20 @@ const VendorEditProfilePage = () => {
             <textarea
               rows={3}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
               placeholder="Tell customers what makes your food special..."
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e] resize-none transition-colors"
             />
           </div>
 
-          {field("contact_email", "Contact Email", "email", "restaurant@email.com")}
+          {field(
+            "contact_email",
+            "Contact Email",
+            "email",
+            "restaurant@email.com",
+          )}
           {field("contact_phone", "Contact Phone", "tel", "e.g. 08012345678")}
 
           <div>

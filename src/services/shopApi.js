@@ -25,11 +25,7 @@ export const fetchShopById = async (shopId) => {
  * @param {FormData} formData - Shop data with image
  */
 export const createShop = async (formData) => {
-  const response = await api.post("/shops/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/shops/", formData);
   return response.data;
 };
 
@@ -39,11 +35,7 @@ export const createShop = async (formData) => {
  * @param {FormData} formData - Updated shop data
  */
 export const updateShop = async (shopId, formData) => {
-  const response = await api.put(`/shops/${shopId}/update/`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.put(`/shops/${shopId}/update/`, formData);
   return response.data;
 };
 
@@ -111,7 +103,7 @@ export const batchCreateProducts = async (shopId, formData) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   return response.data;
 };
@@ -129,7 +121,7 @@ export const updateProduct = async (productId, formData) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   return response.data;
 };
@@ -191,7 +183,7 @@ export const fetchProductComments = async (productId, params = {}) => {
 export const createProductComment = async (productId, data) => {
   const response = await api.post(
     `/shops/products/${productId}/comment-create/`,
-    data
+    data,
   );
   return response.data;
 };
@@ -202,7 +194,7 @@ export const createProductComment = async (productId, data) => {
  */
 export const deleteProductComment = async (commentId) => {
   const response = await api.delete(
-    `/shops/products/comments/${commentId}/delete/`
+    `/shops/products/comments/${commentId}/delete/`,
   );
   return response.data;
 };
@@ -214,7 +206,7 @@ export const deleteProductComment = async (commentId) => {
 export const toggleProductCommentLike = async (commentId) => {
   const response = await api.post(
     `/shops/product-comments/${commentId}/like/`,
-    {}
+    {},
   );
   return response.data;
 };
@@ -265,7 +257,7 @@ export const updateContent = async (contentId, formData) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   return response.data;
 };
@@ -316,7 +308,7 @@ export const fetchContentComments = async (contentId, params = {}) => {
 export const createContentComment = async (contentId, data) => {
   const response = await api.post(
     `/shops/contents/${contentId}/comment-create/`,
-    data
+    data,
   );
   return response.data;
 };
@@ -327,7 +319,7 @@ export const createContentComment = async (contentId, data) => {
  */
 export const deleteContentComment = async (commentId) => {
   const response = await api.delete(
-    `/shops/contents/comments/${commentId}/delete/`
+    `/shops/contents/comments/${commentId}/delete/`,
   );
   return response.data;
 };
@@ -339,7 +331,7 @@ export const deleteContentComment = async (commentId) => {
 export const toggleContentCommentLike = async (commentId) => {
   const response = await api.post(
     `/shops/content-comments/${commentId}/like/`,
-    {}
+    {},
   );
   return response.data;
 };
@@ -411,7 +403,7 @@ export const deleteReview = async (reviewId) => {
 export const toggleReviewLike = async (reviewId) => {
   const response = await api.post(
     `/shops/reviews/${reviewId}/like-toggle/`,
-    {}
+    {},
   );
   return response.data;
 };
@@ -432,7 +424,7 @@ export default {
   updateShop,
   deleteShop,
   toggleFollowShop,
-  
+
   // Products
   fetchShopProducts,
   fetchProductById,
@@ -443,13 +435,13 @@ export default {
   toggleProductLike,
   fetchLikedProducts,
   fetchNearbyProducts,
-  
+
   // Comments
   fetchProductComments,
   createProductComment,
   deleteProductComment,
   toggleProductCommentLike,
-  
+
   // Content
   fetchContents,
   fetchContentById,
@@ -462,11 +454,11 @@ export default {
   createContentComment,
   deleteContentComment,
   toggleContentCommentLike,
-  
+
   // Feed
   fetchHomeFeed,
   fetchAllFeed,
-  
+
   // Reviews
   fetchShopReviews,
   createReview,

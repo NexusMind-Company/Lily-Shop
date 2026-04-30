@@ -9,8 +9,8 @@ import {
 } from "../../utils/subscriptionFlow";
 
 const clearSubscriptionRedirectMarkers = () => {
-  sessionStorage.removeItem("lily_subscription_redirect");
-  sessionStorage.removeItem("lily_subscription_payment_ref");
+  localStorage.removeItem("lily_subscription_redirect");
+  localStorage.removeItem("lily_subscription_payment_ref");
 };
 
 export default function SubscriptionCallback() {

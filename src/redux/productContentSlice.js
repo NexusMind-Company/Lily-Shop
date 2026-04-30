@@ -5,7 +5,7 @@ export const createProductContent = createAsyncThunk(
   "content/createProductContent",
   async (formData, { rejectWithValue }) => {
     try {
-      const token = sessionStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
