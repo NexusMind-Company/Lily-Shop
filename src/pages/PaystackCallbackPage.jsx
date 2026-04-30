@@ -11,8 +11,8 @@ import {
 } from "../utils/subscriptionFlow";
 
 const clearSubscriptionRedirectMarkers = () => {
-  sessionStorage.removeItem("lily_subscription_redirect");
-  sessionStorage.removeItem("lily_subscription_payment_ref");
+  localStorage.removeItem("lily_subscription_redirect");
+  localStorage.removeItem("lily_subscription_payment_ref");
 };
 
 const PaystackCallbackPage = () => {
@@ -24,11 +24,11 @@ const PaystackCallbackPage = () => {
     const reference =
       searchParams.get("reference") || searchParams.get("trxref");
     const status = searchParams.get("status");
-    const storedOrder = sessionStorage.getItem("lily_pending_order");
+    const storedOrder = localStorage.getItem("lily_pending_order");
     const pendingOrder = storedOrder ? JSON.parse(storedOrder) : null;
     const pendingSubscription = getSubscriptionFlowState();
     const subscriptionRedirectRequested =
-      sessionStorage.getItem("lily_subscription_redirect") === "true" ||
+      localStorage.getItem("lily_subscription_redirect") === "true" ||
       Boolean(pendingSubscription);
 
     const redirectSubscriptionFailure = (message) => {
@@ -102,8 +102,8 @@ const PaystackCallbackPage = () => {
           });
         } else {
           dispatch(clearCart());
-          sessionStorage.removeItem("checkout_ids");
-          sessionStorage.removeItem("lily_pending_order");
+          localStorage.removeItem("checkout_ids");
+          localStorage.removeItem("lily_pending_order");
           toast.success("Payment successful!");
           navigate("/order-success", {
             state: {

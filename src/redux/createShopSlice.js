@@ -6,19 +6,15 @@ export const createShop = createAsyncThunk(
   "createShop/createShop",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/shops/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await api.post("/shops/", formData);
 
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "An error occurred"
+        error.response?.data || error.message || "An error occurred",
       );
     }
-  }
+  },
 );
 
 const createShopSlice = createSlice({

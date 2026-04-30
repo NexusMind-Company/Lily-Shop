@@ -58,11 +58,11 @@ const CartPage = () => {
   const [selectedItemIds] = useState(() => {
     const locStateIds = location.state?.selectedItemIds;
     if (locStateIds) {
-      sessionStorage.setItem("checkout_ids", JSON.stringify(locStateIds));
+      localStorage.setItem("checkout_ids", JSON.stringify(locStateIds));
       return locStateIds;
     }
     try {
-      return JSON.parse(sessionStorage.getItem("checkout_ids")) || [];
+      return JSON.parse(localStorage.getItem("checkout_ids")) || [];
     } catch {
       return [];
     }
@@ -452,8 +452,8 @@ const CartPage = () => {
         if (!isDirectBuy) {
           await dispatch(clearCart());
         }
-        sessionStorage.removeItem("checkout_ids");
-        sessionStorage.removeItem("lily_pending_order");
+        localStorage.removeItem("checkout_ids");
+        localStorage.removeItem("lily_pending_order");
         navigate("/order-success", {
           state: {
             order: newOrder,
@@ -462,7 +462,7 @@ const CartPage = () => {
         });
       } else {
         if (authorizationUrl) {
-          sessionStorage.setItem(
+          localStorage.setItem(
             "lily_pending_order",
             JSON.stringify(newOrder),
           );

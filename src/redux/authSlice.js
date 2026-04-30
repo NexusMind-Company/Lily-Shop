@@ -34,7 +34,7 @@ export const loginUser = createAsyncThunk(
 
       // ---- Save user info ----
       if (data.user) {
-        sessionStorage.setItem("user_data", JSON.stringify(data.user));
+        localStorage.setItem("user_data", JSON.stringify(data.user));
       }
 
       // Fetch full profile safely
@@ -93,18 +93,18 @@ export const registerUser = createAsyncThunk(
 // ==================== INITIAL STATE ====================
 const getUserDataFromStorage = () => {
   try {
-    const stored = sessionStorage.getItem("user_data");
+    const stored = localStorage.getItem("user_data");
     return stored ? JSON.parse(stored) : null;
   } catch (error) {
     console.error("Error parsing stored user_data:", error);
-    sessionStorage.removeItem("user_data");
+    localStorage.removeItem("user_data");
     return null;
   }
 };
 
 const initialState = {
   user_data: getUserDataFromStorage(),
-  isAuthenticated: !!sessionStorage.getItem("access_token"),
+  isAuthenticated: !!localStorage.getItem("access_token"),
   loading: false,
   error: null,
   registrationSuccess: false,
@@ -120,7 +120,7 @@ const authSlice = createSlice({
       state.user_data = userData;
       state.isAuthenticated = true;
       state.error = null;
-      sessionStorage.setItem("user_data", JSON.stringify(userData));
+      localStorage.setItem("user_data", JSON.stringify(userData));
     },
 
     logout: (state) => {
@@ -128,7 +128,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.registrationSuccess = false;
-      sessionStorage.removeItem("user_data");
+      localStorage.removeItem("user_data");
       clearAuthTokens();
     },
 
@@ -155,7 +155,7 @@ const authSlice = createSlice({
         state.user_data = action.payload.user || state.user_data || null;
 
         if (action.payload.user) {
-          sessionStorage.setItem(
+          localStorage.setItem(
             "user_data",
             JSON.stringify(action.payload.user),
           );

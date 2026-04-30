@@ -70,7 +70,9 @@ const DetailRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
         <Icon size={12} className="text-[#4eb75e]" />
         {label}
       </span>
-      <span className={`text-right text-xs font-medium text-gray-700 dark:text-gray-300 ${valueClassName}`}>
+      <span
+        className={`text-right text-xs font-medium text-gray-700 dark:text-gray-300 ${valueClassName}`}
+      >
         {value}
       </span>
     </div>
@@ -82,8 +84,12 @@ const DetailBlock = ({ label, value }) => {
 
   return (
     <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-800">
-      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">{value}</p>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+        {label}
+      </p>
+      <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+        {value}
+      </p>
     </div>
   );
 };
@@ -99,7 +105,9 @@ const SubscriptionCard = ({ sub }) => {
       ? `${Math.min(100, Math.max(6, 100 - (daysLeft / totalDays) * 100))}%`
       : "0%";
   const preferredDays = formatList(sub.preferred_delivery_days);
-  const amountPaid = sub.amount_paid ? `N${Number(sub.amount_paid).toLocaleString()}` : "";
+  const amountPaid = sub.amount_paid
+    ? `N${Number(sub.amount_paid).toLocaleString()}`
+    : "";
   const customerPhone = sub.phone || sub.customer_phone;
   const deliveryMode = sub.delivery_type
     ? sub.delivery_type.charAt(0).toUpperCase() + sub.delivery_type.slice(1)
@@ -113,7 +121,9 @@ const SubscriptionCard = ({ sub }) => {
             {sub.customer_name?.charAt(0) ?? "?"}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#111813] dark:text-white">{sub.customer_name}</p>
+            <p className="text-sm font-bold text-[#111813] dark:text-white">
+              {sub.customer_name}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {sub.plan_name || sub.meal_preferences}
             </p>
@@ -139,21 +149,59 @@ const SubscriptionCard = ({ sub }) => {
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f8faf8] p-3 dark:bg-gray-900">
-        <DetailRow icon={Calendar} label="Start" value={formatDate(sub.start_date)} />
-        <DetailRow icon={Calendar} label="Expires" value={formatDate(sub.end_date)} />
+        <DetailRow
+          icon={Calendar}
+          label="Start"
+          value={formatDate(sub.start_date)}
+        />
+        <DetailRow
+          icon={Calendar}
+          label="Expires"
+          value={formatDate(sub.end_date)}
+        />
         <DetailRow icon={CreditCard} label="Paid" value={amountPaid} />
-        <DetailRow icon={Clock} label="Created" value={formatDateTime(sub.start_date)} />
+        <DetailRow
+          icon={Clock}
+          label="Created"
+          value={formatDateTime(sub.start_date)}
+        />
       </div>
 
       <div className="space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800">
         <DetailRow icon={Phone} label="Phone" value={customerPhone} />
         <DetailRow icon={Mail} label="Email" value={sub.customer_email} />
         <DetailRow icon={Truck} label="Delivery" value={deliveryMode} />
-        <DetailRow icon={Clock} label="Preferred Time" value={sub.preferred_time} />
-        <DetailRow icon={BadgeCheck} label="Pickup Code" value={sub.collection_code} valueClassName="text-[#4eb75e]" />
-        <DetailRow icon={UtensilsCrossed} label="Plates" value={sub.plates_per_delivery ? `${sub.plates_per_delivery} per delivery` : ""} />
-        <DetailRow icon={UtensilsCrossed} label="Portion Size" value={sub.portion_size} valueClassName="capitalize" />
-        <DetailRow icon={Calendar} label="Delivery Days" value={preferredDays} />
+        <DetailRow
+          icon={Clock}
+          label="Preferred Time"
+          value={sub.preferred_time}
+        />
+        <DetailRow
+          icon={BadgeCheck}
+          label="Pickup Code"
+          value={sub.collection_code}
+          valueClassName="text-[#4eb75e]"
+        />
+        <DetailRow
+          icon={UtensilsCrossed}
+          label="Plates"
+          value={
+            sub.plates_per_delivery
+              ? `${sub.plates_per_delivery} per delivery`
+              : ""
+          }
+        />
+        <DetailRow
+          icon={UtensilsCrossed}
+          label="Portion Size"
+          value={sub.portion_size}
+          valueClassName="capitalize"
+        />
+        <DetailRow
+          icon={Calendar}
+          label="Delivery Days"
+          value={preferredDays}
+        />
         <DetailRow icon={MapPin} label="Address" value={sub.customer_address} />
       </div>
 
@@ -161,17 +209,27 @@ const SubscriptionCard = ({ sub }) => {
         <DetailBlock label="Preferences" value={sub.meal_preferences} />
         <DetailBlock label="Dietary Notes" value={sub.dietary_notes} />
         <DetailBlock label="Allergies" value={sub.allergies_summary} />
-        <DetailBlock label="Additional Notes" value={sub.special_instructions} />
+        <DetailBlock
+          label="Additional Notes"
+          value={sub.special_instructions}
+        />
       </div>
 
       {sub.status === "active" && (
         <div className="mt-4">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[10px] text-gray-400">Subscription progress</span>
-            <span className="text-[10px] font-bold text-[#4eb75e]">{daysLeft}d left</span>
+            <span className="text-[10px] text-gray-400">
+              Subscription progress
+            </span>
+            <span className="text-[10px] font-bold text-[#4eb75e]">
+              {daysLeft}d left
+            </span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-            <div className="h-full rounded-full bg-[#4eb75e]" style={{ width: progressWidth }} />
+            <div
+              className="h-full rounded-full bg-[#4eb75e]"
+              style={{ width: progressWidth }}
+            />
           </div>
         </div>
       )}
@@ -197,7 +255,8 @@ const VendorSubscriptionsPage = () => {
   });
 
   const subs = (subsData?.results ?? []).filter((subscription) => {
-    const matchesPlan = planFilter !== "all" ? subscription.plan_type === planFilter : true;
+    const matchesPlan =
+      planFilter !== "all" ? subscription.plan_type === planFilter : true;
     const normalizedStatus = subscription.status?.toLowerCase();
     const matchesStatus =
       activeTab === "active"
@@ -238,7 +297,9 @@ const VendorSubscriptionsPage = () => {
                 : "border border-gray-100 bg-white text-gray-500 dark:border-gray-800 dark:bg-surface-dark"
             }`}
           >
-            {plan === "all" ? "All Plans" : `${plan.charAt(0).toUpperCase()}${plan.slice(1)}`}
+            {plan === "all"
+              ? "All Plans"
+              : `${plan.charAt(0).toUpperCase()}${plan.slice(1)}`}
           </button>
         ))}
       </div>
@@ -246,7 +307,10 @@ const VendorSubscriptionsPage = () => {
       {subsLoading && !subsData ? (
         <VendorPageLoader />
       ) : subsError && !subsData ? (
-        <VendorPageError message={getErrorMessage(subsErr)} onRetry={refetchSubs} />
+        <VendorPageError
+          message={getErrorMessage(subsErr)}
+          onRetry={refetchSubs}
+        />
       ) : subs.length === 0 ? (
         <div className="py-12 text-center text-sm text-gray-400">
           {subsData?.results?.length === 0

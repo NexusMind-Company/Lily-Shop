@@ -13,7 +13,7 @@ const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
 
 const loadBankAccounts = () => {
   try {
-    return JSON.parse(sessionStorage.getItem(BANK_STORAGE_KEY) || "[]");
+    return JSON.parse(localStorage.getItem(BANK_STORAGE_KEY) || "[]");
   } catch {
     return [];
   }
