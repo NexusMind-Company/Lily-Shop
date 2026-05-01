@@ -95,12 +95,14 @@ export const fetchVendorDetails = async (vendorId) => {
   try {
     // 1. Fetch core vendor detail
     const data = await fetchFoodVendor(vendorId);
-    
+
     // 2. Data Stitching: The detail view often omits media seen in the list view
     if (data && !data.all_media_urls) {
       try {
         const vendorList = await fetchAllFoodVendors();
-        const listData = (vendorList.results || vendorList).find(v => v.id === vendorId);
+        const listData = (vendorList.results || vendorList).find(
+          (v) => v.id === vendorId,
+        );
         if (listData && listData.all_media_urls) {
           data.all_media_urls = listData.all_media_urls;
         }
@@ -112,16 +114,19 @@ export const fetchVendorDetails = async (vendorId) => {
     // 3. User Avatar: Inject the vendor's actual associated user profile picture
     if (data && data.user && !data.profile_pic) {
       try {
-        const userId = typeof data.user === 'string' ? data.user : data.user.id;
+        const userId = typeof data.user === "string" ? data.user : data.user.id;
         const profile = await fetchPublicProfile(userId);
         if (profile) {
-           data.user_profile = profile;
-           data.profile_pic = profile.profile_pic;
-           // If address is still missing, maybe it's listed in the user's bio/metadata
-           if (!data.address && profile.address) data.address = profile.address;
+          data.user_profile = profile;
+          data.profile_pic = profile.profile_pic;
+          // If address is still missing, maybe it's listed in the user's bio/metadata
+          if (!data.address && profile.address) data.address = profile.address;
         }
       } catch (err) {
-         console.warn("Could not fetch associated user profile for vendor avatar", err);
+        console.warn(
+          "Could not fetch associated user profile for vendor avatar",
+          err,
+        );
       }
     }
 
@@ -129,7 +134,9 @@ export const fetchVendorDetails = async (vendorId) => {
     if (data && !data.address) {
       try {
         const plans = await apiFetchMealPlansByVendor(vendorId);
-        const firstPlanWithAddress = (plans.results || plans).find(p => p.address);
+        const firstPlanWithAddress = (plans.results || plans).find(
+          (p) => p.address,
+        );
         if (firstPlanWithAddress) {
           data.address = firstPlanWithAddress.address;
         }
@@ -206,7 +213,6 @@ export const fetchVendorSubscriptionPlans = async (
       page,
       page_size,
     });
-    console.log(" API fetchVendorSubscriptionPlans response:", data);
     return data;
   } catch (error) {
     console.error("Error fetching vendor subscription plans:", error);
@@ -255,17 +261,20 @@ export const createMealPlan = async (payload) => {
       media: payload.media,
     };
     // Check if we have media files (single File or array of Files)
-    const hasMedia = normalized.media && (normalized.media instanceof File || (Array.isArray(normalized.media) && normalized.media.length > 0));
+    const hasMedia =
+      normalized.media &&
+      (normalized.media instanceof File ||
+        (Array.isArray(normalized.media) && normalized.media.length > 0));
     if (hasMedia) {
       const formData = new FormData();
-      Object.keys(normalized).forEach(key => {
-        if (key === 'media') {
+      Object.keys(normalized).forEach((key) => {
+        if (key === "media") {
           if (Array.isArray(normalized.media)) {
-            normalized.media.forEach(file => {
-              formData.append('media', file);
+            normalized.media.forEach((file) => {
+              formData.append("media", file);
             });
           } else if (normalized.media instanceof File) {
-            formData.append('media', normalized.media);
+            formData.append("media", normalized.media);
           }
         } else {
           if (normalized[key] !== undefined && normalized[key] !== null) {
@@ -285,7 +294,7 @@ export const createMealPlan = async (payload) => {
       // Fallback JSON if no media
       response = await api.post("/foods/subscriptions/create/", normalized);
     }
-    
+
     console.log(" API createMealPlan response:", response.data);
     return response.data;
   } catch (error) {
@@ -577,7 +586,7 @@ export const updateMealPlan = async (id, payload) => {
 
   // Always use FormData for compatibility with backend MultiPartParser
   const formData = new FormData();
-  
+
   // Append required fields
   formData.append("plan_name", plan_name);
   formData.append("price", price.toString());
@@ -596,11 +605,14 @@ export const updateMealPlan = async (id, payload) => {
   }
 
   // Handle media if provided
-  const hasMedia = media && (media instanceof File || (Array.isArray(media) && media.length > 0 && media[0] instanceof File));
-  
+  const hasMedia =
+    media &&
+    (media instanceof File ||
+      (Array.isArray(media) && media.length > 0 && media[0] instanceof File));
+
   if (hasMedia) {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    
+
     const filesToValidate = Array.isArray(media) ? media : [media];
     for (const file of filesToValidate) {
       if (file instanceof File && !allowedTypes.includes(file.type)) {
@@ -653,11 +665,14 @@ export const updateMealPlan = async (id, payload) => {
  * @param {string} preferencesData.special_instructions - Special instructions
  * @returns {Promise<Object>} Updated subscription data
  */
-export const updateSubscriptionPreferences = async (subscriptionId, preferencesData) => {
+export const updateSubscriptionPreferences = async (
+  subscriptionId,
+  preferencesData,
+) => {
   try {
     const response = await api.patch(
       `/foods/subscriptions/${subscriptionId}/preferences/`,
-      preferencesData
+      preferencesData,
     );
     return response.data;
   } catch (error) {

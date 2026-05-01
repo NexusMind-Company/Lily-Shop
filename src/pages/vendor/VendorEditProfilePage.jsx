@@ -80,7 +80,7 @@ const VendorEditProfilePage = () => {
 
   const field = (key, label, type = "text", placeholder = "") => (
     <div>
-      <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
+      <label className="block text-sm font-semibold text-gray-600  mb-1.5">
         {label}
       </label>
       <input
@@ -88,7 +88,7 @@ const VendorEditProfilePage = () => {
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e] transition-colors"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e] transition-colors"
       />
     </div>
   );
@@ -130,7 +130,7 @@ const VendorEditProfilePage = () => {
           </div>
         )}
 
-        <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
+        <div className="bg-white  rounded-2xl p-5 shadow-sm border border-gray-100  space-y-4">
           {field(
             "name",
             "Restaurant / Vendor Name *",
@@ -146,7 +146,7 @@ const VendorEditProfilePage = () => {
           {field("cuisine", "Cuisine", "text", "e.g. Nigerian, Continental")}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-semibold text-gray-600  mb-1.5">
               Description
             </label>
             <textarea
@@ -156,7 +156,7 @@ const VendorEditProfilePage = () => {
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
               placeholder="Tell customers what makes your food special..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-[#111813] dark:text-white focus:outline-none focus:border-[#4eb75e] resize-none transition-colors"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e] resize-none transition-colors"
             />
           </div>
 
@@ -169,7 +169,7 @@ const VendorEditProfilePage = () => {
           {field("contact_phone", "Contact Phone", "tel", "e.g. 08012345678")}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-semibold text-gray-600  mb-1.5">
               Update Photo / Media
             </label>
             <input
