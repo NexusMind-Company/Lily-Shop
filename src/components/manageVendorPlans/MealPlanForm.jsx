@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -46,25 +46,28 @@ const MealPlanForm = ({
   const [tagInputs, setTagInputs] = useState([""]);
 
   // ---------------- Load Plan Data for Edit ----------------
-  const { isLoading: isFetchingPlan } = useQuery({
+  const { data: fetchedPlan, isLoading: isFetchingPlan } = useQuery({
     queryKey: ["mealPlan", planId],
     queryFn: () => fetchMealPlan(planId),
     enabled: !!isEdit && !!planId,
-    onSuccess: (data) => {
-      setPlanData({
-        name: data.plan_name || "",
-        description: data.description || "",
-        price: (data.price / 100).toString(), // convert kobo to NGN
-        type: data.frequency || initialType,
-        mealsPerWeek: data.meals_per_cycle || 5,
-        features: [],
-        address: data.address || "",
-        service_days_preset:
-          data.service_days?.length > 5 ? "mon_sun" : "mon_fri",
-      });
-      // Note: Meal combinations loading can be implemented here if backend returns them
-    },
   });
+
+  // Effect to prefill data when fetchedPlan changes (Replaces deprecated onSuccess)
+  useEffect(() => {
+    if (fetchedPlan && isEdit) {
+      setPlanData({
+        name: fetchedPlan.plan_name || "",
+        description: fetchedPlan.description || "",
+        price: fetchedPlan.price ? fetchedPlan.price.toString() : "",
+        type: fetchedPlan.frequency || initialType,
+        mealsPerWeek: fetchedPlan.meals_per_cycle || 5,
+        features: [],
+        address: fetchedPlan.address || "",
+        service_days_preset:
+          fetchedPlan.service_days?.length > 5 ? "mon_sun" : "mon_fri",
+      });
+    }
+  }, [fetchedPlan, isEdit, initialType]);
 
   const createPlanMutation = useMutation({
     mutationFn: (data) => createMealPlan(data),
@@ -186,7 +189,8 @@ const MealPlanForm = ({
     const submissionData = {
       plan_name: planData.name,
       description: planData.description,
-      price: parseFloat(planData.price),
+      address: planData.address,
+      price: parseFloat(planData.price), // Send raw price value
       meals_per_cycle: parseInt(planData.mealsPerWeek),
       frequency: planData.type,
       service_days:
@@ -275,8 +279,8 @@ const MealPlanForm = ({
                 }
                 className={`px-3 py-2 rounded-md border text-sm font-semibold ${
                   planData.service_days_preset === "mon_fri"
-                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
-                    : "bg-white text-text-main border-gray-300"
+                    ? "bg-lily text-white border-lily"
+                    : "bg-white text-black border-gray-300"
                 }`}
               >
                 Mon – Fri
@@ -288,8 +292,8 @@ const MealPlanForm = ({
                 }
                 className={`px-3 py-2 rounded-md border text-sm font-semibold ${
                   planData.service_days_preset === "mon_sun"
-                    ? "bg-[#13ec49] text-green-950 border-[#13ec49]"
-                    : "bg-white text-text-main border-gray-300"
+                    ? "bg-lily text-white border-lily"
+                    : "bg-white text-black border-gray-300"
                 }`}
               >
                 Mon – Sun
@@ -343,7 +347,7 @@ const MealPlanForm = ({
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main
                          file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold
-                         file:bg-[#13ec49] file:text-green-950 hover:file:bg-[#0ea33b] transition-colors cursor-pointer"
+                         file:bg-lily file:text-white hover:file:bg-darklily transition-colors cursor-pointer"
             />
             {mediaFiles.length > 0 && (
               <p className="text-xs text-gray-500 mt-2">
@@ -519,7 +523,7 @@ const MealPlanForm = ({
             disabled={
               createPlanMutation.isPending || updatePlanMutation.isPending
             }
-            className="flex-1 px-4 py-2 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 bg-lily text-white rounded-md hover:bg-darklily disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Save size={16} />
             {createPlanMutation.isPending || updatePlanMutation.isPending
