@@ -31,33 +31,29 @@ const PlanCard = ({
   if (isActive) {
     return (
       <div
-        className="flex flex-col rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-white dark:bg-[#1a2c1e] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+        className="flex flex-col rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-white border border-gray-900 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         onClick={onCardClick}
       >
         <div
           className="w-full h-40 bg-center bg-no-repeat bg-cover relative"
           style={{ backgroundImage: `url("${imageUrl}")` }}
         >
-          <div className="absolute top-3 right-3 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-3 py-1 rounded-lg">
-            <span className="text-xs font-bold text-[#111813] dark:text-white">
-              {price}
-            </span>
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg">
+            <span className="text-xs font-bold text-black">{price}</span>
           </div>
         </div>
         <div className="flex flex-col gap-4 p-4">
           <div>
-            <h4 className="text-[#111813] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">
+            <h4 className="text-black text-xl font-bold leading-tight tracking-[-0.015em]">
               {title}
             </h4>
-            <p className="text-[#61896b] dark:text-gray-400 text-sm mt-1">
-              {description}
-            </p>
+            <p className="text-black text-sm mt-1">{description}</p>
           </div>
           <div className="flex flex-col gap-2">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 text-sm text-[#61896b] dark:text-gray-400"
+                className="flex items-center gap-2 text-sm text-black"
               >
                 <CheckCircle />
                 <span>{feature}</span>
@@ -66,16 +62,22 @@ const PlanCard = ({
           </div>
           <div className="flex gap-3">
             <button
-              className="flex-1 flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-[#13ec49] bg-transparent text-[#111813] dark:text-white hover:bg-[#13ec49]/10 transition-colors text-sm font-bold"
-              onClick={onButtonClick}
+              className="flex-1 flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 border border-black bg-white text-black hover:bg-lily transition-colors text-sm font-bold"
+              onClick={(e) => {
+                e.stopPropagation();
+                onButtonClick();
+              }}
             >
               <span>{buttonText}</span>
               <ExternalLink />
             </button>
             {onDeleteClick && (
               <button
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-bold"
-                onClick={onDeleteClick}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl h-11 px-4 bg-lily/20 text-red-700 transition-colors text-sm font-bold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteClick();
+                }}
                 title="Delete plan"
               >
                 <Trash2 size={16} />
@@ -88,12 +90,12 @@ const PlanCard = ({
   } else {
     return (
       <div
-        className="bg-cover bg-center flex flex-col items-stretch justify-end rounded-xl pt-[100px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden cursor-pointer group"
+        className="bg-cover bg-center flex flex-col items-stretch justify-end rounded-xl pt-25 shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden cursor-pointer group"
         style={{ backgroundImage: `url("${imageUrl}")` }}
         onClick={onCardClick}
       >
         {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent"></div>
         <div className="relative z-10 flex w-full flex-col gap-4 p-5">
           <div className="flex flex-col gap-1">
             <p className="text-white text-2xl font-bold leading-tight">
@@ -104,8 +106,11 @@ const PlanCard = ({
             </p>
           </div>
           <button
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-12 px-6 bg-[#13ec49] text-[#111813] hover:bg-[#0fd641] transition-colors text-sm font-bold shadow-lg"
-            onClick={onButtonClick}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-12 px-6 bg-lily text-black hover:bg-darklily transition-colors text-sm font-bold shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              onButtonClick();
+            }}
           >
             <Plus />
             <span>{buttonText}</span>
@@ -130,4 +135,3 @@ PlanCard.propTypes = {
 };
 
 export default PlanCard;
-

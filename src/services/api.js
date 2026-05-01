@@ -186,7 +186,11 @@ export const uploadMediaFile = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await api.post("/foods/subscriptions/create/", formData);
+  const response = await api.post("/foods/subscriptions/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return response.data;
 };
@@ -644,12 +648,69 @@ export const fetchMealPlansByVendor = async (vendorId) => {
 };
 
 export const createMealPlan = async (mealPlanData) => {
-  const response = await api.post("/foods/subscriptions/create/", mealPlanData);
+  const formData = new FormData();
+
+  // Basic fields
+  if (mealPlanData.plan_name)
+    formData.append("plan_name", mealPlanData.plan_name);
+  if (mealPlanData.description)
+    formData.append("description", mealPlanData.description);
+  if (mealPlanData.address) formData.append("address", mealPlanData.address);
+  if (mealPlanData.price !== undefined)
+    formData.append("price", mealPlanData.price.toString());
+  if (mealPlanData.meals_per_cycle !== undefined)
+    formData.append("meals_per_cycle", mealPlanData.meals_per_cycle.toString());
+  if (mealPlanData.frequency)
+    formData.append("frequency", mealPlanData.frequency);
+  if (mealPlanData.trial_days !== undefined)
+    formData.append("trial_days", mealPlanData.trial_days.toString());
+
+  // Array fields
+  if (Array.isArray(mealPlanData.service_days)) {
+    formData.append("service_days", JSON.stringify(mealPlanData.service_days));
+  }
+
+  // Media files
+  if (Array.isArray(mealPlanData.media)) {
+    mealPlanData.media.forEach((file) => {
+      if (file instanceof File) {
+        formData.append("media", file);
+      }
+    });
+  } else if (mealPlanData.media instanceof File) {
+    formData.append("media", mealPlanData.media);
+  }
+
+  const response = await api.post("/foods/subscriptions/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
 export const createMeal = async (mealData) => {
-  const response = await api.post("/foods/meals/", mealData);
+  const formData = new FormData();
+
+  if (mealData.name) formData.append("name", mealData.name);
+  if (mealData.description)
+    formData.append("description", mealData.description);
+  if (mealData.image) formData.append("image", mealData.image);
+  if (mealData.calories !== undefined)
+    formData.append("calories", mealData.calories.toString());
+  if (mealData.vendor) formData.append("vendor", mealData.vendor);
+
+  if (Array.isArray(mealData.tags)) {
+    mealData.tags.forEach((tag) => {
+      formData.append("tags", JSON.stringify(tag));
+    });
+  }
+
+  const response = await api.post("/foods/meals/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
@@ -690,6 +751,10 @@ export const createFoodVendor = async (vendorData) => {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }
 
+  if (vendorData.service_days) {
+    formData.append("service_days", vendorData.service_days);
+  }
+
   appendVendorMedia(formData, vendorData);
 
   const response = await api.post("/foods/food-vendors/", formData, {
@@ -718,6 +783,10 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }
 
+  if (vendorData.service_days) {
+    formData.append("service_days", vendorData.service_days);
+  }
+
   appendVendorMedia(formData, vendorData);
 
   const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
@@ -744,72 +813,94 @@ export const fetchAllFoodVendors = async (params = {}) => {
 };
 
 export const updateSubscriptionPlan = async (planId, planData) => {
-  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
-    planData;
-
-  if (!plan_name || !price) {
-    throw new Error("Plan name and price are required");
-  }
-
   const formData = new FormData();
-  formData.append("plan_name", plan_name);
-  formData.append("price", price.toString());
 
-  if (trial_days !== undefined && trial_days !== null) {
-    formData.append("trial_days", trial_days.toString());
+  // Basic fields
+  if (planData.plan_name) formData.append("plan_name", planData.plan_name);
+  if (planData.description)
+    formData.append("description", planData.description);
+  if (planData.address) formData.append("address", planData.address);
+  if (planData.price !== undefined && planData.price !== null)
+    formData.append("price", planData.price.toString());
+  if (
+    planData.meals_per_cycle !== undefined &&
+    planData.meals_per_cycle !== null
+  )
+    formData.append("meals_per_cycle", planData.meals_per_cycle.toString());
+  if (planData.frequency) formData.append("frequency", planData.frequency);
+  if (planData.trial_days !== undefined && planData.trial_days !== null)
+    formData.append("trial_days", planData.trial_days.toString());
+
+  // Array fields
+  if (Array.isArray(planData.service_days)) {
+    formData.append("service_days", JSON.stringify(planData.service_days));
   }
 
-  if (description !== undefined && description !== null) {
-    formData.append("description", description);
-  }
-
-  if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
-    formData.append("meals_per_cycle", meals_per_cycle.toString());
-  }
-
-  if (media && Array.isArray(media)) {
-    media.forEach((file) => {
-      formData.append("media", file);
+  // Media files
+  if (planData.media && Array.isArray(planData.media)) {
+    planData.media.forEach((file) => {
+      if (file instanceof File) {
+        formData.append("media", file);
+      }
     });
-  } else if (media) {
-    formData.append("media", media);
+  } else if (planData.media instanceof File) {
+    formData.append("media", planData.media);
   }
 
   const response = await api.put(
     `/foods/subscriptions/${planId}/update/`,
     formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
 
   return response.data;
 };
 
 export const partialUpdateSubscriptionPlan = async (planId, planData) => {
-  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
-    planData;
-
   const formData = new FormData();
 
-  if (plan_name) formData.append("plan_name", plan_name);
-  if (price !== undefined && price !== null)
-    formData.append("price", price.toString());
-  if (trial_days !== undefined && trial_days !== null)
-    formData.append("trial_days", trial_days.toString());
-  if (description !== undefined && description !== null)
-    formData.append("description", description);
-  if (meals_per_cycle !== undefined && meals_per_cycle !== null)
-    formData.append("meals_per_cycle", meals_per_cycle.toString());
+  if (planData.plan_name) formData.append("plan_name", planData.plan_name);
+  if (planData.description)
+    formData.append("description", planData.description);
+  if (planData.address) formData.append("address", planData.address);
+  if (planData.price !== undefined && planData.price !== null)
+    formData.append("price", planData.price.toString());
+  if (
+    planData.meals_per_cycle !== undefined &&
+    planData.meals_per_cycle !== null
+  )
+    formData.append("meals_per_cycle", planData.meals_per_cycle.toString());
+  if (planData.frequency) formData.append("frequency", planData.frequency);
+  if (planData.trial_days !== undefined && planData.trial_days !== null)
+    formData.append("trial_days", planData.trial_days.toString());
 
-  if (media && Array.isArray(media)) {
-    media.forEach((file) => {
-      formData.append("media", file);
+  // Array fields
+  if (Array.isArray(planData.service_days)) {
+    formData.append("service_days", JSON.stringify(planData.service_days));
+  }
+
+  if (planData.media && Array.isArray(planData.media)) {
+    planData.media.forEach((file) => {
+      if (file instanceof File) {
+        formData.append("media", file);
+      }
     });
-  } else if (media) {
-    formData.append("media", media);
+  } else if (planData.media instanceof File) {
+    formData.append("media", planData.media);
   }
 
   const response = await api.patch(
     `/foods/subscriptions/${planId}/update/`,
     formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
 
   return response.data;
@@ -840,27 +931,20 @@ export const unsubscribeFromPlan = async (subscriptionId) => {
 };
 
 export const createSubscriptionPlan = async (planData) => {
-  const { plan_name, price, trial_days, description, meals_per_cycle, media } =
-    planData;
+  const {
+    plan_name,
+    price,
+    trial_days,
+    description,
+    address,
+    meals_per_cycle,
+    frequency,
+    service_days,
+    media,
+  } = planData;
 
   if (!plan_name || !price) {
     throw new Error("Plan name and price are required");
-  }
-
-  if (media) {
-    if (media instanceof File) {
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(media.type)) {
-        throw new Error(
-          "Only image files (JPEG, PNG, GIF, WEBP) are allowed for media",
-        );
-      }
-    }
   }
 
   const formData = new FormData();
@@ -875,15 +959,37 @@ export const createSubscriptionPlan = async (planData) => {
     formData.append("description", description);
   }
 
+  if (address !== undefined && address !== null) {
+    formData.append("address", address);
+  }
+
   if (meals_per_cycle !== undefined && meals_per_cycle !== null) {
     formData.append("meals_per_cycle", meals_per_cycle.toString());
   }
 
-  if (media) {
+  if (frequency) {
+    formData.append("frequency", frequency);
+  }
+
+  if (Array.isArray(service_days)) {
+    formData.append("service_days", JSON.stringify(service_days));
+  }
+
+  if (media && Array.isArray(media)) {
+    media.forEach((file) => {
+      if (file instanceof File) {
+        formData.append("media", file);
+      }
+    });
+  } else if (media instanceof File) {
     formData.append("media", media);
   }
 
-  const response = await api.post("/foods/subscriptions/create/", formData);
+  const response = await api.post("/foods/subscriptions/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return response.data;
 };

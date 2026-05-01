@@ -1,20 +1,14 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   UtensilsCrossed,
   Wallet,
   MessageCircle,
-  Megaphone,
   Star,
   BarChart2,
   ChevronLeft,
-  Menu,
   X,
-  Bell,
-  Package,
-  UserCircle,
-  ListPlus,
   Home,
   User,
   PhoneCall,
@@ -24,6 +18,11 @@ import PropTypes from "prop-types";
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/vendor/dashboard" },
   { icon: Wallet, label: "Earnings", path: "/vendor/dashboard/earnings" },
+  {
+    icon: MessageCircle,
+    label: "Messages",
+    path: "/vendor/dashboard/messages",
+  },
   { icon: Star, label: "Ratings", path: "/vendor/dashboard/ratings" },
   { icon: BarChart2, label: "Analytics", path: "/vendor/dashboard/analytics" },
 ];
@@ -35,7 +34,7 @@ const appItems = [
   { icon: ChevronLeft, label: "Go Back", path: "/vendor/dashboard" },
 ];
 
-const VendorLayout = ({ children, title = "Dashboard" }) => {
+const VendorLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,12 +45,12 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f6f8f6] dark:bg-background-dark">
+    <div className="flex min-h-screen bg-[#f6f8f6]">
       {/* ── Sidebar ── */}
       <aside
         className={`
           fixed lg:static z-50 top-0 left-0 h-full w-72
-          bg-white dark:bg-surface-dark border-r border-gray-100 dark:border-gray-800
+          bg-white border-r border-gray-100
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
@@ -59,18 +58,15 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
         `}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-lily flex items-center justify-center">
-              <UtensilsCrossed size={16} className="text-white" />
-            </div>
-            <span className="font-bold text-sm text-[#111813] dark:text-white">
-              Vendor
-            </span>
-          </div>
+        <div className="flex items-center justify-between px-5 py-8 border-b border-gray-100">
+          <Link to="/" className="flex items-center gap-2">
+            <h1 className="font-bold text-3xl text-lily uppercase">
+              Lily Shops
+            </h1>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="lg:hidden p-2 rounded-md hover:bg-gray-100"
           >
             <X size={18} />
           </button>
@@ -87,7 +83,7 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
                     ? "bg-lily text-white"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <Icon size={18} />
@@ -106,7 +102,7 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
             <button
               key={path}
               onClick={() => go(path)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-black hover:bg-gray-100 transition"
             >
               <Icon size={18} />
               {label}
@@ -115,13 +111,13 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
         </nav>
 
         {/* Bottom: Go Back */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-1">
+        <div className="p-4 border-t border-gray-100 space-y-1">
           <button
             onClick={() => {
               navigate(-1);
               setSidebarOpen(false);
             }}
-            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-black hover:bg-gray-100 transition"
           >
             <ChevronLeft size={16} />
             Go Back
@@ -139,58 +135,6 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
 
       {/* ── Main Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white dark:bg-surface-dark border-b border-gray-100 dark:border-gray-800 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <Menu size={20} />
-            </button>
-            <h1 className="text-lg font-semibold text-[#111813] dark:text-white">
-              {title}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Quick link back to app — visible on all screens */}
-            <button
-              onClick={() => navigate("/")}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              <Home size={14} />
-              Home
-            </button>
-            <button
-              onClick={() => navigate("/support")}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              <PhoneCall size={14} />
-              Support
-            </button>
-            <button
-              onClick={() => navigate("/vendor/dashboard/messages")}
-              className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-lily rounded-full" />
-            </button>
-          </div>
-          {/* Right */}
-          {/* <button
-            onClick={() => navigate("/vendor/dashboard/messages")}
-            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button> */}
-        </header>
-
         {/* Content */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="max-w-350 mx-auto w-full">{children}</div>
@@ -202,7 +146,6 @@ const VendorLayout = ({ children, title = "Dashboard" }) => {
 
 VendorLayout.propTypes = {
   children: PropTypes.node.isRequired,
-  title: PropTypes.string,
 };
 
 export default VendorLayout;

@@ -28,16 +28,17 @@ const EditPlanPage = () => {
   const handleCancel = () => navigate("/vendor/plans");
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased transition-colors duration-300">
+    <div className="bg-white min-h-screen flex flex-col font-display antialiased transition-colors duration-300">
       <TopAppBar title="Edit Meal Plan" onBackClick={handleBackClick} />
-      
+
       <main className="flex-1 flex flex-col w-full max-w-4xl mx-auto p-4 md:p-6 pb-24">
         <div className="mb-8 mt-2 animate-fade-in-up">
-          <h1 className="text-[#111813] dark:text-white tracking-tight text-3xl font-extrabold leading-tight mb-2">
+          <h1 className="text-black tracking-tight text-3xl font-extrabold leading-tight mb-2">
             Update Plan Details
           </h1>
-          <p className="text-[#61896b] dark:text-gray-400 text-base font-normal leading-relaxed">
-            Modify the pricing, frequency, and details of your subscription plan.
+          <p className="text-black text-base font-normal leading-relaxed">
+            Modify the pricing, frequency, and details of your subscription
+            plan.
           </p>
         </div>
 

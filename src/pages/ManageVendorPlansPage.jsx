@@ -21,15 +21,15 @@ const ManageVendorPlansPage = () => {
   // Get vendorId from navigate state (passed from VendorDashboard) or from Redux profile
   const { data: profileData } = useSelector((state) => state.profile); // Note: changed from profileData to data
   const { user_data } = useSelector((state) => state.auth);
-  const vendorIdForApi = location.state?.vendorId ?? profileData?.user?.vendor_id ?? user_data?.vendor_id;
-  console.log("📋 vendorIdForApi value:", vendorIdForApi);
-  console.log("📋 vendorIdForApi type:", typeof vendorIdForApi);
-  
+  const vendorIdForApi =
+    location.state?.vendorId ??
+    profileData?.user?.vendor_id ??
+    user_data?.vendor_id;
+
   // Ensure vendorId is always a string
   const validVendorId =
     typeof vendorIdForApi === "string" ? vendorIdForApi : null;
-  console.log("📋 validVendorId:", validVendorId);
-  
+
   const [vendorId, setVendorId] = useState(validVendorId);
 
   // Update vendorId when profile data arrives
@@ -71,7 +71,6 @@ const ManageVendorPlansPage = () => {
       }
 
       setLoading(true);
-      console.log("Loading data for vendorId:", vendorId);
       try {
         // Fetch subscription stats and meal plans for this vendor
         const [statsData, plansData] = await Promise.all([
@@ -82,14 +81,10 @@ const ManageVendorPlansPage = () => {
           }),
         ]);
 
-        console.log("Stats data received:", statsData);
-        console.log("Plans data received:", plansData);
-
         setStats(statsData);
         // Extract results from paginated response
         const extractedPlans =
           plansData.results || (Array.isArray(plansData) ? plansData : []);
-        console.log("Extracted plans:", extractedPlans);
         setPlans(extractedPlans);
         setTotalCount(plansData.count || 0);
       } catch (err) {
@@ -163,14 +158,13 @@ const ManageVendorPlansPage = () => {
   if (loading) return <div>Loading vendor information...</div>;
   if (!vendorId) return <div>Vendor information not found.</div>;
 
-
   // ---------------- Separate Active / Inactive Plans ----------------
   // Since there's no is_active property, we'll consider all plans as active for now
   const activePlans = plans;
   const inactivePlans = [];
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
+    <div className="relative flex min-h-screen w-full flex-col bg-white font-display text-black transition-colors duration-200">
       <TopAppBar title="Manage Meal Plans" onBackClick={handleBackClick} />
 
       <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-5xl mx-auto w-full">
@@ -200,13 +194,17 @@ const ManageVendorPlansPage = () => {
           <div key={plan.id} className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-lg font-bold">Meal Plan</h3>
-              <span className="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase">
+              <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
                 Active
               </span>
             </div>
             <PlanCard
               isActive
-              imageUrl="/placeholder-food.jpg"
+              imageUrl={
+                plan.all_media_urls && plan.all_media_urls.length > 0
+                  ? plan.all_media_urls[0]
+                  : "/placeholder-food.jpg"
+              }
               price={
                 plan.price
                   ? `₦${Number(plan.price).toLocaleString("en-NG", {
@@ -246,7 +244,7 @@ const ManageVendorPlansPage = () => {
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-lg font-bold">Meal Plans</h3>
-              <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase">
+              <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-bold uppercase">
                 Not Setup
               </span>
             </div>
