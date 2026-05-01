@@ -29,8 +29,7 @@ const VALIDATION_RULES = {
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
-    required: true,
-    requiredMessage: "Contact email is required.",
+    required: false,
     email: true,
     invalidMessage: "Please enter a valid email.",
     maxLength: 254,
@@ -109,11 +108,18 @@ const CreateSubscriptionVendor = () => {
       shop_name: validatedTextValues.name.trim(),
       category: validatedTextValues.cuisine.trim(),
       description: validatedTextValues.description.trim(),
-      contact_email: validatedTextValues.contact_email.trim(),
+      contact_email: validatedTextValues.contact_email?.trim() || null,
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
       banner_image: bannerFile,
       profile_image: profileFile,
+      service_days: JSON.stringify([
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+      ]),
     };
 
     try {

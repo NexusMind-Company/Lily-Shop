@@ -103,20 +103,20 @@ const EditVendorProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-background-dark">
+      <div className="flex items-center justify-center min-h-screen bg-white ">
         <Loader2 className="w-8 h-8 animate-spin text-[#4eb75e]" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-background-dark min-h-screen">
+    <div className="bg-white  min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 ">
         <button onClick={() => navigate(-1)}>
-          <ChevronLeft size={24} className="text-gray-800 dark:text-white" />
+          <ChevronLeft size={24} className="text-gray-800 " />
         </button>
-        <h2 className="font-semibold text-lg text-gray-800 dark:text-white">
+        <h2 className="font-semibold text-lg text-gray-800 ">
           Edit Vendor Profile
         </h2>
         <button
@@ -131,10 +131,10 @@ const EditVendorProfilePage = () => {
       <div className="p-4 space-y-6">
         {/* Banner Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Banner Image
           </label>
-          <div className="relative h-40 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
+          <div className="relative h-40 bg-gray-100  rounded-xl overflow-hidden">
             {bannerImagePreview ? (
               <img
                 src={bannerImagePreview}
@@ -164,11 +164,11 @@ const EditVendorProfilePage = () => {
 
         {/* Profile Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Profile Image
           </label>
           <div className="flex items-center gap-4">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 ">
               {profileImagePreview ? (
                 <img
                   src={profileImagePreview}
@@ -194,7 +194,7 @@ const EditVendorProfilePage = () => {
                 className="hidden"
               />
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 ">
               Click to change profile picture
             </p>
           </div>
@@ -202,84 +202,84 @@ const EditVendorProfilePage = () => {
 
         {/* Shop Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Shop Name
           </label>
           <input
             type="text"
             value={form.shop_name}
             onChange={(e) => handleChange("shop_name", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
             placeholder="Enter shop name"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Description
           </label>
           <textarea
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition resize-none"
             placeholder="Describe your food business"
           />
         </div>
 
         {/* Address */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Address
           </label>
           <input
             type="text"
             value={form.address}
             onChange={(e) => handleChange("address", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
             placeholder="Enter your address"
           />
         </div>
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Category
           </label>
           <input
             type="text"
             value={form.category}
             onChange={(e) => handleChange("category", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
             placeholder="e.g., Nigerian, Italian, Fast Food"
           />
         </div>
 
         {/* Contact Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Contact Email
           </label>
           <input
             type="email"
             value={form.contact_email}
             onChange={(e) => handleChange("contact_email", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
             placeholder="Enter contact email"
           />
         </div>
 
         {/* Contact Phone */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700  mb-2">
             Contact Phone
           </label>
           <input
             type="tel"
             value={form.contact_phone}
             onChange={(e) => handleChange("contact_phone", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
             placeholder="Enter contact phone"
           />
         </div>

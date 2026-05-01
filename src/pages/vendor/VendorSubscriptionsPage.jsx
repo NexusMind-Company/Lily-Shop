@@ -71,7 +71,7 @@ const DetailRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
         {label}
       </span>
       <span
-        className={`text-right text-xs font-medium text-gray-700 dark:text-gray-300 ${valueClassName}`}
+        className={`text-right text-xs font-medium text-gray-700  ${valueClassName}`}
       >
         {value}
       </span>
@@ -83,13 +83,11 @@ const DetailBlock = ({ label, value }) => {
   if (!value) return null;
 
   return (
-    <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-800">
+    <div className="rounded-xl bg-gray-50 p-3 ">
       <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
         {label}
       </p>
-      <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-        {value}
-      </p>
+      <p className="text-xs leading-relaxed text-gray-700 ">{value}</p>
     </div>
   );
 };
@@ -114,17 +112,17 @@ const SubscriptionCard = ({ sub }) => {
     : "";
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-surface-dark">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm  ">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
             {sub.customer_name?.charAt(0) ?? "?"}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#111813] dark:text-white">
+            <p className="text-sm font-bold text-[#111813] ">
               {sub.customer_name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 ">
               {sub.plan_name || sub.meal_preferences}
             </p>
           </div>
@@ -148,7 +146,7 @@ const SubscriptionCard = ({ sub }) => {
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f8faf8] p-3 dark:bg-gray-900">
+      <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f8faf8] p-3 ">
         <DetailRow
           icon={Calendar}
           label="Start"
@@ -167,7 +165,7 @@ const SubscriptionCard = ({ sub }) => {
         />
       </div>
 
-      <div className="space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+      <div className="space-y-2 border-t border-gray-100 pt-3 ">
         <DetailRow icon={Phone} label="Phone" value={customerPhone} />
         <DetailRow icon={Mail} label="Email" value={sub.customer_email} />
         <DetailRow icon={Truck} label="Delivery" value={deliveryMode} />
@@ -225,7 +223,7 @@ const SubscriptionCard = ({ sub }) => {
               {daysLeft}d left
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 ">
             <div
               className="h-full rounded-full bg-[#4eb75e]"
               style={{ width: progressWidth }}
@@ -278,7 +276,7 @@ const VendorSubscriptionsPage = () => {
             className={`flex-shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === key
                 ? "bg-[#4eb75e] text-white shadow-sm"
-                : "border border-gray-100 bg-white text-gray-500 dark:border-gray-800 dark:bg-surface-dark"
+                : "border border-gray-100 bg-white text-gray-500  "
             }`}
           >
             {label}
@@ -293,8 +291,8 @@ const VendorSubscriptionsPage = () => {
             onClick={() => setPlanFilter(plan)}
             className={`flex-1 rounded-xl py-2 text-xs font-semibold capitalize transition-all ${
               planFilter === plan
-                ? "bg-[#111813] text-white dark:bg-white dark:text-[#111813]"
-                : "border border-gray-100 bg-white text-gray-500 dark:border-gray-800 dark:bg-surface-dark"
+                ? "bg-[#111813] text-white  "
+                : "border border-gray-100 bg-white text-gray-500  "
             }`}
           >
             {plan === "all"
