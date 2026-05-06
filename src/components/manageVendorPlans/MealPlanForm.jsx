@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMealPlan,
   updateSubscriptionPlan,
@@ -20,6 +20,7 @@ const MealPlanForm = ({
   planId = null,
   vendorId = null,
 }) => {
+  const queryClient = useQueryClient();
   const [planData, setPlanData] = useState({
     name: "",
     description: "",
@@ -106,6 +107,9 @@ const MealPlanForm = ({
 
     Promise.all(mealPromises)
       .then(() => {
+        // Invalidate plans to ensure refresh when navigating back
+        queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
+        queryClient.invalidateQueries({ queryKey: ["vendorStats"] });
         onSuccess && onSuccess({ id, name: planData.name });
       })
       .catch((error) => {
@@ -124,7 +128,7 @@ const MealPlanForm = ({
     setMeals(updatedMeals);
   };
 
-  const addMeal = () => {
+  const _addMeal = () => {
     setMeals([
       ...meals,
       {
@@ -138,7 +142,7 @@ const MealPlanForm = ({
     setTagInputs([...tagInputs, ""]);
   };
 
-  const removeMeal = (index) => {
+  const _removeMeal = (index) => {
     if (meals.length > 1) {
       const updatedMeals = meals.filter((_, i) => i !== index);
       setMeals(updatedMeals);
@@ -147,7 +151,7 @@ const MealPlanForm = ({
     }
   };
 
-  const handleTagChange = (mealIndex, tagString) => {
+  const _handleTagChange = (mealIndex, tagString) => {
     const tags = tagString
       .split(",")
       .map((tag) => {
@@ -397,7 +401,7 @@ const MealPlanForm = ({
             </h3>
             <button
               type="button"
-              onClick={addMeal}
+              onClick={_addMeal}
               className="flex items-center gap-2 px-3 py-1 bg-[#13ec49] text-green-950 rounded-md hover:bg-[#0ea33b] transition-colors"
             >
               <Plus size={16} />
@@ -415,7 +419,7 @@ const MealPlanForm = ({
                 {meals.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeMeal(index)}
+                    onClick={() => _removeMeal(index)}
                     className="text-red-500 hover:text-red-700"
                   >
                     <X size={16} />
@@ -498,7 +502,7 @@ const MealPlanForm = ({
                     const newTagInputs = [...tagInputs];
                     newTagInputs[index] = e.target.value;
                     setTagInputs(newTagInputs);
-                    handleTagChange(index, e.target.value);
+                    _handleTagChange(index, e.target.value);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
                   placeholder="High Protein:protein, 450 kcal:calories"

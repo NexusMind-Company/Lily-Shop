@@ -5,7 +5,7 @@ import {
   fetchAllSubscriptions as apiFetchAllSubscriptions,
   fetchCustomerSubscriptions as apiFetchCustomerSubscriptions,
   fetchVendorSubscriptionPlans as apiFetchVendorSubscriptionPlans,
-  createMealPlan as apiCreateMealPlan,
+  createMealPlan as _apiCreateMealPlan,
   createMeal as apiCreateMeal,
   fetchMealPlansByVendor as apiFetchMealPlansByVendor,
   fetchMealsByVendor as apiFetchMealsByVendor,
@@ -225,7 +225,7 @@ export const fetchVendorSubscriptionPlans = async (
  * @param {string} customerId - The customer's unique ID (would come from auth context)
  * @returns {Promise<Array>} Array of customer subscription objects
  */
-export const fetchCustomerSubscriptions = async (customerId) => {
+export const fetchCustomerSubscriptions = async (_customerId) => {
   try {
     const data = await apiFetchCustomerSubscriptions();
 

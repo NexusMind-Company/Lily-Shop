@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -33,8 +34,10 @@ import {
   fetchSubscriberGrowth,
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
+import VendorEditProfileForm from "../../components/vendor/VendorEditProfileForm";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
+  // ... (StatCard implementation remains same)
   <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-900 flex flex-col gap-2">
     <div
       className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}
@@ -45,7 +48,7 @@ const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
     <p className="text-xs text-black font-medium">{label}</p>
     {sub && (
       <div
-        className={`flex items-center gap-1 text-xs font-semibold ${subUp ? "text-[#4eb75e]" : "text-red-500"}`}
+        className={`flex items-center gap-1 text-xs font-semibold ${subUp ? "text-lily" : "text-red-500"}`}
       >
         {subUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
         {sub}
@@ -55,6 +58,7 @@ const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
 );
 
 const ActivityRow = ({ item }) => {
+  // ... (ActivityRow implementation remains same)
   const colorMap = {
     subscribed: "bg-green-100 text-green-700",
     cancelled: "bg-red-100 text-red-600",
@@ -62,7 +66,7 @@ const ActivityRow = ({ item }) => {
   };
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-gray-900 last:border-0">
-      <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-[#4eb75e]">
+      <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-lily">
         {item.customer_name?.charAt(0)?.toUpperCase() ?? "?"}
       </div>
       <div className="flex-1 min-w-0">
@@ -81,6 +85,7 @@ const ActivityRow = ({ item }) => {
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
+  // ... (CustomTooltip implementation remains same)
   if (active && payload?.length) {
     return (
       <div className="bg-white shadow-lg rounded-xl px-3 py-2 text-xs border border-gray-900">
@@ -99,6 +104,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const VendorDashboardOverview = () => {
   const navigate = useNavigate();
   const { data: profileData } = useSelector((state) => state.profile);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const {
     data: overview,
@@ -155,6 +161,26 @@ const VendorDashboardOverview = () => {
     Lost: g.lost_subscribers?.[i] ?? 0,
   }));
 
+  if (showEditProfile) {
+    return (
+      <VendorLayout
+        title="Edit Profile"
+        showBack
+        onBack={() => setShowEditProfile(false)}
+      >
+        <div className="w-full mx-auto">
+          <VendorEditProfileForm
+            onCancel={() => setShowEditProfile(false)}
+            onSuccess={() => {
+              setShowEditProfile(false);
+              refetchOverview();
+            }}
+          />
+        </div>
+      </VendorLayout>
+    );
+  }
+
   return (
     <VendorLayout title="Overview">
       {/* Welcome Area */}
@@ -181,7 +207,7 @@ const VendorDashboardOverview = () => {
             <h3 className="text-sm font-bold text-black mb-3">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => navigate("/vendor/dashboard/profile")}
+                onClick={() => setShowEditProfile(true)}
                 className="flex flex-col items-center justify-center gap-2 px-3 py-6 rounded-xl bg-lily hover:bg-lily/90 transition-colors text-center"
               >
                 <Edit3 size={20} className="text-white" />
