@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
-import StickyCTA from "../components/subscription/StickyCTA";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import {
   fetchVendorDetails,
@@ -204,9 +203,9 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
       </div>
 
       <div className="max-w-6xl mx-auto lg:mt-8">
-        <div className="flex flex-col lg:flex-row gap-8 px-4">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Vendor Info and Plans */}
-          <div className="flex-1 lg:max-w-[65%]">
+          <div className="flex-1 lg:max-w-[65%] px-4">
             <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-black mb-6 text-black">
               <VendorHero
                 vendor={vendor || null}
@@ -249,8 +248,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
           </div>
 
           {/* Right Column: Customization (Sticky on Desktop) */}
-          <div className="w-full lg:w-[35%] lg:sticky lg:top-24 lg:h-fit">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-8 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar">
+          <div className="w-full lg:w-[35%] lg:sticky lg:top-24 lg:h-fit px-4">
+            <div className="space-y-8">
               <h3 className="text-xl font-bold border-b border-gray-50 pb-4">
                 Customize Subscription
               </h3>
@@ -559,10 +558,6 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="lg:hidden">
-        <StickyCTA totalPrice={totalPrice} onSubscribe={handleSubscribe} />
       </div>
 
       <SubscriptionConfirmationModal
