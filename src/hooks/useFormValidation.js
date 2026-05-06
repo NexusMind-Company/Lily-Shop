@@ -128,6 +128,7 @@ const useFormValidation = (initialState, validationRules) => {
     handleBlur,
     handleSubmit,
     resetForm,
+    setValues,
     setErrors,
     validate,
   };

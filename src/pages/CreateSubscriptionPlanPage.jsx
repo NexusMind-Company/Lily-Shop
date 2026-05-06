@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";
-import TopAppBar from "../components/manageVendorPlans/TopAppBar";
+import VendorLayout from "../components/vendor/VendorLayout";
 import PlanSelectionCard from "../components/subscription/PlanSelectionCard";
 import HelpSection from "../components/subscription/HelpSection";
 import { CalendarDays, CalendarRange } from "lucide-react";
@@ -13,6 +14,7 @@ import { CalendarDays, CalendarRange } from "lucide-react";
  */
 const CreateSubscriptionPlanPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleBackClick = () => {
@@ -33,6 +35,11 @@ const CreateSubscriptionPlanPage = () => {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      // Invalidate queries to trigger refresh
+      queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorStats"] });
+
       toast.success("Weekly plan created!");
       navigate("/vendor/plans?type=weekly");
     } catch (error) {
@@ -56,6 +63,11 @@ const CreateSubscriptionPlanPage = () => {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      // Invalidate queries to trigger refresh
+      queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorStats"] });
+
       toast.success("Monthly plan created!");
       navigate("/vendor/plans?type=monthly");
     } catch (error) {
@@ -67,16 +79,18 @@ const CreateSubscriptionPlanPage = () => {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased overflow-x-hidden transition-colors duration-300">
-      <TopAppBar title="Create Subscription" onBackClick={handleBackClick} />
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto p-4 md:p-6 pb-24">
+    <VendorLayout
+      title="Create Subscription"
+      showBack={true}
+      onBack={handleBackClick}
+    >
+      <div className="flex flex-col w-full">
         {/* Headline Section */}
         <div className="mb-8 mt-2 animate-fade-in-up">
-          <h2 className="text-[#111813] dark:text-white tracking-tight text-[32px] font-extrabold leading-tight mb-2">
+          <h2 className="text-[#111813] tracking-tight text-[32px] font-extrabold leading-tight mb-2">
             Create New Plan
           </h2>
-          <p className="text-[#61896b] dark:text-gray-400 text-base font-normal leading-relaxed">
+          <p className="text-[#61896b] text-base font-normal leading-relaxed">
             Choose a subscription type to get started. You can customize the
             details in the next step.
           </p>
@@ -105,10 +119,8 @@ const CreateSubscriptionPlanPage = () => {
           linkText="View Vendor Guide"
           linkHref="#"
         />
-      </main>
-      {/* Bottom Action (Optional placeholder if needed in flow, otherwise just spacing) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#102215] dark:via-[#102215] h-20 pointer-events-none"></div>
-    </div>
+      </div>
+    </VendorLayout>
   );
 };
 
