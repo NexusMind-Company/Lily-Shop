@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import TopAppBar from "../components/manageVendorPlans/TopAppBar";
+import { toast } from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import StatsCard from "../components/manageVendorPlans/StatsCard";
 import PlanCard from "../components/manageVendorPlans/PlanCard";
-import MealPlanForm from "../components/manageVendorPlans/MealPlanForm";
 import Pagination from "../components/subscription/Pagination";
+import VendorLayout from "../components/vendor/VendorLayout";
 import {
   fetchVendorSubscriptionPlans,
   fetchSubscriptionStats,
@@ -16,10 +17,12 @@ import { CreditCard, Plus, User } from "lucide-react";
 const ManageVendorPlansPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [_searchParams] = useSearchParams();
+  const toastProcessed = useRef(false);
+  const queryClient = useQueryClient();
 
   // Get vendorId from navigate state (passed from VendorDashboard) or from Redux profile
-  const { data: profileData } = useSelector((state) => state.profile); // Note: changed from profileData to data
+  const { data: profileData } = useSelector((state) => state.profile);
   const { user_data } = useSelector((state) => state.auth);
   const vendorIdForApi =
     location.state?.vendorId ??
@@ -42,69 +45,44 @@ const ManageVendorPlansPage = () => {
   // Handle success messages/toasts from other pages
   useEffect(() => {
     if (location.state?.message) {
-      import("react-hot-toast").then(({ toast }) => {
+      if (!toastProcessed.current) {
+        toastProcessed.current = true;
         toast.success(location.state.message);
         // Clear state to prevent toast on re-renders/refresh
         navigate(location.pathname, { replace: true, state: {} });
-      });
+      }
+    } else {
+      toastProcessed.current = false;
     }
   }, [location.state, navigate, location.pathname]);
 
-  const [stats, setStats] = useState({
-    activeSubs: 0,
-    revenue: "0.00",
-    pending: 0,
-  });
-  const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [totalCount, setTotalCount] = useState(0);
 
   // ---------------- Load Vendor Stats & Plans ----------------
-  useEffect(() => {
-    const loadData = async () => {
-      if (!vendorId) {
-        console.error("Vendor ID is missing. Cannot load plans.");
-        setLoading(false);
-        return;
-      }
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["vendorStats", vendorId],
+    queryFn: () => fetchSubscriptionStats(vendorId),
+    enabled: !!vendorId,
+  });
 
-      setLoading(true);
-      try {
-        // Fetch subscription stats and meal plans for this vendor
-        const [statsData, plansData] = await Promise.all([
-          fetchSubscriptionStats(vendorId),
-          fetchVendorSubscriptionPlans(vendorId, {
-            page: currentPage,
-            page_size: pageSize,
-          }),
-        ]);
+  const { data: plansData, isLoading: plansLoading } = useQuery({
+    queryKey: ["vendorPlans", vendorId, currentPage],
+    queryFn: () =>
+      fetchVendorSubscriptionPlans(vendorId, {
+        page: currentPage,
+        page_size: pageSize,
+      }),
+    enabled: !!vendorId,
+  });
 
-        setStats(statsData);
-        // Extract results from paginated response
-        const extractedPlans =
-          plansData.results || (Array.isArray(plansData) ? plansData : []);
-        setPlans(extractedPlans);
-        setTotalCount(plansData.count || 0);
-      } catch (err) {
-        console.error("Failed to load vendor plans:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [vendorId, currentPage]);
+  const stats = statsData || { activeSubs: 0, revenue: "0.00", pending: 0 };
+  const plans =
+    plansData?.results || (Array.isArray(plansData) ? plansData : []);
+  const totalCount = plansData?.count || 0;
+  const loading = statsLoading || plansLoading;
 
   const totalPages = Math.ceil(totalCount / pageSize);
-
-  const pagination = {
-    currentPage,
-    totalPages,
-    totalCount,
-    pageSize,
-  };
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -114,14 +92,6 @@ const ManageVendorPlansPage = () => {
   const handleBackClick = () => {
     navigate(-1);
   };
-
-  const handleSuccess = (plan) => {
-    navigate("/vendor/plans", {
-      state: { message: `Meal plan "${plan.name}" created successfully!` },
-    });
-  };
-
-  const handleCancel = () => navigate("/vendor/plans");
 
   const handleEditPlan = (id) => {
     navigate(`/vendor/plans/${id}/edit`);
@@ -143,6 +113,11 @@ const ManageVendorPlansPage = () => {
     ) {
       try {
         await deleteVendorMealPlan(planId);
+
+        // Invalidate queries to trigger refresh
+        queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
+        queryClient.invalidateQueries({ queryKey: ["vendorStats"] });
+
         // Navigate to /vendor/plans page after successful deletion
         navigate("/vendor/plans", {
           state: { message: "Meal plan deleted successfully!" },
@@ -161,13 +136,14 @@ const ManageVendorPlansPage = () => {
   // ---------------- Separate Active / Inactive Plans ----------------
   // Since there's no is_active property, we'll consider all plans as active for now
   const activePlans = plans;
-  const inactivePlans = [];
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white font-display text-black transition-colors duration-200">
-      <TopAppBar title="Manage Meal Plans" onBackClick={handleBackClick} />
-
-      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-5xl mx-auto w-full">
+    <VendorLayout
+      title="Manage Meal Plans"
+      showBack={true}
+      onBack={handleBackClick}
+    >
+      <div className="flex flex-col gap-6 w-full">
         {/* Stats */}
         <div className="flex flex-wrap gap-3">
           <StatsCard
@@ -181,19 +157,21 @@ const ManageVendorPlansPage = () => {
             value={`₦${stats.revenue}`}
           />
         </div>
-        <div className="p-4 flex items-center justify-end max-w-4xl mx-auto w-full">
+
+        <div className="flex items-center justify-end w-full">
           <button
             onClick={handleCreatePlan}
-            className="bg-lily flex text-white self-end  px-4 py-2 rounded-lg  transition-colors duration-200"
+            className="bg-lily flex text-white px-4 py-2 rounded-lg transition-colors duration-200"
           >
             <Plus /> New Plan
           </button>
         </div>
+
         {/* Active Plans */}
         {activePlans.map((plan) => (
           <div key={plan.id} className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-lg font-bold">Meal Plan</h3>
+              <h3 className="text-lg font-bold text-black">Meal Plan</h3>
               <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
                 Active
               </span>
@@ -243,7 +221,7 @@ const ManageVendorPlansPage = () => {
         {activePlans.length === 0 && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-lg font-bold">Meal Plans</h3>
+              <h3 className="text-lg font-bold text-black">Meal Plans</h3>
               <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-bold uppercase">
                 Not Setup
               </span>
@@ -259,7 +237,7 @@ const ManageVendorPlansPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </VendorLayout>
   );
 };
 
