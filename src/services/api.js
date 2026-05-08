@@ -774,7 +774,7 @@ export const createFoodVendor = async (vendorData) => {
 
   appendVendorMedia(formData, vendorData);
 
-  const response = await api.post("/foods/food-vendors/", formData);
+const response = await api.post("/foods/food-vendors/", formData);
 
   return response.data;
 };
