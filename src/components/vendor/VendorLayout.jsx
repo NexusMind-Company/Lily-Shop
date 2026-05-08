@@ -12,6 +12,7 @@ import {
   Home,
   User,
   PhoneCall,
+  Menu,
 } from "lucide-react";
 import PropTypes from "prop-types";
 
@@ -34,7 +35,7 @@ const appItems = [
   { icon: ChevronLeft, label: "Go Back", path: "/vendor/dashboard" },
 ];
 
-const VendorLayout = ({ children }) => {
+const VendorLayout = ({ children, title, showBack = false, onBack }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,7 +46,7 @@ const VendorLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f6f8f6]">
+    <div className="flex h-screen bg-[#f6f8f6] overflow-hidden">
       {/* ── Sidebar ── */}
       <aside
         className={`
@@ -134,10 +135,34 @@ const VendorLayout = ({ children }) => {
       )}
 
       {/* ── Main Area ── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Header */}
+        <header className="shrink-0 h-16 w-full flex items-center justify-between border-b border-gray-100 bg-white px-4 lg:px-8 z-30">
+          <div className="flex items-center gap-2">
+            {showBack ? (
+              <button
+                onClick={onBack || (() => navigate(-1))}
+                className="p-2 rounded-full hover:bg-gray-100 text-black transition-colors"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-md hover:bg-gray-100 text-black transition-colors"
+              >
+                <Menu size={24} />
+              </button>
+            )}
+            <h1 className="text-lg font-bold text-black truncate ml-1">
+              {title}
+            </h1>
+          </div>
+        </header>
+
         {/* Content */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="max-w-350 mx-auto w-full">{children}</div>
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 bg-white">
+          <div className="mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>
@@ -146,6 +171,9 @@ const VendorLayout = ({ children }) => {
 
 VendorLayout.propTypes = {
   children: PropTypes.node.isRequired,
+  title: PropTypes.string,
+  showBack: PropTypes.bool,
+  onBack: PropTypes.func,
 };
 
 export default VendorLayout;

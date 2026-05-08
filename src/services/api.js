@@ -831,7 +831,7 @@ export const updateFoodVendor = async (vendorData) => {
 
   appendVendorMedia(formData, vendorData);
 
-  const response = await api.patch(`/foods/food-vendors/me/update/`, formData, {
+  const response = await api.patch(`/foods/food-vendors/me`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
