@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import TopAppBar from "../components/manageVendorPlans/TopAppBar";
+import VendorLayout from "../components/vendor/VendorLayout";
 import {
   updateMealPlan,
   fetchMealPlanDetails,
@@ -17,12 +17,12 @@ const PlanDetailsPage = () => {
   const navigate = useNavigate();
   const { planId } = useParams();
   const location = useLocation();
-  const isEdit = location.state?.mode === "edit";
+  const isEditFromState = location.state?.mode === "edit";
 
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editMode, setEditMode] = useState(isEdit);
+  const [editMode, setEditMode] = useState(isEditFromState);
   const [formData, setFormData] = useState({
     plan_name: "",
     price: "",
@@ -32,9 +32,6 @@ const PlanDetailsPage = () => {
     media: null,
   });
   const [errors, setErrors] = useState({});
-
-  // Get vendorId from location state or use a default
-  const vendorId = location.state?.vendorId || null;
 
   // ---------------- Load Plan Data ----------------
   useEffect(() => {
@@ -170,27 +167,39 @@ const PlanDetailsPage = () => {
   // ---------------- Loading State ----------------
   if (loading) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col bg-white font-display text-black transition-colors duration-200">
-        <TopAppBar title="Plan Details" onBackClick={handleBackClick} />
+      <VendorLayout
+        title="Plan Details"
+        showBack={true}
+        onBack={handleBackClick}
+      >
         <div className="flex-1 flex items-center justify-center">
           <div className="text-black">Loading plan details...</div>
         </div>
-      </div>
+      </VendorLayout>
     );
   }
 
   // ---------------- Render Form ----------------
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white font-display text-black transition-colors duration-200">
-      <TopAppBar
-        title={editMode ? "Edit Plan" : "Plan Details"}
-        onBackClick={editMode ? handleCancel : handleBackClick}
-        action={
-          !editMode ? { icon: Edit2, onClick: () => setEditMode(true) } : null
-        }
-      />
+    <VendorLayout
+      title={editMode ? "Edit Plan" : "Plan Details"}
+      showBack={true}
+      onBack={editMode ? handleCancel : handleBackClick}
+    >
+      <div className="flex flex-col gap-6 w-full">
+        {/* Header Action Button (View Mode) */}
+        {!editMode && (
+          <div className="flex justify-end">
+            <button
+              onClick={() => setEditMode(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-lily text-black font-bold text-sm hover:bg-lily/90 transition-colors"
+            >
+              <Edit2 size={16} />
+              Edit Plan
+            </button>
+          </div>
+        )}
 
-      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-5xl mx-auto w-full">
         {/* Error Display */}
         {errors.submit && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
@@ -401,7 +410,7 @@ const PlanDetailsPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </VendorLayout>
   );
 };
 

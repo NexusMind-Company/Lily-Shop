@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import TopAppBar from "../components/manageVendorPlans/TopAppBar";
+import VendorLayout from "../components/vendor/VendorLayout";
 import MealPlanForm from "../components/manageVendorPlans/MealPlanForm";
 
 /**
@@ -25,12 +25,16 @@ const CreateMealPlanPage = () => {
   const handleCancel = () => navigate("/vendor/plans");
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-light font-display text-[#111813] transition-colors duration-200">
-      <TopAppBar title="Create Meal Plan" onBackClick={handleBackClick} />
-
-      <div className="flex-1 flex flex-col gap-6 p-4 pb-20 max-w-4xl mx-auto w-full">
+    <VendorLayout
+      title="Create Meal Plan"
+      showBack={true}
+      onBack={handleBackClick}
+    >
+      <div className="flex flex-col gap-6 w-full">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold tracking-tight">Design New Plan</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-black">
+            Design New Plan
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Fill in the details below to create a subscription plan for your
             customers.
@@ -44,7 +48,7 @@ const CreateMealPlanPage = () => {
           isEdit={false}
         />
       </div>
-    </div>
+    </VendorLayout>
   );
 };
 
