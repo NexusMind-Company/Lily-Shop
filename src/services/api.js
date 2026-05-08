@@ -157,10 +157,25 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  const cleanData = Object.fromEntries(
-    Object.entries(profileData).filter(([, v]) => v != null),
-  );
-  const response = await api.patch("/auth/profile/update/", cleanData);
+  const formData = new FormData();
+  
+  Object.entries(profileData).forEach(([key, value]) => {
+    if (value != null) {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value);
+      }
+    }
+  });
+
+  const response = await api.patch("/auth/profile/update/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
@@ -451,8 +466,14 @@ export const calculateCheckout = async (checkoutData) => {
 };
 
 export const createOrder = async (orderData) => {
-  const response = await api.post("/orders/create/", orderData);
-  return response.data;
+  try {
+    const response = await api.post("/orders/create/", orderData);
+    return response.data;
+  } catch (error) {
+    console.error("Create order error - Response:", error.response?.data);
+    console.error("Create order error - Status:", error.response?.status);
+    throw error;
+  }
 };
 
 export const initiateBankTransfer = async ({ amount, vendorName }) => {
@@ -485,6 +506,31 @@ export const topUpWallet = async (amountNaira, intent_id = null) => {
   if (intent_id) payload.intent_id = intent_id;
 
   const response = await api.post("/wallet/topup/", payload);
+  return response.data;
+};
+
+export const withdrawFromWallet = async (withdrawalData) => {
+  const formData = new FormData();
+  formData.append("amount_kobo", withdrawalData.amount_kobo.toString());
+  formData.append("bank_name", withdrawalData.bank_name);
+  formData.append("account_number", withdrawalData.account_number);
+  formData.append("account_name", withdrawalData.account_name);
+
+  const response = await api.post("/wallet/withdraw/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const fetchWithdrawalHistory = async (params = {}) => {
+  const response = await api.get("/wallet/withdrawals/", { params });
+  return response.data;
+};
+
+export const fetchWithdrawalDetails = async (withdrawalId) => {
+  const response = await api.get(`/wallet/withdrawals/${withdrawalId}/`);
   return response.data;
 };
 
@@ -715,24 +761,20 @@ export const createMeal = async (mealData) => {
 };
 
 const appendVendorMedia = (formData, vendorData = {}) => {
-  const files = [];
-
-  if (vendorData.banner_image instanceof File)
-    files.push(vendorData.banner_image);
-  if (vendorData.profile_image instanceof File)
-    files.push(vendorData.profile_image);
+  if (vendorData.banner_image instanceof File) {
+    formData.append("banner_image", vendorData.banner_image);
+  }
+  if (vendorData.profile_image instanceof File) {
+    formData.append("profile_image", vendorData.profile_image);
+  }
 
   if (Array.isArray(vendorData.media)) {
     vendorData.media.forEach((file) => {
-      if (file instanceof File) files.push(file);
+      if (file instanceof File) formData.append("media", file);
     });
   } else if (vendorData.media instanceof File) {
-    files.push(vendorData.media);
+    formData.append("media", vendorData.media);
   }
-
-  files.forEach((file) => {
-    formData.append("media", file);
-  });
 };
 
 export const createFoodVendor = async (vendorData) => {
@@ -1081,6 +1123,62 @@ export const changeUserPassword = async (old_password, new_password) => {
 
 export const deleteUserAccount = async () => {
   const response = await api.delete("/auth/users/me/");
+  return response.data;
+};
+
+// ==================== ADS PAYMENT (OpenAPI) ====================
+
+export const initiateAdsPayment = async (paymentData) => {
+  const response = await api.post("/ads/payment/initiate/", paymentData);
+  return response.data;
+};
+
+export const verifyAdsPayment = async (reference) => {
+  const response = await api.post("/ads/payment/verify/", { reference });
+  return response.data;
+};
+
+export const handleAdsWebhook = async (webhookData) => {
+  const response = await api.post("/ads/payment/webhook/", webhookData);
+  return response.data;
+};
+
+export const fetchAdDetails = async (adId) => {
+  const response = await api.get(`/ads/${adId}/`);
+  return response.data;
+};
+
+// ==================== VENDOR WITHDRAWAL ====================
+
+export const fetchVendorWithdrawals = async (params = {}) => {
+  const response = await api.get("/foods/vendor/withdrawals/", { params });
+  return response.data;
+};
+
+export const createVendorWithdrawal = async (withdrawalData) => {
+  const response = await api.post("/foods/vendor/withdrawals/", withdrawalData);
+  return response.data;
+};
+
+export const fetchVendorWallet = async () => {
+  const response = await api.get("/foods/vendor/wallet/");
+  return response.data;
+};
+
+export const fetchEarningsSummary = async () => {
+  const response = await api.get("/foods/vendor/earnings/summary/");
+  return response.data;
+};
+
+export const fetchEarningsHistory = async (params = {}) => {
+  const response = await api.get("/foods/vendor/earnings/history/", { params });
+  return response.data;
+};
+
+export const fetchEarningsChart = async (period = "weekly") => {
+  const response = await api.get("/foods/vendor/earnings/chart/", {
+    params: { period },
+  });
   return response.data;
 };
 
