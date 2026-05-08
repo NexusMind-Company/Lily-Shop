@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "../services/api";
+import { api, withdrawFromWallet, fetchWithdrawalHistory } from "../services/api";
 
 /** Helper to attach token */
 const setAuthHeader = () => {
@@ -116,6 +116,43 @@ export const createVirtualAccount = createAsyncThunk(
   },
 );
 
+/**
+ * Withdraw funds to bank account
+ */
+export const withdrawFunds = createAsyncThunk(
+  "wallet/withdrawFunds",
+  async (withdrawalData, { rejectWithValue }) => {
+    try {
+      setAuthHeader();
+      const response = await withdrawFromWallet(withdrawalData);
+      return response.data;
+    } catch (error) {
+      console.error("Withdrawal failed:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data || { detail: "Unable to process withdrawal." },
+      );
+    }
+  },
+);
+
+/**
+ * Fetch withdrawal history
+ */
+export const fetchWithdrawals = createAsyncThunk(
+  "wallet/fetchWithdrawals",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      setAuthHeader();
+      const response = await fetchWithdrawalHistory(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { detail: "Unable to fetch withdrawal history." },
+      );
+    }
+  },
+);
+
 const walletSlice = createSlice({
   name: "wallet",
   initialState: {
@@ -130,6 +167,10 @@ const walletSlice = createSlice({
     verifying: false,
     promotion_releasing: false,
     virtual_account: null,
+    withdrawal_loading: false,
+    withdrawal_error: null,
+    withdrawal_success: false,
+    withdrawal_history: [],
   },
   reducers: {
     resetWalletState: (state) => {
@@ -139,6 +180,11 @@ const walletSlice = createSlice({
       state.recent_transactions = [];
       state.authorization_url = null;
       state.virtual_account = null;
+    },
+    resetWithdrawalState: (state) => {
+      state.withdrawal_loading = false;
+      state.withdrawal_error = null;
+      state.withdrawal_success = false;
     },
   },
   extraReducers: (builder) => {
@@ -214,9 +260,41 @@ const walletSlice = createSlice({
         state.loading = false;
         state.error =
           action.payload?.detail || "Failed to create virtual account.";
+      })
+
+      // Withdraw funds
+      .addCase(withdrawFunds.pending, (state) => {
+        state.withdrawal_loading = true;
+        state.withdrawal_error = null;
+        state.withdrawal_success = false;
+      })
+      .addCase(withdrawFunds.fulfilled, (state, action) => {
+        state.withdrawal_loading = false;
+        state.withdrawal_success = true;
+        state.balance_naira = action.payload.balance_naira ?? state.balance_naira;
+        state.withdrawable_naira = action.payload.withdrawable_naira ?? state.withdrawable_naira;
+      })
+      .addCase(withdrawFunds.rejected, (state, action) => {
+        state.withdrawal_loading = false;
+        state.withdrawal_error =
+          action.payload?.detail || "Withdrawal failed. Please try again.";
+        state.withdrawal_success = false;
+      })
+
+      // Fetch withdrawal history
+      .addCase(fetchWithdrawals.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchWithdrawals.fulfilled, (state, action) => {
+        state.loading = false;
+        state.withdrawal_history = action.payload.withdrawals || action.payload.results || [];
+      })
+      .addCase(fetchWithdrawals.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.detail || "Failed to fetch withdrawal history.";
       });
   },
 });
 
-export const { resetWalletState } = walletSlice.actions;
+export const { resetWalletState, resetWithdrawalState } = walletSlice.actions;
 export default walletSlice.reducer;

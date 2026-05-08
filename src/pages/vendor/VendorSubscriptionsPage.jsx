@@ -10,6 +10,11 @@ import {
   Phone,
   Truck,
   UtensilsCrossed,
+  DollarSign,
+  User,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
 } from "lucide-react";
 import VendorLayout from "../../components/vendor/VendorLayout";
 import {
@@ -28,6 +33,7 @@ const STATUS_COLORS = {
   active: "bg-green-100 text-green-700",
   expired: "bg-gray-100 text-gray-500",
   pending: "bg-orange-100 text-orange-600",
+  cancelled: "bg-red-100 text-red-600",
 };
 
 const formatDate = (value) => {
@@ -110,20 +116,21 @@ const SubscriptionCard = ({ sub }) => {
   const deliveryMode = sub.delivery_type
     ? sub.delivery_type.charAt(0).toUpperCase() + sub.delivery_type.slice(1)
     : "";
+  const customerName = sub.customer_name || sub.user?.name || "Customer";
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm  ">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
-            {sub.customer_name?.charAt(0) ?? "?"}
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
+            {customerName?.charAt(0) ?? "?"}
           </div>
           <div>
             <p className="text-sm font-bold text-[#111813] ">
-              {sub.customer_name}
+              {customerName}
             </p>
             <p className="text-xs text-gray-500 ">
-              {sub.plan_name || sub.meal_preferences}
+              {sub.plan_name || sub.subscription_plan || "Meal Plan"}
             </p>
           </div>
         </div>
@@ -134,7 +141,7 @@ const SubscriptionCard = ({ sub }) => {
               PLAN_TYPE_COLORS[sub.plan_type] ?? "bg-gray-100 text-gray-600"
             }`}
           >
-            {sub.plan_type || "plan"}
+            {sub.plan_type || sub.frequency || "plan"}
           </span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -149,7 +156,7 @@ const SubscriptionCard = ({ sub }) => {
       <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f8faf8] p-3 ">
         <DetailRow
           icon={Calendar}
-          label="Start"
+          label="Start Date"
           value={formatDate(sub.start_date)}
         />
         <DetailRow
@@ -157,18 +164,19 @@ const SubscriptionCard = ({ sub }) => {
           label="Expires"
           value={formatDate(sub.end_date)}
         />
-        <DetailRow icon={CreditCard} label="Paid" value={amountPaid} />
+        <DetailRow icon={DollarSign} label="Amount Paid" value={amountPaid} />
         <DetailRow
           icon={Clock}
-          label="Created"
-          value={formatDateTime(sub.start_date)}
+          label="Subscribed"
+          value={formatDateTime(sub.created_at || sub.start_date)}
         />
       </div>
 
       <div className="space-y-2 border-t border-gray-100 pt-3 ">
-        <DetailRow icon={Phone} label="Phone" value={customerPhone} />
+        <DetailRow icon={User} label="Full Name" value={sub.customer_name} />
+        <DetailRow icon={Phone} label="Phone Number" value={customerPhone} />
         <DetailRow icon={Mail} label="Email" value={sub.customer_email} />
-        <DetailRow icon={Truck} label="Delivery" value={deliveryMode} />
+        <DetailRow icon={Truck} label="Delivery Type" value={deliveryMode} />
         <DetailRow
           icon={Clock}
           label="Preferred Time"
@@ -176,16 +184,16 @@ const SubscriptionCard = ({ sub }) => {
         />
         <DetailRow
           icon={BadgeCheck}
-          label="Pickup Code"
+          label="Collection Code"
           value={sub.collection_code}
-          valueClassName="text-[#4eb75e]"
+          valueClassName="text-[#4eb75e] font-mono font-bold"
         />
         <DetailRow
           icon={UtensilsCrossed}
-          label="Plates"
+          label="Plates per Delivery"
           value={
             sub.plates_per_delivery
-              ? `${sub.plates_per_delivery} per delivery`
+              ? `${sub.plates_per_delivery} plate(s)`
               : ""
           }
         />
@@ -200,17 +208,25 @@ const SubscriptionCard = ({ sub }) => {
           label="Delivery Days"
           value={preferredDays}
         />
-        <DetailRow icon={MapPin} label="Address" value={sub.customer_address} />
+        <DetailRow icon={MapPin} label="Delivery Address" value={sub.customer_address || sub.address} />
       </div>
 
       <div className="mt-3 space-y-2">
-        <DetailBlock label="Preferences" value={sub.meal_preferences} />
+        <DetailBlock label="Meal Preferences" value={sub.meal_preferences} />
         <DetailBlock label="Dietary Notes" value={sub.dietary_notes} />
         <DetailBlock label="Allergies" value={sub.allergies_summary} />
         <DetailBlock
-          label="Additional Notes"
+          label="Special Instructions"
           value={sub.special_instructions}
         />
+        {sub.payment_reference && (
+          <DetailRow 
+            icon={FileText} 
+            label="Payment Ref" 
+            value={sub.payment_reference}
+            valueClassName="font-mono text-xs"
+          />
+        )}
       </div>
 
       {sub.status === "active" && (
@@ -220,7 +236,7 @@ const SubscriptionCard = ({ sub }) => {
               Subscription progress
             </span>
             <span className="text-[10px] font-bold text-[#4eb75e]">
-              {daysLeft}d left
+              {daysLeft} days left
             </span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 ">
