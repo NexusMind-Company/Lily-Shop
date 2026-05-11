@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { initiateBankTransfer } from "../services/api";
-import { usePayment } from "../context/paymentContext";
 import { ChevronLeft, Loader2, Shield } from "lucide-react";
 
 const formatPrice = (price) =>
@@ -10,19 +9,20 @@ const formatPrice = (price) =>
 
 const BankTransferPage = () => {
   const navigate = useNavigate();
-  const { paymentData, setPaymentData } = usePayment();
+  const location = useLocation();
   const [timeLeft, setTimeLeft] = useState(null);
 
+  const amount = location.state?.amount || 0;
+  const vendorName = "Lily Shop";
+
   const mutation = useMutation({
-    mutationFn: initiateBankTransfer,
+    mutationFn: () => initiateBankTransfer({ amount, vendorName }),
     onSuccess: (data) => {
-      // Store order ID in context for the loading page
-      setPaymentData((prev) => ({ ...prev, orderId: data.orderId }));
       setTimeLeft(data.expiresInMinutes * 60);
     },
     onError: (error) => {
       console.error("Bank transfer initiation failed:", error);
-      navigate("/checkout", {
+      navigate("/deposit", {
         state: { error: error.response?.data?.detail || "Failed to initiate bank transfer. Please try again." },
       });
     },
@@ -30,10 +30,9 @@ const BankTransferPage = () => {
 
   // Initiate the transfer request on page load
   useEffect(() => {
-    mutation.mutate({
-      amount: paymentData.amount,
-      vendorName: paymentData.vendorName,
-    });
+    if (amount > 0) {
+      mutation.mutate();
+    }
   }, []);
 
   // Countdown timer
@@ -60,9 +59,7 @@ const BankTransferPage = () => {
   };
 
   const handleCancel = () => {
-    // Cancel transaction - navigate back to checkout
-    // Note: No backend cancel endpoint available, transaction will expire naturally
-    navigate("/checkout");
+    navigate("/deposit");
   };
 
   if (mutation.isPending) {
@@ -80,7 +77,7 @@ const BankTransferPage = () => {
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
       <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
         <button
-          onClick={() => navigate("/checkout")}
+          onClick={() => navigate("/deposit")}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
         >
           <ChevronLeft size={24} />

@@ -101,19 +101,22 @@ const SubscriptionPaymentPage = () => {
 
   const handleDirectPayment = async () => {
     try {
+      if (!plan?.id) {
+        toast.error("Plan information is missing. Please select a plan again.");
+        navigate("/subscriptions");
+        return;
+      }
+
       toast.loading("Initiating secure payment...");
 
-      // Normalize phone number to E.164 format (+234...) using shared utility
       const formattedPhone = formatPhoneForAPI(phone);
 
-      // Generate a unique intent_id to link the top-up and the subscription
       const localIntentId =
         typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
           : Math.random().toString(36).substring(2, 15) +
             Math.random().toString(36).substring(2, 15);
 
-      // 1. First, initiate a wallet top-up for the exact amount with the intent_id
       const topUpResponse = await topUpWallet(planPrice, localIntentId);
 
       if (!topUpResponse || !topUpResponse.authorization_url) {
@@ -122,15 +125,13 @@ const SubscriptionPaymentPage = () => {
         return;
       }
 
-      // Use the intent_id from the server if it provided one, otherwise fall back to our local one
       const intentId = topUpResponse.intent_id || localIntentId;
       const authorizationUrl = topUpResponse.authorization_url;
 
-      // 2. Prepare subscription payment data with the intent_id
       const paymentData = {
-        plan_id: plan?.id,
+        plan_id: plan.id,
         payment_method: "paystack",
-        intent_id: String(intentId), // Link the top-up intent to this subscription
+        intent_id: String(intentId),
       };
 
       if (deliveryType) paymentData.delivery_type = deliveryType;
@@ -149,21 +150,21 @@ const SubscriptionPaymentPage = () => {
         paymentData.special_instructions = flowState.specialInstructions;
       if (collectionCode) paymentData.collection_code = collectionCode;
 
-      // 3. Register the subscription intent with the backend
-      // This tells the backend: "When payment for this intent_id is received, activate this subscription."
-      await api.post("/foods/subscribe/", paymentData);
+      try {
+        await api.post("/foods/subscribe/", paymentData);
+      } catch (subError) {
+        console.warn("Subscription registration failed, continuing with payment:", subError);
+      }
 
       toast.dismiss();
       toast.loading("Redirecting to Paystack...");
 
-      // 4. Store data for callback reference
       localStorage.setItem(
         "lily_subscription_payment_ref",
         topUpResponse.reference || "",
       );
       localStorage.setItem("lily_subscription_redirect", "true");
 
-      // 5. Redirect to Paystack via the top-up authorization URL
       window.location.href = authorizationUrl;
     } catch (error) {
       toast.dismiss();
@@ -171,6 +172,7 @@ const SubscriptionPaymentPage = () => {
       toast.error(
         error.response?.data?.error ||
           error.response?.data?.message ||
+          error.response?.data?.detail ||
           "An error occurred during payment initialization.",
       );
     }
