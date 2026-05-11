@@ -171,11 +171,7 @@ export const updateProfile = async (profileData) => {
     }
   });
 
-  const response = await api.patch("/auth/profile/update/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.patch("/auth/profile/update/", formData);
   return response.data;
 };
 
@@ -201,11 +197,7 @@ export const uploadMediaFile = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/subscriptions/create/", formData);
 
   return response.data;
 };
@@ -399,11 +391,6 @@ export const fetchContentViewCount = async (contentId) => {
 
 // ============================================================================
 
-export const followUser = async (userId) => {
-  const response = await api.post(`/auth/follow/${userId}/`, {});
-  return response.data;
-};
-
 export const toggleFollowShop = async (shopId) => {
   const response = await api.post(`/shops/${shopId}/toggle-follow/`, {});
   return response.data;
@@ -516,11 +503,7 @@ export const withdrawFromWallet = async (withdrawalData) => {
   formData.append("account_number", withdrawalData.account_number);
   formData.append("account_name", withdrawalData.account_name);
 
-  const response = await api.post("/wallet/withdraw/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/wallet/withdraw/", formData);
   return response.data;
 };
 
@@ -727,11 +710,7 @@ export const createMealPlan = async (mealPlanData) => {
     formData.append("media", mealPlanData.media);
   }
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/subscriptions/create/", formData);
   return response.data;
 };
 
@@ -752,11 +731,7 @@ export const createMeal = async (mealData) => {
     });
   }
 
-  const response = await api.post("/foods/meals/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/meals/", formData);
   return response.data;
 };
 
@@ -799,11 +774,7 @@ export const createFoodVendor = async (vendorData) => {
 
   appendVendorMedia(formData, vendorData);
 
-  const response = await api.post('/foods/food-vendors/', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+const response = await api.post("/foods/food-vendors/", formData);
 
   return response.data;
 };
@@ -831,11 +802,7 @@ export const updateFoodVendor = async (vendorData) => {
 
   appendVendorMedia(formData, vendorData);
 
-  const response = await api.patch(`/foods/food-vendors/me`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.patch(`/foods/food-vendors/me`, formData);
 
   return response.data;
 };
@@ -891,12 +858,7 @@ export const updateSubscriptionPlan = async (planId, planData) => {
 
   const response = await api.put(
     `/foods/subscriptions/${planId}/update/`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
+    formData
   );
 
   return response.data;
@@ -937,12 +899,7 @@ export const partialUpdateSubscriptionPlan = async (planId, planData) => {
 
   const response = await api.patch(
     `/foods/subscriptions/${planId}/update/`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
+    formData
   );
 
   return response.data;
@@ -1027,11 +984,7 @@ export const createSubscriptionPlan = async (planData) => {
     formData.append("media", media);
   }
 
-  const response = await api.post("/foods/subscriptions/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/foods/subscriptions/create/", formData);
 
   return response.data;
 };
@@ -1179,6 +1132,481 @@ export const fetchEarningsChart = async (period = "weekly") => {
   const response = await api.get("/foods/vendor/earnings/chart/", {
     params: { period },
   });
+  return response.data;
+};
+
+// ==================== AUTH - INTERESTS ====================
+
+export const fetchInterests = async (params = {}) => {
+  const response = await api.get("/auth/interests/", { params });
+  return response.data;
+};
+
+export const fetchAvailableInterests = async (params = {}) => {
+  const response = await api.get("/auth/profile/available-interests/", { params });
+  return response.data;
+};
+
+export const updateUserInterests = async (interests) => {
+  const response = await api.put("/auth/profile/add-interests/", { interests });
+  return response.data;
+};
+
+export const partialUpdateUserInterests = async (interests) => {
+  const response = await api.patch("/auth/profile/add-interests/", { interests });
+  return response.data;
+};
+
+// ==================== AUTH - FOLLOWERS/FOLLOWING ====================
+
+export const fetchFollowers = async (userId, params = {}) => {
+  const response = await api.get(`/auth/followers/${userId}/`, { params });
+  return response.data;
+};
+
+export const fetchFollowing = async (userId, params = {}) => {
+  const response = await api.get(`/auth/following/${userId}/`, { params });
+  return response.data;
+};
+
+export const followUser = async (userId) => {
+  const response = await api.post(`/auth/follow/${userId}/`, {});
+  return response.data;
+};
+
+export const unfollowUser = async (userId) => {
+  const response = await api.post(`/auth/follow/${userId}/`, {});
+  return response.data;
+};
+
+// ==================== AUTH - PHONE OTP ====================
+
+export const requestPhoneOTP = async (phone_number) => {
+  const response = await api.post("/auth/phone/otp/request/", { phone_number });
+  return response.data;
+};
+
+export const verifyPhoneOTP = async (phone_number, otp) => {
+  const response = await api.post("/auth/phone/otp/verify/", { phone_number, otp });
+  return response.data;
+};
+
+// ==================== FOODS - FAVORITES ====================
+
+export const fetchFavoriteMealPlans = async (params = {}) => {
+  const response = await api.get("/foods/favorites/meal-plans/", { params });
+  return response.data;
+};
+
+export const addFavoriteMealPlan = async (menuId) => {
+  const response = await api.post(`/foods/favorites/meal-plans/${menuId}/add/`, {});
+  return response.data;
+};
+
+export const removeFavoriteMealPlan = async (favoriteMenuId) => {
+  const response = await api.delete(`/foods/favorites/meal-plans/${favoriteMenuId}/delete/`);
+  return response.data;
+};
+
+export const fetchFavoriteMeals = async () => {
+  const response = await api.get("/foods/favorites/meals/");
+  return response.data;
+};
+
+export const addFavoriteMeal = async (menuItemId) => {
+  const response = await api.post(`/foods/favorites/meals/${menuItemId}/add/`, {});
+  return response.data;
+};
+
+export const removeFavoriteMeal = async (favoriteMenuItemId) => {
+  const response = await api.delete(`/foods/favorites/meals/${favoriteMenuItemId}/delete/`);
+  return response.data;
+};
+
+export const fetchFavoriteSubscriptions = async (params = {}) => {
+  const response = await api.get("/foods/favorites/subscriptions/", { params });
+  return response.data;
+};
+
+export const addFavoriteSubscription = async (subscriptionPlanId) => {
+  const response = await api.post(`/foods/favorites/subscriptions/${subscriptionPlanId}/add/`, {});
+  return response.data;
+};
+
+export const removeFavoriteSubscription = async (favoriteSubscriptionPlanId) => {
+  const response = await api.delete(`/foods/favorites/subscriptions/${favoriteSubscriptionPlanId}/delete/`);
+  return response.data;
+};
+
+export const fetchFavoriteVendors = async (params = {}) => {
+  const response = await api.get("/foods/favorites/vendors/", { params });
+  return response.data;
+};
+
+export const addFavoriteVendor = async (vendorId) => {
+  const response = await api.post(`/foods/favorites/vendors/${vendorId}/add/`, {});
+  return response.data;
+};
+
+export const removeFavoriteVendor = async (favoriteVendorId) => {
+  const response = await api.delete(`/foods/favorites/vendors/${favoriteVendorId}/delete/`);
+  return response.data;
+};
+
+// ==================== VENDOR - ANALYTICS & DASHBOARD ====================
+
+export const fetchVendorAnalytics = async (params = {}) => {
+  const response = await api.get("/foods/vendor/analytics/", { params });
+  return response.data;
+};
+
+export const fetchVendorDashboardOverview = async () => {
+  const response = await api.get("/foods/vendor/dashboard/overview/");
+  return response.data;
+};
+
+export const fetchVendorDashboardRecentActivity = async () => {
+  const response = await api.get("/foods/vendor/dashboard/recent-activity/");
+  return response.data;
+};
+
+export const fetchVendorSubscriberGrowth = async (params = {}) => {
+  const response = await api.get("/foods/vendor/dashboard/subscriber-growth/", { params });
+  return response.data;
+};
+
+export const fetchVendorChurn = async (params = {}) => {
+  const response = await api.get("/foods/vendor/churn/", { params });
+  return response.data;
+};
+
+export const fetchVendorRatings = async (params = {}) => {
+  const response = await api.get("/foods/vendor/ratings/", { params });
+  return response.data;
+};
+
+export const fetchVendorRatingsSummary = async () => {
+  const response = await api.get("/foods/vendor/ratings/summary/");
+  return response.data;
+};
+
+// ==================== VENDOR - CONVERSATIONS ====================
+
+export const fetchVendorConversations = async () => {
+  const response = await api.get("/foods/vendor/conversations/");
+  return response.data;
+};
+
+export const fetchVendorConversationMessages = async (conversationId, params = {}) => {
+  const response = await api.get(`/foods/vendor/conversations/${conversationId}/messages/`, { params });
+  return response.data;
+};
+
+export const sendVendorConversationMessage = async (conversationId, data) => {
+  const response = await api.post(`/foods/vendor/conversations/${conversationId}/messages/`, data);
+  return response.data;
+};
+
+// ==================== VENDOR - SHOP STATUS ====================
+
+export const fetchVendorShopStatus = async () => {
+  const response = await api.get("/foods/vendor/shop-status/");
+  return response.data;
+};
+
+export const pauseVendorShop = async (data = {}) => {
+  const response = await api.post("/foods/vendor/shop-status/pause/", data);
+  return response.data;
+};
+
+export const resumeVendorShop = async () => {
+  const response = await api.post("/foods/vendor/shop-status/resume/", {});
+  return response.data;
+};
+
+// ==================== VENDOR - AVAILABILITY & CUTOFF ====================
+
+export const fetchVendorAvailability = async () => {
+  const response = await api.get("/foods/vendor/availability/");
+  return response.data;
+};
+
+export const updateVendorAvailability = async (data) => {
+  const response = await api.put("/foods/vendor/availability/", data);
+  return response.data;
+};
+
+export const partialUpdateVendorAvailability = async (data) => {
+  const response = await api.patch("/foods/vendor/availability/", data);
+  return response.data;
+};
+
+export const fetchVendorCutoffSettings = async () => {
+  const response = await api.get("/foods/vendor/cutoff-settings/");
+  return response.data;
+};
+
+export const updateVendorCutoffSettings = async (data) => {
+  const response = await api.put("/foods/vendor/cutoff-settings/", data);
+  return response.data;
+};
+
+export const partialUpdateVendorCutoffSettings = async (data) => {
+  const response = await api.patch("/foods/vendor/cutoff-settings/", data);
+  return response.data;
+};
+
+// ==================== VENDOR - BROADCASTS ====================
+
+export const createVendorBroadcast = async (data) => {
+  const response = await api.post("/foods/vendor/broadcast/", data);
+  return response.data;
+};
+
+export const fetchVendorBroadcastHistory = async (params = {}) => {
+  const response = await api.get("/foods/vendor/broadcast/history/", { params });
+  return response.data;
+};
+
+// ==================== VENDOR - ORDERS ====================
+
+export const fetchVendorOrders = async (params = {}) => {
+  const response = await api.get("/foods/vendor/orders/", { params });
+  return response.data;
+};
+
+export const updateVendorOrderStatus = async (orderId, status) => {
+  const response = await api.put(`/foods/vendor/orders/${orderId}/status/`, { status });
+  return response.data;
+};
+
+export const partialUpdateVendorOrderStatus = async (orderId, data) => {
+  const response = await api.patch(`/foods/vendor/orders/${orderId}/status/`, data);
+  return response.data;
+};
+
+export const fetchVendorDailyPrepList = async (params = {}) => {
+  const response = await api.get("/foods/vendor/orders/daily-prep-list/", { params });
+  return response.data;
+};
+
+// ==================== VENDOR - ADDONS ====================
+
+export const fetchVendorAddons = async (params = {}) => {
+  const response = await api.get("/foods/vendor/addons/", { params });
+  return response.data;
+};
+
+export const createVendorAddon = async (data) => {
+  const response = await api.post("/foods/vendor/addons/", data);
+  return response.data;
+};
+
+export const updateVendorAddon = async (vendorId, data) => {
+  const response = await api.put(`/foods/vendor/addons/uuid:vendor_id/`, data);
+  return response.data;
+};
+
+export const partialUpdateVendorAddon = async (vendorId, data) => {
+  const response = await api.patch(`/foods/vendor/addons/uuid:vendor_id/`, data);
+  return response.data;
+};
+
+export const deleteVendorAddon = async (vendorId) => {
+  const response = await api.delete(`/foods/vendor/addons/${vendorId}/`);
+  return response.data;
+};
+
+// ==================== VENDOR - PACKAGES ====================
+
+export const fetchVendorPackages = async (params = {}) => {
+  const response = await api.get("/foods/vendor/packages/", { params });
+  return response.data;
+};
+
+export const createVendorPackage = async (data) => {
+  const response = await api.post("/foods/vendor/packages/", data);
+  return response.data;
+};
+
+export const fetchVendorPackage = async (packageId) => {
+  const response = await api.get(`/foods/vendor/packages/${packageId}/`);
+  return response.data;
+};
+
+export const updateVendorPackage = async (packageId, data) => {
+  const response = await api.put(`/foods/vendor/packages/${packageId}/`, data);
+  return response.data;
+};
+
+export const partialUpdateVendorPackage = async (packageId, data) => {
+  const response = await api.patch(`/foods/vendor/packages/${packageId}/`, data);
+  return response.data;
+};
+
+export const deleteVendorPackage = async (packageId) => {
+  const response = await api.delete(`/foods/vendor/packages/${packageId}/`);
+  return response.data;
+};
+
+// ==================== FEEDBACKS ====================
+
+export const fetchUserFeedback = async () => {
+  const response = await api.get("/feedbacks/me/");
+  return response.data;
+};
+
+export const createFeedback = async (data) => {
+  const response = await api.post("/feedbacks/create/", data);
+  return response.data;
+};
+
+export const fetchAllFeedback = async (params = {}) => {
+  const response = await api.get("/feedbacks/all/", { params });
+  return response.data;
+};
+
+export const updateFeedback = async (feedbackId, data) => {
+  const response = await api.put(`/feedbacks/${feedbackId}/update/`, data);
+  return response.data;
+};
+
+export const partialUpdateFeedback = async (feedbackId, data) => {
+  const response = await api.patch(`/feedbacks/${feedbackId}/update/`, data);
+  return response.data;
+};
+
+// ==================== NOTIFICATIONS ====================
+
+export const fetchNotifications = async () => {
+  const response = await api.get("/notifications/");
+  return response.data;
+};
+
+export const fetchNotification = async (notificationId) => {
+  const response = await api.get(`/notifications/${notificationId}/`);
+  return response.data;
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+  const response = await api.post(`/notifications/${notificationId}/read/`);
+  return response.data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+  const response = await api.post("/notifications/mark-all-read/");
+  return response.data;
+};
+
+// ==================== MENU ITEMS ====================
+
+export const fetchMenuItemsByVendor = async (vendorId, params = {}) => {
+  const response = await api.get(`/foods/meals/vendors/${vendorId}/`, { params });
+  return response.data;
+};
+
+export const fetchMenuItemDetail = async (menuItemId) => {
+  const response = await api.get(`/foods/meal-plans/${menuItemId}/`);
+  return response.data;
+};
+
+export const createMenuItem = async (data) => {
+  const formData = new FormData();
+  
+  if (data.name) formData.append("name", data.name);
+  if (data.price !== undefined) formData.append("price", data.price.toString());
+  if (data.description) formData.append("description", data.description);
+  if (data.is_available !== undefined) formData.append("is_available", data.is_available.toString());
+  if (data.calories !== undefined) formData.append("calories", data.calories.toString());
+  if (data.protein !== undefined) formData.append("protein", data.protein.toString());
+  if (data.carbs !== undefined) formData.append("carbs", data.carbs.toString());
+  if (data.fat !== undefined) formData.append("fat", data.fat.toString());
+  if (data.preparation_time !== undefined) formData.append("preparation_time", data.preparation_time.toString());
+  if (data.serving_size) formData.append("serving_size", data.serving_size);
+  if (data.video_url) formData.append("video_url", data.video_url);
+
+  if (Array.isArray(data.media)) {
+    data.media.forEach((file) => {
+      if (file instanceof File) formData.append("media", file);
+    });
+  }
+
+  const response = await api.post("/foods/meals/", formData);
+  return response.data;
+};
+
+export const deleteMenuItem = async (menuItemId) => {
+  const response = await api.delete(`/foods/meals/${menuItemId}/delete/`);
+  return response.data;
+};
+
+export const addMenuItemToMenu = async (menuItemId, menuId) => {
+  const response = await api.post(`/foods/meals/${menuItemId}/to/${menuId}/`, {});
+  return response.data;
+};
+
+export const removeMenuItemFromMenu = async (menuItemId, menuId) => {
+  const response = await api.delete(`/foods/meals/${menuItemId}/from/${menuId}/`);
+  return response.data;
+};
+
+// ==================== MENU PLANS ====================
+
+export const createMenuPlan = async (data) => {
+  const formData = new FormData();
+  
+  if (data.name) formData.append("name", data.name);
+  if (data.collection_code) formData.append("collection_code", data.collection_code);
+
+  if (Array.isArray(data.media)) {
+    data.media.forEach((file) => {
+      if (file instanceof File) formData.append("media", file);
+    });
+  }
+
+  const response = await api.post("/foods/meal-plans/", formData);
+  return response.data;
+};
+
+export const deleteMenuPlan = async (menuId) => {
+  const response = await api.delete(`/foods/meal-plans/${menuId}/delete/`);
+  return response.data;
+};
+
+// ==================== CUSTOMIZATIONS ====================
+
+export const fetchMealCustomizations = async (params = {}) => {
+  const response = await api.get("/foods/me/customizations/", { params });
+  return response.data;
+};
+
+export const fetchSubscriptionCustomizations = async (subscriptionId, params = {}) => {
+  const response = await api.get(`/foods/subscriptions/${subscriptionId}/customizations/`, { params });
+  return response.data;
+};
+
+export const createSubscriptionCustomization = async (subscriptionId, data) => {
+  const response = await api.post(`/foods/subscriptions/${subscriptionId}/customizations/`, data);
+  return response.data;
+};
+
+export const fetchCustomizationDetail = async (customizationId) => {
+  const response = await api.get(`/foods/customizations/${customizationId}/`);
+  return response.data;
+};
+
+export const updateCustomization = async (customizationId, data) => {
+  const response = await api.put(`/foods/customizations/${customizationId}/`, data);
+  return response.data;
+};
+
+export const partialUpdateCustomization = async (customizationId, data) => {
+  const response = await api.patch(`/foods/customizations/${customizationId}/`, data);
+  return response.data;
+};
+
+export const deleteCustomization = async (customizationId) => {
+  const response = await api.delete(`/foods/customizations/${customizationId}/`);
   return response.data;
 };
 
