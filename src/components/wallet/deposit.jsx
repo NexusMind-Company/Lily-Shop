@@ -44,7 +44,6 @@ export default function Deposit() {
   const handleDeposit = async () => {
     const amountValue = parseFloat(amount);
 
-    // Validation
     if (!amountValue || amountValue <= 0) {
       setError("Please enter a valid amount");
       return;
@@ -60,6 +59,13 @@ export default function Deposit() {
       return;
     }
 
+    if (paymentMethod === "transfer") {
+      navigate("/bank-transfer", {
+        state: { amount: amountValue },
+      });
+      return;
+    }
+
     try {
       const result = await dispatch(topUpWallet(amountValue));
 
@@ -67,7 +73,6 @@ export default function Deposit() {
         const { authorization_url } = result.payload;
 
         if (authorization_url) {
-          // Redirect to Paystack
           window.location.href = authorization_url;
         } else {
           setError("Unable to initialize payment. Please try again.");
