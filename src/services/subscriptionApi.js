@@ -507,7 +507,6 @@ export const deleteVendorReview = async (reviewId) => {
 export const fetchReviewsForVendor = async (vendorId) => {
   try {
     const data = await fetchVendorReviews(vendorId);
-    console.log(" API fetchReviewsForVendor response:", data);
     return data;
   } catch (error) {
     console.error("Error fetching vendor reviews:", error);
