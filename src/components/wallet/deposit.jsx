@@ -88,25 +88,20 @@ export default function Deposit() {
 
   return (
     <div className="min-h-screen bg-white font-display">
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-lily-50 rounded-full blur-3xl opacity-50" />
-      </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg border-b border-lily-100">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-lily">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-lily-50 rounded-full transition-colors mr-3"
+              className="p-2 hover:bg-lily rounded-full transition-colors mr-3"
             >
-              <ChevronLeft className="w-6 h-6 text-lily-700" />
+              <ChevronLeft className="w-6 h-6 text-gray-900" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-lily-700">Add Funds</h1>
-              <p className="text-sm font-bold text-gray-400">
+              <h1 className="text-xl font-bold text-gray-900">Add Funds</h1>
+              <p className="text-sm font-bold text-gray-600">
                 Top up your Lily Wallet
               </p>
             </div>
@@ -114,7 +109,7 @@ export default function Deposit() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 relative z-10">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 relative z-10 pt-20">
         {/* Error Alert */}
         <AnimatePresence>
           {(error || topup_error) && (
@@ -125,7 +120,7 @@ export default function Deposit() {
               className="bg-red-50 border-2 border-red-100 rounded-2xl p-4"
             >
               <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-bold text-red-700">Payment Error</p>
                   <p className="text-sm font-medium text-red-600/80">
@@ -141,14 +136,14 @@ export default function Deposit() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-[2.5rem] shadow-soft border border-lily-50 p-8"
+          className="bg-white rounded-[2.5rem] shadow-soft border border-black p-8"
         >
           <div className="mb-8">
-            <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
+            <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-4">
               Enter Amount
             </label>
             <div className="relative">
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-lily-300">
+              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-lily">
                 ₦
               </span>
               <input
@@ -156,13 +151,13 @@ export default function Deposit() {
                 inputMode="numeric"
                 value={amount}
                 onChange={handleAmountChange}
-                className="w-full pl-14 pr-6 py-6 text-4xl font-black text-gray-800 bg-lily-50/30 border-2 border-lily-100 rounded-3xl focus:outline-none focus:border-lily-500 focus:ring-4 focus:ring-lily-50 transition-all placeholder:text-gray-200"
+                className="w-full pl-14 pr-6 py-6 text-4xl font-black text-gray-900 border-2 border-lily rounded-3xl focus:outline-none focus:border-lily focus:ring-4 focus:ring-lily transition-all placeholder:text-gray-400"
                 placeholder="0"
               />
             </div>
             <div className="flex items-center space-x-2 mt-3 px-2">
               <div className="w-1.5 h-1.5 rounded-full bg-lily-400" />
-              <p className="text-xs font-bold text-gray-400">
+              <p className="text-xs font-bold text-gray-900">
                 Min: ₦100 • Max: ₦1,000,000
               </p>
             </div>
@@ -170,7 +165,7 @@ export default function Deposit() {
 
           {/* Quick Amount Buttons */}
           <div>
-            <p className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
+            <p className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4">
               Quick Select
             </p>
             <div className="grid grid-cols-3 gap-3">
@@ -182,8 +177,8 @@ export default function Deposit() {
                   onClick={() => handleQuickAmount(amt)}
                   className={`py-4 rounded-2xl font-black text-lg transition-all ${
                     amount === amt.toString()
-                      ? "bg-lily-500 text-white shadow-glow"
-                      : "bg-lily-50/50 text-lily-700 hover:bg-lily-100/50 border border-lily-100/20"
+                      ? "border-2 border-lily bg-lily text-white"
+                      : " text-lily hover:bg-lily/70 hover:text-white border border-lily"
                   }`}
                 >
                   ₦{(amt / 1000).toFixed(0)}k
@@ -200,7 +195,7 @@ export default function Deposit() {
           transition={{ delay: 0.1 }}
           className="bg-white rounded-[2.5rem] shadow-soft border border-lily-50 p-8"
         >
-          <h3 className="text-xl font-black text-gray-800 mb-6 flex items-center tracking-tight">
+          <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center tracking-tight">
             <Sparkles className="w-6 h-6 text-lily-500 mr-3" />
             Method
           </h3>
@@ -211,10 +206,10 @@ export default function Deposit() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => setPaymentMethod("card")}
-              className={`w-full p-5 rounded-[2rem] border-2 transition-all text-left ${
+              className={`w-full p-5 rounded-4xl transition-all text-left ${
                 paymentMethod === "card"
-                  ? "border-lily-500 bg-lily-50/30 shadow-sm"
-                  : "border-gray-100 hover:border-lily-100"
+                  ? "border-2 border-lily bg-lily shadow-sm"
+                  : "border-2 border-black hover:border-black"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -222,26 +217,40 @@ export default function Deposit() {
                   <div
                     className={`p-3.5 rounded-2xl shadow-sm ${
                       paymentMethod === "card"
-                        ? "bg-lily-500 text-white"
-                        : "bg-gray-50 text-gray-400"
+                        ? "text-white"
+                        : "border-2 border-black text-black"
                     }`}
                   >
                     <CreditCard className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-black text-gray-800 text-lg">
+                    <p className={`font-black text-lg ${
+                      paymentMethod === "card"
+                        ? "text-white"
+                        : "text-gray-900"
+                    }`}>
                       Debit Card
                     </p>
-                    <p className="text-sm font-bold text-gray-400">
+                    <p className={`text-sm font-bold ${
+                      paymentMethod === "card"
+                        ? "text-white/80"
+                        : "text-gray-600"
+                    }`}>
                       Instant • Secured by Paystack
                     </p>
                   </div>
                 </div>
-                {paymentMethod === "card" && (
-                  <div className="w-8 h-8 bg-lily-100 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-lily-600 rounded-full" />
-                  </div>
-                )}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  paymentMethod === "card"
+                    ? "bg-white"
+                    : "bg-white border-2 border-black"
+                }`}>
+                  <div className={`w-3 h-3 rounded-full ${
+                    paymentMethod === "card"
+                      ? "bg-lily"
+                      : "bg-black"
+                  }`} />
+                </div>
               </div>
             </motion.button>
 
@@ -250,10 +259,10 @@ export default function Deposit() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => setPaymentMethod("transfer")}
-              className={`w-full p-5 rounded-[2rem] border-2 transition-all text-left ${
+              className={`w-full p-5 rounded-4xl transition-all text-left ${
                 paymentMethod === "transfer"
-                  ? "border-lily-500 bg-lily-50/30 shadow-sm"
-                  : "border-gray-100 hover:border-lily-100"
+                  ? "border-2 border-lily bg-lily shadow-sm"
+                  : "border-2 border-black hover:border-black"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -261,26 +270,40 @@ export default function Deposit() {
                   <div
                     className={`p-3.5 rounded-2xl shadow-sm ${
                       paymentMethod === "transfer"
-                        ? "bg-lily-500 text-white"
-                        : "bg-gray-50 text-gray-400"
+                        ? "text-white"
+                        : "border-2 border-black text-black"
                     }`}
                   >
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-black text-gray-800 text-lg">
+                    <p className={`font-black text-lg ${
+                      paymentMethod === "transfer"
+                        ? "text-white"
+                        : "text-gray-900"
+                    }`}>
                       Transfer / USSD
                     </p>
-                    <p className="text-sm font-bold text-gray-400">
+                    <p className={`text-sm font-bold ${
+                      paymentMethod === "transfer"
+                        ? "text-white/80"
+                        : "text-gray-600"
+                    }`}>
                       Manual or Automated verification
                     </p>
                   </div>
                 </div>
-                {paymentMethod === "transfer" && (
-                  <div className="w-8 h-8 bg-lily-100 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-lily-600 rounded-full" />
-                  </div>
-                )}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  paymentMethod === "transfer"
+                    ? "bg-white"
+                    : "bg-white border-2 border-black"
+                }`}>
+                  <div className={`w-3 h-3 rounded-full ${
+                    paymentMethod === "transfer"
+                      ? "bg-lily"
+                      : "bg-black"
+                  }`} />
+                </div>
               </div>
             </motion.button>
           </div>
@@ -298,8 +321,8 @@ export default function Deposit() {
             disabled={topup_loading || !amount || parseFloat(amount) < 100}
             className={`w-full py-6 rounded-3xl font-black text-xl transition-all flex items-center justify-center space-x-3 ${
               topup_loading || !amount || parseFloat(amount) < 100
-                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                : "bg-lily-500 text-white shadow-glow hover:shadow-glow-lg"
+                ? "bg-gray-900 text-gray-300 cursor-not-allowed"
+                : "bg-lily text-white shadow-glow hover:shadow-glow-lg"
             }`}
           >
             {topup_loading ? (
@@ -326,13 +349,13 @@ export default function Deposit() {
           transition={{ delay: 0.3 }}
           className="flex flex-col items-center justify-center py-4"
         >
-          <div className="flex items-center space-x-2 text-gray-400">
+          <div className="flex items-center space-x-2 text-gray-900">
             <ShieldCheck className="w-4 h-4" />
             <span className="text-xs font-black uppercase tracking-widest">
               PCI-DSS Compliant
             </span>
           </div>
-          <p className="mt-2 text-xs font-bold text-gray-400">
+          <p className="mt-2 text-xs font-bold text-gray-900">
             Payments are secured by{" "}
             <span className="text-lily-600">Paystack</span>
           </p>
