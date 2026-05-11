@@ -248,7 +248,16 @@ const VendorEarningsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["vendorWallet"] });
       queryClient.invalidateQueries({ queryKey: ["earningsHistory"] });
     },
-    onError: (mutationError) => toast.error(getErrorMessage(mutationError)),
+    onError: (mutationError) => {
+      const status = mutationError?.response?.status;
+      if (status === 403) {
+        toast.error(
+          "Only food vendors can withdraw earnings. Please complete your vendor setup.",
+        );
+      } else {
+        toast.error(getErrorMessage(mutationError));
+      }
+    },
   });
 
   if (isLoading) {
