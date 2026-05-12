@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { Copy, Eye } from "lucide-react";
+import toast from "react-hot-toast";
 
 import DashboardHeader from "../components/subscription/DashboardHeader";
 import ProfileSection from "../components/subscription/ProfileSection";
@@ -103,6 +105,20 @@ const VendorDashboard = ({ vendorId }) => {
   const handleViewAllSubscriptions = () => navigate("/subscriptions");
   const handlePageChange = (newPage) => setCurrentPage(newPage);
 
+  // Handle copy vendor link
+  const handleCopyVendorLink = () => {
+    if (!validVendorId) return;
+    const vendorLink = `${window.location.origin}/vendor-subscription/${validVendorId}`;
+    navigator.clipboard.writeText(vendorLink);
+    toast.success("Vendor link copied to clipboard!");
+  };
+
+  // Handle view vendor as customer
+  const handleViewAsCustomer = () => {
+    if (!validVendorId) return;
+    navigate(`/vendor-subscription/${validVendorId}`);
+  };
+
   // ---------------- Loading / Error states ----------------
 
   // Still waiting for profile to load from backend
@@ -165,10 +181,28 @@ const VendorDashboard = ({ vendorId }) => {
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24 space-y-6 px-4 pt-6">
         {vendorProfile && (
-          <ProfileSection
-            profile={vendorProfile}
-            onEditProfile={handleEditProfile}
-          />
+          <>
+            <div className="flex gap-3 flex-col sm:flex-row">
+              <button
+                onClick={handleCopyVendorLink}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-[#4eb75e] text-[#4eb75e] font-bold hover:bg-[#4eb75e]/5 transition-colors"
+              >
+                <Copy size={18} />
+                <span className="text-sm sm:text-base">Copy Link</span>
+              </button>
+              <button
+                onClick={handleViewAsCustomer}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#4eb75e] text-white font-bold hover:bg-[#45a252] transition-colors"
+              >
+                <Eye size={18} />
+                <span className="text-sm sm:text-base">View as Customer</span>
+              </button>
+            </div>
+            <ProfileSection
+              profile={vendorProfile}
+              onEditProfile={handleEditProfile}
+            />
+          </>
         )}
 
         {isLoadingData ? (

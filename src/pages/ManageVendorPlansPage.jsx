@@ -12,7 +12,7 @@ import {
   fetchSubscriptionStats,
   deleteVendorMealPlan,
 } from "../services/subscriptionApi";
-import { CreditCard, Plus, User } from "lucide-react";
+import { CreditCard, Plus, User, Copy, Eye } from "lucide-react";
 
 const ManageVendorPlansPage = () => {
   const navigate = useNavigate();
@@ -129,6 +129,13 @@ const ManageVendorPlansPage = () => {
     }
   };
 
+  // Handle copy meal plan link
+  const handleCopyMealPlanLink = (planId) => {
+    const planLink = `${window.location.origin}/vendor/plans/${planId}`;
+    navigator.clipboard.writeText(planLink);
+    toast.success("Meal plan link copied to clipboard!");
+  };
+
   // ---------------- Loading / Error States ----------------
   if (loading) return <div>Loading vendor information...</div>;
   if (!vendorId) return <div>Vendor information not found.</div>;
@@ -170,11 +177,21 @@ const ManageVendorPlansPage = () => {
         {/* Active Plans */}
         {activePlans.map((plan) => (
           <div key={plan.id} className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between px-1 flex-wrap gap-2">
               <h3 className="text-lg font-bold text-black">Meal Plan</h3>
-              <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
-                Active
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleCopyMealPlanLink(plan.id)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-lily text-lily font-semibold text-xs hover:bg-lily/5 transition-colors"
+                  title="Copy meal plan link"
+                >
+                  <Copy size={14} />
+                  <span className="hidden sm:inline">Copy Link</span>
+                </button>
+                <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
+                  Active
+                </span>
+              </div>
             </div>
             <PlanCard
               isActive

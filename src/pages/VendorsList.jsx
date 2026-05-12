@@ -104,22 +104,18 @@ const VendorsList = () => {
 
   const [activeTab, setActiveTab] = useState("food");
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["vendors", currentPage, searchQuery],
+    queryKey: ["vendors", searchQuery],
     queryFn: async () => {
-      const params = { page: currentPage, page_size: itemsPerPage };
+      const params = {};
       if (searchQuery) params.search = searchQuery;
       const response = await api.get("/foods/vendors/", { params });
       return response.data;
     },
     enabled: activeTab === "food",
   });
-  const vendors = data?.results || [];
-  const totalCount = data?.count || 0;
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const vendors = Array.isArray(data) ? data : data?.results || [];
 
   // const mockVendors = [
   //   {
@@ -194,7 +190,6 @@ const VendorsList = () => {
 
   const handleSearchChange = (value) => {
     setSearchQuery(value);
-    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handleBack = () => {
@@ -298,33 +293,6 @@ const VendorsList = () => {
                   </div>
                 )}
               </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-12">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="px-6 py-2 rounded-xl border border-gray-200 hover:bg-white hover:border-lily hover:text-lily disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-400 transition-all font-medium"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-4 py-2 rounded-lg">
-                    {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-6 py-2 rounded-xl border border-gray-200 hover:bg-white hover:border-lily hover:text-lily disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-400 transition-all font-medium"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
             </>
           )}
         </>
