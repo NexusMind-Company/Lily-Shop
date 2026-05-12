@@ -126,6 +126,7 @@ import VendorPackagesPage from "./pages/vendor/VendorPackagesPage";
 import VendorEditProfilePage from "./pages/vendor/VendorEditProfilePage";
 import SupportPage from "./pages/SupportPage";
 import AdminDashboard from "./pages/AdminDashboard";
+import StaffOperationsPage from "./pages/StaffOperationsPage";
 
 /* ---------------- OTHER ---------------- */
 import About from "./components/about/About";
@@ -146,7 +147,7 @@ const ScrollToTopAuto = () => {
     const id = requestAnimationFrame(() => {
       window.scrollTo(0, 0);
     });
-    
+
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
@@ -218,9 +219,16 @@ function App() {
             />
             <Route path="/food" element={<VendorsList />} />
             <Route path="/support" element={<SupportPage />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-            {/* Vendor browsing */}
+            {/* Staff Routes */}
+            <Route element={<RoleProtectedRoute requiredRole="staff" />}>
+              <Route
+                path="/lilyshop/workers"
+                element={<StaffOperationsPage />}
+              />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            </Route>
+
             <Route
               path="/vendor-subscription/:vendorId"
               element={<VendorSubscriptionPage />}
@@ -230,7 +238,10 @@ function App() {
               element={<Navigate to="/vendor/dashboard" replace />}
             />
 
-            <Route path="/subscription/details" element={<SubscriptionDetailsPage />} />
+            <Route
+              path="/subscription/details"
+              element={<SubscriptionDetailsPage />}
+            />
 
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
@@ -267,9 +278,15 @@ function App() {
             <Route path="/withdraw/confirm" element={<ConfirmWithdrawal />} />
             <Route path="/withdraw/success" element={<WithdrawSuccess />} />
             <Route path="/wallet/topup" element={<WalletTopUpPage />} />
-            <Route path="/transaction-history" element={<TransactionHistoryPage />} />
+            <Route
+              path="/transaction-history"
+              element={<TransactionHistoryPage />}
+            />
             <Route path="/addBankAccount" element={<AddBankAccountPage />} />
-            <Route path="/bankAccountDetails" element={<BankAccountDetailsPage />} />
+            <Route
+              path="/bankAccountDetails"
+              element={<BankAccountDetailsPage />}
+            />
             <Route path="/receipt" element={<ReceiptPage />} />
             <Route path="/reciept" element={<ReceiptPage />} />
 
@@ -348,25 +365,72 @@ function App() {
 
           {/* ================= VENDOR ROLE ROUTES ================= */}
           <Route element={<RoleProtectedRoute requiredRole="vendor" />}>
-
             {/* ── NEW: Vendor Dashboard ── */}
-            <Route path="/vendor/dashboard" element={<VendorDashboardOverview />} />
-            <Route path="/vendor/dashboard/orders" element={<VendorOrdersPage />} />
-            <Route path="/vendor/dashboard/subscriptions" element={<VendorSubscriptionsPage />} />
+            <Route
+              path="/vendor/dashboard"
+              element={<VendorDashboardOverview />}
+            />
+            <Route
+              path="/vendor/dashboard/orders"
+              element={<VendorOrdersPage />}
+            />
+            <Route
+              path="/vendor/dashboard/subscriptions"
+              element={<VendorSubscriptionsPage />}
+            />
             <Route path="/vendor/dashboard/menu" element={<VendorMenuPage />} />
-            <Route path="/vendor/dashboard/availability" element={<VendorAvailabilityPage />} />
-            <Route path="/delete-vendor-profile" element={<DeleteVendorProfilePage />} />
-            <Route path="/vendor/dashboard/cutoff" element={<VendorCutoffPage />} />
-            <Route path="/vendor/dashboard/pause" element={<VendorPauseShopPage />} />
-            <Route path="/vendor/dashboard/earnings" element={<VendorEarningsPage />} />
-            <Route path="/vendor/dashboard/addons" element={<VendorAddonsPage />} />
-            <Route path="/vendor/dashboard/messages" element={<VendorMessagesPage />} />
-            <Route path="/vendor/dashboard/broadcast" element={<VendorBroadcastPage />} />
-            <Route path="/vendor/dashboard/ratings" element={<VendorRatingsPage />} />
-            <Route path="/vendor/dashboard/churn" element={<VendorChurnPage />} />
-            <Route path="/vendor/dashboard/analytics" element={<VendorAnalyticsPage />} />
-            <Route path="/vendor/dashboard/packages" element={<VendorPackagesPage />} />
-            <Route path="/vendor/dashboard/profile" element={<VendorEditProfilePage />} />
+            <Route
+              path="/vendor/dashboard/availability"
+              element={<VendorAvailabilityPage />}
+            />
+            <Route
+              path="/delete-vendor-profile"
+              element={<DeleteVendorProfilePage />}
+            />
+            <Route
+              path="/vendor/dashboard/cutoff"
+              element={<VendorCutoffPage />}
+            />
+            <Route
+              path="/vendor/dashboard/pause"
+              element={<VendorPauseShopPage />}
+            />
+            <Route
+              path="/vendor/dashboard/earnings"
+              element={<VendorEarningsPage />}
+            />
+            <Route
+              path="/vendor/dashboard/addons"
+              element={<VendorAddonsPage />}
+            />
+            <Route
+              path="/vendor/dashboard/messages"
+              element={<VendorMessagesPage />}
+            />
+            <Route
+              path="/vendor/dashboard/broadcast"
+              element={<VendorBroadcastPage />}
+            />
+            <Route
+              path="/vendor/dashboard/ratings"
+              element={<VendorRatingsPage />}
+            />
+            <Route
+              path="/vendor/dashboard/churn"
+              element={<VendorChurnPage />}
+            />
+            <Route
+              path="/vendor/dashboard/analytics"
+              element={<VendorAnalyticsPage />}
+            />
+            <Route
+              path="/vendor/dashboard/packages"
+              element={<VendorPackagesPage />}
+            />
+            <Route
+              path="/vendor/dashboard/profile"
+              element={<VendorEditProfilePage />}
+            />
             {/* <Route path="/vendor/dashboard/edit-profile" element={<EditVendorProfilePage />} /> */}
 
             <Route
