@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { api, fetchWallet, topUpWallet } from "../services/api";
+import { api, fetchWallet, createSubscriptionWithPaystack } from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -107,36 +107,26 @@ const SubscriptionPaymentPage = () => {
         return;
       }
 
-      toast.loading("Initiating secure payment...");
-
-      const formattedPhone = formatPhoneForAPI(phone);
-
-      const localIntentId =
-        typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : Math.random().toString(36).substring(2, 15) +
-            Math.random().toString(36).substring(2, 15);
-
-      const topUpResponse = await topUpWallet(planPrice, localIntentId);
-
-      if (!topUpResponse || !topUpResponse.authorization_url) {
-        toast.dismiss();
-        toast.error("Failed to initialize payment. Please try again.");
+      if (!phone) {
+        toast.error("Phone number is required. Please go back and add your phone number.");
         return;
       }
 
-      const intentId = topUpResponse.intent_id || localIntentId;
-      const authorizationUrl = topUpResponse.authorization_url;
+      toast.loading("Initiating secure payment...");
+
+      const formattedPhone = formatPhoneForAPI(phone) || phone;
+      
+      const intentId = crypto.randomUUID();
 
       const paymentData = {
         plan_id: plan.id,
         payment_method: "paystack",
-        intent_id: String(intentId),
+        intent_id: intentId,
+        phone: formattedPhone,
       };
 
       if (deliveryType) paymentData.delivery_type = deliveryType;
       if (address) paymentData.address = address;
-      if (formattedPhone) paymentData.phone = formattedPhone;
       if (preferredTime) paymentData.preferred_time = preferredTime;
       if (selectedDays && selectedDays.length > 0)
         paymentData.selected_days = selectedDays;
@@ -150,25 +140,45 @@ const SubscriptionPaymentPage = () => {
         paymentData.special_instructions = flowState.specialInstructions;
       if (collectionCode) paymentData.collection_code = collectionCode;
 
-      try {
-        await api.post("/foods/subscribe/", paymentData);
-      } catch (subError) {
-        console.warn("Subscription registration failed, continuing with payment:", subError);
+      console.log("Sending subscription data:", paymentData);
+
+      const subResponse = await createSubscriptionWithPaystack(plan.id, paymentData);
+
+      if (!subResponse || !subResponse.authorization_url) {
+        toast.dismiss();
+        toast.error("Failed to initialize payment. Please try again.");
+        return;
       }
+
+      const authorizationUrl = subResponse.authorization_url;
+
+      const processingState = {
+        planId: plan?.id,
+        plan,
+        vendor,
+        totalPrice,
+        selectedDays,
+        quantity,
+        addExtra,
+        extraPrice,
+        deliveryType,
+        preferredTime,
+        address,
+        phone,
+        collectionCode,
+      };
+      
+      localStorage.setItem("lily_subscription_redirect", "true");
+      localStorage.setItem("lily_pending_subscription_data", JSON.stringify(processingState));
 
       toast.dismiss();
       toast.loading("Redirecting to Paystack...");
-
-      localStorage.setItem(
-        "lily_subscription_payment_ref",
-        topUpResponse.reference || "",
-      );
-      localStorage.setItem("lily_subscription_redirect", "true");
 
       window.location.href = authorizationUrl;
     } catch (error) {
       toast.dismiss();
       console.error("Direct payment error:", error);
+      console.log("Error response:", error.response?.data);
       toast.error(
         error.response?.data?.error ||
           error.response?.data?.message ||
