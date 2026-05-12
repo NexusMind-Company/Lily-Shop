@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { api } from "../../services/api";
+import { api, updateFoodVendor } from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
 import { X } from "lucide-react";
 
@@ -37,37 +37,6 @@ const fetchFoodVendorProfile = async (vendorId) => {
   if (!vendorId) return null;
   const res = await api.get(`/foods/food-vendors/${vendorId}`);
   return res.data;
-};
-
-const updateFoodVendor = async (vendorData) => {
-  const formData = new FormData();
-  if (vendorData.name) formData.append("name", vendorData.name);
-  if (vendorData.description)
-    formData.append("description", vendorData.description);
-  if (vendorData.address) formData.append("address", vendorData.address);
-  if (vendorData.cuisine) formData.append("cuisine", vendorData.cuisine);
-
-  if (vendorData.contact_email) {
-    formData.append("contact_email", vendorData.contact_email.trim());
-  }
-  if (vendorData.contact_phone) {
-    formData.append("contact_phone", vendorData.contact_phone.trim());
-  }
-
-  if (vendorData.banner_image instanceof File) {
-    formData.append("media", vendorData.banner_image);
-  }
-  if (vendorData.profile_image instanceof File) {
-    formData.append("media", vendorData.profile_image);
-  }
-
-  const response = await api.patch(`/foods/food-vendors/me`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-
-  return response.data;
 };
 
 const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
@@ -135,7 +104,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         category: data.cuisine,
         description: data.description,
         address: data.address,
-        contact_email: data.contact_email,
+        contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
         banner_image: bannerFile,
         profile_image: profileFile,
