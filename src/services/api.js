@@ -526,6 +526,15 @@ export const createSubscription = async (plan_id, deliveryMeta = {}) => {
   return response.data;
 };
 
+export const createSubscriptionWithPaystack = async (plan_id, deliveryMeta = {}) => {
+  const response = await api.post("/foods/subscribe/", {
+    plan_id,
+    payment_method: "paystack",
+    ...deliveryMeta,
+  });
+  return response.data;
+};
+
 export const getUserSubscriptions = async (params = {}) => {
   const response = await api.get("/foods/subscriptions/me/", { params });
   return response.data;
