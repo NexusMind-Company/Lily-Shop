@@ -1702,10 +1702,51 @@ export const partialUpdateCustomization = async (customizationId, data) => {
   return response.data;
 };
 
-export const deleteCustomization = async (customizationId) => {
-  const response = await api.delete(
-    `/foods/customizations/${customizationId}/`,
-  );
+// ==================== STAFF & ADMIN ====================
+
+export const getStaffWithdrawals = async (params = {}) => {
+  const response = await api.get("/staff/withdrawals/", { params });
+  return response.data;
+};
+
+export const getUnprocessedWithdrawalRequests = async (params = {}) => {
+  const response = await api.get("/staff/uprocessed-withdrawal-requests/", {
+    params,
+  });
+  return response.data;
+};
+
+export const markWithdrawalSuccessful = async (withdrawalId) => {
+  // The API spec is ambiguous about the ID placement for these endpoints,
+  // assuming it might be in the body as withdrawal_id based on common patterns.
+  const response = await api.patch("/staff/succesful-withdrawals/", {
+    withdrawal_id: withdrawalId,
+  });
+  return response.data;
+};
+
+export const markWithdrawalUnsuccessful = async (withdrawalId) => {
+  const response = await api.patch("/staff/unsucessful-withdrawals/", {
+    withdrawal_id: withdrawalId,
+  });
+  return response.data;
+};
+
+export const getAdminStatistics = async (params = {}) => {
+  const response = await api.get("/foods/admin/statistics/", { params });
+  return response.data;
+};
+
+export const getVendorsAsStaff = async (params = {}) => {
+  const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const deleteVendorAsStaff = async (vendorId, hard = false) => {
+  const endpoint = hard
+    ? `/staff/vendors/${vendorId}/hard/`
+    : `/staff/vendors/${vendorId}/`;
+  const response = await api.delete(endpoint);
   return response.data;
 };
 
