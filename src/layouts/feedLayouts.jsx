@@ -1,11 +1,14 @@
+import { useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { FeedProvider } from "../context/feedContext";
 import BottomNav from "../components/feed/bottomNav";
 import SideNav from "../components/feed/SideNav";
+import BackToTop from "../components/common/BackToTop";
 
 const FeedLayout = () => {
   const location = useLocation();
   const path = location.pathname;
+  const mainContainerRef = useRef(null);
 
   let activePage = "home";
   if (path.includes("/createContent")) activePage = "create";
@@ -34,6 +37,7 @@ const FeedLayout = () => {
         <SideNav activePage={activePage} />
 
         <main
+          ref={mainContainerRef}
           className={`flex-1 w-full md:ml-64 relative h-screen md:pb-0 ${
             isFeedRoute
               ? "overflow-hidden"
@@ -45,6 +49,7 @@ const FeedLayout = () => {
 
         {/* Only render BottomNav if the current path exactly matches a main tab */}
         {shouldShowBottomNav && <BottomNav activePage={activePage} />}
+        <BackToTop containerRef={mainContainerRef} />
       </div>
     </FeedProvider>
   );
