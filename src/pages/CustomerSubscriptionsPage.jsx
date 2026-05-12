@@ -25,13 +25,26 @@ import {
 } from "lucide-react";
 import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
 
-const daysRemaining = (dateStr) => {
-  if (!dateStr) return 0;
-  const target = new Date(dateStr);
+const serviceDaysRemaining = (endDateStr, serviceDays) => {
+  if (!endDateStr || !serviceDays || serviceDays.length === 0) return 0;
+  
   const now = new Date();
-  const diffTime = target - now;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(0, diffDays);
+  const endDate = new Date(endDateStr);
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  
+  let count = 0;
+  const current = new Date(now);
+  current.setHours(0, 0, 0, 0); // Start from beginning of today
+  
+  while (current <= endDate) {
+    const dayName = dayNames[current.getDay()].toLowerCase();
+    if (serviceDays.map(d => d.toLowerCase()).includes(dayName)) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return Math.max(0, count);
 };
 
 const formatPrice = (price) =>
@@ -355,12 +368,12 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
                   icon={Timer}
                   label="Days remaining"
                   value={
-                    sub?.next_payment_date
-                      ? `${daysRemaining(sub.next_payment_date)} days`
+                    sub?.status === "active" && sub?.end_date && plan?.service_days
+                      ? `${serviceDaysRemaining(sub.end_date, plan.service_days)} days`
                       : ""
                   }
                   valueClassName={
-                    daysRemaining(sub?.next_payment_date) <= 3
+                    sub?.status === "active" && serviceDaysRemaining(sub?.end_date, plan?.service_days) <= 3
                       ? "text-red-500"
                       : "text-[#13ec49]"
                   }

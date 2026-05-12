@@ -142,7 +142,12 @@ const ScrollToTopAuto = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Use requestAnimationFrame to ensure the DOM has been updated before scrolling
+    const id = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+    
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   return null;

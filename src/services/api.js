@@ -158,7 +158,7 @@ export const updateUsername = async (username) => {
 
 export const updateProfile = async (profileData) => {
   const formData = new FormData();
-  
+
   Object.entries(profileData).forEach(([key, value]) => {
     if (value != null) {
       if (value instanceof File) {
@@ -526,6 +526,15 @@ export const createSubscription = async (plan_id, deliveryMeta = {}) => {
   return response.data;
 };
 
+export const createSubscriptionWithPaystack = async (plan_id, deliveryMeta = {}) => {
+  const response = await api.post("/foods/subscribe/", {
+    plan_id,
+    payment_method: "paystack",
+    ...deliveryMeta,
+  });
+  return response.data;
+};
+
 export const getUserSubscriptions = async (params = {}) => {
   const response = await api.get("/foods/subscriptions/me/", { params });
   return response.data;
@@ -761,7 +770,10 @@ export const createFoodVendor = async (vendorData) => {
 
   if (vendorData.contact_email) {
     const email = vendorData.contact_email.trim();
-    formData.append("contact_email", email);
+    if (email) formData.append("contact_email", email);
+  } else if (vendorData.contact_email === null) {
+    // If explicitly null, we omit it to avoid "Enter a valid email address" error from empty strings
+    // but if the backend requires a value to clear it, this might need adjustment.
   }
 
   if (vendorData.contact_phone) {
@@ -774,7 +786,7 @@ export const createFoodVendor = async (vendorData) => {
 
   appendVendorMedia(formData, vendorData);
 
-const response = await api.post("/foods/food-vendors/", formData);
+  const response = await api.post("/foods/food-vendors/", formData);
 
   return response.data;
 };
@@ -789,7 +801,10 @@ export const updateFoodVendor = async (vendorData) => {
 
   if (vendorData.contact_email) {
     const email = vendorData.contact_email.trim();
-    formData.append("contact_email", email);
+    if (email) formData.append("contact_email", email);
+  } else if (vendorData.contact_email === null) {
+    // If explicitly null, we omit it to avoid "Enter a valid email address" error from empty strings
+    // but if the backend requires a value to clear it, this might need adjustment.
   }
 
   if (vendorData.contact_phone) {
@@ -858,7 +873,7 @@ export const updateSubscriptionPlan = async (planId, planData) => {
 
   const response = await api.put(
     `/foods/subscriptions/${planId}/update/`,
-    formData
+    formData,
   );
 
   return response.data;
@@ -899,7 +914,7 @@ export const partialUpdateSubscriptionPlan = async (planId, planData) => {
 
   const response = await api.patch(
     `/foods/subscriptions/${planId}/update/`,
-    formData
+    formData,
   );
 
   return response.data;
@@ -1143,7 +1158,9 @@ export const fetchInterests = async (params = {}) => {
 };
 
 export const fetchAvailableInterests = async (params = {}) => {
-  const response = await api.get("/auth/profile/available-interests/", { params });
+  const response = await api.get("/auth/profile/available-interests/", {
+    params,
+  });
   return response.data;
 };
 
@@ -1153,7 +1170,9 @@ export const updateUserInterests = async (interests) => {
 };
 
 export const partialUpdateUserInterests = async (interests) => {
-  const response = await api.patch("/auth/profile/add-interests/", { interests });
+  const response = await api.patch("/auth/profile/add-interests/", {
+    interests,
+  });
   return response.data;
 };
 
@@ -1187,7 +1206,10 @@ export const requestPhoneOTP = async (phone_number) => {
 };
 
 export const verifyPhoneOTP = async (phone_number, otp) => {
-  const response = await api.post("/auth/phone/otp/verify/", { phone_number, otp });
+  const response = await api.post("/auth/phone/otp/verify/", {
+    phone_number,
+    otp,
+  });
   return response.data;
 };
 
@@ -1199,12 +1221,17 @@ export const fetchFavoriteMealPlans = async (params = {}) => {
 };
 
 export const addFavoriteMealPlan = async (menuId) => {
-  const response = await api.post(`/foods/favorites/meal-plans/${menuId}/add/`, {});
+  const response = await api.post(
+    `/foods/favorites/meal-plans/${menuId}/add/`,
+    {},
+  );
   return response.data;
 };
 
 export const removeFavoriteMealPlan = async (favoriteMenuId) => {
-  const response = await api.delete(`/foods/favorites/meal-plans/${favoriteMenuId}/delete/`);
+  const response = await api.delete(
+    `/foods/favorites/meal-plans/${favoriteMenuId}/delete/`,
+  );
   return response.data;
 };
 
@@ -1214,12 +1241,17 @@ export const fetchFavoriteMeals = async () => {
 };
 
 export const addFavoriteMeal = async (menuItemId) => {
-  const response = await api.post(`/foods/favorites/meals/${menuItemId}/add/`, {});
+  const response = await api.post(
+    `/foods/favorites/meals/${menuItemId}/add/`,
+    {},
+  );
   return response.data;
 };
 
 export const removeFavoriteMeal = async (favoriteMenuItemId) => {
-  const response = await api.delete(`/foods/favorites/meals/${favoriteMenuItemId}/delete/`);
+  const response = await api.delete(
+    `/foods/favorites/meals/${favoriteMenuItemId}/delete/`,
+  );
   return response.data;
 };
 
@@ -1229,12 +1261,19 @@ export const fetchFavoriteSubscriptions = async (params = {}) => {
 };
 
 export const addFavoriteSubscription = async (subscriptionPlanId) => {
-  const response = await api.post(`/foods/favorites/subscriptions/${subscriptionPlanId}/add/`, {});
+  const response = await api.post(
+    `/foods/favorites/subscriptions/${subscriptionPlanId}/add/`,
+    {},
+  );
   return response.data;
 };
 
-export const removeFavoriteSubscription = async (favoriteSubscriptionPlanId) => {
-  const response = await api.delete(`/foods/favorites/subscriptions/${favoriteSubscriptionPlanId}/delete/`);
+export const removeFavoriteSubscription = async (
+  favoriteSubscriptionPlanId,
+) => {
+  const response = await api.delete(
+    `/foods/favorites/subscriptions/${favoriteSubscriptionPlanId}/delete/`,
+  );
   return response.data;
 };
 
@@ -1244,12 +1283,17 @@ export const fetchFavoriteVendors = async (params = {}) => {
 };
 
 export const addFavoriteVendor = async (vendorId) => {
-  const response = await api.post(`/foods/favorites/vendors/${vendorId}/add/`, {});
+  const response = await api.post(
+    `/foods/favorites/vendors/${vendorId}/add/`,
+    {},
+  );
   return response.data;
 };
 
 export const removeFavoriteVendor = async (favoriteVendorId) => {
-  const response = await api.delete(`/foods/favorites/vendors/${favoriteVendorId}/delete/`);
+  const response = await api.delete(
+    `/foods/favorites/vendors/${favoriteVendorId}/delete/`,
+  );
   return response.data;
 };
 
@@ -1271,7 +1315,9 @@ export const fetchVendorDashboardRecentActivity = async () => {
 };
 
 export const fetchVendorSubscriberGrowth = async (params = {}) => {
-  const response = await api.get("/foods/vendor/dashboard/subscriber-growth/", { params });
+  const response = await api.get("/foods/vendor/dashboard/subscriber-growth/", {
+    params,
+  });
   return response.data;
 };
 
@@ -1297,13 +1343,22 @@ export const fetchVendorConversations = async () => {
   return response.data;
 };
 
-export const fetchVendorConversationMessages = async (conversationId, params = {}) => {
-  const response = await api.get(`/foods/vendor/conversations/${conversationId}/messages/`, { params });
+export const fetchVendorConversationMessages = async (
+  conversationId,
+  params = {},
+) => {
+  const response = await api.get(
+    `/foods/vendor/conversations/${conversationId}/messages/`,
+    { params },
+  );
   return response.data;
 };
 
 export const sendVendorConversationMessage = async (conversationId, data) => {
-  const response = await api.post(`/foods/vendor/conversations/${conversationId}/messages/`, data);
+  const response = await api.post(
+    `/foods/vendor/conversations/${conversationId}/messages/`,
+    data,
+  );
   return response.data;
 };
 
@@ -1364,7 +1419,9 @@ export const createVendorBroadcast = async (data) => {
 };
 
 export const fetchVendorBroadcastHistory = async (params = {}) => {
-  const response = await api.get("/foods/vendor/broadcast/history/", { params });
+  const response = await api.get("/foods/vendor/broadcast/history/", {
+    params,
+  });
   return response.data;
 };
 
@@ -1376,17 +1433,24 @@ export const fetchVendorOrders = async (params = {}) => {
 };
 
 export const updateVendorOrderStatus = async (orderId, status) => {
-  const response = await api.put(`/foods/vendor/orders/${orderId}/status/`, { status });
+  const response = await api.put(`/foods/vendor/orders/${orderId}/status/`, {
+    status,
+  });
   return response.data;
 };
 
 export const partialUpdateVendorOrderStatus = async (orderId, data) => {
-  const response = await api.patch(`/foods/vendor/orders/${orderId}/status/`, data);
+  const response = await api.patch(
+    `/foods/vendor/orders/${orderId}/status/`,
+    data,
+  );
   return response.data;
 };
 
 export const fetchVendorDailyPrepList = async (params = {}) => {
-  const response = await api.get("/foods/vendor/orders/daily-prep-list/", { params });
+  const response = await api.get("/foods/vendor/orders/daily-prep-list/", {
+    params,
+  });
   return response.data;
 };
 
@@ -1408,7 +1472,10 @@ export const updateVendorAddon = async (vendorId, data) => {
 };
 
 export const partialUpdateVendorAddon = async (vendorId, data) => {
-  const response = await api.patch(`/foods/vendor/addons/uuid:vendor_id/`, data);
+  const response = await api.patch(
+    `/foods/vendor/addons/uuid:vendor_id/`,
+    data,
+  );
   return response.data;
 };
 
@@ -1440,7 +1507,10 @@ export const updateVendorPackage = async (packageId, data) => {
 };
 
 export const partialUpdateVendorPackage = async (packageId, data) => {
-  const response = await api.patch(`/foods/vendor/packages/${packageId}/`, data);
+  const response = await api.patch(
+    `/foods/vendor/packages/${packageId}/`,
+    data,
+  );
   return response.data;
 };
 
@@ -1501,7 +1571,9 @@ export const markAllNotificationsAsRead = async () => {
 // ==================== MENU ITEMS ====================
 
 export const fetchMenuItemsByVendor = async (vendorId, params = {}) => {
-  const response = await api.get(`/foods/meals/vendors/${vendorId}/`, { params });
+  const response = await api.get(`/foods/meals/vendors/${vendorId}/`, {
+    params,
+  });
   return response.data;
 };
 
@@ -1512,16 +1584,20 @@ export const fetchMenuItemDetail = async (menuItemId) => {
 
 export const createMenuItem = async (data) => {
   const formData = new FormData();
-  
+
   if (data.name) formData.append("name", data.name);
   if (data.price !== undefined) formData.append("price", data.price.toString());
   if (data.description) formData.append("description", data.description);
-  if (data.is_available !== undefined) formData.append("is_available", data.is_available.toString());
-  if (data.calories !== undefined) formData.append("calories", data.calories.toString());
-  if (data.protein !== undefined) formData.append("protein", data.protein.toString());
+  if (data.is_available !== undefined)
+    formData.append("is_available", data.is_available.toString());
+  if (data.calories !== undefined)
+    formData.append("calories", data.calories.toString());
+  if (data.protein !== undefined)
+    formData.append("protein", data.protein.toString());
   if (data.carbs !== undefined) formData.append("carbs", data.carbs.toString());
   if (data.fat !== undefined) formData.append("fat", data.fat.toString());
-  if (data.preparation_time !== undefined) formData.append("preparation_time", data.preparation_time.toString());
+  if (data.preparation_time !== undefined)
+    formData.append("preparation_time", data.preparation_time.toString());
   if (data.serving_size) formData.append("serving_size", data.serving_size);
   if (data.video_url) formData.append("video_url", data.video_url);
 
@@ -1541,12 +1617,17 @@ export const deleteMenuItem = async (menuItemId) => {
 };
 
 export const addMenuItemToMenu = async (menuItemId, menuId) => {
-  const response = await api.post(`/foods/meals/${menuItemId}/to/${menuId}/`, {});
+  const response = await api.post(
+    `/foods/meals/${menuItemId}/to/${menuId}/`,
+    {},
+  );
   return response.data;
 };
 
 export const removeMenuItemFromMenu = async (menuItemId, menuId) => {
-  const response = await api.delete(`/foods/meals/${menuItemId}/from/${menuId}/`);
+  const response = await api.delete(
+    `/foods/meals/${menuItemId}/from/${menuId}/`,
+  );
   return response.data;
 };
 
@@ -1554,9 +1635,10 @@ export const removeMenuItemFromMenu = async (menuItemId, menuId) => {
 
 export const createMenuPlan = async (data) => {
   const formData = new FormData();
-  
+
   if (data.name) formData.append("name", data.name);
-  if (data.collection_code) formData.append("collection_code", data.collection_code);
+  if (data.collection_code)
+    formData.append("collection_code", data.collection_code);
 
   if (Array.isArray(data.media)) {
     data.media.forEach((file) => {
@@ -1580,13 +1662,22 @@ export const fetchMealCustomizations = async (params = {}) => {
   return response.data;
 };
 
-export const fetchSubscriptionCustomizations = async (subscriptionId, params = {}) => {
-  const response = await api.get(`/foods/subscriptions/${subscriptionId}/customizations/`, { params });
+export const fetchSubscriptionCustomizations = async (
+  subscriptionId,
+  params = {},
+) => {
+  const response = await api.get(
+    `/foods/subscriptions/${subscriptionId}/customizations/`,
+    { params },
+  );
   return response.data;
 };
 
 export const createSubscriptionCustomization = async (subscriptionId, data) => {
-  const response = await api.post(`/foods/subscriptions/${subscriptionId}/customizations/`, data);
+  const response = await api.post(
+    `/foods/subscriptions/${subscriptionId}/customizations/`,
+    data,
+  );
   return response.data;
 };
 
@@ -1596,17 +1687,25 @@ export const fetchCustomizationDetail = async (customizationId) => {
 };
 
 export const updateCustomization = async (customizationId, data) => {
-  const response = await api.put(`/foods/customizations/${customizationId}/`, data);
+  const response = await api.put(
+    `/foods/customizations/${customizationId}/`,
+    data,
+  );
   return response.data;
 };
 
 export const partialUpdateCustomization = async (customizationId, data) => {
-  const response = await api.patch(`/foods/customizations/${customizationId}/`, data);
+  const response = await api.patch(
+    `/foods/customizations/${customizationId}/`,
+    data,
+  );
   return response.data;
 };
 
 export const deleteCustomization = async (customizationId) => {
-  const response = await api.delete(`/foods/customizations/${customizationId}/`);
+  const response = await api.delete(
+    `/foods/customizations/${customizationId}/`,
+  );
   return response.data;
 };
 
