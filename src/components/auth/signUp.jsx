@@ -63,16 +63,19 @@ const SignUp = () => {
   const validateForm = () => {
     const errors = {};
 
-    // Strict Email or Phone validation
+    // Email validation
     if (!formData.email_or_phonenumber.trim()) {
-      errors.email_or_phonenumber = "Phone number or email is required";
+      errors.email_or_phonenumber = "Email is required";
     } else {
       const isEmail = formData.email_or_phonenumber.includes("@");
-      const isPhone = /^(\+234|0)[789]\d{9}$/.test(formData.email_or_phonenumber);
+      // const isPhone = /^(\+234|0)[789]\d{9}$/.test(formData.email_or_phonenumber);
 
-      if (!isEmail && !isPhone) {
-        errors.email_or_phonenumber = "Please enter a valid email or Nigerian phone number";
+      if (!isEmail) {
+        errors.email_or_phonenumber = "Please enter a valid email";
       }
+      // if (!isEmail && !isPhone) {
+      //   errors.email_or_phonenumber = "Please enter a valid email or Nigerian phone number";
+      // }
     }
 
     // Password validation
@@ -139,14 +142,14 @@ const SignUp = () => {
       {/* Success/Error handled by Toasts */}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        {/* Phone or Email */}
+        {/* Email */}
         <div>
           <input
             type="text"
             name="email_or_phonenumber"
             value={formData.email_or_phonenumber}
             onChange={handleChange}
-            placeholder="Enter email or phone number"
+            placeholder="Enter email"
             disabled={loading || registrationSuccess}
             className={`input rounded-[7px] h-[46px] w-full px-4 ${
               validationErrors.email_or_phonenumber ? "border-red-500" : ""
