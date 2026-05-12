@@ -239,12 +239,12 @@ const StaffOperationsPage = () => {
                   >
                     <div className="flex flex-col md:flex-row md:items-center gap-6">
                       {/* Left: User Info */}
-                      <div className="flex items-center gap-4 min-w-[200px]">
+                      <div className="flex items-center gap-4 min-w-50">
                         <div className="w-14 h-14 rounded-2xl bg-[#f6f8f6] flex items-center justify-center border border-gray-50">
                           <User className="w-7 h-7 text-gray-400" />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 truncate max-w-[150px]">
+                          <p className="font-bold text-gray-900 truncate max-w-37.5">
                             {req.user_details?.username || req.user || "User"}
                           </p>
                           <p className="text-xs text-gray-400 font-semibold">
@@ -288,7 +288,7 @@ const StaffOperationsPage = () => {
                       </div>
 
                       {/* Right: Amount and Actions */}
-                      <div className="flex flex-col items-end gap-3 min-w-[150px]">
+                      <div className="flex flex-col items-end gap-3 min-w-37.5">
                         <div className="text-right">
                           <p className="text-2xl font-bold text-gray-900">
                             {formatCurrency(req.amount)}
@@ -395,7 +395,7 @@ const StaffOperationsPage = () => {
                   >
                     <div className="flex flex-col md:flex-row md:items-center gap-6">
                       {/* Left: Vendor Info */}
-                      <div className="flex items-center gap-4 min-w-[200px]">
+                      <div className="flex items-center gap-4 min-w-50">
                         <div className="w-16 h-16 rounded-2xl bg-[#f6f8f6] flex items-center justify-center border border-gray-50 overflow-hidden">
                           {(() => {
                             const rawUrl =
@@ -460,7 +460,7 @@ const StaffOperationsPage = () => {
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="flex flex-row md:flex-col gap-2 min-w-[150px] justify-end">
+                      <div className="flex flex-row md:flex-col gap-2 min-w-37.5 justify-end">
                         <button
                           onClick={() => {
                             if (
