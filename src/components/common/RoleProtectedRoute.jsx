@@ -20,12 +20,12 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
     profileData?.user?.is_superuser,
   );
 
-  // 1️⃣ Not authenticated
+  // Not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2️⃣ Wait for profile to finish loading before making role decisions.
+  // Wait for profile to finish loading before making role decisions.
   if (
     (requiredRole === "vendor" || requiredRole === "staff") &&
     profileLoading &&
@@ -34,14 +34,14 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
     return null; // render nothing briefly while profile loads
   }
 
-  // 3️⃣ Vendor-only route
+  // Vendor-only route
   if (requiredRole === "vendor" && !isVendor) {
     return <Navigate to="/create-vendor" replace />;
   }
 
-  // 4️⃣ Staff-only route
+  // Staff-only route
   if (requiredRole === "staff" && !isStaff) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/lilyshop/workers" replace />;
   }
 
   return children ? children : <Outlet />;
