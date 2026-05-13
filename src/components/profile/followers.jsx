@@ -31,7 +31,32 @@ const Followers = () => {
           ? res.data
           : res.data?.followers || res.data?.results || [];
 
-        setFollowers(data);
+        // If the data doesn't have profile pictures, we fetch them
+        if (data.length > 0 && !data[0].profile_pic) {
+          const updatedFollowers = await Promise.all(
+            data.map(async (user) => {
+              try {
+                // Fetch individual profiles to get the pic
+                const profileRes = await api.get(`/auth/profile/${user.id}/`);
+                return {
+                  ...user,
+                  profile_pic:
+                    profileRes.data.profile_pic ||
+                    profileRes.data.user?.profile_pic,
+                };
+              } catch (err) {
+                console.error(
+                  `Failed to fetch profile for user ${user.id}`,
+                  err,
+                );
+                return user;
+              }
+            }),
+          );
+          setFollowers(updatedFollowers);
+        } else {
+          setFollowers(data);
+        }
       } catch (err) {
         console.error("Failed to fetch followers", err);
         setError("Failed to load followers.");

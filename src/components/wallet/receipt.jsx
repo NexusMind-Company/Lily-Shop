@@ -1,5 +1,11 @@
 import React from "react";
-import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import {
+  ChevronLeft,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Receipt() {
@@ -54,10 +60,35 @@ export default function Receipt() {
     txType.includes("withdrawal") || txType.includes("debit");
   const isOrder = txType.includes("order") || txType.includes("payment");
 
-  // Determine Main Label
-  let mainStatus = "Payment Successful";
-  if (isDeposit) mainStatus = "Deposit Successful";
-  if (isWithdrawal) mainStatus = "Withdrawal Successful";
+  const status = tx.status?.toLowerCase();
+  const isPending = status === "pending" || status === "processing";
+  const isFailed = status === "failed" || status === "canceled";
+
+  // Determine Main Label and Icon
+  let statusLabel = "Payment Successful";
+  let StatusIcon = CheckCircle2;
+  let iconColor = "text-lily";
+  let separatorColor = "bg-lily";
+
+  if (isPending) {
+    StatusIcon = Clock;
+    iconColor = "text-yellow-500";
+    separatorColor = "bg-yellow-500";
+    if (isDeposit) statusLabel = "Deposit Pending";
+    else if (isWithdrawal) statusLabel = "Withdrawal Pending";
+    else statusLabel = "Payment Pending";
+  } else if (isFailed) {
+    StatusIcon = XCircle;
+    iconColor = "text-red-500";
+    separatorColor = "bg-red-500";
+    if (isDeposit) statusLabel = "Deposit Failed";
+    else if (isWithdrawal) statusLabel = "Withdrawal Failed";
+    else statusLabel = "Payment Failed";
+  } else {
+    if (isDeposit) statusLabel = "Deposit Successful";
+    else if (isWithdrawal) statusLabel = "Withdrawal Successful";
+    else statusLabel = "Payment Successful";
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-display max-w-2xl mx-auto shadow-sm">
@@ -79,15 +110,15 @@ export default function Receipt() {
         {/* Status Section */}
         <div className="flex flex-col items-center pt-10 pb-8 px-6 text-center">
           <div className="mb-4">
-            <CheckCircle2 className="w-12 h-12 text-lily stroke-[2.5]" />
+            <StatusIcon className={`w-12 h-12 ${iconColor} stroke-[2.5]`} />
           </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
             ₦{Math.abs(tx.amount_naira || tx.amount || 0).toLocaleString()}
           </h2>
-          <p className="text-[15px] font-medium text-gray-900">
-            {tx.status === "failed" || tx.status === "canceled"
-              ? "Transaction Failed"
-              : mainStatus}
+          <p
+            className={`text-[15px] font-medium ${isFailed ? "text-red-500" : isPending ? "text-yellow-600" : "text-gray-900"}`}
+          >
+            {statusLabel}
           </p>
         </div>
 
@@ -96,7 +127,7 @@ export default function Receipt() {
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
-              className="h-1.5 w-6 shrink-0 bg-lily rounded-full opacity-80"
+              className={`h-1.5 w-6 shrink-0 ${separatorColor} rounded-full opacity-80`}
             />
           ))}
         </div>
