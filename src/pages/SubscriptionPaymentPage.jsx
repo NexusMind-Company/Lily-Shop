@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { api, fetchWallet, createSubscriptionWithPaystack } from "../services/api";
+import { api, fetchWallet, initiateUserSubscription, createSubscription } from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -115,13 +115,10 @@ const SubscriptionPaymentPage = () => {
       toast.loading("Initiating secure payment...");
 
       const formattedPhone = formatPhoneForAPI(phone) || phone;
-      
-      const intentId = crypto.randomUUID();
 
       const paymentData = {
         plan_id: plan.id,
         payment_method: "paystack",
-        intent_id: intentId,
         phone: formattedPhone,
       };
 
@@ -142,39 +139,51 @@ const SubscriptionPaymentPage = () => {
 
       console.log("Sending subscription data:", paymentData);
 
-      const subResponse = await createSubscriptionWithPaystack(plan.id, paymentData);
+      const response = await initiateUserSubscription(paymentData);
 
-      if (!subResponse || !subResponse.authorization_url) {
+      if (!response) {
         toast.dismiss();
         toast.error("Failed to initialize payment. Please try again.");
         return;
       }
 
-      const authorizationUrl = subResponse.authorization_url;
+      if (response.authorization_url) {
+        const processingState = {
+          planId: plan?.id,
+          plan,
+          vendor,
+          totalPrice,
+          selectedDays,
+          quantity,
+          addExtra,
+          extraPrice,
+          deliveryType,
+          preferredTime,
+          address,
+          phone,
+          collectionCode,
+          reference: response.reference,
+        };
 
-      const processingState = {
-        planId: plan?.id,
-        plan,
-        vendor,
-        totalPrice,
-        selectedDays,
-        quantity,
-        addExtra,
-        extraPrice,
-        deliveryType,
-        preferredTime,
-        address,
-        phone,
-        collectionCode,
-      };
-      
-      localStorage.setItem("lily_subscription_redirect", "true");
-      localStorage.setItem("lily_pending_subscription_data", JSON.stringify(processingState));
+        saveSubscriptionFlowState(processingState);
+        localStorage.setItem("lily_subscription_redirect", "true");
 
-      toast.dismiss();
-      toast.loading("Redirecting to Paystack...");
+        toast.dismiss();
+        toast.loading("Redirecting to Paystack...");
 
-      window.location.href = authorizationUrl;
+        window.location.href = response.authorization_url;
+      } else if (response.subscription || response.status === "success") {
+        toast.dismiss();
+        toast.success("Subscription activated successfully!");
+        navigate("/subscriptions", {
+          replace: true,
+          state: {
+            plan,
+            vendor,
+            subscription: response.subscription,
+          },
+        });
+      }
     } catch (error) {
       toast.dismiss();
       console.error("Direct payment error:", error);
