@@ -60,6 +60,8 @@ export const fetchProfile = () => async (dispatch) => {
         following_count: data.following_count || 0,
         bio: data.bio || null,
         vendor_id: data.vendor_id || null,
+        is_staff: data.is_staff || false,
+        is_superuser: data.is_superuser || false,
       },
       products: data.products || [],
       product_count: data.product_count || (data.products?.length ?? 0),

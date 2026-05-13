@@ -22,6 +22,7 @@ import {
 import { toast } from "react-hot-toast";
 import {
   getStaffWithdrawals,
+  getUnprocessedWithdrawalRequests,
   markWithdrawalSuccessful,
   markWithdrawalUnsuccessful,
   getVendorsAsStaff,
@@ -43,17 +44,39 @@ const StaffOperationsPage = () => {
   } = useQuery({
     queryKey: ["staffWithdrawals", activeTab, searchQuery],
     queryFn: async () => {
-      const params = {
-        status:
-          activeTab === "pending"
-            ? "pending"
-            : activeTab === "completed"
-              ? "completed"
-              : "failed",
-      };
+      const params = {};
       if (searchQuery) params.search = searchQuery;
-      const res = await getStaffWithdrawals(params);
-      return res.results || res || [];
+
+      let res;
+      if (activeTab === "pending") {
+        res = await getUnprocessedWithdrawalRequests(params);
+      } else {
+        // For completed and failed, we use is_processed=true
+        params.is_processed = "true";
+        res = await getStaffWithdrawals(params);
+      }
+
+      const data = res.results || res || [];
+
+      // If we are in completed or failed tabs, filter by the status field in the results
+      if (activeTab !== "pending") {
+        return data.filter((item) => {
+          const status = item.status?.toLowerCase();
+          if (activeTab === "completed") {
+            return (
+              status === "completed" ||
+              status === "success" ||
+              status === "successful"
+            );
+          }
+          if (activeTab === "failed") {
+            return status === "failed" || status === "unsuccessful";
+          }
+          return false;
+        });
+      }
+
+      return data;
     },
     enabled: mainTab === "withdrawals",
   });
