@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { api, fetchWallet, initiateUserSubscription, createSubscription } from "../services/api";
+import { api, fetchWallet, createSubscriptionWithPaystack } from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -139,7 +139,7 @@ const SubscriptionPaymentPage = () => {
 
       console.log("Sending subscription data:", paymentData);
 
-      const response = await initiateUserSubscription(paymentData);
+      const response = await createSubscriptionWithPaystack(plan.id, paymentData);
 
       if (!response) {
         toast.dismiss();

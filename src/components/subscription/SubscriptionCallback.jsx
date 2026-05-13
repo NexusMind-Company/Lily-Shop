@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { verifyUserSubscription } from "../../services/api";
+import { api } from "../../services/api";
 import {
   clearSubscriptionFlowState,
   getSubscriptionFlowState,
@@ -50,8 +50,10 @@ export default function SubscriptionCallback() {
 
     const verifySubscriptionPayment = async () => {
       try {
-        const response = await verifyUserSubscription(reference);
-        const payload = response || {};
+        const response = await api.get("/wallet/paystack/callback/", {
+          params: { reference },
+        });
+        const payload = response.data || {};
 
         if (payload.status !== "success") {
           throw new Error(payload.message || "Payment verification failed.");
@@ -73,7 +75,7 @@ export default function SubscriptionCallback() {
             verifiedSubscription?.next_payment_date,
           paymentMethod: "paystack",
           paymentReference: reference,
-          paymentFinalized: true,
+          paymentFinalized: Boolean(payload.payment_finalized),
         };
 
         saveSubscriptionSuccessState(successState);
