@@ -142,6 +142,8 @@ const SubscriptionPaymentPage = () => {
 
       const response = await createSubscriptionWithPaystack(plan.id, paymentData);
 
+      console.log("Subscription response:", response);
+
       if (!response) {
         toast.dismiss();
         toast.error("Failed to initialize payment. Please try again.");
@@ -170,10 +172,10 @@ const SubscriptionPaymentPage = () => {
         localStorage.setItem("lily_subscription_redirect", "true");
 
         toast.dismiss();
-        toast.loading("Redirecting to Paystack...");
+        toast.success("Redirecting to Paystack...");
 
         window.location.href = response.authorization_url;
-      } else if (response.subscription || response.status === "success") {
+      } else if (response.subscription || response.status === "success" || response.status === "pending") {
         toast.dismiss();
         toast.success("Subscription activated successfully!");
         navigate("/subscriptions", {
@@ -181,9 +183,13 @@ const SubscriptionPaymentPage = () => {
           state: {
             plan,
             vendor,
-            subscription: response.subscription,
+            subscription: response.subscription || response,
           },
         });
+      } else {
+        console.log("Unexpected response structure:", response);
+        toast.dismiss();
+        toast.error("Unexpected response. Please try again.");
       }
     } catch (error) {
       toast.dismiss();
