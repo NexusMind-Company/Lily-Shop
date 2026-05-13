@@ -14,7 +14,6 @@ function MessagesList() {
   const { conversations, conversationsLoading, error } = useSelector(
     (state) => state.messages,
   );
-  const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchConversations());
@@ -180,13 +179,13 @@ function MessagesList() {
                         {chat.otherRole}
                       </span>
                       {chat.productName && (
-                        <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                        <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-20">
                           {chat.productName}
                         </span>
                       )}
                     </div>
                     <p
-                      className={`text-sm truncate max-w-[200px] ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}
+                      className={`text-sm truncate max-w-50 ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}
                     >
                       {chat.lastMessage}
                     </p>

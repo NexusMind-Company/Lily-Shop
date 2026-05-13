@@ -48,15 +48,20 @@ const StaffOperationsPage = () => {
       if (searchQuery) params.search = searchQuery;
 
       let res;
-      if (activeTab === "pending") {
-        res = await getUnprocessedWithdrawalRequests(params);
-      } else {
-        // For completed and failed, we use is_processed=true
-        params.is_processed = "true";
-        res = await getStaffWithdrawals(params);
+      try {
+        if (activeTab === "pending") {
+          res = await getUnprocessedWithdrawalRequests(params);
+        } else {
+          // For completed and failed, we use is_processed=true
+          params.is_processed = "true";
+          res = await getStaffWithdrawals(params);
+        }
+      } catch (err) {
+        console.error("Error fetching withdrawals:", err);
+        return [];
       }
 
-      const data = res.results || res || [];
+      const data = res?.results || res || [];
 
       // If we are in completed or failed tabs, filter by the status field in the results
       if (activeTab !== "pending") {
