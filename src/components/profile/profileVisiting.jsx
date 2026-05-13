@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { api, fetchPublicProfile, followUser } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
@@ -20,6 +20,7 @@ import {
   Share2,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import ProfileFeedViewer from "./profileFeedViewer";
 
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -29,6 +30,12 @@ const ProfileVisiting = () => {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+
+  const [feedOverlay, setFeedOverlay] = useState({
+    isOpen: false,
+    items: [],
+    initialIndex: 0,
+  });
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -82,8 +89,51 @@ const ProfileVisiting = () => {
             api.get(`/shops/contents/${targetId}`),
             api.get(`/shops/products/${targetId}/`),
           ]);
-          fetchedPosts = postsRes.data?.results || postsRes.data || [];
-          fetchedProducts = productsRes.data?.results || productsRes.data || [];
+
+          const rawPosts = postsRes.data?.results || postsRes.data || [];
+          fetchedPosts = rawPosts.map((p) => {
+            const item = p.content || p;
+            return {
+              ...item,
+              itemType: "content",
+              type: "content",
+              username: item.user?.username || result.username || "Unknown",
+              userpic:
+                item.user?.profile_pic ||
+                result.profile_pic ||
+                "/profile-icon.svg",
+              like_count: item.likes_count ?? item.like_count ?? item.likes,
+              view_count: item.views ?? item.view_count ?? item.visit_count,
+              comment_count:item.comment_count,
+              is_liked: item.is_liked ?? item.has_liked,
+            };
+          });
+
+          const rawProducts =
+            productsRes.data?.results || productsRes.data || [];
+          fetchedProducts = rawProducts.map((p) => {
+            const item = p.product || p;
+            return {
+              ...item,
+              itemType: "product",
+              type: "product",
+              username:
+                item.shop?.shop_name ||
+                item.user?.username ||
+                result.username ||
+                "Unknown",
+              userpic:
+                item.shop?.logo ||
+                item.user?.profile_pic ||
+                result.profile_pic ||
+                "/profile-icon.svg",
+              like_count: item.likes_count ?? item.like_count ?? item.likes,
+              view_count: item.views,
+              comment_count:
+                item.comments_count ?? item.comment_count ?? item.comments,
+              is_liked: item.is_liked ?? item.has_liked,
+            };
+          });
         } catch (err) {
           console.warn(
             "Could not fetch user contents/products, falling back to profile data",
@@ -266,7 +316,7 @@ const ProfileVisiting = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="grid grid-cols-3 gap-1"
+        className="grid grid-cols-3 gap-3 my-2 px-4"
       >
         {items.map((item, i) => {
           const mediaSrc =
@@ -278,7 +328,10 @@ const ProfileVisiting = () => {
             "/placeholder.png";
 
           const isVideo =
-            item.is_video || item.video || item.post_type === "VIDEO";
+            item.is_video ||
+            item.video ||
+            item.post_type === "VIDEO" ||
+            (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
 
           return (
             <motion.div
@@ -286,37 +339,44 @@ const ProfileVisiting = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/product-details/${item.id}`)}
-              className="relative aspect-square overflow-hidden cursor-pointer group"
+              onClick={() => {
+                if (activeTab === "products") {
+                  navigate(`/product-details/${item.id}`);
+                } else {
+                  const clickedIndex = items.findIndex((p) => p.id === item.id);
+                  setFeedOverlay({
+                    isOpen: true,
+                    items: items,
+                    initialIndex: clickedIndex !== -1 ? clickedIndex : 0,
+                  });
+                }
+              }}
+              className="relative rounded-lg overflow-hidden cursor-pointer bg-black"
             >
-              <img
-                src={mediaSrc}
-                alt="Post"
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              />
-
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="flex items-center gap-4 text-white">
-                  <div className="flex items-center gap-1">
-                    <Heart size={20} className="fill-white" />
-                    <span className="font-semibold">
-                      {item.like_count || item.likes || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye size={20} />
-                    <span className="font-semibold">
-                      {item.views || item.view_count || item.visit_count || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              {isVideo ? (
+                <video
+                  src={mediaSrc}
+                  className="w-full aspect-square object-cover"
+                  muted
+                />
+              ) : (
+                <img
+                  src={mediaSrc}
+                  alt="Post"
+                  className="w-full aspect-square object-cover"
+                />
+              )}
 
               {isVideo && (
-                <div className="absolute top-2 right-2">
-                  <Play size={20} className="text-white drop-shadow-lg" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Play size={24} className="text-white" />
                 </div>
               )}
+
+              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
+                <Eye size={15} className="mr-1" />
+                {item.views || item.view_count || item.visit_count || 0}
+              </div>
             </motion.div>
           );
         })}
@@ -326,6 +386,13 @@ const ProfileVisiting = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {feedOverlay.isOpen && (
+        <ProfileFeedViewer
+          posts={feedOverlay.items}
+          initialIndex={feedOverlay.initialIndex}
+          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+        />
+      )}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <button onClick={() => navigate(-1)}>

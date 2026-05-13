@@ -12,7 +12,11 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../../redux/notificationSlice";
+import {
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from "../../redux/notificationSlice";
 import BottomNav from "./bottomNav";
 
 // Map notification types to icons
@@ -48,7 +52,7 @@ const formatTimeAgo = (dateString) => {
 const Activity = () => {
   const dispatch = useDispatch();
   const { notifications, loading, error, next, unreadCount } = useSelector(
-    (state) => state.notifications
+    (state) => state.notifications,
   );
   const [activePage, setActivePage] = useState("inbox");
   const [loadingMore, setLoadingMore] = useState(false);
@@ -63,11 +67,10 @@ const Activity = () => {
     if (next && !loadingMore) {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      dispatch(fetchNotifications({ page: nextPage }))
-        .finally(() => {
-          setCurrentPage(nextPage);
-          setLoadingMore(false);
-        });
+      dispatch(fetchNotifications({ page: nextPage })).finally(() => {
+        setCurrentPage(nextPage);
+        setLoadingMore(false);
+      });
     }
   }, [next, loadingMore, currentPage, dispatch]);
 
@@ -109,7 +112,7 @@ const Activity = () => {
       </header>
 
       {/* Loading State */}
-      <section className="flex-1 overflow-y-auto p-4 space-y-3">
+      <section className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
         {loading && notifications.length === 0 && (
           <div className="flex flex-col items-center justify-center mt-20">
             <div className="w-8 h-8 border-2 border-lily border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -121,7 +124,9 @@ const Activity = () => {
         {error && notifications.length === 0 && (
           <div className="flex flex-col items-center justify-center mt-20 text-center">
             <Bell className="w-12 h-12 text-gray-300 mb-3" />
-            <p className="text-lg font-medium text-gray-600">No notifications yet</p>
+            <p className="text-lg font-medium text-gray-600">
+              No notifications yet
+            </p>
             <p className="text-sm text-gray-400 mt-1">
               When you get notifications, they'll show up here.
             </p>
@@ -144,15 +149,17 @@ const Activity = () => {
           <div
             key={item.id}
             onClick={() => handleNotificationClick(item)}
-            className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${item.read
+            className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+              item.read
                 ? "bg-white hover:bg-gray-50"
                 : "bg-lily/5 hover:bg-lily/10 border-l-4 border-lily"
-              }`}
+            }`}
           >
             {/* Icon */}
             <div
-              className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 ${item.read ? "bg-gray-100" : "bg-lily/20"
-                }`}
+              className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 ${
+                item.read ? "bg-gray-100" : "bg-lily/20"
+              }`}
             >
               {iconMap[item.type] || <Bell className="text-gray-400 w-5 h-5" />}
             </div>
@@ -160,8 +167,9 @@ const Activity = () => {
             {/* Content */}
             <div className="flex-1 min-w-0">
               <p
-                className={`text-sm leading-snug ${item.read ? "text-gray-600" : "text-gray-800 font-medium"
-                  }`}
+                className={`text-sm leading-snug ${
+                  item.read ? "text-gray-600" : "text-gray-800 font-medium"
+                }`}
               >
                 {item.message}
               </p>
