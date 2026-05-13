@@ -119,6 +119,7 @@ const SubscriptionPaymentPage = () => {
       const paymentData = {
         plan_id: plan.id,
         payment_method: "paystack",
+        intent_id: crypto.randomUUID(),
         phone: formattedPhone,
       };
 
