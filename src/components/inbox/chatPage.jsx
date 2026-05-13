@@ -93,13 +93,16 @@ const ChatPage = () => {
     return [...conversation].reverse();
   }, [conversation]);
 
-  //  On mount & user change
+  // Ensure conversations list is loaded for metadata
   useEffect(() => {
-    dispatch(clearConversation());
-
     if (conversations.length === 0) {
       dispatch(fetchConversations());
     }
+  }, [conversations.length, dispatch]);
+
+  // Handle message fetching and polling
+  useEffect(() => {
+    dispatch(clearConversation());
 
     if (conversationId) {
       dispatch(
@@ -169,7 +172,7 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
+      <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
@@ -255,7 +258,7 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
         <input
           type="file"
           ref={fileInputRef}
