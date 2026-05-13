@@ -13,6 +13,7 @@ import {
   fetchConversationMessages,
   sendMessageToUser,
   clearConversation,
+  fetchConversations,
 } from "../../redux/messageConversationSlice";
 
 const ChatPage = () => {
@@ -29,6 +30,7 @@ const ChatPage = () => {
 
   const {
     messages: conversation,
+    conversations,
     loading,
     sending,
     currentPage,
@@ -37,37 +39,68 @@ const ChatPage = () => {
   const { user_data } = useSelector((state) => state.auth);
   const currentUserId = user_data?.id || user_data?.user?.id;
 
-  // Find recipient name from messages
-  const recipientName = useMemo(() => {
-    if (!conversation || conversation.length === 0) return "Chat";
-
-    // Find the message from the other user (matching conversationId)
-    const otherMessage = conversation.find(
-      (msg) => String(msg.sender_id) === String(conversationId),
+  // Find recipient data from conversations list or messages
+  const recipientData = useMemo(() => {
+    // 1. Try to find in conversations list (more reliable for metadata)
+    const convFromList = conversations.find(
+      (c) =>
+        String(c.other_user?.id) === String(conversationId) ||
+        String(c.buyer?.id) === String(conversationId) ||
+        String(c.seller?.id) === String(conversationId),
     );
-    if (otherMessage) {
-      return otherMessage.sender_name || otherMessage.sender_username || "Chat";
+
+    if (convFromList) {
+      const otherUser =
+        convFromList.other_user ||
+        (String(convFromList.buyer?.id) === String(currentUserId)
+          ? convFromList.seller
+          : convFromList.buyer);
+      const role =
+        String(convFromList.buyer?.id) === String(currentUserId)
+          ? "Vendor"
+          : "Customer";
+
+      return {
+        name:
+          otherUser?.name ||
+          otherUser?.full_name ||
+          otherUser?.username ||
+          "Chat",
+        role,
+        profilePic: otherUser?.profile_pic,
+      };
     }
 
-    // Fallback: any message that isn't from me
-    const anyOtherMessage = conversation.find(
-      (msg) => String(msg.sender_id) !== String(currentUserId),
-    );
-    if (anyOtherMessage) {
-      return (
-        anyOtherMessage.sender_name || anyOtherMessage.sender_username || "Chat"
+    // 2. Fallback to messages
+    if (conversation && conversation.length > 0) {
+      const otherMessage = conversation.find(
+        (msg) => String(msg.sender_id) === String(conversationId),
       );
+      if (otherMessage) {
+        return {
+          name:
+            otherMessage.sender_name || otherMessage.sender_username || "Chat",
+          role: null,
+        };
+      }
     }
 
-    return "Chat";
-  }, [conversation, conversationId, currentUserId]);
+    return { name: "Chat", role: null };
+  }, [conversations, conversation, conversationId, currentUserId]);
 
   // Reverse messages for display (since backend returns newest first)
   const displayMessages = useMemo(() => {
     return [...conversation].reverse();
   }, [conversation]);
 
-  //  On mount & user change
+  // Ensure conversations list is loaded for metadata
+  useEffect(() => {
+    if (conversations.length === 0) {
+      dispatch(fetchConversations());
+    }
+  }, [conversations.length, dispatch]);
+
+  // Handle message fetching and polling
   useEffect(() => {
     dispatch(clearConversation());
 
@@ -139,19 +172,41 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
+      <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
           </button>
 
-          <div className="w-8 h-8 bg-pink-200 rounded-full flex items-center justify-center text-sm font-bold">
-            💬
+          <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center overflow-hidden border border-pink-200">
+            {recipientData.profilePic ? (
+              <img
+                src={recipientData.profilePic}
+                alt={recipientData.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-pink-600 font-bold">
+                {recipientData.name.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
 
           <div>
-            <h2 className="font-semibold text-gray-800">{recipientName}</h2>
-            <p className="text-xs text-green-600">Online</p>
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-gray-900 leading-tight">
+                {recipientData.name}
+              </h2>
+              {recipientData.role && (
+                <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-medium">
+                  {recipientData.role}
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              Online
+            </p>
           </div>
         </div>
         <div className="flex space-x-4">
@@ -203,7 +258,7 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
         <input
           type="file"
           ref={fileInputRef}
