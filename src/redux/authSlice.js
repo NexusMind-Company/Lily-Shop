@@ -46,6 +46,7 @@ export const loginUser = createAsyncThunk(
 
       return {
         message: data.message || "Registration successful! Please login.",
+        user: data.user,
       };
     } catch (error) {
       console.error("Login Error Detail:", error.response?.data);

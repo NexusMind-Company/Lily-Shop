@@ -14,7 +14,6 @@ function MessagesList() {
   const { conversations, conversationsLoading, error } = useSelector(
     (state) => state.messages,
   );
-  const { user_data } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchConversations());
@@ -31,44 +30,35 @@ function MessagesList() {
   const formattedConversations = Array.isArray(conversations)
     ? conversations.map((conv) => {
         // Determine the other user (not the current user)
-        const isCurrentUserBuyer = conv.buyer?.id === user_data?.user?.id;
-        const otherUser = isCurrentUserBuyer ? conv.seller : conv.buyer;
+        const otherUser =
+          conv.other_user || (conv.is_buyer ? conv.seller : conv.buyer);
 
-        // Get the last message - check various possible backend fields
-        const lastMsgObj =
-          conv.messages && conv.messages.length > 0
-            ? conv.messages[conv.messages.length - 1]
-            : null;
+        // Roles
+        const otherRole = conv.is_buyer ? "Vendor" : "Customer";
 
-        // Ensure we get a string, as the backend might return an object for last_message
-        const rawLastMessage =
-          conv.last_message_content || conv.last_message || lastMsgObj;
+        // Get the last message
+        const lastMsgObj = conv.last_message;
         const lastMessageText =
-          typeof rawLastMessage === "object"
-            ? rawLastMessage?.content || "No messages yet"
-            : rawLastMessage || "No messages yet";
+          typeof lastMsgObj === "object"
+            ? lastMsgObj?.content || "No messages yet"
+            : lastMsgObj || "No messages yet";
 
         return {
           id: conv.id,
-
           otherUserId: otherUser?.id,
           displayName:
-            otherUser?.sender_name ||
-            otherUser?.full_name ||
             otherUser?.name ||
-            otherUser?.display_name ||
+            otherUser?.full_name ||
+            otherUser?.username ||
             "Unknown User",
           username: otherUser?.username || "",
           profilePic: otherUser?.profile_pic || null,
           lastMessage: lastMessageText,
           time: conv.last_message_at ? getTimeAgo(conv.last_message_at) : "",
-          unread:
-            conv.unread_count > 0 ||
-            (lastMsgObj &&
-              !lastMsgObj.read &&
-              lastMsgObj.sender !== user_data?.user?.id),
+          unread: conv.unread_count > 0,
           productName: conv.product?.name || null,
-          orderRef: conv.order?.reference || null,
+          otherRole,
+          isFollowing: otherUser?.is_following_back,
         };
       })
     : [];
@@ -154,7 +144,7 @@ function MessagesList() {
       )}
 
       {!conversationsLoading && !error && filteredConversations.length > 0 && (
-        <section className="px-4 pb-24">
+        <section className="px-4 pb-24 overflow-y-auto max-h-[calc(100vh-180px)]">
           <div className="space-y-3">
             {filteredConversations.map((chat) => (
               <div
@@ -183,21 +173,19 @@ function MessagesList() {
                       <h3
                         className={`font-semibold truncate ${chat.unread ? "text-gray-900" : "text-gray-700"}`}
                       >
-                        {chat.displayName}{" "}
-                        {chat.username && (
-                          <span className="text-xs font-normal text-gray-400">
-                            ({chat.username})
-                          </span>
-                        )}
+                        {chat.displayName}
                       </h3>
+                      <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                        {chat.otherRole}
+                      </span>
                       {chat.productName && (
-                        <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                        <span className="text-[10px] bg-lily/10 text-lily px-1.5 py-0.5 rounded-full truncate max-w-20">
                           {chat.productName}
                         </span>
                       )}
                     </div>
                     <p
-                      className={`text-sm truncate max-w-[200px] ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}
+                      className={`text-sm truncate max-w-50 ${chat.unread ? "font-medium text-gray-800" : "text-gray-500"}`}
                     >
                       {chat.lastMessage}
                     </p>
