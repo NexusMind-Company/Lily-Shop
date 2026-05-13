@@ -142,6 +142,8 @@ const SubscriptionPaymentPage = () => {
 
       const response = await createSubscriptionWithPaystack(plan.id, paymentData);
 
+      console.log("Subscription response:", response);
+
       if (!response) {
         toast.dismiss();
         toast.error("Failed to initialize payment. Please try again.");
