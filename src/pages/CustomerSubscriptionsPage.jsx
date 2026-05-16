@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   AlertCircle,
   BadgeCheck,
@@ -485,7 +485,11 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
 
 const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
+
+  const successState = location.state;
+  const showSuccessBanner = successState?.subscriptionId && successState?.paymentMethod === "paystack";
   const [planToCancel, setPlanToCancel] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -500,6 +504,16 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Clear location state after showing success banner to prevent persistence on refresh
+  useEffect(() => {
+    if (showSuccessBanner) {
+      const timer = setTimeout(() => {
+        navigate(".", { replace: true, state: {} });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessBanner, navigate]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mySubscriptions", currentPage, debouncedSearchQuery],
@@ -551,6 +565,26 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
             <ChevronLeft size={24} />
           </button>
           <h1 className="text-lg font-bold text-[#111813]">My Subscriptions</h1>
+        </div>
+      )}
+
+      {showSuccessBanner && (
+        <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle size={20} className="text-green-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-green-800">Subscription Activated!</p>
+            <p className="text-xs text-green-600">
+              Your Paystack subscription is complete. You can view your subscription details below.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(".", { replace: true, state: {} })}
+            className="text-green-700 hover:text-green-900"
+          >
+            <ChevronUp size={16} />
+          </button>
         </div>
       )}
 
