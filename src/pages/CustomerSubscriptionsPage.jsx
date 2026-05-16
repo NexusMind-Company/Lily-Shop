@@ -490,11 +490,35 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
 
   const successState = location.state;
   const showSuccessBanner = successState?.subscriptionId && successState?.paymentMethod === "paystack";
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [planToCancel, setPlanToCancel] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const playSuccessSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    } catch (e) {
+      console.log("Audio not supported");
+    }
+  };
 
   // Debounce search query
   useEffect(() => {
@@ -508,6 +532,8 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   // Clear location state after showing success banner to prevent persistence on refresh
   useEffect(() => {
     if (showSuccessBanner) {
+      playSuccessSound();
+      setShowSuccessPopup(true);
       const timer = setTimeout(() => {
         navigate(".", { replace: true, state: {} });
       }, 100);
@@ -568,7 +594,57 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
         </div>
       )}
 
-      {showSuccessBanner && (
+      <AnimatePresence>
+        {showSuccessPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                <CheckCircle size={40} className="text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-[#111813]">Payment Successful!</h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Your food subscription has been activated. You can now enjoy your meals!
+              </p>
+              {successState?.vendor && (
+                <div className="mt-4 rounded-xl bg-gray-50 p-3">
+                  <p className="text-xs text-gray-400">Subscribed to</p>
+                  <p className="font-semibold text-[#111813]">{successState.vendor.name}</p>
+                </div>
+              )}
+              {successState?.plan && (
+                <div className="mt-2 rounded-xl bg-gray-50 p-3">
+                  <p className="text-xs text-gray-400">Plan</p>
+                  <p className="font-semibold text-[#111813]">{successState.plan.plan_name}</p>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  setShowSuccessPopup(false);
+                  navigate(".", { replace: true, state: {} });
+                }}
+                className="mt-6 w-full rounded-xl bg-[#13ec49] py-3 font-bold text-[#111813] transition-colors hover:bg-green-400"
+              >
+                Continue
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Small banner - now hidden when popup shows */}
+      {showSuccessBanner && !showSuccessPopup && (
         <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
             <CheckCircle size={20} className="text-green-600" />
