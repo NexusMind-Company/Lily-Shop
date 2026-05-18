@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowDownToLine,
   Building2,
+  CheckCircle2,
+  Clock,
   CreditCard,
-  Wallet,
+  XCircle,
   X,
 } from "lucide-react";
 import {
@@ -28,6 +29,7 @@ import {
   fetchEarningsHistory,
   fetchEarningsSummary,
   fetchVendorWallet,
+  fetchVendorWithdrawals,
   initiateEarningsPayout,
 } from "../../services/vendorDashboardApi";
 
@@ -35,6 +37,15 @@ const STATUS_COLORS = {
   paid: "bg-green-100 text-green-700",
   pending: "bg-orange-100 text-orange-600",
   failed: "bg-red-100 text-red-600",
+  completed: "bg-green-100 text-green-700",
+  processing: "bg-blue-100 text-blue-600",
+};
+
+const WITHDRAWAL_STATUS_ICONS = {
+  pending: <Clock size={14} className="text-orange-500" />,
+  processing: <Clock size={14} className="text-blue-500" />,
+  completed: <CheckCircle2 size={14} className="text-green-500" />,
+  failed: <XCircle size={14} className="text-red-500" />,
 };
 
 const PERIODS = [
@@ -200,339 +211,91 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
             <CreditCard size={15} />
             {isPending ? "Processing..." : "Confirm Withdrawal"}
           </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const VendorEarningsPage = () => {
-  const [period, setPeriod] = useState("weekly");
-  const [showWithdraw, setShowWithdraw] = useState(false);
-  const queryClient = useQueryClient();
-
-  const {
-    data: summary,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["earningsSummary"],
-    queryFn: fetchEarningsSummary,
-  });
-
-  const { data: wallet, isError: walletError } = useQuery({
-    queryKey: ["vendorWallet"],
-    queryFn: fetchVendorWallet,
-  });
-
-  const { data: history, isError: histErr } = useQuery({
-    queryKey: ["earningsHistory", period],
-    queryFn: () => fetchEarningsHistory({ period }),
-  });
-
-  const { data: chart, isError: chartErr } = useQuery({
-    queryKey: ["earningsChart", period],
-    queryFn: () => fetchEarningsChart(period),
-  });
-
-  const { mutate: payout, isPending: payoutPending } = useMutation({
-    mutationFn: (payload) => initiateEarningsPayout(payload),
-    onSuccess: () => {
-      setShowWithdraw(false);
-      toast.success(
-        "Withdrawal initiated. Funds should arrive within 1 to 3 business days.",
-      );
-      queryClient.invalidateQueries({ queryKey: ["earningsSummary"] });
-      queryClient.invalidateQueries({ queryKey: ["vendorWallet"] });
-      queryClient.invalidateQueries({ queryKey: ["earningsHistory"] });
-    },
-    onError: (mutationError) => {
-      const status = mutationError?.response?.status;
-      if (status === 403) {
-        toast.error(
-          "Only food vendors can withdraw earnings. Please complete your vendor setup.",
-        );
-      } else {
-        toast.error(getErrorMessage(mutationError));
-      }
-    },
-  });
-
-  if (isLoading) {
-    return (
-      <VendorLayout title="Earnings">
-        <VendorPageLoader />
-      </VendorLayout>
-    );
-  }
-
-  if (isError) {
-    return (
-      <VendorLayout title="Earnings">
-        <VendorPageError message={getErrorMessage(error)} onRetry={refetch} />
-      </VendorLayout>
-    );
-  }
-
-  const summaryData = summary ?? {};
-  const historyData = history ?? {};
-  const chartData = (chart?.labels ?? []).map((label, index) => ({
-    name: label,
-    value: chart?.amounts?.[index] ?? 0,
-  }));
-
-  const highestValue = Math.max(...chartData.map((item) => item.value), 0);
-  const periodEarnings = chartData.reduce((sum, entry) => sum + entry.value, 0);
-  const availableBalance = Number(wallet?.balance_naira ?? 0);
-  const totalEarnings = Number(summaryData.total_earnings ?? 0);
-  const platformFee = Number(summaryData.platform_fee ?? 0);
-  const netEarnings = Number(summaryData.net_earnings ?? 0);
-
-  return (
-    <VendorLayout title="Earnings">
-      <div className="mb-4 rounded-2xl bg-[#111813] p-5 text-white ">
-        <p className="mb-1 text-xs text-gray-400">Total Earnings (All Time)</p>
-        <p className="mb-3 text-3xl font-bold">{formatMoney(totalEarnings)}</p>
-
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div>
-            <p className="text-[10px] text-gray-400">Platform Fee</p>
-            <p className="text-sm font-bold text-orange-400">
-              -{formatMoney(platformFee)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] text-gray-400">Net Earnings</p>
-            <p className="text-sm font-bold text-[#4eb75e]">
-              {formatMoney(netEarnings)}
-            </p>
-          </div>
-          <div>
-            <p className="flex items-center gap-1 text-[10px] text-gray-400">
-              <Wallet size={11} />
-              Available Now
-            </p>
-            <p className="text-sm font-bold text-white">
-              {formatMoney(availableBalance)}
-            </p>
-          </div>
-        </div>
-
-        {walletError && (
-          <p className="mb-3 text-xs text-orange-300">
-            Wallet balance could not be refreshed. Withdrawal availability may
-            be temporarily outdated.
-          </p>
-        )}
-
-        <button
-          onClick={() => setShowWithdraw(true)}
-          disabled={availableBalance <= 0}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <ArrowDownToLine size={15} />
-          Withdraw to Bank Account
-        </button>
+</div>
       </div>
 
-      <div className="mb-4 flex gap-1.5">
-        {PERIODS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setPeriod(key)}
-            className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-all ${
-              period === key
-                ? "bg-[#4eb75e] text-white shadow-sm"
-                : "border border-gray-100 bg-white text-gray-500  "
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm  ">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-[#111813] ">
-            {PERIODS.find((entry) => entry.key === period)?.label} Earnings
-          </h3>
-          <p className="text-lg font-bold text-[#4eb75e]">
-            {formatMoney(periodEarnings)}
-          </p>
+      {/* Withdrawal History */}
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="border-b border-gray-50 px-4 py-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#111813]">Withdrawal History</h3>
+          <span className="text-xs text-gray-400">
+            {(withdrawalHistory?.results ?? []).length} request(s)
+          </span>
         </div>
 
-        {chartErr ? (
-          <p className="py-8 text-center text-xs text-gray-400">
-            Chart data unavailable
-          </p>
-        ) : chartData.length === 0 ? (
-          <p className="py-8 text-center text-xs text-gray-400">
-            No earnings data yet
-          </p>
-        ) : (
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 5, right: 5, left: -25, bottom: 0 }}
-            >
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 10, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 9, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                content={<CustomTooltip />}
-                cursor={{ fill: "#f0fdf4" }}
-              />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`${entry.name}-${index}`}
-                    fill={entry.value === highestValue ? "#4eb75e" : "#d1fae5"}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm  ">
-        <div className="border-b border-gray-50 px-4 py-3 ">
-          <h3 className="text-sm font-bold text-[#111813] ">Payment History</h3>
-        </div>
-
-        {histErr ? (
+        {withdrawalErr ? (
           <p className="py-6 text-center text-xs text-gray-400">
-            Payment history unavailable
+            Withdrawal history unavailable
           </p>
-        ) : (historyData?.results ?? []).length === 0 ? (
-          <p className="py-6 text-center text-xs text-gray-400">
-            No payment history yet
-          </p>
+        ) : (withdrawalHistory?.results ?? []).length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-xs text-gray-400 mb-1">No withdrawals yet</p>
+            <p className="text-xs text-gray-300">Withdrawals will appear here</p>
+          </div>
         ) : (
-          <div className="divide-y divide-gray-50 ">
-            {(historyData?.results ?? []).map((payment) => (
-              <div key={payment.id} className="px-4 py-4">
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
-                    {payment.customer_name?.charAt(0) ?? "?"}
+          <div className="divide-y divide-gray-50">
+            {(withdrawalHistory?.results ?? []).map((withdrawal) => (
+              <div key={withdrawal.id} className="px-4 py-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      withdrawal.status === "completed" ? "bg-green-100" :
+                      withdrawal.status === "pending" || withdrawal.status === "processing" ? "bg-orange-100" :
+                      "bg-red-100"
+                    }`}>
+                      <Building2 size={16} className={
+                        withdrawal.status === "completed" ? "text-green-600" :
+                        withdrawal.status === "pending" || withdrawal.status === "processing" ? "text-orange-600" :
+                        "text-red-600"
+                      } />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-[#111813]">
+                        {formatMoney(withdrawal.amount_naira)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {withdrawal.bank_name} •••• {withdrawal.account_number?.slice(-4)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-[#111813] ">
-                      {payment.customer_name}
-                    </p>
-                    <p className="text-xs text-gray-600 ">
-                      {payment.subscription_plan}
-                    </p>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <p className="text-sm font-bold text-[#4eb75e]">
-                      {formatMoney(payment.amount)}
-                    </p>
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                        STATUS_COLORS[payment.status] ??
-                        "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {payment.status}
+                  <div className="flex items-center gap-2">
+                    {WITHDRAWAL_STATUS_ICONS[withdrawal.status] || <Clock size={14} className="text-gray-400" />}
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
+                      STATUS_COLORS[withdrawal.status] || "bg-gray-100 text-gray-600"
+                    }`}>
+                      {withdrawal.status}
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {payment.customer_phone && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Phone:</span>
-                      <span className="text-gray-700 ">
-                        {payment.customer_phone}
-                      </span>
-                    </div>
-                  )}
-                  {payment.customer_email && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Email:</span>
-                      <span className="truncate text-gray-700 ">
-                        {payment.customer_email}
-                      </span>
-                    </div>
-                  )}
-                  {payment.subscription_status && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Status:</span>
-                      <span
-                        className={`font-medium ${
-                          payment.subscription_status === "active"
-                            ? "text-green-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {payment.subscription_status}
-                      </span>
-                    </div>
-                  )}
-                  {payment.subscribed_at && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Subscribed:</span>
-                      <span className="text-gray-700 ">
-                        {new Date(payment.subscribed_at).toLocaleDateString(
-                          "en-NG",
-                        )}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>
+                    {new Date(withdrawal.created_at).toLocaleDateString("en-NG", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                    {" at "}
+                    {new Date(withdrawal.created_at).toLocaleTimeString("en-NG", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  {withdrawal.processed_at && (
+                    <span>
+                      Processed: {new Date(withdrawal.processed_at).toLocaleDateString("en-NG")}
+                    </span>
                   )}
                 </div>
 
-                {payment.delivery_address &&
-                  Object.keys(payment.delivery_address).length > 0 && (
-                    <div className="mt-2 border-t border-gray-100 pt-2 ">
-                      <p className="mb-1 text-xs text-gray-500">
-                        Delivery Address:
-                      </p>
-                      <p className="text-xs text-gray-700 ">
-                        {payment.delivery_address.address_line1 && (
-                          <span>{payment.delivery_address.address_line1}</span>
-                        )}
-                        {payment.delivery_address.city && (
-                          <span>, {payment.delivery_address.city}</span>
-                        )}
-                        {payment.delivery_address.state && (
-                          <span>, {payment.delivery_address.state}</span>
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                {payment.preferences &&
-                  Object.keys(payment.preferences).length > 0 && (
-                    <div className="mt-2 border-t border-gray-100 pt-2 ">
-                      <p className="mb-1 text-xs text-gray-500">Preferences:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(payment.preferences).map(
-                          ([key, value]) => (
-                            <span
-                              key={key}
-                              className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-600  "
-                            >
-                              {key}: {String(value)}
-                            </span>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  )}
+                {withdrawal.failure_reason && (
+                  <div className="mt-2 rounded-lg bg-red-50 px-3 py-2">
+                    <p className="text-xs text-red-600">{withdrawal.failure_reason}</p>
+                  </div>
+                )}
               </div>
             ))}
-          </div>
+</div>
         )}
       </div>
 
@@ -541,7 +304,10 @@ const VendorEarningsPage = () => {
           availableBalance={availableBalance}
           isPending={payoutPending}
           onClose={() => setShowWithdraw(false)}
-          onConfirm={(payload) => payout(payload)}
+          onConfirm={(payload) => {
+            payout(payload);
+            queryClient.invalidateQueries({ queryKey: ["vendorWithdrawals"] });
+          }}
         />
       )}
     </VendorLayout>
