@@ -515,7 +515,7 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      <div className="sticky top-[57px] z-30 bg-white border-b border-gray-200">
+      <div className="sticky top-14.25 z-30 bg-white border-b border-gray-200">
         <div className="flex">
           <button
             onClick={() => setActiveTab("posts")}
