@@ -108,11 +108,17 @@ const CommentsModal = ({
     const textBeforeCursor = text.substring(0, pos);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
     if (lastAtIndex !== -1) {
-      // Show suggestions if we just typed @ or if we are typing after it
-      // but not if there's a space immediately after the last @
-      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      if (!textAfterAt.includes(" ")) {
-        setShowMentions(true);
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setShowMentions(true);
+        } else {
+          setShowMentions(false);
+        }
       } else {
         setShowMentions(false);
       }
@@ -121,6 +127,10 @@ const CommentsModal = ({
     }
 
     setCommentText(text);
+  };
+
+  const handleSelectionChange = (e) => {
+    setCursorPos(e.target.selectionStart);
   };
 
   const handleSelectMention = (username) => {
@@ -344,6 +354,8 @@ const CommentsModal = ({
                   ref={textareaRef}
                   value={commentText}
                   onChange={handleCommentChange}
+                  onSelect={handleSelectionChange}
+                  onKeyUp={handleSelectionChange}
                   placeholder="Add a comment..."
                   rows={1}
                   style={{ height: inputHeight }}

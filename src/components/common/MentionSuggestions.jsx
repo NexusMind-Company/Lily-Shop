@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useSelector } from "react-redux";
+import { SearchSuggestionSkeleton } from "./skeletons";
 
 const MentionSuggestions = ({
   onSelect,
@@ -8,35 +9,111 @@ const MentionSuggestions = ({
   cursorPosition,
   isOpen,
 }) => {
-  const [following, setFollowing] = useState([]);
+  const [usersList, setUsersList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const auth = useSelector((state) => state.auth);
-  const loggedInUserId = auth?.user_data?.id;
+  const profile = useSelector((state) => state.profile);
 
-  // Fetch following list once
+  // Exhaustive search for ID
+  const loggedInUserId =
+    profile?.data?.user?.id ||
+    auth?.user_data?.id ||
+    auth?.user_data?.user?.id ||
+    JSON.parse(localStorage.getItem("user_data") || "{}").id;
+
+  console.log("Mentions - Component State:", {
+    isOpen,
+    loggedInUserId,
+    hasUsers: usersList.length > 0,
+    authData: auth?.user_data,
+    profileData: profile?.data?.user,
+  });
+
+  // Fetch following and followers list once
   useEffect(() => {
-    const fetchFollowing = async () => {
-      if (!loggedInUserId) return;
+    const fetchUsers = async () => {
+      console.log("Mentions - fetchUsers() called with ID:", loggedInUserId);
+      if (!loggedInUserId) {
+        console.warn("Mentions - No loggedInUserId found, skipping fetch.");
+        return;
+      }
+
       try {
         setLoading(true);
-        const res = await api.get(`/auth/following/${loggedInUserId}/`);
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.following || res.data?.results || [];
-        setFollowing(data);
+        console.log("Mentions - Initiating network requests...");
+        const [followingRes, followersRes] = await Promise.all([
+          api.get(`/auth/following/${loggedInUserId}/`),
+          api.get(`/auth/followers/${loggedInUserId}/`),
+        ]);
+
+        console.log("Mentions - Network Responses Received");
+        const followingData = Array.isArray(followingRes.data)
+          ? followingRes.data
+          : followingRes.data?.following || followingRes.data?.results || [];
+
+        const followersData = Array.isArray(followersRes.data)
+          ? followersRes.data
+          : followersRes.data?.followers || followersRes.data?.results || [];
+
+        console.log("Mentions - Data Parsed:", {
+          followingCount: followingData.length,
+          followersCount: followersData.length,
+        });
+
+        // Combine and de-duplicate by username or id
+        const combined = [...followingData, ...followersData];
+        const uniqueUsers = Array.from(
+          new Map(
+            combined.map((user) => [user.id || user.username, user]),
+          ).values(),
+        );
+
+        console.log(
+          "Mentions - Merged Unique Users Count:",
+          uniqueUsers.length,
+        );
+
+        // Fetch profile pictures for each user if not present
+        const usersWithPics = await Promise.all(
+          uniqueUsers.map(async (user) => {
+            try {
+              const profileRes = await api.get(
+                `/auth/profile/${user.id || user.username}/`,
+              );
+              return {
+                ...user,
+                profile_pic:
+                  profileRes.data.profile_pic ||
+                  profileRes.data.user?.profile_pic,
+              };
+            } catch (err) {
+              console.warn(
+                `Mentions - Could not fetch pic for ${user.username}`,
+                err,
+              );
+              return user;
+            }
+          }),
+        );
+
+        console.log(
+          "Mentions - Final Users List with Pics:",
+          usersWithPics.length,
+        );
+        setUsersList(usersWithPics);
       } catch (err) {
-        console.error("Failed to fetch following for mentions", err);
+        console.error("Mentions - Failed to fetch users:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (isOpen) {
-      fetchFollowing();
+    if (isOpen && usersList.length === 0 && !loading) {
+      fetchUsers();
     }
-  }, [loggedInUserId, isOpen]);
+  }, [loggedInUserId, isOpen, usersList.length, loading]);
 
   // Filter list based on typed search after @
   useEffect(() => {
@@ -48,64 +125,73 @@ const MentionSuggestions = ({
     if (lastAtIndex !== -1) {
       const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
       // Only filter if we're actually typing after an @
-      const filtered = following.filter(
+      const filtered = usersList.filter(
         (user) =>
           user.username?.toLowerCase().includes(query) ||
           user.name?.toLowerCase().includes(query) ||
           user.full_name?.toLowerCase().includes(query),
       );
+      console.log(`Mentions - Filtered list for query "@${query}":`, filtered);
       setFilteredList(filtered);
     }
-  }, [inputValue, cursorPosition, following, isOpen]);
+  }, [inputValue, cursorPosition, usersList, isOpen]);
 
-  if (!isOpen || (filteredList.length === 0 && !loading)) return null;
+  if (!isOpen) return null;
 
   return (
-    <div className="absolute bottom-full left-0 w-full max-h-60 overflow-y-auto bg-white border-2 border-black rounded-t-xl shadow-2xl z-110 mb-1">
-      <div className="p-2 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-          Mention Someone
-        </span>
-        {loading && (
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-lily" />
+    <div className="absolute bottom-full left-0 w-full max-h-64 overflow-y-auto bg-white border-2 border-black rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-[9999] mb-2 animate-in slide-in-from-bottom-2 duration-200">
+      <div className="divide-y divide-gray-50">
+        {loading ? (
+          <div className="p-2 space-y-1">
+            <SearchSuggestionSkeleton />
+            <SearchSuggestionSkeleton />
+            <SearchSuggestionSkeleton />
+            <SearchSuggestionSkeleton />
+          </div>
+        ) : filteredList.length > 0 ? (
+          filteredList.map((user) => (
+            <div
+              key={user.id || user.username}
+              className="flex items-center gap-3 p-3 hover:bg-lily/10 cursor-pointer transition-all group active:bg-lily/20"
+              onClick={() => onSelect(user.username)}
+            >
+              <div className="w-12 h-12 rounded-full border-2 border-black overflow-hidden shrink-0 bg-gray-100 group-hover:border-lily transition-colors">
+                <img
+                  src={user.profile_pic || user.img || "/profile-icon.svg"}
+                  alt={user.username}
+                  className="w-full h-full object-cover"
+                  onError={(e) => (e.target.src = "/profile-icon.svg")}
+                />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="font-bold text-sm text-black truncate group-hover:text-lily transition-colors">
+                  {user.name || user.full_name || user.username}
+                </p>
+                <p className="text-xs text-gray-500 truncate group-hover:text-lily/70 transition-colors">
+                  @{user.username}
+                </p>
+              </div>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                <div className="bg-lily text-white text-[10px] px-3 py-1 rounded-full font-bold shadow-sm">
+                  Select
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="p-8 text-center flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+              <span className="text-xl">@</span>
+            </div>
+            <p className="text-gray-500 text-sm font-medium">
+              No followers or following found
+            </p>
+            <p className="text-gray-400 text-xs">
+              Try typing the exact username
+            </p>
+          </div>
         )}
       </div>
-
-      <div className="divide-y divide-gray-50">
-        {filteredList.map((user) => (
-          <div
-            key={user.id || user.username}
-            className="flex items-center gap-3 p-3 hover:bg-lily/5 cursor-pointer transition-colors group"
-            onClick={() => onSelect(user.username)}
-          >
-            <div className="w-10 h-10 rounded-full border border-black overflow-hidden shrink-0 bg-gray-100">
-              <img
-                src={user.profile_pic || user.img || "/profile-icon.svg"}
-                alt={user.username}
-                className="w-full h-full object-cover"
-                onError={(e) => (e.target.src = "/profile-icon.svg")}
-              />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="font-bold text-sm text-black truncate group-hover:text-lily">
-                {user.name || user.full_name || user.username}
-              </p>
-              <p className="text-xs text-gray-500 truncate">@{user.username}</p>
-            </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-[10px] bg-lily text-white px-2 py-1 rounded-full font-bold">
-                Select
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {!loading && filteredList.length === 0 && (
-        <div className="p-4 text-center text-gray-400 text-sm italic">
-          No matches found
-        </div>
-      )}
     </div>
   );
 };

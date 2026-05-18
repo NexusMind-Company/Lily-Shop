@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
-import MentionText from "../common/MentionText";
 import MentionSuggestions from "../common/MentionSuggestions";
 
 const ProductDetailsForm = ({ formData, setFormData }) => {
@@ -24,15 +23,27 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
     const textBeforeCursor = text.substring(0, pos);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
     if (lastAtIndex !== -1) {
-      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      if (!textAfterAt.includes(" ")) {
-        setShowMentions(true);
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setShowMentions(true);
+        } else {
+          setShowMentions(false);
+        }
       } else {
         setShowMentions(false);
       }
     } else {
       setShowMentions(false);
     }
+  };
+
+  const handleSelectionChange = (e) => {
+    setCursorPos(e.target.selectionStart);
   };
 
   const handleSelectMention = (username) => {
@@ -89,13 +100,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
           placeholder="Describe your product... use @username to mention"
           value={formData.caption}
           onChange={handleCaptionChange}
+          onSelect={handleSelectionChange}
+          onKeyUp={handleSelectionChange}
         />
-        {formData.caption && (
-          <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-            <p className="text-xs text-gray-500 mb-1">Mention Preview:</p>
-            <MentionText text={formData.caption} className="text-sm" />
-          </div>
-        )}
       </div>
 
       {/* Price */}
