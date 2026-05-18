@@ -5,10 +5,7 @@ import VendorHero from "../components/subscription/VendorHero";
 import PlanToggle from "../components/subscription/PlanToggle";
 import PricingCard from "../components/subscription/PricingCard";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
-import {
-  fetchVendorDetails,
-  fetchReviewsForVendor,
-} from "../services/subscriptionApi";
+import ReviewModal from "../components/common/ReviewModal";
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,8 +16,13 @@ import {
   Hash,
   Truck,
   ShoppingBag,
+  Star,
 } from "lucide-react";
 import { fetchMealPlansByVendor } from "../services/api";
+import {
+    fetchVendorDetails,
+    fetchReviewsForVendor,
+  } from "../services/subscriptionApi";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
@@ -31,6 +33,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const [quantity, setQuantity] = useState(1);
   const [preferredTime, setPreferredTime] = useState("12:00");
@@ -213,6 +216,64 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                 hasSubscriptionPlans={filteredPlans.length > 0}
               />
             </div>
+
+            {reviews?.results?.length > 0 && (
+              <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-lily fill-lily" />
+                    <span className="font-bold text-gray-800">
+                      {vendor?.avg_rating?.toFixed(1) || "0.0"}
+                    </span>
+                    <span className="text-gray-400 text-sm">
+                      ({vendor?.review_count || 0} reviews)
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="px-4 py-2 bg-lily text-white rounded-full text-sm font-semibold hover:bg-lily/90 transition-colors"
+                  >
+                    Write Review
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {reviews.results.slice(0, 3).map((review) => (
+                    <div key={review.id} className="bg-gray-50 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-lily/20 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-lily">
+                              {review.user_name?.charAt(0)?.toUpperCase() || "U"}
+                            </span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">
+                            {review.user_name || "Anonymous"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={12}
+                              className={
+                                star <= review.rating
+                                  ? "text-lily fill-lily"
+                                  : "text-gray-300"
+                              }
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-gray-500 line-clamp-2">
+                          {review.comment}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mb-6">
               <h3 className="text-xl font-bold mb-4 px-2">Choose a Plan</h3>
@@ -573,6 +634,13 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         phone={phone}
         collectionCode={collectionCode}
         isLoading={false}
+      />
+
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        vendorId={vendorId}
+        vendorName={vendor?.name}
       />
     </div>
   );
