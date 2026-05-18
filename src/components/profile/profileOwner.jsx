@@ -536,7 +536,7 @@ const ProfileOwner = () => {
               </Link>
             ) : (
               <Link to="/create-vendor" className="w-full">
-                <button className="w-full px-4 py-2 border-2 border-[#4eb75e] text-[#4eb75e] rounded-3xl font-bold md:text-[16px]">
+                <button className="w-full px-4 py-2 border-2 border-lily text-lily rounded-3xl font-bold md:text-[16px]">
                   Become a Vendor
                 </button>
               </Link>

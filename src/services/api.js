@@ -526,7 +526,10 @@ export const createSubscription = async (plan_id, deliveryMeta = {}) => {
   return response.data;
 };
 
-export const createSubscriptionWithPaystack = async (plan_id, deliveryMeta = {}) => {
+export const createSubscriptionWithPaystack = async (
+  plan_id,
+  deliveryMeta = {},
+) => {
   const response = await api.post("/foods/subscribe/", {
     plan_id,
     payment_method: "paystack",
@@ -535,8 +538,8 @@ export const createSubscriptionWithPaystack = async (plan_id, deliveryMeta = {})
   return response.data;
 };
 
-export const getUserSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/me/", { params });
+export const getUserSubscriptions = async () => {
+  const response = await api.get("/foods/subscriptions/me/");
   return response.data;
 };
 
@@ -1124,7 +1127,7 @@ export const fetchVendorWithdrawals = async (params = {}) => {
 };
 
 export const createVendorWithdrawal = async (withdrawalData) => {
-  const response = await api.post("/foods/vendor/withdrawals/", withdrawalData);
+  const response = await api.post("/wallet/withdraw/", withdrawalData);
   return response.data;
 };
 
