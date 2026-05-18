@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { api, fetchPublicProfile, followUser } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ProfileFeedViewer from "./profileFeedViewer";
+import PostDetailOverlay from "./PostDetailOverlay";
 
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -35,6 +36,7 @@ const ProfileVisiting = () => {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -44,6 +46,12 @@ const ProfileVisiting = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const { userId, username } = useParams();
   const profileIdentifier = userId || username;
@@ -357,7 +365,7 @@ const ProfileVisiting = () => {
               )}
 
               {/* Desktop Overlay */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold hidden md:flex">
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center gap-6 text-white font-bold hidden md:flex">
                 <div className="flex items-center gap-2">
                   <Heart fill="white" size={20} /> {item.like_count || 0}
                 </div>
@@ -380,13 +388,20 @@ const ProfileVisiting = () => {
 
   return (
     <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12 bg-white">
-      {feedOverlay.isOpen && (
-        <ProfileFeedViewer
-          posts={feedOverlay.items}
-          initialIndex={feedOverlay.initialIndex}
-          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-        />
-      )}
+      {feedOverlay.isOpen &&
+        (isMobile ? (
+          <ProfileFeedViewer
+            posts={feedOverlay.items}
+            initialIndex={feedOverlay.initialIndex}
+            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          />
+        ) : (
+          <PostDetailOverlay
+            posts={feedOverlay.items}
+            initialIndex={feedOverlay.initialIndex}
+            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          />
+        ))}
 
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">

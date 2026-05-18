@@ -139,7 +139,7 @@ const MentionSuggestions = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute bottom-full left-0 w-full max-h-64 overflow-y-auto bg-white border-2 border-black rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-[9999] mb-2 animate-in slide-in-from-bottom-2 duration-200">
+    <div className="absolute bottom-full left-0 w-full max-h-64 overflow-y-auto bg-white border-2 border-black rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-999 mb-2 animate-in slide-in-from-bottom-2 duration-200">
       <div className="divide-y divide-gray-50">
         {loading ? (
           <div className="p-2 space-y-1">
