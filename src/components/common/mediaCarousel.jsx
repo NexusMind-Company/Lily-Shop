@@ -7,18 +7,13 @@ import React, {
 } from "react";
 import { useFeed } from "../../context/feedContext";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import {
-  ChevronLeft,
-  ChevronRight,
   Play,
   VolumeX,
   Volume2,
 } from "lucide-react";
 
 import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
 
 const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
   const { isMuted, toggleMute } = useFeed();
@@ -93,6 +88,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
 ) {
   const containerRef = useRef(null);
   const videoRefs = useRef({});
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useImperativeHandle(ref, () => ({
     play: () => {
@@ -142,21 +138,20 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       onDoubleClick={onDoubleClick}
     >
       <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
+        modules={[]}
         slidesPerView={1}
         spaceBetween={0}
         loop={media.length > 1}
-        pagination={{ clickable: true }}
-        navigation={{
-          nextEl: ".swiper-button-next",
-          prevEl: ".swiper-button-prev",
+        onSlideChange={(swiper) => {
+          handleSlideChange(swiper);
+          setActiveIndex(swiper.realIndex);
         }}
-        onSlideChange={handleSlideChange}
-        onInit={(swiper) => {
+        onSwiper={(swiper) => {
           if (containerRef.current) {
             containerRef.current.swiper = swiper;
           }
           handleSlideChange(swiper);
+          setActiveIndex(swiper.realIndex);
         }}
         className="w-full h-full"
       >
@@ -182,14 +177,19 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       </Swiper>
 
       {media.length > 1 && (
-        <>
-          <div className="swiper-button-prev absolute top-1/2 left-2 z-10 -translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-            <ChevronLeft size={28} />
-          </div>
-          <div className="swiper-button-next absolute top-1/2 right-2 z-10 -translate-y-1/2 bg-black/40 rounded-full p-1 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-            <ChevronRight size={28} />
-          </div>
-        </>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {media.map((_, index) => (
+            <div
+              key={index}
+              className={`transition-all duration-300 rounded-full ${
+                index === activeIndex
+                  ? "w-3 h-3 bg-white"
+                  : "w-2 h-2 bg-white/50"
+              }`
+              }
+            />
+          ))}
+        </div>
       )}
     </div>
   );
