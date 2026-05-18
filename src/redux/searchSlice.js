@@ -6,11 +6,19 @@ export const searchProducts = createAsyncThunk(
   "search/searchProducts",
   async (searchTerm, { rejectWithValue }) => {
     try {
-      // Passes the search term to the API as a query parameter
       const response = await fetchProducts({ search: searchTerm });
-      
-      // FIX: The feed endpoint returns data in 'feed', fallback to 'results' or empty array
-      return response.feed || response.results || [];
+      if (Array.isArray(response)) return response;
+      if (Array.isArray(response?.feed)) return response.feed;
+      if (Array.isArray(response?.results)) return response.results;
+      if (Array.isArray(response?.items)) return response.items;
+      if (Array.isArray(response?.data)) return response.data;
+      const keys = Object.keys(response || {});
+      for (const key of keys) {
+        if (Array.isArray(response[key]) && response[key].length > 0) {
+          return response[key];
+        }
+      }
+      return [];
     } catch (error) {
       return rejectWithValue(error.response?.data || "Search failed");
     }

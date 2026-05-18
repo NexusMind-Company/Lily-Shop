@@ -34,38 +34,25 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
   });
 
   const data = response.data;
+  let items = [];
+  let hasMore = false;
 
-  if (data && data.results) {
-    return {
-//       items: data.results,
-//       nextPage: data.next ? page + 1 : null,
-      items: shuffleArray(data.results),
-      nextPage: data.next ? pageParam + 1 : null,
-      hasMore: !!data.next,
-    };
+  if (data && Array.isArray(data.results) && data.results.length > 0) {
+    items = shuffleArray(data.results);
+    hasMore = !!data.next;
+  } else if (data && Array.isArray(data.feed) && data.feed.length > 0) {
+    items = shuffleArray(data.feed);
+    hasMore = !!data.next;
+  } else if (Array.isArray(data) && data.length > 0) {
+    items = shuffleArray(data);
+    hasMore = data.length === FEED_PAGE_SIZE;
   }
 
-  if (data && data.feed) {
-    return {
-//       items: data.feed,
-//       nextPage: data.feed.length > 0 ? page + 1 : null,
-      items: shuffleArray(data.feed),
-      nextPage: data.feed.length > 0 ? pageParam + 1 : null,
-      hasMore: data.feed.length === FEED_PAGE_SIZE,
-    };
-  }
-
-  if (Array.isArray(data)) {
-    return {
-//       items: data,
-//       nextPage: data.length > 0 ? page + 1 : null,
-      items: shuffleArray(data),
-      nextPage: data.length > 0 ? pageParam + 1 : null,
-      hasMore: data.length === FEED_PAGE_SIZE,
-    };
-  }
-
-  return { items: [], nextPage: null, hasMore: false };
+return {
+    items,
+    nextPage: hasMore ? pageParam + 1 : null,
+    hasMore,
+  };
 };
 
 export const FeedProvider = ({ children }) => {
