@@ -113,7 +113,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
         loop
         playsInline
         muted
-        className="max-w-full max-h-full object-contain"
+        className="w-full h-full object-contain"
       />
 
       {/* Play/Mute Overlay */}

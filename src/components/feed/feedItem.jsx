@@ -444,7 +444,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       className="relative w-full h-full bg-black text-white overflow-hidden"
       onDoubleClick={handleDoubleTap}
     >
-      <div className="media-box">
+      <div className="media-box w-full h-full">
         {mediaArray.length > 1 ? (
           <MediaCarousel
             ref={mediaRef}
@@ -464,7 +464,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             ref={mediaRef}
             src={mediaArray[0]?.src || "/placeholder-image.png"}
             alt={post.name || post.productName || post.caption || "Post"}
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-cover"
             onError={(e) => {
               if (!e.target.src.includes("/feed-image.png")) {
                 e.target.src = "/feed-image.png";
