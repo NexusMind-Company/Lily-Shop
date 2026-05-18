@@ -23,6 +23,8 @@ import PostTypeSelector from "./PostTypeSelector";
 import ProductDetailsForm from "./ProductDetailsForm";
 import ContentPreview from "./ContentPreview";
 import CameraModal from "./CameraModal";
+import MentionText from "../common/MentionText";
+import MentionSuggestions from "../common/MentionSuggestions";
 
 const MAX_MEDIA = 5;
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -56,6 +58,8 @@ const CreatePost = () => {
   const [localLoading, setLocalLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showMentions, setShowMentions] = useState(false);
+  const [cursorPos, setCursorPos] = useState(0);
 
   const [formData, setFormData] = useState({
     postType: "",
@@ -77,6 +81,42 @@ const CreatePost = () => {
   const reduxLoading = productState.loading || funState.loading;
   const loading = localLoading || reduxLoading;
   const success = productState.success || funState.success;
+
+  const handleCaptionChange = (e) => {
+    const text = e.target.value;
+    const pos = e.target.selectionStart;
+    setCursorPos(pos);
+
+    setFormData({ ...formData, caption: text });
+
+    // Check for @ mention trigger
+    const textBeforeCursor = text.substring(0, pos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      if (!textAfterAt.includes(" ")) {
+        setShowMentions(true);
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  const handleSelectMention = (username) => {
+    const textBeforeCursor = (formData.caption || "").substring(0, cursorPos);
+    const textAfterCursor = (formData.caption || "").substring(cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    const newText =
+      textBeforeCursor.substring(0, lastAtIndex) +
+      `@${username} ` +
+      textAfterCursor;
+
+    setFormData({ ...formData, caption: newText });
+    setShowMentions(false);
+  };
 
   // Ref for cleanup
   const mediaRef = useRef(formData.media);
@@ -370,15 +410,28 @@ const CreatePost = () => {
             )}
 
             {formData.postType !== "product" && (
-              <div className="space-y-4">
+              <div className="space-y-4 relative">
+                <MentionSuggestions
+                  isOpen={showMentions}
+                  onClose={() => setShowMentions(false)}
+                  inputValue={formData.caption}
+                  cursorPosition={cursorPos}
+                  onSelect={handleSelectMention}
+                />
                 <textarea
                   placeholder="Write a caption..."
                   className="w-full p-3 border rounded-lg"
                   value={formData.caption}
-                  onChange={(e) =>
-                    setFormData({ ...formData, caption: e.target.value })
-                  }
+                  onChange={handleCaptionChange}
                 />
+                {formData.caption && (
+                  <div className="mt-1 p-2 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <p className="text-xs text-gray-500 mb-1">
+                      Mention Preview:
+                    </p>
+                    <MentionText text={formData.caption} className="text-sm" />
+                  </div>
+                )}
                 <input
                   type="text"
                   placeholder="Location"

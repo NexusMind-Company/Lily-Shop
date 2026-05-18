@@ -11,6 +11,7 @@ import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 import CommentsModal from "./comments/commentsModal";
 import ShareModal from "./share/shareModal";
+import MentionText from "../common/MentionText";
 import {
   likeProduct,
   likeContent,
@@ -491,7 +492,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-6 text-white z-10 pointer-events-none bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-6 text-white z-10 pointer-events-none bg-linear-to-t from-black/90 via-black/50 to-transparent">
         <div className="flex justify-between items-end gap-3">
           <div className="flex-1 flex flex-col justify-end space-y-3 min-w-0 pr-2 pointer-events-auto">
             <div className="relative gap-3 flex items-center shrink-0">
@@ -528,7 +529,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 to={profileLink}
                 className="flex items-center space-x-2 truncate"
               >
-                <h1 className="font-bold text-[15px] truncate">{displayUsername}</h1>
+                <h1 className="font-bold text-[15px] truncate">
+                  {displayUsername}
+                </h1>
               </Link>
             </div>
 
@@ -557,9 +560,13 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 layout
                 className={`text-sm font-normal leading-relaxed ${isExpanded ? "max-h-[22vh] overflow-y-auto no-scrollbar pointer-events-auto" : "line-clamp-2"}`}
               >
-                {isExpanded
-                  ? post.caption
-                  : `${post.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
+                {isExpanded ? (
+                  <MentionText text={post.caption} />
+                ) : (
+                  <MentionText
+                    text={post.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}
+                  />
+                )}
                 {post.caption.length > DESCRIPTION_CHAR_LIMIT && (
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
