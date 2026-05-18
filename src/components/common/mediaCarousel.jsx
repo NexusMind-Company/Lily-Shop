@@ -63,7 +63,7 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
         loop
         playsInline
         muted
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
       />
       <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
         {!isPlaying && (
@@ -174,7 +174,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
               <img
                 src={item.src}
                 alt={`Slide ${index + 1}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
           </SwiperSlide>

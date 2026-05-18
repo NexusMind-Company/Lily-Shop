@@ -112,8 +112,8 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
         src={src}
         loop
         playsInline
-        muted // Initial state, controlled by useEffect
-        className="w-full h-full object-contain"
+        muted
+        className="w-full h-full object-cover"
       />
 
       {/* Play/Mute Overlay */}
