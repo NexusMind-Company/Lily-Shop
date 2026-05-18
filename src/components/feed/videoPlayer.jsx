@@ -107,13 +107,13 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
       className="relative w-full h-full bg-black"
       onClick={handlePlayerClick}
     >
-      <video
+<video
         ref={videoRef}
         src={src}
         loop
         playsInline
-        muted // Initial state, controlled by useEffect
-        className="w-full h-full object-contain"
+        muted
+        className="max-w-full max-h-full object-contain"
       />
 
       {/* Play/Mute Overlay */}
