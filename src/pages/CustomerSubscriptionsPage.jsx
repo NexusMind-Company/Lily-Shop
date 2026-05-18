@@ -27,23 +27,31 @@ import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
 
 const serviceDaysRemaining = (endDateStr, serviceDays) => {
   if (!endDateStr || !serviceDays || serviceDays.length === 0) return 0;
-  
+
   const now = new Date();
   const endDate = new Date(endDateStr);
-  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  
+  const dayNames = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+
   let count = 0;
   const current = new Date(now);
   current.setHours(0, 0, 0, 0); // Start from beginning of today
-  
+
   while (current <= endDate) {
     const dayName = dayNames[current.getDay()].toLowerCase();
-    if (serviceDays.map(d => d.toLowerCase()).includes(dayName)) {
+    if (serviceDays.map((d) => d.toLowerCase()).includes(dayName)) {
       count++;
     }
     current.setDate(current.getDate() + 1);
   }
-  
+
   return Math.max(0, count);
 };
 
@@ -368,12 +376,15 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
                   icon={Timer}
                   label="Days remaining"
                   value={
-                    sub?.status === "active" && sub?.end_date && plan?.service_days
+                    sub?.status === "active" &&
+                    sub?.end_date &&
+                    plan?.service_days
                       ? `${serviceDaysRemaining(sub.end_date, plan.service_days)} days`
                       : ""
                   }
                   valueClassName={
-                    sub?.status === "active" && serviceDaysRemaining(sub?.end_date, plan?.service_days) <= 3
+                    sub?.status === "active" &&
+                    serviceDaysRemaining(sub?.end_date, plan?.service_days) <= 3
                       ? "text-red-500"
                       : "text-[#13ec49]"
                   }
@@ -542,11 +553,9 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   }, [showSuccessBanner, navigate]);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["mySubscriptions", currentPage, debouncedSearchQuery],
+    queryKey: ["mySubscriptions"],
     queryFn: async () => {
-      const params = { page: currentPage, page_size: itemsPerPage };
-      if (debouncedSearchQuery) params.search = debouncedSearchQuery;
-      return getUserSubscriptions(params);
+      return getUserSubscriptions();
     },
   });
 
@@ -561,14 +570,7 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
     },
   });
 
-  const subscriptions = data?.results || data || [];
-  const totalCount = data?.count || 0;
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-  const handleSearchChange = (value) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
+  const subscriptions = Array.isArray(data) ? data : data?.results || [];
 
   const handleExplore = () => {
     if (onExplore) {
@@ -650,9 +652,12 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
             <CheckCircle size={20} className="text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-green-800">Subscription Activated!</p>
+            <p className="text-sm font-semibold text-green-800">
+              Subscription Activated!
+            </p>
             <p className="text-xs text-green-600">
-              Your Paystack subscription is complete. You can view your subscription details below.
+              Your Paystack subscription is complete. You can view your
+              subscription details below.
             </p>
           </div>
           <button
@@ -663,22 +668,6 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
           </button>
         </div>
       )}
-
-      <div className="border-b border-gray-100 bg-white px-4 pb-4">
-        <div className="relative mt-3">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search subscriptions..."
-            value={searchQuery}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            className="w-full rounded-xl bg-[#f6f8f6] py-2.5 pl-9 pr-4 text-sm text-[#111813] outline-none placeholder:text-gray-400"
-          />
-        </div>
-      </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {isLoading && (
@@ -737,30 +726,6 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
               onUnsubscribe={setPlanToCancel}
             />
           ))}
-
-        {totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-center gap-2 border-t border-gray-200 pt-4">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
 
       <AnimatePresence>

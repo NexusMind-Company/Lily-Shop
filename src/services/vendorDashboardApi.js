@@ -470,7 +470,7 @@ export const fetchVendorWithdrawals = async (params = {}) => {
  * Response: created withdrawal object
  */
 export const createVendorWithdrawal = async (withdrawalData) => {
-  const response = await api.post("/foods/vendor/withdrawals/", withdrawalData);
+  const response = await api.post("/wallet/withdraw/", withdrawalData);
   return response.data;
 };
 
