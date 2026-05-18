@@ -157,7 +157,7 @@ const Activity = () => {
           >
             {/* Icon */}
             <div
-              className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 ${
+              className={`w-10 h-10 flex items-center justify-center rounded-full shrink-0 ${
                 item.read ? "bg-gray-100" : "bg-lily/20"
               }`}
             >
@@ -180,7 +180,7 @@ const Activity = () => {
 
             {/* Unread indicator */}
             {!item.read && (
-              <div className="w-2 h-2 bg-lily rounded-full flex-shrink-0 mt-2"></div>
+              <div className="w-2 h-2 bg-lily rounded-full shrink-0 mt-2"></div>
             )}
           </div>
         ))}

@@ -93,10 +93,10 @@ const ProfileFeedViewer = ({ posts, initialIndex = 0, onClose }) => {
   }, [posts, currentPostIndex]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+    <div className="fixed inset-0 z-100 bg-black flex flex-col">
       <button
         onClick={onClose}
-        className="absolute top-4 left-4 z-[110] p-2 bg-black/50 rounded-full hover:bg-black/70 transition text-white"
+        className="absolute top-4 left-4 z-110 p-2 bg-black/50 rounded-full hover:bg-black/70 transition text-white"
       >
         <ChevronLeft size={28} />
       </button>
