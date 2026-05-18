@@ -110,30 +110,26 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-2xl ">
-        <div className="mb-5 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl ring-2 ring-[#4eb75e]/20">
+        <div className="mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
-            <h3 className="font-bold text-[#111813] ">Withdraw Earnings</h3>
+            <h3 className="text-lg font-bold text-[#111813]">Withdraw Earnings</h3>
             <p className="mt-0.5 text-xs text-gray-400">
               Available now: {formatMoney(availableBalance)}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 hover:bg-gray-100 "
+            className="rounded-full bg-gray-100 p-2 hover:bg-gray-200 transition-colors"
           >
-            <X size={16} className="text-gray-400" />
+            <X size={18} className="text-gray-500" />
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-6 pb-6">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-gray-500">
+            <label className="mb-1.5 block text-sm font-semibold text-gray-600">
               Amount to Withdraw
             </label>
             <input
@@ -143,22 +139,22 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
               placeholder={`Max ${formatMoney(availableBalance)}`}
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none   "
+              className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-base text-[#111813] focus:border-[#4eb75e] focus:outline-none"
             />
             {amount &&
               Number(amount) > 0 &&
               Number(amount) <= availableBalance && (
-                <p className="mt-1 text-xs text-[#4eb75e]">
-                  You will receive {formatMoney(Number(amount))} in your
-                  account.
+                <p className="mt-2 text-sm font-medium text-[#4eb75e] flex items-center gap-1">
+                  <CheckCircle2 size={14} />
+                  You will receive {formatMoney(Number(amount))} in your account.
                 </p>
               )}
           </div>
 
-          <div className="space-y-3 rounded-2xl bg-gray-50 p-4 ">
-            <div className="mb-2 flex items-center gap-2">
-              <Building2 size={14} className="text-[#4eb75e]" />
-              <p className="text-xs font-bold text-[#111813] ">Bank Details</p>
+          <div className="space-y-3 rounded-2xl bg-gray-50 p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Building2 size={16} className="text-[#4eb75e]" />
+              <p className="text-sm font-bold text-[#111813]">Bank Details</p>
             </div>
 
             {[
@@ -182,7 +178,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
               },
             ].map((field) => (
               <div key={field.label}>
-                <label className="mb-1 block text-[10px] font-semibold text-gray-400">
+                <label className="mb-1.5 block text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   {field.label}
                 </label>
                 <input
@@ -190,113 +186,264 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
                   placeholder={field.placeholder}
                   value={field.value}
                   onChange={(event) => field.setter(event.target.value)}
-                  className="w-full rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none   "
+                  className="w-full rounded-xl border-2 border-gray-100 bg-white px-4 py-3 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none transition-colors"
                 />
               </div>
             ))}
           </div>
 
-          <div className="rounded-xl border border-orange-100 bg-orange-50 px-4 py-2.5  ">
-            <p className="text-xs text-orange-700 ">
-              Transfers are processed within 1 to 3 business days. Make sure
-              your account details are correct.
+          <div className="rounded-xl border-2 border-orange-100 bg-orange-50 px-4 py-3 flex gap-3">
+            <Clock size={18} className="text-orange-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-orange-700">
+              Transfers are processed within 1 to 3 business days. Make sure your account details are correct.
             </p>
           </div>
 
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-4 text-base font-bold text-white transition-all hover:bg-[#3da64d] hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
           >
-            <CreditCard size={15} />
-            {isPending ? "Processing..." : "Confirm Withdrawal"}
+            {isPending ? (
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCard size={18} />
+                Confirm Withdrawal
+              </>
+            )}
           </button>
-</div>
+        </div>
       </div>
+    </div>
+  );
+};
 
-      {/* Withdrawal History */}
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-        <div className="border-b border-gray-50 px-4 py-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-[#111813]">Withdrawal History</h3>
-          <span className="text-xs text-gray-400">
-            {(withdrawalHistory?.results ?? []).length} request(s)
-          </span>
+const VendorEarningsPage = () => {
+  const queryClient = useQueryClient();
+  const [activePeriod, setActivePeriod] = useState("monthly");
+  const [showWithdraw, setShowWithdraw] = useState(false);
+
+  const { data: wallet, isLoading: walletLoading } = useQuery({
+    queryKey: ["vendorWallet"],
+    queryFn: fetchVendorWallet,
+  });
+
+  const { data: chartData, isLoading: chartLoading } = useQuery({
+    queryKey: ["earningsChart", activePeriod],
+    queryFn: () => fetchEarningsChart(activePeriod),
+  });
+
+  const { data: summary, isLoading: summaryLoading } = useQuery({
+    queryKey: ["earningsSummary"],
+    queryFn: fetchEarningsSummary,
+  });
+
+  const { data: withdrawalHistory, isError: withdrawalErr } = useQuery({
+    queryKey: ["vendorWithdrawals"],
+    queryFn: fetchVendorWithdrawals,
+  });
+
+  const { mutate: payout, isPending: payoutPending } = useMutation({
+    mutationFn: (payload) => initiateEarningsPayout(payload),
+    onSuccess: () => {
+      toast.success("Withdrawal request submitted successfully!");
+      setShowWithdraw(false);
+      queryClient.invalidateQueries({ queryKey: ["vendorWallet"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const availableBalance = Number(wallet?.available_balance ?? 0);
+  const pendingBalance = Number(wallet?.pending_balance ?? 0);
+  const totalWithdrawn = Number(wallet?.total_withdrawn ?? 0);
+
+  const isLoading = walletLoading || chartLoading || summaryLoading;
+
+  if (isLoading) return <VendorPageLoader />;
+  if (walletLoading === false && !wallet) return <VendorPageError />;
+
+  return (
+    <VendorLayout title="Earnings">
+      <div className="space-y-5">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Available", value: formatMoney(availableBalance), color: "text-[#4eb75e]" },
+            { label: "Pending", value: formatMoney(pendingBalance), color: "text-orange-500" },
+            { label: "Withdrawn", value: formatMoney(totalWithdrawn), color: "text-gray-500" },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-2xl bg-white border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400">{stat.label}</p>
+              <p className={`mt-1 text-lg font-bold ${stat.color}`}>{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {withdrawalErr ? (
-          <p className="py-6 text-center text-xs text-gray-400">
-            Withdrawal history unavailable
-          </p>
-        ) : (withdrawalHistory?.results ?? []).length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-xs text-gray-400 mb-1">No withdrawals yet</p>
-            <p className="text-xs text-gray-300">Withdrawals will appear here</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {(withdrawalHistory?.results ?? []).map((withdrawal) => (
-              <div key={withdrawal.id} className="px-4 py-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      withdrawal.status === "completed" ? "bg-green-100" :
-                      withdrawal.status === "pending" || withdrawal.status === "processing" ? "bg-orange-100" :
-                      "bg-red-100"
-                    }`}>
-                      <Building2 size={16} className={
-                        withdrawal.status === "completed" ? "text-green-600" :
-                        withdrawal.status === "pending" || withdrawal.status === "processing" ? "text-orange-600" :
-                        "text-red-600"
-                      } />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-[#111813]">
-                        {formatMoney(withdrawal.amount_naira)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {withdrawal.bank_name} •••• {withdrawal.account_number?.slice(-4)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {WITHDRAWAL_STATUS_ICONS[withdrawal.status] || <Clock size={14} className="text-gray-400" />}
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
-                      STATUS_COLORS[withdrawal.status] || "bg-gray-100 text-gray-600"
-                    }`}>
-                      {withdrawal.status}
-                    </span>
-                  </div>
-                </div>
+        {summary?.recent_orders !== undefined && (
+          <div className="rounded-2xl bg-white border border-gray-100 p-4 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400">Total Earnings</p>
+                <p className="mt-0.5 text-xl font-bold text-[#111813]">{formatMoney(summary.total_earnings)}</p>
+              </div>
+              <div className="flex gap-1.5">
+                {PERIODS.map((period) => (
+                  <button
+                    key={period.key}
+                    onClick={() => setActivePeriod(period.key)}
+                    className={`rounded-full px-3 py-1.5 text-[10px] font-bold transition-colors ${
+                      activePeriod === period.key
+                        ? "bg-[#4eb75e] text-white"
+                        : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                    }`}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                  <span>
-                    {new Date(withdrawal.created_at).toLocaleDateString("en-NG", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                    {" at "}
-                    {new Date(withdrawal.created_at).toLocaleTimeString("en-NG", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  {withdrawal.processed_at && (
+            {chartLoading ? (
+              <div className="flex h-40 items-center justify-center">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#4eb75e] border-t-transparent" />
+              </div>
+            ) : (chartData?.data ?? []).length > 0 ? (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={chartData?.data ?? []} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f9fafb" }} />
+                  <Bar dataKey="earnings" radius={[6, 6, 0, 0]}>
+                    {(chartData?.data ?? []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === (chartData?.data ?? []).length - 1 ? "#4eb75e" : "#86efac"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-40 flex-col items-center justify-center">
+                <p className="text-xs text-gray-400">No earnings data for this period</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowWithdraw(true)}
+          disabled={availableBalance <= 0}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4eb75e] py-4 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <CreditCard size={16} />
+          Withdraw Earnings
+        </button>
+
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
+            <h3 className="text-sm font-bold text-[#111813]">Withdrawal History</h3>
+            <span className="text-xs text-gray-400">
+              {(withdrawalHistory?.results ?? []).length} request(s)
+            </span>
+          </div>
+
+          {withdrawalErr ? (
+            <p className="py-6 text-center text-xs text-gray-400">
+              Withdrawal history unavailable
+            </p>
+          ) : (withdrawalHistory?.results ?? []).length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="mb-1 text-xs text-gray-400">No withdrawals yet</p>
+              <p className="text-xs text-gray-300">Withdrawals will appear here</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(withdrawalHistory?.results ?? []).map((withdrawal) => (
+                <div key={withdrawal.id} className="px-4 py-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                          withdrawal.status === "completed"
+                            ? "bg-green-100"
+                            : withdrawal.status === "pending" || withdrawal.status === "processing"
+                            ? "bg-orange-100"
+                            : "bg-red-100"
+                        }`}
+                      >
+                        <Building2
+                          size={16}
+                          className={
+                            withdrawal.status === "completed"
+                              ? "text-green-600"
+                              : withdrawal.status === "pending" || withdrawal.status === "processing"
+                              ? "text-orange-600"
+                              : "text-red-600"
+                          }
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-[#111813]">
+                          {formatMoney(withdrawal.amount_naira)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {withdrawal.bank_name} •••• {withdrawal.account_number?.slice(-4)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {WITHDRAWAL_STATUS_ICONS[withdrawal.status] || (
+                        <Clock size={14} className="text-gray-400" />
+                      )}
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
+                          STATUS_COLORS[withdrawal.status] || "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {withdrawal.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-400">
                     <span>
-                      Processed: {new Date(withdrawal.processed_at).toLocaleDateString("en-NG")}
+                      {new Date(withdrawal.created_at).toLocaleDateString("en-NG", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                      {" at "}
+                      {new Date(withdrawal.created_at).toLocaleTimeString("en-NG", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
+                    {withdrawal.processed_at && (
+                      <span>
+                        Processed:{" "}
+                        {new Date(withdrawal.processed_at).toLocaleDateString("en-NG")}
+                      </span>
+                    )}
+                  </div>
+
+                  {withdrawal.failure_reason && (
+                    <div className="mt-2 rounded-lg bg-red-50 px-3 py-2">
+                      <p className="text-xs text-red-600">{withdrawal.failure_reason}</p>
+                    </div>
                   )}
                 </div>
-
-                {withdrawal.failure_reason && (
-                  <div className="mt-2 rounded-lg bg-red-50 px-3 py-2">
-                    <p className="text-xs text-red-600">{withdrawal.failure_reason}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-</div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {showWithdraw && (
