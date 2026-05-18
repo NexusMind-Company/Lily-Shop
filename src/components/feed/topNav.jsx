@@ -27,56 +27,62 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <div className="flex items-center h-16 px-4 md:px-8 bg-transparent fixed top-0 left-0 right-0 md:left-64 z-50 pointer-events-none">
+    <div className="flex items-center h-16 px-4 md:px-8 bg-black/30 backdrop-blur-xl fixed top-0 left-0 right-0 md:left-64 z-50 pointer-events-none">
       <div className="relative flex items-center justify-center w-full max-w-4xl mx-auto h-full pointer-events-auto">
-        <div className="flex gap-6">
+        <div className="relative flex gap-8">
           <button
             onClick={() => setActiveTab("nearby")}
-            className={`font-normal font-poppins ${
-              activeTab === "nearby" ? "text-white" : "text-ash"
-            }`}
+            className="relative group"
           >
             <span
-              className={`text-sm ${
-                activeTab === "nearby" ? "pb-1 border-b-2 border-b-lily" : ""
+              className={`text-sm font-medium font-display transition-all duration-200 ${
+                activeTab === "nearby"
+                  ? "text-white"
+                  : "text-white/50 hover:text-white/70"
               }`}
             >
               Nearby
             </span>
+            {activeTab === "nearby" && (
+              <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-lily rounded-full" />
+            )}
           </button>
           <button
             onClick={() => setActiveTab("forYou")}
-            className={`font-semibold font-poppins ${
-              activeTab === "forYou" ? "text-white" : "text-ash"
-            }`}
+            className="relative group"
           >
             <span
-              className={`text-sm ${
-                activeTab === "forYou" ? "pb-1 border-b-2 border-b-lily" : ""
+              className={`text-sm font-medium font-display transition-all duration-200 ${
+                activeTab === "forYou"
+                  ? "text-white"
+                  : "text-white/50 hover:text-white/70"
               }`}
             >
               For you
             </span>
+            {activeTab === "forYou" && (
+              <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-lily rounded-full" />
+            )}
           </button>
         </div>
 
-        <div className="absolute right-0 flex md:hidden items-center gap-4">
+        <div className="absolute right-0 flex md:hidden items-center gap-5">
           <button
-            className="cursor-pointer"
+            className="p-1 hover:bg-white/10 rounded-full transition-colors"
             onClick={() => setIsSearchModalOpen(true)}
           >
-            <img src="/icons/search-icon.svg" alt="Search" />
+            <img src="/icons/search-icon.svg" alt="Search" className="w-6 h-6" />
           </button>
 
-          <button className="cursor-pointer relative" onClick={handleOpenCart}>
+          <button className="relative p-1 hover:bg-white/10 rounded-full transition-colors" onClick={handleOpenCart}>
             <img
               src="./icons/cart.svg"
               alt="Cart"
-              className="text-white fill-white size-6"
+              className="w-6 h-6"
             />
             {cartItemCount > 0 && (
-              <div className="bg-lily grid place-items-center rounded-full size-5 absolute bottom-1/2 left-1/2">
-                <p className="font-semibold text-center text-[10px]">
+              <div className="bg-lily grid place-items-center rounded-full min-w-[18px] h-[18px] px-1 absolute -top-1 -right-1">
+                <p className="font-semibold text-center text-[10px] text-white leading-none">
                   {cartItemCount > 99 ? "99+" : cartItemCount}
                 </p>
               </div>
