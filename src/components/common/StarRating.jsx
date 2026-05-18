@@ -20,8 +20,8 @@ const StarRating = ({ rating, setRating, size = 24, interactive = true }) => {
             size={size}
             className={`transition-colors ${
               star <= (hover || rating)
-                ? "fill-lily text-lily"
-                : "fill-gray-200 text-gray-300"
+                ? "fill-amber-400 text-amber-400"
+                : "fill-gray-200 text-gray-200"
             }`}
           />
         </button>

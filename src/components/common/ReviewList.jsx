@@ -1,5 +1,6 @@
 import { useState } from "react";
-import StarRating from "./StarRating";
+import { Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "";
@@ -18,16 +19,112 @@ const formatTimeAgo = (dateString) => {
   return `${Math.floor(months / 12)}y ago`;
 };
 
+const getInitials = (fullName) => {
+  if (!fullName) return "A";
+  const parts = String(fullName).split(" ").filter((p) => p.length > 0);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
+const AvatarColors = [
+  "from-[#4eb75e] to-green-400",
+  "from-amber-400 to-orange-400",
+  "from-blue-400 to-indigo-400",
+  "from-pink-400 to-rose-400",
+  "from-purple-400 to-violet-400",
+];
+
+const getAvatarColor = (name) => {
+  if (!name) return AvatarColors[0];
+  const idx = name.charCodeAt(0) % AvatarColors.length;
+  return AvatarColors[idx];
+};
+
+const ReviewStars = ({ rating, size = 16, interactive = false, onRate }) => {
+  const [hover, setHover] = useState(null);
+  const displayRating = hover ?? rating;
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={!interactive}
+          onClick={() => interactive && onRate && onRate(star)}
+          onMouseEnter={() => interactive && setHover && setHover(star)}
+          onMouseLeave={() => interactive && setHover && setHover(null)}
+          className={`${interactive ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"}`}
+        >
+          <Star
+            size={size}
+            className={`transition-colors ${
+              star <= displayRating
+                ? "fill-amber-400 text-amber-400"
+                : "fill-gray-100 text-gray-200"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const ReviewCard = ({ review, isLast }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25 }}
+    className={`bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${!isLast ? "mb-3" : ""}`}
+  >
+    <div className="flex items-start gap-3">
+      <div
+        className={`w-11 h-11 rounded-full bg-gradient-to-br ${getAvatarColor(review.user_name || review.user)} flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0`}
+      >
+        {getInitials(review.user_name || review.user)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-sm text-gray-900">
+              {review.user_name || review.user || "Anonymous"}
+            </p>
+            <div className="flex items-center gap-1">
+              <ReviewStars rating={Number(review.rating || 0)} size={12} />
+              <span className="text-xs font-bold text-amber-500 ml-0.5">
+                {Number(review.rating || 0).toFixed(1)}
+              </span>
+            </div>
+          </div>
+          <span className="text-xs text-gray-400 shrink-0">
+            {formatTimeAgo(review.created_at || review.date)}
+          </span>
+        </div>
+
+        {review.comment && (
+          <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+            {review.comment}
+          </p>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
+
 const ReviewList = ({ reviews, onWriteReview }) => {
   if (!reviews || reviews.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-400 text-sm mb-3">No reviews yet</p>
+      <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-50 flex items-center justify-center">
+          <Star size={32} className="text-amber-300" />
+        </div>
+        <p className="text-gray-500 font-semibold mb-1">No reviews yet</p>
+        <p className="text-sm text-gray-400 mb-4">Share your experience to help others</p>
         <button
           onClick={onWriteReview}
-          className="text-lily font-medium text-sm hover:underline"
+          className="bg-lily text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-lily/90 transition-colors shadow-md shadow-lily/25"
         >
-          Be the first to write a review
+          Be the first to review
         </button>
       </div>
     );
@@ -36,47 +133,35 @@ const ReviewList = ({ reviews, onWriteReview }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-800">Reviews</h3>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+            <Star size={16} className="text-amber-500" fill="currentColor" />
+          </div>
+          <h3 className="font-bold text-gray-800 text-base">Customer Reviews</h3>
+          <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">
+            {reviews.length}
+          </span>
+        </div>
         <button
           onClick={onWriteReview}
-          className="text-sm font-medium text-lily hover:text-lily/80 transition-colors"
+          className="bg-lily text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-lily/90 transition-colors shadow-sm"
         >
           Write a review
         </button>
       </div>
 
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <div key={review.id} className="bg-gray-50 rounded-2xl p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-lily/20 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-lily">
-                    {review.user_name?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-gray-800">
-                    {review.user_name || "Anonymous"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {formatTimeAgo(review.created_at)}
-                  </p>
-                </div>
-              </div>
-              <StarRating rating={review.rating} size={16} interactive={false} />
-            </div>
-
-            {review.comment && (
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {review.comment}
-              </p>
-            )}
-          </div>
+      <div className="space-y-0">
+        {reviews.map((review, index) => (
+          <ReviewCard
+            key={review.id}
+            review={review}
+            isLast={index === reviews.length - 1}
+          />
         ))}
       </div>
     </div>
   );
 };
 
+export { ReviewStars, ReviewCard };
 export default ReviewList;
