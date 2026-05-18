@@ -30,10 +30,10 @@ export default function MediaCarousel({ media }) {
         modules={[Pagination, Navigation]}
         pagination={pagination}
         navigation={true}
-        className="aspect-square" // Ensures a 1:1 aspect ratio like the design
+        className="aspect-[9/20] w-full"
       >
         {media.map((item, index) => (
-          <SwiperSlide key={index}>
+          <SwiperSlide key={index} className="!w-full !h-full">
             {item.type === "image" ? (
               <img
                 src={item.url}
