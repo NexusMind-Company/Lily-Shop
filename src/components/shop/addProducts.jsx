@@ -10,7 +10,6 @@ import {
   FiCheck,
   FiAlertCircle,
 } from "react-icons/fi";
-import MentionText from "../common/MentionText";
 import MentionSuggestions from "../common/MentionSuggestions";
 
 const MAX_FILE_SIZE_MB = 5;
@@ -136,19 +135,35 @@ const AddProducts = () => {
     const textBeforeCursor = text.substring(0, pos);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
     if (lastAtIndex !== -1) {
-      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      if (!textAfterAt.includes(" ")) {
-        setMentionConfig({
-          show: true,
-          productId,
-          cursorPos: pos,
-        });
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setMentionConfig({
+            show: true,
+            productId,
+            cursorPos: pos,
+          });
+        } else {
+          setMentionConfig((prev) => ({ ...prev, show: false }));
+        }
       } else {
         setMentionConfig((prev) => ({ ...prev, show: false }));
       }
     } else {
       setMentionConfig((prev) => ({ ...prev, show: false }));
     }
+  };
+
+  const handleSelectionChange = (productId, e) => {
+    setMentionConfig((prev) => ({
+      ...prev,
+      productId,
+      cursorPos: e.target.selectionStart,
+    }));
   };
 
   const handleSelectMention = (username) => {
@@ -423,17 +438,13 @@ const AddProducts = () => {
               <textarea
                 value={product.caption}
                 onChange={(e) => handleCaptionChange(product.id, e)}
+                onSelect={(e) => handleSelectionChange(product.id, e)}
+                onKeyUp={(e) => handleSelectionChange(product.id, e)}
                 disabled={isLoading}
                 className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:border-lily focus:ring-1 focus:ring-lily outline-none transition-all"
                 placeholder="Describe your product... use @username to mention"
                 rows="3"
               />
-              {product.caption && (
-                <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                  <p className="text-xs text-gray-500 mb-1">Mention Preview:</p>
-                  <MentionText text={product.caption} className="text-sm" />
-                </div>
-              )}
             </div>
 
             {/* Product Image */}
