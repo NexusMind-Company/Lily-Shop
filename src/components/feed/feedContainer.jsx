@@ -291,14 +291,14 @@ const FeedContainer = () => {
             <motion.div
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="bg-[#050505]/80 backdrop-blur-xl rounded-full px-5 py-2 flex items-center gap-3 border border-lily/30 shadow-[0_0_15px_rgba(78,183,94,0.2)]"
+              className="bg-black/60 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 border border-white/10 shadow-xl"
             >
               <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lily opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-lily"></span>
               </div>
-              <span className="text-[11px] text-white font-medium tracking-wide uppercase">
-                Fresh finds coming in...
+              <span className="text-[11px] text-white font-medium tracking-wide">
+                Updating feed...
               </span>
             </motion.div>
           </div>
@@ -331,8 +331,8 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-screen bg-white md:bg-gray-100 dark:md:bg-black flex justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-md lg:max-w-117.5 md:shadow-xl">
+    <main className="relative w-full h-screen bg-black flex justify-center overflow-hidden">
+      <div className="relative h-full w-full md:max-w-[420px] lg:max-w-[480px]">
         {/* Top Navigation */}
         <div className="absolute top-0 left-0 right-0 z-40">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />

@@ -1,33 +1,21 @@
 import React from "react";
 
 export const PostCardSkeleton = () => (
-  <div className="relative w-full h-[98vh] bg-black snap-start shrink-0">
+  <div className="relative w-full h-full bg-black snap-start shrink-0">
     <div className="skeleton-post-media"></div>
-    {/* CHANGED: z-20 -> z-[5] to sit below Nav bars */}
-    <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-5">
+    <div className="absolute bottom-3 left-0 right-0 p-4 pb-20 z-[5]">
       <div className="flex justify-between items-end">
-        <div className="flex-1 space-y-2 max-w-[calc(100%-60px)]">
+        <div className="flex-1 space-y-3 max-w-[calc(100%-60px)]">
           <div className="flex items-center gap-3">
-            <div className="skeleton skeleton-avatar"></div>
-            <div
-              className="skeleton skeleton-line"
-              style={{ width: "120px" }}
-            ></div>
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton skeleton-line" style={{ width: "100px" }}></div>
           </div>
-          <div
-            className="skeleton skeleton-line"
-            style={{ width: "60%" }}
-          ></div>
-          <div
-            className="skeleton skeleton-line"
-            style={{ width: "30%" }}
-          ></div>
-          <div
-            className="skeleton skeleton-line"
-            style={{ width: "80%" }}
-          ></div>
+          <div className="skeleton skeleton-line" style={{ width: "55%" }}></div>
+          <div className="skeleton skeleton-line" style={{ width: "35%" }}></div>
+          <div className="skeleton skeleton-line" style={{ width: "75%" }}></div>
         </div>
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-5 pr-1">
+          <div className="skeleton skeleton-icon"></div>
           <div className="skeleton skeleton-icon"></div>
           <div className="skeleton skeleton-icon"></div>
           <div className="skeleton skeleton-icon"></div>

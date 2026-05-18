@@ -441,7 +441,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
   return (
     <div
-      className="relative w-full h-full bg-black text-white"
+      className="relative w-full h-full bg-black text-white overflow-hidden"
       onDoubleClick={handleDoubleTap}
     >
       <div className="media-container-cover w-full h-full bg-black">
@@ -491,14 +491,14 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-6 text-white z-10 pointer-events-none bg-linear-to-t from-black/80 via-black/40 to-transparent">
-        <div className="flex justify-between items-end gap-2">
-          <div className="flex-1 flex flex-col justify-end space-y-2.5 min-w-0 pr-2 pointer-events-auto">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 md:pb-6 text-white z-10 pointer-events-none bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+        <div className="flex justify-between items-end gap-3">
+          <div className="flex-1 flex flex-col justify-end space-y-3 min-w-0 pr-2 pointer-events-auto">
             <div className="relative gap-3 flex items-center shrink-0">
               <div className="relative block shrink-0">
                 <Link
                   to={profileLink}
-                  className="w-10 h-10 rounded-full border-2 border-white bg-ash flex items-center justify-center overflow-hidden shrink-0"
+                  className="w-11 h-11 rounded-full border-[2.5px] border-white bg-ash flex items-center justify-center overflow-hidden shrink-0 shadow-lg"
                 >
                   <img
                     src={post.userpic || "/profile-icon.svg"}
@@ -508,18 +508,19 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 </Link>
 
                 {!isOwnPost && (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.85 }}
                     onClick={handleFollow}
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform pointer-events-auto"
+                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-lily rounded-full flex items-center justify-center shadow-md cursor-pointer"
                   >
                     <img
                       src={
-                        isFollowed ? "/icons/followed.svg" : "/icons/follow.svg"
+                        isFollowed ? "/icons/followed.svg" : "/icons/plus.svg"
                       }
                       alt={`Follow ${displayUsername}`}
-                      className="w-4 h-4 object-contain"
+                      className="w-3.5 h-3.5 object-contain"
                     />
-                  </button>
+                  </motion.button>
                 )}
               </div>
 
@@ -527,11 +528,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 to={profileLink}
                 className="flex items-center space-x-2 truncate"
               >
-                <h1 className="font-bold truncate">{displayUsername}</h1>
+                <h1 className="font-bold text-[15px] truncate">{displayUsername}</h1>
               </Link>
             </div>
 
-            <h2 className="font-bold text-lg truncate">
+            <h2 className="font-bold text-lg leading-tight line-clamp-2">
               {post.name ||
                 post.productName ||
                 post.caption?.slice(0, 30) ||
@@ -541,7 +542,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {(isProduct ||
               (hasLinkedProduct &&
                 (post.product?.price_in_naira || post.product?.price))) && (
-              <p className="font-bold">
+              <p className="font-bold text-base">
                 ₦
                 {Number(
                   isProduct
@@ -554,7 +555,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             {post.caption && (
               <motion.p
                 layout
-                className={`text-sm font-light wrap-break-word whitespace-pre-wrap ${isExpanded ? "max-h-[22vh] overflow-y-auto no-scrollbar pointer-events-auto" : ""}`}
+                className={`text-sm font-normal leading-relaxed ${isExpanded ? "max-h-[22vh] overflow-y-auto no-scrollbar pointer-events-auto" : "line-clamp-2"}`}
               >
                 {isExpanded
                   ? post.caption
@@ -562,15 +563,15 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 {post.caption.length > DESCRIPTION_CHAR_LIMIT && (
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="font-semibold ml-1 opacity-80 pointer-events-auto hover:opacity-100"
+                    className="font-semibold ml-1 text-white/80 hover:text-white"
                   >
-                    {isExpanded ? "...less" : "...see more"}
+                    {isExpanded ? "less" : "...more"}
                   </button>
                 )}
               </motion.p>
             )}
 
-            <p className="font-light flex items-center gap-1 truncate">
+            <p className="font-light flex items-center gap-2 text-sm text-white/70">
               <span className="shrink-0">
                 <img src="/icons/music.svg" alt="" className="w-4 h-4" />
               </span>
@@ -580,21 +581,22 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             </p>
 
             {(isProduct || hasLinkedProduct) && (
-              <div className="flex items-center space-x-2 pt-2 shrink-0">
-                <button
+              <div className="flex items-center space-x-3 pt-1 shrink-0">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleAddToCart}
-                  className="bg-[#4eb75e] text-white inline-flex w-fit items-center font-normal p-2 gap-1.5 rounded-full text-sm hover:bg-[#3da04d] transition-colors"
+                  className="bg-lily text-white inline-flex w-fit items-center font-medium px-4 py-2 gap-2 rounded-full text-sm hover:bg-lily/90 transition-colors shadow-lg shadow-lily/25"
                 >
                   <ShoppingCart size={16} />
                   Add to Cart
-                </button>
+                </motion.button>
                 <Link
                   to={`/product/${isProduct ? post.id : post.product.id}`}
                   state={{ itemType: isProduct ? "product" : "content", post }}
-                  className="bg-white text-black inline-flex w-fit items-center font-normal p-2 gap-1 rounded-full text-sm"
+                  className="bg-white text-black inline-flex w-fit items-center font-medium px-4 py-2 gap-2 rounded-full text-sm hover:bg-white/90 transition-colors"
                 >
                   <span>
-                    <img src="/icons/bag-2.svg" alt="" />
+                    <img src="/icons/bag-2.svg" alt="" className="w-4 h-4" />
                   </span>
                   Buy Now
                 </Link>
@@ -602,66 +604,75 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
           </div>
 
-          <div className="flex flex-col items-center space-y-4 pointer-events-auto shrink-0 pb-1">
-            <button
+          <div className="flex flex-col items-center space-y-5 pointer-events-auto shrink-0 pb-2">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleLike}
               className="flex flex-col items-center group"
             >
-              <img
-                src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
-                alt="Like"
-                className={`transition-transform group-hover:scale-110 ${isLiked ? "size-9" : ""}`}
-              />
-              <span className="text-xs font-semibold drop-shadow-md">
+              <motion.div
+                animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <img
+                  src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
+                  alt="Like"
+                  className={`transition-all group-hover:scale-110 ${isLiked ? "w-9 h-9 drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" : ""}`}
+                />
+              </motion.div>
+              <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(likeCount)}
               </span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleOpenComments}
               className="flex flex-col items-center group"
             >
               <img
                 src="/icons/message-alt.svg"
                 alt="Comment"
-                className="transition-transform group-hover:scale-110"
+                className="w-8 h-8 transition-transform group-hover:scale-110"
               />
-              <span className="text-xs font-semibold drop-shadow-md">
+              <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(commentCount)}
               </span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleOpenShare}
               className="flex flex-col items-center group"
             >
               <img
                 src="/icons/share.svg"
                 alt="Share"
-                className="transition-transform group-hover:scale-110"
+                className="w-8 h-8 transition-transform group-hover:scale-110"
               />
-              <span className="text-xs font-semibold drop-shadow-md">
+              <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(post.shares || 0)}
               </span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleOpenMessage}
               className="flex flex-col items-center group"
             >
               <img
                 src="/icons/send-alt.svg"
                 alt="Message"
-                className="transition-transform group-hover:scale-110"
+                className="w-8 h-8 transition-transform group-hover:scale-110"
               />
-              <span className="text-xs font-semibold drop-shadow-md">
+              <span className="text-xs font-semibold drop-shadow-md mt-1">
                 Message
               </span>
-            </button>
+            </motion.button>
 
             <div className="flex flex-col items-center">
-              <img src="/icons/eye.svg" alt="View" />
-              <span className="text-xs font-semibold drop-shadow-md">
+              <img src="/icons/eye.svg" alt="View" className="w-8 h-8" />
+              <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(viewCount)}
               </span>
             </div>
