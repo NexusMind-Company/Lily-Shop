@@ -604,7 +604,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
           </div>
 
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4 pointer-events-auto shrink-0">
+          <div className="absolute right-3 bottom-28 md:bottom-20 flex flex-col items-center gap-4 pointer-events-auto shrink-0">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={handleLike}
