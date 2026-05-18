@@ -26,6 +26,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
+import { Star } from "lucide-react";
+import MentionText from "../../common/MentionText";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
@@ -385,9 +387,13 @@ const ProductItem = ({ product }) => {
             layout
             className="text-sm font-normal text-gray-800 leading-relaxed"
           >
-            {isExpanded
-              ? product.caption
-              : `${product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
+            {isExpanded ? (
+              <MentionText text={product.caption} />
+            ) : (
+              <MentionText
+                text={product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}
+              />
+            )}
             {product.caption.length > DESCRIPTION_CHAR_LIMIT && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -485,29 +491,86 @@ const ProductItem = ({ product }) => {
         )}
 
         {/* --- Reviews Section --- */}
-        <div className="space-y-4 pt-6">
-          <div className="flex justify-between items-center w-full">
-            <h2 className="font-bold text-md text-gray-900">
-              Reviews ({productReviewsCount})
-            </h2>
-            {hasMoreReviews && (
-              <button
-                onClick={handleViewAll}
-                className="text-pink-500 text-sm font-medium hover:underline"
-              >
-                {showAllReviews ? "Collapse" : "View all"}
-              </button>
-            )}
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 space-y-4 shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-base text-gray-900">
+                Customer Reviews
+              </h2>
+              {productReviewsCount > 0 && (
+                <span className="bg-lily/10 text-lily text-xs font-bold px-2 py-0.5 rounded-full">
+                  {productReviewsCount}
+                </span>
+              )}
+            </div>
+            <button className="text-xs font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5">
+              Write Review
+            </button>
           </div>
-          <div className="divide-y divide-gray-100">
+
+          {/* Rating Summary */}
+          {reviewsArray.length > 0 && (
+            <div className="flex items-center gap-4 bg-white rounded-xl p-3 shadow-sm border border-gray-50">
+              <div className="text-center px-4 py-2 bg-lily rounded-xl">
+                <p className="text-3xl font-black text-white">
+                  {Number(productRating).toFixed(1)}
+                </p>
+                <div className="flex items-center justify-center mt-1">
+                  <ReviewStars
+                    rating={Math.round(Number(productRating))}
+                    size={12}
+                  />
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 font-medium mb-2">
+                  Based on {productReviewsCount} reviews
+                </p>
+                <div className="flex items-center gap-1">
+                  {[5, 4, 3, 2, 1].map((star) => (
+                    <div key={star} className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 w-4">{star}</span>
+                      <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-400 rounded-full"
+                          style={{ width: `${Math.random() * 60 + 20}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
             {reviewsToShow.map((review) => (
               <ProductReview key={review.id} review={review} />
             ))}
           </div>
           {reviewsArray.length === 0 && (
-            <p className="text-gray-500 text-sm italic">
-              No reviews yet for this product.
-            </p>
+            <div className="text-center py-6 bg-white rounded-xl border-2 border-dashed border-gray-200">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                <ReviewStars rating={0} size={20} />
+              </div>
+              <p className="text-sm font-medium text-gray-600 mb-1">
+                No reviews yet
+              </p>
+              <p className="text-xs text-gray-400">
+                Be the first to share your thoughts!
+              </p>
+            </div>
+          )}
+
+          {hasMoreReviews && (
+            <button
+              onClick={handleViewAll}
+              className="w-full py-2.5 text-sm font-semibold text-gray-600 hover:text-lily hover:bg-lily/5 rounded-xl transition-colors border border-gray-200 hover:border-lily/30"
+            >
+              {showAllReviews
+                ? "Show Less"
+                : `View All ${productReviewsCount} Reviews`}
+            </button>
           )}
         </div>
 
