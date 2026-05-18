@@ -27,7 +27,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <div className="flex items-center h-16 px-4 md:px-8 bg-black/30 backdrop-blur-xl fixed top-0 left-0 right-0 md:left-64 z-50 pointer-events-none">
+    <div className="flex items-center h-16 px-4 md:px-8 bg-transparent fixed top-0 left-0 right-0 md:left-64 z-50 pointer-events-none">
       <div className="relative flex items-center justify-center w-full max-w-4xl mx-auto h-full pointer-events-auto">
         <div className="relative flex gap-8">
           <button
