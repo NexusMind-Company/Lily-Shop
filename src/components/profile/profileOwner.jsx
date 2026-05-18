@@ -18,11 +18,11 @@ import {
   Calendar,
   Bookmark,
   UserSquare,
-  Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import ProfileFeedViewer from "./profileFeedViewer";
+import PostDetailOverlay from "./PostDetailOverlay";
 
 const API_BASE_URL = "//api.lilyshops.com";
 
@@ -40,12 +40,19 @@ const ProfileOwner = () => {
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
     items: [],
     initialIndex: 0,
   });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -387,7 +394,7 @@ const ProfileOwner = () => {
               )}
 
               {/* Overlay on hover (Desktop) */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold hidden md:flex">
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center gap-6 text-white font-bold hidden md:flex">
                 <div className="flex items-center gap-2">
                   <Heart fill="white" size={20} /> {post.like_count || 0}
                 </div>
@@ -418,13 +425,20 @@ const ProfileOwner = () => {
 
   return (
     <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12">
-      {feedOverlay.isOpen && (
-        <ProfileFeedViewer
-          posts={feedOverlay.items}
-          initialIndex={feedOverlay.initialIndex}
-          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-        />
-      )}
+      {feedOverlay.isOpen &&
+        (isMobile ? (
+          <ProfileFeedViewer
+            posts={feedOverlay.items}
+            initialIndex={feedOverlay.initialIndex}
+            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          />
+        ) : (
+          <PostDetailOverlay
+            posts={feedOverlay.items}
+            initialIndex={feedOverlay.initialIndex}
+            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          />
+        ))}
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between py-3">
         <button onClick={() => navigate(-1)}>
@@ -464,9 +478,10 @@ const ProfileOwner = () => {
             <h2 className="text-xl font-normal">
               @{user.username || "unknown"}
             </h2>
-            <Settings className="cursor-pointer hidden md:block" size={24} />
+            <Link to="/settings">
+              <Settings className="cursor-pointer hidden md:block" size={24} />
+            </Link>
           </div>
-
           {/* Stats - Desktop Only */}
           <div className="hidden md:flex gap-10">
             <div>
@@ -575,15 +590,6 @@ const ProfileOwner = () => {
             </button>
           </Link>
         )}
-      </div>{" "}
-      {/* Highlights */}
-      <div className="flex gap-6 py-4 md:py-6 overflow-x-auto no-scrollbar">
-        <div className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-gray-200 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors">
-            <Plus size={32} className="text-gray-400" />
-          </div>
-          <span className="text-xs font-semibold">New</span>
-        </div>
       </div>
       {/* Tabs */}
       <div className="flex md:justify-center border-t border-gray-200">
