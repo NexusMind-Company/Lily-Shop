@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
+/* ================= PERFORMANCE OPTIMIZATIONS ================= */
+
+/* Prevent layout shift from font loading */
 body {
     @apply bg-white;
     @apply border-black;
+}
+
+/* Hide scrollbars globally */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Lazy image placeholder - prevents CLS */
+img {
+    background-color: #f3f4f6;
+}
+
+/* Native lazy loading for images */
+img[loading="lazy"] {
+    content-visibility: auto;
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 @layer components {

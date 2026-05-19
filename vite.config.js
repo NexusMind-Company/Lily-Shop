@@ -13,7 +13,19 @@ export default defineConfig({
           vendor: ["react", "react-dom"],
           router: ["react-router-dom"],
           redux: ["@reduxjs/toolkit", "react-redux"],
+          query: ["@tanstack/react-query"],
+          animation: ["framer-motion", "swiper"],
         },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
+    sourcemap: false,
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
       },
     },
   },
@@ -25,7 +37,6 @@ export default defineConfig({
       host: "localhost",
       port: 5173,
     },
-    // ✅ FIX: proxy all /api/* calls through Vite's server to avoid CORS
     proxy: {
       "/api": {
         target: "https://api.lilyshops.com",
@@ -34,5 +45,15 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@reduxjs/toolkit",
+      "react-redux",
+      "@tanstack/react-query",
+    ],
   },
 });
