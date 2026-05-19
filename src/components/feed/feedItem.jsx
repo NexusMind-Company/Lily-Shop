@@ -444,7 +444,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       className="relative w-full h-full bg-black text-white overflow-hidden"
       onDoubleClick={handleDoubleTap}
     >
-      <div className="media-box w-full h-full">
+      <div className="media-box w-full h-full flex items-center justify-center">
         {mediaArray.length > 1 ? (
           <MediaCarousel
             ref={mediaRef}
