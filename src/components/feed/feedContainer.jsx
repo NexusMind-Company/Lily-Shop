@@ -331,21 +331,12 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-screen bg-black flex justify-center overflow-hidden">
+    <main className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-[420px] lg:max-w-[480px]">
-        {/* Top Navigation */}
-        <div className="absolute top-0 left-0 right-0 z-40">
+        <div className="h-full relative">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
+          {renderContent()}
         </div>
-
-        {renderContent()}
-
-        {/* Post Counter */}
-        {/* {posts.length > 0 && (
-          <div className="absolute top-20 right-4 z-30 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
-            {currentPostIndex + 1} / {posts.length}
-          </div>
-        )} */}
       </div>
     </main>
   );
