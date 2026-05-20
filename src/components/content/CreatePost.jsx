@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createProductContent,
   resetContentState as resetProductContent,
@@ -41,6 +42,7 @@ const ALLOWED_TYPES = [
 const CreatePost = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Redux State
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -92,6 +94,7 @@ const CreatePost = () => {
     if (success) {
       setSuccessMessage("Post created successfully!");
       setErrorMessage("");
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
       const timer = setTimeout(() => {
         dispatch(resetProductContent());
         dispatch(resetFunContent());
@@ -99,7 +102,7 @@ const CreatePost = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, navigate, dispatch]);
+  }, [success, navigate, dispatch, queryClient]);
 
   // 3. Error Handler
   useEffect(() => {
