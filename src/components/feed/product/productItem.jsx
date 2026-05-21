@@ -31,6 +31,22 @@ import MentionText from "../../common/MentionText";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
+const ReviewStars = ({ rating, size = 16 }) => (
+  <div className="flex items-center gap-0.5">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <Star
+        key={star}
+        size={size}
+        className={
+          star <= rating
+            ? "fill-amber-400 text-amber-400"
+            : "fill-gray-200 text-gray-200"
+        }
+      />
+    ))}
+  </div>
+);
+
 // --- Sub-component: Video Player for Carousel ---
 const CarouselVideoPlayer = ({ src, poster }) => {
   const [isMuted, setIsMuted] = useState(true);
@@ -567,6 +583,7 @@ const ProductItem = ({ product }) => {
               <ProductReview key={review.id} review={review} />
             ))}
           </div>
+
           {reviewsArray.length === 0 && (
             <div className="text-center py-6 bg-white rounded-xl border-2 border-dashed border-gray-200">
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">

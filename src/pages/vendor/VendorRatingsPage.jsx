@@ -10,6 +10,7 @@ import {
   fetchMealRatings,
   fetchRatingsSummary,
 } from "../../services/vendorDashboardApi";
+import { ReviewCard } from "../../components/common/ReviewList";
 
 const StarRating = ({ rating, size = 14 }) => (
   <div className="flex gap-0.5">
@@ -147,22 +148,18 @@ const VendorRatingsPage = () => {
             No reviews yet
           </p>
         ) : (
-          ratings.map((r) => (
-            <div
-              key={r.id}
-              className="px-4 py-3 border-b border-gray-50  last:border-0"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-semibold text-[#111813] ">
-                  {r.customer_name}
-                </p>
-                <StarRating rating={r.rating ?? 0} size={11} />
-              </div>
-              <p className="text-xs text-gray-400 mb-1">{r.meal_name}</p>
-              {r.review && (
-                <p className="text-xs text-gray-600  italic">"{r.review}"</p>
-              )}
-              <p className="text-[10px] text-gray-400 mt-1">{r.created_at}</p>
+          ratings.map((r, idx) => (
+            <div key={r.id} className="px-4 py-3 border-b border-gray-50 last:border-0">
+              <ReviewCard
+                review={{
+                  id: r.id,
+                  user_name: r.customer_name,
+                  rating: r.rating ?? 0,
+                  comment: r.review,
+                  created_at: r.created_at,
+                }}
+                isLast={idx === ratings.length - 1}
+              />
             </div>
           ))
         )}
