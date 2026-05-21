@@ -115,25 +115,6 @@ const CarouselVideoPlayer = ({ src, poster }) => {
   );
 };
 
-// --- Sub-component: Rating Stars ---
-const ReviewStars = ({ rating, size = 16 }) => {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          size={size}
-          className={`${
-            star <= rating
-              ? "fill-yellow-400 text-yellow-400"
-              : "fill-gray-200 text-gray-200"
-          }`}
-        />
-      ))}
-    </div>
-  );
-};
-
 // --- Main Component: Product Details Item ---
 const ProductItem = ({ product }) => {
   // Variant selections
