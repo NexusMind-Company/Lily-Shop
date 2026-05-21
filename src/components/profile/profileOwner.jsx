@@ -7,6 +7,8 @@ import LoaderSd from "../loaders/loaderSd";
 import toast from "react-hot-toast";
 import {
   Grid,
+  Grid3X3,
+  Megaphone,
   Heart,
   ChevronLeft,
   Play,
@@ -403,7 +405,13 @@ const ProfileOwner = () => {
                 </div>
               </div>
 
-              {isVideo && !isVideo && (
+              {/* Mobile View Count Overlay */}
+              <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded md:hidden">
+                <Eye size={12} />
+                <span>{post.view_count || 0}</span>
+              </div>
+
+              {isVideo && (
                 <div className="absolute top-2 right-2 text-white">
                   <Play size={20} fill="white" />
                 </div>
@@ -441,25 +449,24 @@ const ProfileOwner = () => {
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={28} />
         </button>
-        <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
         <div className="flex gap-4">
           <Link to="/settings">
-            <Settings size={24} />
+            <Settings size={28} />
           </Link>
           <button onClick={handleLogoutClick}>
-            <LogOut size={24} />
+            <LogOut size={28} />
           </button>
         </div>
       </div>
       {/* Profile Header Section */}
       <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-6 md:py-12 border-b-0 md:border-b border-gray-200">
         {/* Avatar */}
-        <div className="flex justify-start md:justify-center md:w-1/3 mb-4 md:mb-0">
+        <div className="flex justify-center md:w-1/3 mb-4 md:mb-0">
           <div className="relative group">
             <img
               src={profileImageUrl}
               alt="Profile"
-              className="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border border-gray-200 p-1"
+              className="w-24 h-24 md:w-36 md:h-36 rounded-full object-cover border border-gray-200 p-1"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/profile-icon.svg";
@@ -469,14 +476,14 @@ const ProfileOwner = () => {
         </div>
 
         {/* Info */}
-        <div className="md:w-2/3 flex flex-col gap-5">
-          {/* Username and Settings */}
-          <div className="flex items-center gap-2">
+        <div className="md:w-2/3 flex flex-col items-center text-center md:items-start md:text-left gap-1 md:gap-5">
+          {/* Username and Settings - Desktop only username here */}
+          <div className="hidden md:flex items-center gap-4">
             <h2 className="text-xl font-normal">
               @{user.username || "unknown"}
             </h2>
             <Link to="/settings">
-              <Settings className="cursor-pointer hidden md:block" size={24} />
+              <Settings className="cursor-pointer" size={24} />
             </Link>
           </div>
           {/* Stats - Desktop Only */}
@@ -502,11 +509,11 @@ const ProfileOwner = () => {
 
           {/* Name and Bio */}
           <div>
-            <h3 className="font-semibold text-sm md:text-base">
+            <h3 className="font-bold text-lg md:text-xl">
               {user.name || user.username || "Unnamed User"}
             </h3>
             <div
-              className="flex items-center gap-1 text-gray-500 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit"
+              className="flex items-center justify-center md:justify-start gap-1 text-gray-400 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit mx-auto md:mx-0"
               onClick={() => {
                 const profileUrl = `${window.location.origin}/profile/${user.id}`;
                 navigator.clipboard.writeText(profileUrl);
@@ -514,10 +521,12 @@ const ProfileOwner = () => {
               }}
             >
               {" "}
+              <span className="font-medium text-gray-400">
+                @{user.username || "unknown"}
+              </span>
               <IconLink size={14} />
-              <span>@{user.username || "unknown"}</span>
             </div>
-            <p className="text-sm whitespace-pre-wrap leading-tight">
+            <p className="text-sm whitespace-pre-wrap leading-tight text-gray-800 font-medium">
               {user && user.bio
                 ? user.bio
                 : "Add a bio to let people know more about you and your products!"}
@@ -526,7 +535,7 @@ const ProfileOwner = () => {
 
           {/* Location/Birthday */}
           {(user.location || user.birthdate || user.birthday) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-gray-400">
               {user.location && (
                 <div className="flex items-center gap-1">
                   <MapPin size={12} />
@@ -551,75 +560,83 @@ const ProfileOwner = () => {
           )}
         </div>
       </header>
+
       {/* Stats - Mobile Only */}
-      <div className="md:hidden flex justify-around py-4 border-t border-gray-100 text-center">
+      <div className="md:hidden flex justify-center gap-12 py-4 text-center">
         <div className="flex flex-col">
-          <span className="font-bold">{displayPostCount}</span>
-          <span className="text-gray-400 text-xs">posts</span>
+          <span className="font-bold text-2xl">{displayPostCount}</span>
+          <span className="text-gray-400 text-sm">Posts</span>
         </div>
         <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
-          <span className="font-bold">{user.followers_count || 0}</span>
-          <span className="text-gray-400 text-xs">followers</span>
+          <span className="font-bold text-2xl">
+            {user.followers_count || 0}
+          </span>
+          <span className="text-gray-400 text-sm">Followers</span>
         </Link>
         <Link to={`/following/${user.id || ""}`} className="flex flex-col">
-          <span className="font-bold">{followingCount}</span>
-          <span className="text-gray-400 text-xs">following</span>
+          <span className="font-bold text-2xl">{followingCount}</span>
+          <span className="text-gray-400 text-sm">Following</span>
         </Link>
       </div>
-      {/* Action Buttons - Repositioned */}
-      <div className="flex flex-row gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100">
-        <Link to="/editProfile" className="flex-1">
-          <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
-            Edit profile
+
+      {/* Action Buttons */}
+      <div className="flex flex-row gap-4 w-full py-4">
+        <Link to="/editProfile" className="flex-1 order-1">
+          <button className="w-full h-full py-2 md:py-3 border-2 md:border-[3px] border-[#4CAF50] md:border-lily text-[#4CAF50] md:text-lily rounded-2xl text-[17px] md:text-xl font-bold md:font-black leading-tight flex items-center justify-center text-center transition-all hover:bg-lily/5">
+            Edit
+            <span className="md:hidden">
+              <br />
+            </span>{" "}
+            Profile
           </button>
         </Link>
 
         {user?.vendor_id ? (
-          <Link to="/vendor-dashboard" className="flex-1">
-            <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
+          <Link to="/vendor-dashboard" className="flex-1 order-2">
+            <button className="w-full h-full py-2 md:py-3 border-2 md:border-[3px] border-[#FF9800] md:border-lily text-[#FF9800] md:text-lily rounded-2xl text-[17px] md:text-xl font-bold md:font-black leading-tight flex items-center justify-center text-center transition-all hover:bg-lily/5">
               Vendor Dashboard
             </button>
           </Link>
         ) : (
-          <Link to="/create-vendor" className="flex-1">
-            <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
+          <Link to="/create-vendor" className="flex-1 order-2">
+            <button className="w-full h-full py-2 md:py-3 border-2 md:border-[3px] border-lily md:border-lily text-lily md:text-lily rounded-2xl text-[17px] md:text-xl font-bold md:font-black leading-tight flex items-center justify-center text-center transition-all hover:bg-lily/5">
               Become a Vendor
             </button>
           </Link>
         )}
       </div>
+
       {/* Tabs */}
-      <div className="flex md:justify-center border-t border-gray-200">
+      <div className="flex md:justify-center border-t border-gray-100 mt-2">
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-b-2 md:border-b-0 md:border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 0
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(0)}
         >
-          <Grid size={16} /> <span className="hidden md:inline">POSTS</span>
+          <Grid3X3 size={24} />
         </button>
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-b-2 md:border-b-0 md:border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 1
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(1)}
         >
-          <Bookmark size={16} /> <span className="hidden md:inline">SAVED</span>
+          <Megaphone size={24} />
         </button>
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-b-2 md:border-b-0 md:border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 2
               ? "border-lily text-lily"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(2)}
         >
-          <UserSquare size={16} />{" "}
-          <span className="hidden md:inline">TAGGED</span>
+          <Heart size={24} />
         </button>
       </div>
       {/* Grid Content */}
