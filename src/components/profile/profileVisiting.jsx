@@ -36,7 +36,6 @@ const ProfileVisiting = () => {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -46,12 +45,6 @@ const ProfileVisiting = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const { userId, username } = useParams();
   const profileIdentifier = userId || username;
@@ -393,7 +386,7 @@ const ProfileVisiting = () => {
           posts={feedOverlay.items}
           initialIndex={feedOverlay.initialIndex}
           onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          onDeleteSuccess={(postId) => {
+          onDeleteSuccess={(_postId) => {
             // This is visiting profile, but if the visitor owns the post (e.g. tagged?),
             // we might want to refresh. For now just handle it gracefully.
             if (window.location.reload) {

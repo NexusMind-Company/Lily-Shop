@@ -42,19 +42,12 @@ const ProfileOwner = () => {
   const [postsLoading, setPostsLoading] = useState(false);
   const [likedLoading, setLikedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
     items: [],
     initialIndex: 0,
   });
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     if (error) {

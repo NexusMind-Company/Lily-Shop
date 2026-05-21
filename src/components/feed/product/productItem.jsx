@@ -507,7 +507,7 @@ const ProductItem = ({ product }) => {
         )}
 
         {/* --- Reviews Section --- */}
-        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 space-y-4 shadow-sm border border-gray-100">
+        <div className="bg-linear-to-br from-gray-50 to-white rounded-2xl p-5 space-y-4 shadow-sm border border-gray-100">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <h2 className="font-bold text-base text-gray-900">
