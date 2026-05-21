@@ -425,20 +425,17 @@ const ProfileOwner = () => {
 
   return (
     <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12">
-      {feedOverlay.isOpen &&
-        (isMobile ? (
-          <ProfileFeedViewer
-            posts={feedOverlay.items}
-            initialIndex={feedOverlay.initialIndex}
-            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          />
-        ) : (
-          <PostDetailOverlay
-            posts={feedOverlay.items}
-            initialIndex={feedOverlay.initialIndex}
-            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          />
-        ))}
+      {feedOverlay.isOpen && (
+        <PostDetailOverlay
+          posts={feedOverlay.items}
+          initialIndex={feedOverlay.initialIndex}
+          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          onDeleteSuccess={(postId) => {
+            setUserPosts((prev) => prev.filter((p) => p.id !== postId));
+            setLikedPosts((prev) => prev.filter((p) => p.id !== postId));
+          }}
+        />
+      )}
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between py-3">
         <button onClick={() => navigate(-1)}>

@@ -388,21 +388,20 @@ const ProfileVisiting = () => {
 
   return (
     <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12 bg-white">
-      {feedOverlay.isOpen &&
-        (isMobile ? (
-          <ProfileFeedViewer
-            posts={feedOverlay.items}
-            initialIndex={feedOverlay.initialIndex}
-            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          />
-        ) : (
-          <PostDetailOverlay
-            posts={feedOverlay.items}
-            initialIndex={feedOverlay.initialIndex}
-            onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          />
-        ))}
-
+      {feedOverlay.isOpen && (
+        <PostDetailOverlay
+          posts={feedOverlay.items}
+          initialIndex={feedOverlay.initialIndex}
+          onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          onDeleteSuccess={(postId) => {
+            // This is visiting profile, but if the visitor owns the post (e.g. tagged?),
+            // we might want to refresh. For now just handle it gracefully.
+            if (window.location.reload) {
+              // Or just let it close.
+            }
+          }}
+        />
+      )}
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">
         <button onClick={() => navigate(-1)}>
