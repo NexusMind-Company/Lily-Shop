@@ -27,6 +27,7 @@ import "swiper/css/pagination";
 import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 import { Star } from "lucide-react";
+import MentionText from "../../common/MentionText";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
@@ -110,6 +111,25 @@ const CarouselVideoPlayer = ({ src, poster }) => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+// --- Sub-component: Rating Stars ---
+const ReviewStars = ({ rating, size = 16 }) => {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          size={size}
+          className={`${
+            star <= rating
+              ? "fill-yellow-400 text-yellow-400"
+              : "fill-gray-200 text-gray-200"
+          }`}
+        />
+      ))}
     </div>
   );
 };
@@ -402,9 +422,13 @@ const ProductItem = ({ product }) => {
             layout
             className="text-sm font-normal text-gray-800 leading-relaxed"
           >
-            {isExpanded
-              ? product.caption
-              : `${product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}`}
+            {isExpanded ? (
+              <MentionText text={product.caption} />
+            ) : (
+              <MentionText
+                text={product.caption.substring(0, DESCRIPTION_CHAR_LIMIT)}
+              />
+            )}
             {product.caption.length > DESCRIPTION_CHAR_LIMIT && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -505,7 +529,9 @@ const ProductItem = ({ product }) => {
         <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 space-y-4 shadow-sm border border-gray-100">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-base text-gray-900">Customer Reviews</h2>
+              <h2 className="font-bold text-base text-gray-900">
+                Customer Reviews
+              </h2>
               {productReviewsCount > 0 && (
                 <span className="bg-lily/10 text-lily text-xs font-bold px-2 py-0.5 rounded-full">
                   {productReviewsCount}
@@ -521,13 +547,20 @@ const ProductItem = ({ product }) => {
           {reviewsArray.length > 0 && (
             <div className="flex items-center gap-4 bg-white rounded-xl p-3 shadow-sm border border-gray-50">
               <div className="text-center px-4 py-2 bg-lily rounded-xl">
-                <p className="text-3xl font-black text-white">{Number(productRating).toFixed(1)}</p>
+                <p className="text-3xl font-black text-white">
+                  {Number(productRating).toFixed(1)}
+                </p>
                 <div className="flex items-center justify-center mt-1">
-                  <ReviewStars rating={Math.round(Number(productRating))} size={12} />
+                  <ReviewStars
+                    rating={Math.round(Number(productRating))}
+                    size={12}
+                  />
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-xs text-gray-500 font-medium mb-2">Based on {productReviewsCount} reviews</p>
+                <p className="text-xs text-gray-500 font-medium mb-2">
+                  Based on {productReviewsCount} reviews
+                </p>
                 <div className="flex items-center gap-1">
                   {[5, 4, 3, 2, 1].map((star) => (
                     <div key={star} className="flex items-center gap-1">
@@ -556,8 +589,12 @@ const ProductItem = ({ product }) => {
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
                 <ReviewStars rating={0} size={20} />
               </div>
-              <p className="text-sm font-medium text-gray-600 mb-1">No reviews yet</p>
-              <p className="text-xs text-gray-400">Be the first to share your thoughts!</p>
+              <p className="text-sm font-medium text-gray-600 mb-1">
+                No reviews yet
+              </p>
+              <p className="text-xs text-gray-400">
+                Be the first to share your thoughts!
+              </p>
             </div>
           )}
 
@@ -566,7 +603,9 @@ const ProductItem = ({ product }) => {
               onClick={handleViewAll}
               className="w-full py-2.5 text-sm font-semibold text-gray-600 hover:text-lily hover:bg-lily/5 rounded-xl transition-colors border border-gray-200 hover:border-lily/30"
             >
-              {showAllReviews ? "Show Less" : `View All ${productReviewsCount} Reviews`}
+              {showAllReviews
+                ? "Show Less"
+                : `View All ${productReviewsCount} Reviews`}
             </button>
           )}
         </div>

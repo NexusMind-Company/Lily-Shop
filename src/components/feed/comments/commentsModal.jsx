@@ -16,6 +16,7 @@ import {
   deleteProductComment,
   deleteContentComment,
 } from "../../../services/api";
+import MentionSuggestions from "../../common/MentionSuggestions";
 
 const countNodes = (nodes) => {
   if (!Array.isArray(nodes)) return 0;
@@ -59,6 +60,8 @@ const CommentsModal = ({
   const [replyTarget, setReplyTarget] = useState(null);
   const [isPosting, setIsPosting] = useState(false);
   const [inputHeight, setInputHeight] = useState("auto");
+  const [showMentions, setShowMentions] = useState(false);
+  const [cursorPos, setCursorPos] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,10 +97,63 @@ const CommentsModal = ({
 
   const handleCommentChange = (e) => {
     const text = e.target.value;
+    const pos = e.target.selectionStart;
+    setCursorPos(pos);
+
     if (replyTarget && !text.startsWith(`@${replyTarget.user}`)) {
       setReplyTarget(null);
     }
+
+    // Check for @ mention trigger
+    const textBeforeCursor = text.substring(0, pos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setShowMentions(true);
+        } else {
+          setShowMentions(false);
+        }
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+
     setCommentText(text);
+  };
+
+  const handleSelectionChange = (e) => {
+    setCursorPos(e.target.selectionStart);
+  };
+
+  const handleSelectMention = (username) => {
+    const textBeforeCursor = commentText.substring(0, cursorPos);
+    const textAfterCursor = commentText.substring(cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    const newText =
+      textBeforeCursor.substring(0, lastAtIndex) +
+      `@${username} ` +
+      textAfterCursor;
+
+    setCommentText(newText);
+    setShowMentions(false);
+
+    // Set focus back and move cursor after the inserted mention
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newPos = lastAtIndex + username.length + 2; // +1 for @, +1 for space
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
   };
 
   const handleLikeComment = (commentId) => {
@@ -251,8 +307,15 @@ const CommentsModal = ({
             </div>
             <form
               onSubmit={handleSubmitComment}
-              className="p-4 border-t border-gray-200 bg-white shrink-0"
+              className="p-4 border-t border-gray-200 bg-white shrink-0 relative"
             >
+              <MentionSuggestions
+                isOpen={showMentions}
+                onClose={() => setShowMentions(false)}
+                inputValue={commentText}
+                cursorPosition={cursorPos}
+                onSelect={handleSelectMention}
+              />
               {replyTarget && (
                 <div className="text-sm text-gray-600 mb-2 flex items-center">
                   Replying to
@@ -291,6 +354,8 @@ const CommentsModal = ({
                   ref={textareaRef}
                   value={commentText}
                   onChange={handleCommentChange}
+                  onSelect={handleSelectionChange}
+                  onKeyUp={handleSelectionChange}
                   placeholder="Add a comment..."
                   rows={1}
                   style={{ height: inputHeight }}

@@ -1,12 +1,15 @@
 import PropTypes from "prop-types";
 import { useState, useRef } from "react";
 import { Upload, Hash, X } from "lucide-react";
+import MentionSuggestions from "../common/MentionSuggestions";
 
 const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
   const { media = [], caption } = formData;
 
   const [charCount, setCharCount] = useState(caption?.length || 0);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showMentions, setShowMentions] = useState(false);
+  const [cursorPos, setCursorPos] = useState(0);
 
   // Hashtag input
   const [showHashtagInput, setShowHashtagInput] = useState(false);
@@ -21,12 +24,59 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
     if (disabled) return;
 
     const text = e.target.value;
+    const pos = e.target.selectionStart;
+    setCursorPos(pos);
+
     setCharCount(text.length);
+
+    // Check for @ mention trigger
+    const textBeforeCursor = text.substring(0, pos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setShowMentions(true);
+        } else {
+          setShowMentions(false);
+        }
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
 
     setFormData((prev) => ({
       ...prev,
       caption: text,
     }));
+  };
+
+  const handleSelectionChange = (e) => {
+    setCursorPos(e.target.selectionStart);
+  };
+
+  const handleSelectMention = (username) => {
+    const textBeforeCursor = (caption || "").substring(0, cursorPos);
+    const textAfterCursor = (caption || "").substring(cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    const newText =
+      textBeforeCursor.substring(0, lastAtIndex) +
+      `@${username} ` +
+      textAfterCursor;
+
+    setFormData((prev) => ({
+      ...prev,
+      caption: newText,
+    }));
+    setCharCount(newText.length);
+    setShowMentions(false);
   };
 
   const handleScroll = () => {
@@ -47,7 +97,10 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
     if (!tag.startsWith("#")) tag = `#${tag}`;
 
     const existing =
-      formData.hashtags?.split(",").map((h) => h.trim()).filter(Boolean) || [];
+      formData.hashtags
+        ?.split(",")
+        .map((h) => h.trim())
+        .filter(Boolean) || [];
 
     if (existing.includes(tag)) {
       setHashtagInput("");
@@ -71,7 +124,10 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
     if (disabled) return;
 
     const current =
-      formData.hashtags?.split(",").map((h) => h.trim()).filter(Boolean) || [];
+      formData.hashtags
+        ?.split(",")
+        .map((h) => h.trim())
+        .filter(Boolean) || [];
 
     const filtered = current.filter((t) => t !== tag);
 
@@ -81,15 +137,12 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
     }));
   };
 
-
   const handlePublish = async () => {
     try {
       await onPublish(); // API call handled outside
       // ❗ Do NOT setLoading(false). Parent handles redirect
-      
     } catch (err) {
       console.error("Publish failed:", err);
-      
     }
   };
 
@@ -101,14 +154,12 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
 
   return (
     <div className="w-full h-screen bg-white text-gray-800 flex flex-col relative">
-
       {/* Scrollable Content */}
       <div
         className={`flex-1 overflow-y-auto px-4 py-3 space-y-4 mb-24 ${
           disabled ? "pointer-events-none opacity-70" : ""
         }`}
       >
-
         {/* Media Preview */}
         {media.length > 0 ? (
           <div className="relative">
@@ -120,12 +171,20 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
               {media.map((item, index) => (
                 <div
                   key={index}
-                  className="relative min-w-[10rem] h-40 bg-gray-200 rounded-md overflow-hidden flex-shrink-0 snap-center"
+                  className="relative min-w-40 h-40 bg-gray-200 rounded-md overflow-hidden shrink-0 snap-center"
                 >
                   {item.type === "video" ? (
-                    <video src={item.url} className="w-full h-full object-cover" controls />
+                    <video
+                      src={item.url}
+                      className="w-full h-full object-cover"
+                      controls
+                    />
                   ) : (
-                    <img src={item.url} alt={`media-${index}`} className="w-full h-full object-cover" />
+                    <img
+                      src={item.url}
+                      alt={`media-${index}`}
+                      className="w-full h-full object-cover"
+                    />
                   )}
                 </div>
               ))}
@@ -154,26 +213,38 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
         )}
 
         {/* Caption */}
-        <textarea
-          disabled={disabled}
-          className="w-full border border-gray-400 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-lime-500 disabled:bg-gray-100"
-          rows="5"
-          placeholder="Describe your post..."
-          maxLength={500}
-          value={caption || ""}
-          onChange={handleCaptionChange}
-        />
+        <div className="relative">
+          <MentionSuggestions
+            isOpen={showMentions}
+            onClose={() => setShowMentions(false)}
+            inputValue={caption || ""}
+            cursorPosition={cursorPos}
+            onSelect={handleSelectMention}
+          />
+          <textarea
+            disabled={disabled}
+            className="w-full border border-gray-400 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-lime-500 disabled:bg-gray-100"
+            rows="5"
+            placeholder="Describe your post..."
+            maxLength={500}
+            value={caption || ""}
+            onChange={handleCaptionChange}
+            onSelect={handleSelectionChange}
+            onKeyUp={handleSelectionChange}
+          />
+        </div>
 
-        <p className="text-xs text-gray-400 text-right">{charCount}/500 characters</p>
+        <p className="text-xs text-gray-400 text-right">
+          {charCount}/500 characters
+        </p>
 
         {/* Hashtags */}
         <div className="space-y-2">
-
           <button
             type="button"
             disabled={disabled}
             onClick={() => setShowHashtagInput(true)}
-            className={`flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium 
+            className={`flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium
               ${disabled ? "bg-gray-200 cursor-not-allowed" : "hover:bg-gray-50"}
             `}
           >
@@ -218,7 +289,6 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
             </div>
           )}
         </div>
-
       </div>
 
       {/* ✅ Publish Button */}
@@ -232,10 +302,15 @@ const ContentPreview = ({ formData, onPublish, setFormData, loading }) => {
               : "bg-lime-500 hover:bg-lime-600"
           } text-black py-3 rounded-full font-semibold transition`}
         >
-          {loading ? <span>Posting...</span> : (<><Upload className="w-4 h-4 mr-1" /> Post</>)}
+          {loading ? (
+            <span>Posting...</span>
+          ) : (
+            <>
+              <Upload className="w-4 h-4 mr-1" /> Post
+            </>
+          )}
         </button>
       </div>
-
     </div>
   );
 };

@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { api, fetchPublicProfile, followUser } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Grid3x3,
   Heart,
@@ -18,9 +19,14 @@ import {
   UserPlus,
   UserCheck,
   Share2,
+  MoreHorizontal,
+  Link as IconLink,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ProfileFeedViewer from "./profileFeedViewer";
+import PostDetailOverlay from "./PostDetailOverlay";
 
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -30,6 +36,7 @@ const ProfileVisiting = () => {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [feedOverlay, setFeedOverlay] = useState({
     isOpen: false,
@@ -39,6 +46,12 @@ const ProfileVisiting = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const { userId, username } = useParams();
   const profileIdentifier = userId || username;
@@ -104,7 +117,7 @@ const ProfileVisiting = () => {
                 "/profile-icon.svg",
               like_count: item.likes_count ?? item.like_count ?? item.likes,
               view_count: item.views ?? item.view_count ?? item.visit_count,
-              comment_count:item.comment_count,
+              comment_count: item.comment_count,
               is_liked: item.is_liked ?? item.has_liked,
             };
           });
@@ -173,7 +186,6 @@ const ProfileVisiting = () => {
           products: fetchedProducts,
         };
 
-        // Robust parsing to catch strings, booleans, and nested payload variations
         const checkIsFollowing =
           result.is_following === true ||
           String(result.is_following).toLowerCase() === "true" ||
@@ -204,7 +216,6 @@ const ProfileVisiting = () => {
     const previousState = isFollowing;
     const newState = !isFollowing;
 
-    // Optimistic Update
     setIsFollowing(newState);
     setData((prev) => ({
       ...prev,
@@ -219,10 +230,8 @@ const ProfileVisiting = () => {
 
     try {
       const response = await followUser(targetId);
-
       const responseMsg = response?.message?.toLowerCase() || "";
 
-      // Hard-sync: If backend successfully unfollowed but our optimistic UI is true
       if (responseMsg.includes("unfollow") && newState === true) {
         setIsFollowing(false);
         setData((prev) => ({
@@ -232,9 +241,7 @@ const ProfileVisiting = () => {
             followers_count: Math.max(0, (prev.user.followers_count || 0) - 2),
           },
         }));
-      }
-      // Hard-sync: If backend successfully followed but our optimistic UI is false
-      else if (
+      } else if (
         responseMsg.includes("follow") &&
         !responseMsg.includes("unfollow") &&
         newState === false
@@ -247,9 +254,7 @@ const ProfileVisiting = () => {
             followers_count: (prev.user.followers_count || 0) + 2,
           },
         }));
-      }
-      // Fallback to explicit flag if message check fails
-      else if (response && typeof response.is_following !== "undefined") {
+      } else if (response && typeof response.is_following !== "undefined") {
         setIsFollowing(
           response.is_following === true ||
             String(response.is_following).toLowerCase() === "true",
@@ -259,7 +264,6 @@ const ProfileVisiting = () => {
       dispatch(fetchProfile());
     } catch (err) {
       console.error("Follow failed", err);
-      // Revert Optimistic Update on error
       setIsFollowing(previousState);
       setData((prev) => ({
         ...prev,
@@ -286,11 +290,11 @@ const ProfileVisiting = () => {
   if (error)
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
+        <div className="text-center px-4">
+          <p className="text-red-500 mb-4 font-semibold">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="text-lily font-semibold"
+            className="px-6 py-2 bg-lily text-white rounded-full font-bold"
           >
             Go Back
           </button>
@@ -305,19 +309,15 @@ const ProfileVisiting = () => {
   const renderGrid = (items, emptyMessage) => {
     if (!items || items.length === 0) {
       return (
-        <div className="flex flex-col items-center my-16 text-gray-400">
-          <Package size={64} className="mb-4 opacity-30" />
-          <p className="text-lg">{emptyMessage}</p>
+        <div className="flex flex-col items-center my-24 text-gray-400">
+          <Package size={64} className="mb-4 opacity-20" />
+          <p className="text-xl font-bold">{emptyMessage}</p>
         </div>
       );
     }
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-3 gap-3 my-2 px-4"
-      >
+      <div className="grid grid-cols-3 gap-1 md:gap-0 my-2 pt-1">
         {items.map((item, i) => {
           const mediaSrc =
             item.image_url ||
@@ -334,11 +334,8 @@ const ProfileVisiting = () => {
             (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
 
           return (
-            <motion.div
+            <div
               key={item.id || i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
               onClick={() => {
                 if (activeTab === "products") {
                   navigate(`/product-details/${item.id}`);
@@ -351,221 +348,254 @@ const ProfileVisiting = () => {
                   });
                 }
               }}
-              className="relative rounded-lg overflow-hidden cursor-pointer bg-black"
+              className="relative aspect-square overflow-hidden cursor-pointer group bg-gray-100"
             >
               {isVideo ? (
                 <video
                   src={mediaSrc}
-                  className="w-full aspect-square object-cover"
+                  className="w-full h-full object-cover"
                   muted
                 />
               ) : (
                 <img
                   src={mediaSrc}
                   alt="Post"
-                  className="w-full aspect-square object-cover"
+                  className="w-full h-full object-cover"
                 />
               )}
 
+              {/* Desktop Overlay */}
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center gap-6 text-white font-bold hidden md:flex">
+                <div className="flex items-center gap-2">
+                  <Heart fill="white" size={20} /> {item.like_count || 0}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Eye size={20} /> {item.view_count || item.visit_count || 0}
+                </div>
+              </div>
+
               {isVideo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <Play size={24} className="text-white" />
+                <div className="absolute top-2 right-2 text-white md:hidden">
+                  <Play size={18} fill="white" />
                 </div>
               )}
-
-              <div className="absolute bottom-1 left-1 flex items-center text-white text-xs bg-black/40 px-1 rounded">
-                <Eye size={15} className="mr-1" />
-                {item.views || item.view_count || item.visit_count || 0}
-              </div>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     );
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12 bg-white">
       {feedOverlay.isOpen && (
-        <ProfileFeedViewer
+        <PostDetailOverlay
           posts={feedOverlay.items}
           initialIndex={feedOverlay.initialIndex}
           onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
+          onDeleteSuccess={(postId) => {
+            // This is visiting profile, but if the visitor owns the post (e.g. tagged?),
+            // we might want to refresh. For now just handle it gracefully.
+            if (window.location.reload) {
+              // Or just let it close.
+            }
+          }}
         />
       )}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate(-1)}>
-            <ChevronLeft size={24} />
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">
+        <button onClick={() => navigate(-1)}>
+          <ChevronLeft size={28} />
+        </button>
+        <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
+        <div className="flex gap-4">
+          <button onClick={() => setDropdownOpen(!dropdownOpen)}>
+            <EllipsisVertical size={24} />
           </button>
-          <h2 className="font-semibold text-lg">
-            {user.username || "Profile"}
-          </h2>
+        </div>
+      </div>
+
+      <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-6 md:py-12">
+        {/* Avatar */}
+        <div className="flex justify-start md:justify-center md:w-1/3 mb-4 md:mb-0">
           <div className="relative">
-            <button onClick={() => setDropdownOpen(!dropdownOpen)}>
-              <EllipsisVertical size={24} />
-            </button>
-
-            <AnimatePresence>
-              {dropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 bg-white border rounded-xl shadow-lg z-50 w-48 overflow-hidden"
-                >
-                  <button className="flex items-center w-full px-4 py-3 text-sm hover:bg-gray-50">
-                    <Flag size={18} className="mr-3" /> Report
-                  </button>
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50">
-                    <Ban size={18} className="mr-3" /> Block User
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white pb-4">
-        <div className="px-4 pt-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative">
-              <img
-                src={user.profile_pic || "/user.png"}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
-              />
-              {user.verified && (
-                <div className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full">
-                  <CheckCircle2 size={16} />
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-xl">
-                  {user.full_name || user.username || "User"}
-                </h3>
-                {user.verified && (
-                  <CheckCircle2 size={18} className="text-blue-500" />
-                )}
+            <img
+              src={user.profile_pic || "/user.png"}
+              alt="Profile"
+              className="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border border-gray-200 p-1"
+            />
+            {user.verified && (
+              <div className="absolute bottom-1 right-1 bg-blue-500 text-white p-1 rounded-full border-2 border-white">
+                <CheckCircle2 size={12} className="md:w-4 md:h-4" />
               </div>
-              <p className="text-gray-500 text-sm">
-                @{user.username || "username"}
-              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="md:w-2/3 flex flex-col gap-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-normal">
+                @{user.username || "unknown"}
+              </h2>
+              <MoreHorizontal
+                className="cursor-pointer hidden md:block"
+                size={24}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              />
             </div>
           </div>
 
-          <p className="text-gray-700 text-sm leading-relaxed mb-4">
-            {user.bio || "No bio yet."}
-          </p>
-
-          <div className="flex items-center justify-around py-4 border-t border-b border-gray-200">
-            <div className="text-center">
-              <p className="font-bold text-2xl">{posts.length}</p>
-              <p className="text-gray-600 text-sm">Posts</p>
+          {/* Stats - Desktop Only */}
+          <div className="hidden md:flex gap-10">
+            <div>
+              <span className="font-semibold">{posts.length}</span> posts
             </div>
-            <Link to={`/followers/${user.id || ""}`} className="text-center">
-              <p className="font-bold text-2xl">{user.followers_count || 0}</p>
-              <p className="text-gray-600 text-sm">Followers</p>
+            <Link to={`/followers/${user.id || ""}`}>
+              <div>
+                <span className="font-semibold">
+                  {user.followers_count || 0}
+                </span>{" "}
+                followers
+              </div>
             </Link>
-            <Link to={`/following/${user.id || ""}`} className="text-center">
-              <p className="font-bold text-2xl">{user.following_count || 0}</p>
-              <p className="text-gray-600 text-sm">Following</p>
+            <Link to={`/following/${user.id || ""}`}>
+              <div>
+                <span className="font-semibold">
+                  {user.following_count || 0}
+                </span>{" "}
+                following
+              </div>
             </Link>
           </div>
 
-          <div className="flex gap-3 mt-4">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleFollow}
-              disabled={followLoading}
-              className={`flex-1 py-2.5 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                isFollowing
-                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  : "bg-lily text-white hover:bg-darklily"
-              }`}
+          {/* Name and Bio */}
+          <div>
+            <h3 className="font-semibold text-sm md:text-base">
+              {user.full_name || user.username || "User"}
+            </h3>
+            <div
+              className="flex items-center gap-1 text-gray-500 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit"
+              onClick={() => {
+                const profileUrl = `${window.location.origin}/profile/${user.id}`;
+                navigator.clipboard.writeText(profileUrl);
+                toast.success("Profile link copied!");
+              }}
             >
-              {isFollowing ? (
-                <>
-                  <UserCheck size={18} />
-                  Following
-                </>
-              ) : (
-                <>
-                  <UserPlus size={18} />
-                  Follow
-                </>
-              )}
-            </motion.button>
+              <IconLink size={14} />
+              <span>@{user.username || "unknown"}</span>
+            </div>
+            <p className="text-sm whitespace-pre-wrap leading-tight">
+              {user.bio || "No bio yet."}
+            </p>
+          </div>
+        </div>
+      </header>
 
-            <Link to={`/messages/new?user=${user.id}`} className="flex-1">
-              <button className="w-full py-2.5 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center justify-center gap-2">
-                <MessageCircle size={18} />
-                Message
+      {/* Stats - Mobile Only */}
+      <div className="md:hidden flex justify-around py-4 border-t border-b border-gray-100 text-center mb-4">
+        <div className="flex flex-col">
+          <span className="font-bold">{posts.length}</span>
+          <span className="text-gray-400 text-xs">posts</span>
+        </div>
+        <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
+          <span className="font-bold">{user.followers_count || 0}</span>
+          <span className="text-gray-400 text-xs">followers</span>
+        </Link>
+        <Link to={`/following/${user.id || ""}`} className="flex flex-col">
+          <span className="font-bold">{user.following_count || 0}</span>
+          <span className="text-gray-400 text-xs">following</span>
+        </Link>
+      </div>
+
+      {/* Action Buttons - Repositioned */}
+      <div className="flex flex-row gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100 mb-4">
+        <button
+          onClick={handleFollow}
+          disabled={followLoading}
+          className={`flex-1 py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
+            isFollowing
+              ? "bg-gray-100 border-gray-100 text-gray-700 hover:bg-gray-200"
+              : "border-lily text-lily hover:bg-lily/5"
+          }`}
+        >
+          {isFollowing ? "Following" : "Follow"}
+        </button>
+
+        <Link to={`/messages/new?user=${user.id}`} className="flex-1">
+          <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
+            Message
+          </button>
+        </Link>
+
+        <button className="px-4 py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
+          <Share2 size={18} className="mx-auto" />
+        </button>
+      </div>
+      {/* Tabs */}
+      <div className="flex md:justify-center border-t border-gray-200">
+        <button
+          onClick={() => setActiveTab("posts")}
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all border-t-2 ${
+            activeTab === "posts"
+              ? "border-lily text-lily"
+              : "border-transparent text-gray-400"
+          }`}
+        >
+          <Grid3x3 size={16} /> <span className="hidden md:inline">POSTS</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("products")}
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all border-t-2 ${
+            activeTab === "products"
+              ? "border-lily text-lily"
+              : "border-transparent text-gray-400"
+          }`}
+        >
+          <Package size={16} />{" "}
+          <span className="hidden md:inline">PRODUCTS</span>
+        </button>
+      </div>
+
+      <div className="w-full">
+        {activeTab === "posts" && renderGrid(posts, "No posts yet")}
+        {activeTab === "products" && renderGrid(products, "No products yet")}
+      </div>
+
+      {/* Dropdown Menu Overlay */}
+      <AnimatePresence>
+        {dropdownOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setDropdownOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-xl overflow-hidden w-full max-w-sm z-10"
+            >
+              <button className="w-full py-4 text-red-600 font-bold border-b border-gray-100 hover:bg-gray-50">
+                Block
               </button>
-            </Link>
-
-            <button className="p-2.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-              <Share2 size={18} />
-            </button>
+              <button className="w-full py-4 text-red-600 font-bold border-b border-gray-100 hover:bg-gray-50">
+                Report
+              </button>
+              <button
+                className="w-full py-4 border-b border-gray-100 hover:bg-gray-50"
+                onClick={() => setDropdownOpen(false)}
+              >
+                Cancel
+              </button>
+            </motion.div>
           </div>
-        </div>
-      </div>
-
-      <div className="sticky top-14.25 z-30 bg-white border-b border-gray-200">
-        <div className="flex">
-          <button
-            onClick={() => setActiveTab("posts")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "posts"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
-            }`}
-          >
-            <Grid3x3 size={20} />
-            <span className="text-sm font-semibold">Posts</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("products")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "products"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
-            }`}
-          >
-            <Package size={20} />
-            <span className="text-sm font-semibold">Products</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white">
-        <AnimatePresence mode="wait">
-          {activeTab === "posts" && (
-            <motion.div
-              key="posts"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              {renderGrid(posts, "No posts yet")}
-            </motion.div>
-          )}
-          {activeTab === "products" && (
-            <motion.div
-              key="products"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              {renderGrid(products, "No products yet")}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,8 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct, resetAddProductState } from "../../redux/addProductSlice";
-import { FiPlus, FiTrash2, FiImage, FiX, FiCheck, FiAlertCircle } from "react-icons/fi";
+import {
+  FiPlus,
+  FiTrash2,
+  FiImage,
+  FiX,
+  FiCheck,
+  FiAlertCircle,
+} from "react-icons/fi";
+import MentionSuggestions from "../common/MentionSuggestions";
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"];
@@ -11,21 +19,42 @@ const AddProducts = () => {
   const { shop_id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  const { status, error: apiError, success } = useSelector(
-    (state) => state.addProduct
-  );
-  
+
+  const {
+    status,
+    error: apiError,
+    success,
+  } = useSelector((state) => state.addProduct);
+
   const isLoading = status === "loading";
 
   const [products, setProducts] = useState([
-    { id: Date.now(), name: "", price: "", image: null, preview: null, errors: {} },
+    {
+      id: Date.now(),
+      name: "",
+      price: "",
+      caption: "",
+      image: null,
+      preview: null,
+      errors: {},
+    },
   ]);
+
+  const [mentionConfig, setMentionConfig] = useState({
+    show: false,
+    productId: null,
+    cursorPos: 0,
+  });
+
+  const productsRef = useRef(products);
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
 
   // Cleanup effect
   useEffect(() => {
     return () => {
-      products.forEach((product) => {
+      productsRef.current.forEach((product) => {
         if (product.preview) {
           URL.revokeObjectURL(product.preview);
         }
@@ -81,19 +110,78 @@ const AddProducts = () => {
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id !== productId) return p;
-        
+
         const updated = { ...p, [field]: value };
-        
+
         // Clear error for this field
         if (updated.errors[field]) {
           const newErrors = { ...updated.errors };
           delete newErrors[field];
           updated.errors = newErrors;
         }
-        
+
         return updated;
-      })
+      }),
     );
+  };
+
+  const handleCaptionChange = (productId, e) => {
+    const text = e.target.value;
+    const pos = e.target.selectionStart;
+
+    updateProductField(productId, "caption", text);
+
+    // Check for @ mention trigger
+    const textBeforeCursor = text.substring(0, pos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setMentionConfig({
+            show: true,
+            productId,
+            cursorPos: pos,
+          });
+        } else {
+          setMentionConfig((prev) => ({ ...prev, show: false }));
+        }
+      } else {
+        setMentionConfig((prev) => ({ ...prev, show: false }));
+      }
+    } else {
+      setMentionConfig((prev) => ({ ...prev, show: false }));
+    }
+  };
+
+  const handleSelectionChange = (productId, e) => {
+    setMentionConfig((prev) => ({
+      ...prev,
+      productId,
+      cursorPos: e.target.selectionStart,
+    }));
+  };
+
+  const handleSelectMention = (username) => {
+    const { productId, cursorPos } = mentionConfig;
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const textBeforeCursor = product.caption.substring(0, cursorPos);
+    const textAfterCursor = product.caption.substring(cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    const newText =
+      textBeforeCursor.substring(0, lastAtIndex) +
+      `@${username} ` +
+      textAfterCursor;
+
+    updateProductField(productId, "caption", newText);
+    setMentionConfig((prev) => ({ ...prev, show: false }));
   };
 
   const handleImageChange = (productId, file) => {
@@ -107,12 +195,12 @@ const AddProducts = () => {
         if (p.preview) URL.revokeObjectURL(p.preview);
 
         const errors = { ...p.errors };
-        
+
         if (!ALLOWED_TYPES.includes(file.type)) {
           errors.image = "Only JPEG and PNG images allowed";
           return { ...p, errors };
         }
-        
+
         if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
           errors.image = `Image must not exceed ${MAX_FILE_SIZE_MB}MB`;
           return { ...p, errors };
@@ -126,7 +214,7 @@ const AddProducts = () => {
           preview: URL.createObjectURL(file),
           errors,
         };
-      })
+      }),
     );
   };
 
@@ -136,14 +224,22 @@ const AddProducts = () => {
         if (p.id !== productId) return p;
         if (p.preview) URL.revokeObjectURL(p.preview);
         return { ...p, image: null, preview: null };
-      })
+      }),
     );
   };
 
   const addProductRow = () => {
     setProducts((prev) => [
       ...prev,
-      { id: Date.now(), name: "", price: "", image: null, preview: null, errors: {} },
+      {
+        id: Date.now(),
+        name: "",
+        price: "",
+        caption: "",
+        image: null,
+        preview: null,
+        errors: {},
+      },
     ]);
   };
 
@@ -169,7 +265,7 @@ const AddProducts = () => {
     setProducts(validatedProducts);
 
     const hasErrors = validatedProducts.some(
-      (p) => Object.keys(p.errors).length > 0
+      (p) => Object.keys(p.errors).length > 0,
     );
 
     if (hasErrors) {
@@ -177,12 +273,13 @@ const AddProducts = () => {
     }
 
     const formData = new FormData();
-    
+
     const productsData = products.map((p) => ({
       name: p.name.trim(),
       price: parseFloat(p.price),
+      caption: p.caption?.trim() || "",
     }));
-    
+
     formData.append("products", JSON.stringify(productsData));
 
     products.forEach((p) => {
@@ -322,12 +419,40 @@ const AddProducts = () => {
               )}
             </div>
 
+            {/* Product Caption */}
+            <div className="mb-4 relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Caption (Supports @mentions)
+              </label>
+              <MentionSuggestions
+                isOpen={
+                  mentionConfig.show && mentionConfig.productId === product.id
+                }
+                onClose={() =>
+                  setMentionConfig((prev) => ({ ...prev, show: false }))
+                }
+                inputValue={product.caption}
+                cursorPosition={mentionConfig.cursorPos}
+                onSelect={handleSelectMention}
+              />
+              <textarea
+                value={product.caption}
+                onChange={(e) => handleCaptionChange(product.id, e)}
+                onSelect={(e) => handleSelectionChange(product.id, e)}
+                onKeyUp={(e) => handleSelectionChange(product.id, e)}
+                disabled={isLoading}
+                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:border-lily focus:ring-1 focus:ring-lily outline-none transition-all"
+                placeholder="Describe your product... use @username to mention"
+                rows="3"
+              />
+            </div>
+
             {/* Product Image */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Product Image *
               </label>
-              
+
               {!product.preview ? (
                 <div
                   className={`flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
