@@ -53,6 +53,13 @@ const extractArray = (data) => {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.results)) return data.results;
   if (Array.isArray(data.feed)) return data.feed;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.data)) return data.data;
+  // Try to find any array property
+  const arrayProp = Object.keys(data).find(
+    (key) => Array.isArray(data[key]) && data[key].length > 0
+  );
+  if (arrayProp) return data[arrayProp];
   return [];
 };
 
@@ -87,29 +94,70 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Top");
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
+  const [userLocation, setUserLocation] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          });
+        },
+        () => {}
+      );
+    }
+  }, []);
+
+  const buildParams = () => {
+    const term = debouncedSearchTerm.trim();
+    if (!term) return null;
+    const params = { search: term };
+    if (userLocation) {
+      params.lat = userLocation.lat;
+      params.lon = userLocation.lon;
+    }
+    return params;
+  };
+
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
-    queryKey: ["searchProducts", debouncedSearchTerm],
-    queryFn: () => fetchProducts({ search: debouncedSearchTerm }),
-    select: extractProducts,
+    queryKey: ["searchProducts", debouncedSearchTerm, userLocation],
+    queryFn: async () => {
+      const raw = await fetchProducts(buildParams());
+      return extractArray(raw);
+    },
     enabled:
       (activeTab === "Top" || activeTab === "Products") &&
       !!debouncedSearchTerm,
   });
 
   const { data: shopResults, isLoading: isSearchingShops } = useQuery({
-    queryKey: ["searchShops", debouncedSearchTerm],
-    queryFn: () => searchShops(debouncedSearchTerm),
-    select: extractArray,
+    queryKey: ["searchShops", debouncedSearchTerm, userLocation],
+    queryFn: async () => {
+      const params = buildParams();
+      console.log("🔍 Search Shops API call:", {
+        url: "/shops/",
+        params,
+        hasLocation: !!userLocation,
+        lat: params?.lat,
+        lon: params?.lon,
+      });
+      const raw = await searchShops(params);
+      return extractArray(raw);
+    },
     enabled:
       (activeTab === "Top" || activeTab === "Shops") && !!debouncedSearchTerm,
   });
 
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
-    queryKey: ["searchContents", debouncedSearchTerm],
-    queryFn: () => searchContents(debouncedSearchTerm),
-    select: extractContents,
+    queryKey: ["searchContents", debouncedSearchTerm, userLocation],
+    queryFn: async () => {
+      const raw = await searchContents(buildParams());
+      const arr = extractArray(raw);
+      return extractContents({ results: arr });
+    },
     enabled:
       (activeTab === "Top" || activeTab === "Contents") &&
       !!debouncedSearchTerm,

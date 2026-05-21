@@ -247,15 +247,18 @@ export const fetchContentById = async (contentId) => {
   return response.data;
 };
 
-export const searchShops = async (searchTerm) => {
-  const response = await api.get("/shops/", { params: { search: searchTerm } });
+export const searchShops = async (params = {}) => {
+  const response = await api.get("/shops/", { params });
   return response.data;
 };
 
-export const searchContents = async (searchTerm) => {
-  const response = await api.get("/shops/feed/", {
-    params: { search: searchTerm },
-  });
+export const searchProducts = async (params = {}) => {
+  const response = await api.get("/shops/products/search/", { params });
+  return response.data;
+};
+
+export const searchContents = async (params = {}) => {
+  const response = await api.get("/shops/feed/", { params });
   return response.data;
 };
 

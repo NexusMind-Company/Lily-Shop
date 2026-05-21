@@ -2,16 +2,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
 import ErrorDisplay from "../common/ErrorDisplay";
 import Ratings from "./ratings";
 import ContactVendorButton from "../subscription/ContactVendorButton";
+import ReviewModal from "../common/ReviewModal";
+import { ReviewCard } from "../common/ReviewList";
+import { fetchVendorReviews } from "../../services/api";
 import {
   ChevronLeft, MapPin, Phone, Share2, MessageCircle,
   Star, Store, Eye, Package, Grid3x3, ShoppingCart,
-  Plus, Minus, Check, Heart
+  Plus, Minus, Check, Heart, Edit3
 } from "lucide-react";
 
 const ShopDetails = () => {
@@ -30,6 +34,13 @@ const ShopDetails = () => {
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
   const [following, setFollowing] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const { data: reviews } = useQuery({
+    queryKey: ["shopReviews", id],
+    queryFn: () => fetchVendorReviews(id),
+    enabled: !!id,
+  });
 
   useEffect(() => {
     dispatch(fetchShopById(id));
@@ -148,9 +159,20 @@ const ShopDetails = () => {
               <p className="text-gray-600 text-sm">Visitors</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-xl">4.5</p>
+              <p className="font-bold text-xl">{Number(shop.avg_rating || 0).toFixed(1)}</p>
               <p className="text-gray-600 text-sm">Rating</p>
             </div>
+          </div>
+
+          {/* Write Review Button */}
+          <div className="px-4 mt-4">
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-600 hover:from-amber-100 hover:to-orange-100 transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Star size={18} className="fill-amber-400 text-amber-400" />
+              Write a Review
+            </button>
           </div>
 
           {/* Action Buttons */}
@@ -334,12 +356,33 @@ const ShopDetails = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-4"
+              className="p-4 space-y-4"
             >
-              <div className="text-center py-16">
-                <Star size={64} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">No reviews yet</p>
-              </div>
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-600 hover:from-amber-100 hover:to-orange-100 transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Star size={18} className="fill-amber-400 text-amber-400" />
+                Write a Review
+              </button>
+
+              {(reviews?.results || []).length > 0 ? (
+                <div className="space-y-3">
+                  {(reviews?.results || []).map((review, idx) => (
+                    <ReviewCard
+                      key={review.id}
+                      review={review}
+                      isLast={idx === (reviews.results.length - 1)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                  <Star size={48} className="mx-auto text-gray-300 mb-4" />
+                  <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
+                  <p className="text-sm text-gray-400">Be the first to share your experience!</p>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -378,6 +421,13 @@ const ShopDetails = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        vendorId={id}
+        vendorName={shop?.name}
+      />
     </div>
   );
 };
