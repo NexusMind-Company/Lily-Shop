@@ -45,7 +45,7 @@ img[loading="lazy"] {
     }
 
     .input {
-        @apply w-full border-black border-solid border-[1px] h-14 px-4 rounded-[7px];
+        @apply w-full border-black border-solid border h-14 px-4 rounded-[7px];
     }
 
     .bLabel {
