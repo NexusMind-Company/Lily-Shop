@@ -20,6 +20,7 @@ import {
 import CommentItem from "../feed/comments/commentItem";
 import { CommentSkeleton } from "../common/skeletons";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   likeProduct,
   likeContent,
@@ -31,6 +32,8 @@ import {
   deleteProductPost,
 } from "../../services/api";
 import MentionSuggestions from "../common/MentionSuggestions";
+import CommentsModal from "../feed/comments/commentsModal";
+import ShareModal from "../feed/share/shareModal";
 import toast from "react-hot-toast";
 
 const PostDetailOverlay = ({
@@ -49,6 +52,7 @@ const PostDetailOverlay = ({
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   const dropdownRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const authState = useSelector((state) => state.auth);
   const profileState = useSelector((state) => state.profile);
@@ -67,6 +71,10 @@ const PostDetailOverlay = ({
   const [likeCount, setLikeCount] = useState(post?.like_count || 0);
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
+
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [activeModalPost, setActiveModalPost] = useState(null);
 
   const isProduct = post?.itemType === "product" || post?.type === "product";
 
@@ -126,35 +134,67 @@ const PostDetailOverlay = ({
     }
   };
 
-  const handleLike = async (targetPost) => {
-    if (!isAuthenticated) return navigate("/login");
-
-    const target = targetPost || post;
-    const isCurrentPost = target.id === post?.id;
-
-    const prevLiked = isCurrentPost ? isLiked : target.is_liked;
-
-    // Optimistic UI update (for single post view)
-    if (isCurrentPost) {
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
-    }
-
-    try {
+  const { mutate: toggleLike } = useMutation({
+    mutationFn: async (target) => {
       const isTargetProduct =
         target.itemType === "product" || target.type === "product";
       if (isTargetProduct) {
-        await likeProduct(target.id);
+        return likeProduct(target.id);
       } else {
-        await likeContent(target.id);
+        return likeContent(target.id);
       }
-    } catch (error) {
+    },
+    onMutate: async (target) => {
+      if (!isAuthenticated) return;
+
+      const isCurrentPost = target.id === post?.id;
+
       if (isCurrentPost) {
-        setIsLiked(prevLiked);
-        setLikeCount(post.like_count || 0);
+        const previousIsLiked = isLiked;
+        const previousLikeCount = likeCount;
+        const newIsLiked = !previousIsLiked;
+        const newLikeCount = newIsLiked
+          ? previousLikeCount + 1
+          : Math.max(0, previousLikeCount - 1);
+
+        setIsLiked(newIsLiked);
+        setLikeCount(newLikeCount);
+        return { previousIsLiked, previousLikeCount, isCurrentPost: true };
+      }
+
+      // For mobile posts that aren't the "current" one in the sidebar
+      // We'd need to update the posts array if we wanted to reflect it everywhere,
+      // but since we're using a prop, we can't easily.
+      // However, we can at least fire the API call.
+      return { isCurrentPost: false };
+    },
+    onError: (err, target, context) => {
+      if (context?.isCurrentPost) {
+        setIsLiked(context.previousIsLiked);
+        setLikeCount(context.previousLikeCount);
       }
       toast.error("Failed to update like");
-    }
+    },
+    onSuccess: (data, target) => {
+      if (target.id === post?.id && data && data.like_count !== undefined) {
+        setLikeCount(Number(data.like_count));
+      }
+    },
+  });
+
+  const handleLike = (targetPost) => {
+    if (!isAuthenticated) return navigate("/login");
+    toggleLike(targetPost || post);
+  };
+
+  const handleOpenComments = (targetPost) => {
+    setActiveModalPost(targetPost || post);
+    setShowCommentsModal(true);
+  };
+
+  const handleOpenShare = (targetPost) => {
+    setActiveModalPost(targetPost || post);
+    setShowShareModal(true);
   };
 
   const handleCommentChange = (e) => {
@@ -277,7 +317,6 @@ const PostDetailOverlay = ({
     const itemIsVideo =
       item.is_video ||
       (typeof itemMediaSrc === "string" && itemMediaSrc.endsWith(".mp4"));
-    const isOwner = currentUserId === item.user_id;
 
     return (
       <div
@@ -327,7 +366,7 @@ const PostDetailOverlay = ({
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => handleLike(item)} // This needs handleLike to take post param or update
+              onClick={() => handleLike(item)}
               className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
             >
               <Heart
@@ -340,10 +379,16 @@ const PostDetailOverlay = ({
                 <span className="font-bold text-sm">{item.like_count}</span>
               )}
             </button>
-            <button className="hover:opacity-70 transition-opacity">
+            <button
+              onClick={() => handleOpenComments(item)}
+              className="hover:opacity-70 transition-opacity"
+            >
               <MessageCircle size={26} className="text-black" />
             </button>
-            <button className="hover:opacity-70 transition-opacity">
+            <button
+              onClick={() => handleOpenShare(item)}
+              className="hover:opacity-70 transition-opacity"
+            >
               <Send size={26} className="text-black" />
             </button>
           </div>
@@ -549,6 +594,18 @@ const PostDetailOverlay = ({
                       }
                     />
                   </button>
+                  <button
+                    onClick={() => handleOpenComments(post)}
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    <MessageCircle size={26} className="text-black" />
+                  </button>
+                  <button
+                    onClick={() => handleOpenShare(post)}
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    <Send size={26} className="text-black" />
+                  </button>
                 </div>
               </div>
 
@@ -662,6 +719,30 @@ const PostDetailOverlay = ({
               </button>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCommentsModal && activeModalPost && (
+          <CommentsModal
+            isOpen={showCommentsModal}
+            onClose={() => setShowCommentsModal(false)}
+            postId={activeModalPost.id}
+            itemType={activeModalPost.itemType || activeModalPost.type}
+            totalComments={activeModalPost.comment_count}
+            onCommentCountUpdate={() => {
+              // Optionally refresh comments here
+            }}
+          />
+        )}
+
+        {showShareModal && activeModalPost && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            postUrl={`${window.location.origin}/product/${activeModalPost.id}`}
+            postCaption={activeModalPost.caption || activeModalPost.name}
+          />
         )}
       </AnimatePresence>
 
