@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 import CartModal from "./cart/cartModal";
 import SearchModal from "./searchModal";
 
@@ -27,7 +27,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <div className="flex items-center h-16 px-4 bg-black/50 fixed top-0 left-0 right-0 z-50 pointer-events-none">
+    <div className="flex items-center h-16 px-4 absolute top-0 left-0 right-0 z-50 pointer-events-none">
       <div className="relative flex items-center justify-center w-full max-w-4xl mx-auto h-full pointer-events-auto">
         <div className="relative flex gap-8">
           <button
@@ -71,16 +71,19 @@ const TopNav = ({ activeTab, setActiveTab }) => {
             className="p-1 hover:bg-white/10 rounded-full transition-colors"
             onClick={() => setIsSearchModalOpen(true)}
           >
-            <img src="/icons/search-icon.svg" alt="Search" className="w-6 h-6" style={{ backgroundColor: 'transparent' }} />
+            <img
+              src="/icons/search-icon.svg"
+              alt="Search"
+              className="w-6 h-6"
+              style={{ backgroundColor: "transparent" }}
+            />
           </button>
 
-          <button className="relative p-1 hover:bg-white/10 rounded-full transition-colors" onClick={handleOpenCart}>
-            <img
-              src="./icons/cart.svg"
-              alt="Cart"
-              className="w-6 h-6"
-              style={{ backgroundColor: 'transparent' }}
-            />
+          <button
+            className="relative p-1 hover:bg-white/10 rounded-full transition-colors"
+            onClick={handleOpenCart}
+          >
+            <img src="./icons/cart.svg" alt="Cart" className="w-6 h-6" />
             {cartItemCount > 0 && (
               <div className="bg-lily grid place-items-center rounded-full min-w-[18px] h-[18px] px-1 absolute -top-1 -right-1">
                 <p className="font-semibold text-center text-[10px] text-white leading-none">
