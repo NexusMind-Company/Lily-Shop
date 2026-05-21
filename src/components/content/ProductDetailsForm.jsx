@@ -1,19 +1,76 @@
 import PropTypes from "prop-types";
+import { useState } from "react";
+import MentionSuggestions from "../common/MentionSuggestions";
 
 const ProductDetailsForm = ({ formData, setFormData }) => {
+  const [showMentions, setShowMentions] = useState(false);
+  const [cursorPos, setCursorPos] = useState(0);
+
   const updateField = (patch) =>
     setFormData({
       ...formData,
       ...patch,
     });
 
+  const handleCaptionChange = (e) => {
+    const text = e.target.value;
+    const pos = e.target.selectionStart;
+    setCursorPos(pos);
+
+    updateField({ caption: text });
+
+    // Check for @ mention trigger
+    const textBeforeCursor = text.substring(0, pos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      // Trigger if @ is at start or after a space
+      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
+      const isStartOrSpace = lastAtIndex === 0 || /\s/.test(charBeforeAt);
+
+      if (isStartOrSpace) {
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+        if (!textAfterAt.includes(" ")) {
+          setShowMentions(true);
+        } else {
+          setShowMentions(false);
+        }
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  const handleSelectionChange = (e) => {
+    setCursorPos(e.target.selectionStart);
+  };
+
+  const handleSelectMention = (username) => {
+    const textBeforeCursor = (formData.caption || "").substring(0, cursorPos);
+    const textAfterCursor = (formData.caption || "").substring(cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    const newText =
+      textBeforeCursor.substring(0, lastAtIndex) +
+      `@${username} ` +
+      textAfterCursor;
+
+    updateField({ caption: newText });
+    setShowMentions(false);
+  };
+
   return (
     <div className="bg-white border border-gray-400 rounded-2xl p-5 mt-4">
-      <h3 className="font-semibold text-lg mb-4 text-center text-gray-900">Product Details</h3>
+      <h3 className="font-semibold text-lg mb-4 text-center text-gray-900">
+        Product Details
+      </h3>
 
       {/* Product Name */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1"><span className="text-red-500">* </span> Product Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1">
+          <span className="text-red-500">* </span> Product Name
+        </label>
         <input
           type="text"
           maxLength={50}
@@ -25,9 +82,34 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
         <p className="text-xs text-gray-400 mt-1">Max 50 characters</p>
       </div>
 
+      {/* Caption/Description with Mentions */}
+      <div className="mb-4 relative">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Caption (Supports @mentions)
+        </label>
+        <MentionSuggestions
+          isOpen={showMentions}
+          onClose={() => setShowMentions(false)}
+          inputValue={formData.caption || ""}
+          cursorPosition={cursorPos}
+          onSelect={handleSelectMention}
+        />
+        <textarea
+          rows={3}
+          className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
+          placeholder="Describe your product... use @username to mention"
+          value={formData.caption}
+          onChange={handleCaptionChange}
+          onSelect={handleSelectionChange}
+          onKeyUp={handleSelectionChange}
+        />
+      </div>
+
       {/* Price */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1"><span className="text-red-500">* </span>Price (₦)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 gap-1">
+          <span className="text-red-500">* </span>Price (₦)
+        </label>
         <input
           type="number"
           min="0"
@@ -41,7 +123,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
       {/* In Stock */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">In Stock</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          In Stock
+        </label>
         <div className="flex gap-4">
           <label className="flex items-center">
             <input
@@ -69,7 +153,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
       {/* Quantity Available */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity Available</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Quantity Available
+        </label>
         <input
           type="number"
           min="0"
@@ -84,7 +170,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
       {/* Delivery Info */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Info</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Delivery Info
+        </label>
         <textarea
           rows={3}
           className="w-full border border-gray-300 rounded-lg p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
@@ -96,7 +184,9 @@ const ProductDetailsForm = ({ formData, setFormData }) => {
 
       {/* Promotable */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Promotable</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Promotable
+        </label>
         <div className="flex gap-4">
           <label className="flex items-center">
             <input
@@ -130,7 +220,10 @@ ProductDetailsForm.propTypes = {
     name: PropTypes.string,
     price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     inStock: PropTypes.bool,
-    quantity_available: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    quantity_available: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
     delivery_info: PropTypes.string,
     promotable: PropTypes.bool,
   }).isRequired,
