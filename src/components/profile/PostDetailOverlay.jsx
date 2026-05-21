@@ -5,6 +5,8 @@ import {
   ChevronRight,
   Heart,
   MoreHorizontal,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,13 +27,23 @@ import {
   recordContentView,
   deleteProductComment,
   deleteContentComment,
+  deleteContentPost,
+  deleteProductPost,
 } from "../../services/api";
 import MentionSuggestions from "../common/MentionSuggestions";
 import toast from "react-hot-toast";
 
-const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
+const PostDetailOverlay = ({
+  posts,
+  initialIndex,
+  onClose,
+  onDeleteSuccess,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPost, setDropdownPost] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const containerRef = useRef(null);
   const post = posts[currentIndex];
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -59,9 +71,22 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
   const isProduct = post?.itemType === "product" || post?.type === "product";
 
   useEffect(() => {
+    // Scroll to the initial post on mobile
+    if (containerRef.current && window.innerWidth < 768) {
+      const element = document.getElementById(
+        `post-${posts[initialIndex]?.id}`,
+      );
+      if (element) {
+        element.scrollIntoView({ behavior: "auto" });
+      }
+    }
+  }, [initialIndex, posts]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
+        setDropdownPost(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -101,22 +126,33 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
     }
   };
 
-  const handleLike = async () => {
+  const handleLike = async (targetPost) => {
     if (!isAuthenticated) return navigate("/login");
 
-    const prevLiked = isLiked;
-    setIsLiked(!isLiked);
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+    const target = targetPost || post;
+    const isCurrentPost = target.id === post?.id;
+
+    const prevLiked = isCurrentPost ? isLiked : target.is_liked;
+
+    // Optimistic UI update (for single post view)
+    if (isCurrentPost) {
+      setIsLiked(!isLiked);
+      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+    }
 
     try {
-      if (isProduct) {
-        await likeProduct(post.id);
+      const isTargetProduct =
+        target.itemType === "product" || target.type === "product";
+      if (isTargetProduct) {
+        await likeProduct(target.id);
       } else {
-        await likeContent(post.id);
+        await likeContent(target.id);
       }
     } catch (error) {
-      setIsLiked(prevLiked);
-      setLikeCount(post.like_count || 0);
+      if (isCurrentPost) {
+        setIsLiked(prevLiked);
+        setLikeCount(post.like_count || 0);
+      }
       toast.error("Failed to update like");
     }
   };
@@ -202,6 +238,142 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
     }
   };
 
+  const handleDeletePost = async () => {
+    const postToDelete = dropdownPost || post;
+    if (!isAuthenticated || isDeleting || !postToDelete) return;
+
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    setIsDeleting(true);
+    try {
+      const isTargetProduct =
+        postToDelete?.itemType === "product" ||
+        postToDelete?.type === "product";
+      if (isTargetProduct) {
+        await deleteProductPost(postToDelete.id);
+      } else {
+        await deleteContentPost(postToDelete.id);
+      }
+      toast.success("Post deleted successfully");
+      setShowDropdown(false);
+      setDropdownPost(null);
+      if (onDeleteSuccess) {
+        onDeleteSuccess(postToDelete.id);
+      }
+      if (window.innerWidth >= 768) {
+        onClose();
+      }
+    } catch (error) {
+      toast.error("Failed to delete post");
+      console.error("Delete error:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const MobilePostItem = ({ item }) => {
+    const itemMediaSrc =
+      item.image_url || item.media || item.image || "/placeholder.png";
+    const itemIsVideo =
+      item.is_video ||
+      (typeof itemMediaSrc === "string" && itemMediaSrc.endsWith(".mp4"));
+    const isOwner = currentUserId === item.user_id;
+
+    return (
+      <div
+        id={`post-${item.id}`}
+        className="bg-white border-b border-gray-100 last:border-b-0 pb-6"
+      >
+        {/* Post Header */}
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={item.userpic || "/profile-icon.svg"}
+              alt={item.username}
+              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+            />
+            <span className="font-bold text-sm">@{item.username}</span>
+          </div>
+          <button
+            onClick={() => {
+              setDropdownPost(item);
+              setShowDropdown(true);
+            }}
+            className="text-black"
+          >
+            <MoreHorizontal size={20} />
+          </button>
+        </div>
+
+        {/* Media */}
+        <div className="w-full bg-gray-50 aspect-square flex items-center justify-center overflow-hidden">
+          {itemIsVideo ? (
+            <video
+              src={itemMediaSrc}
+              className="w-full h-full object-cover"
+              controls
+              muted
+            />
+          ) : (
+            <img
+              src={itemMediaSrc}
+              alt="Post media"
+              className="w-full h-full object-cover"
+            />
+          )}
+        </div>
+
+        {/* Engagement Bar */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => handleLike(item)} // This needs handleLike to take post param or update
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+            >
+              <Heart
+                size={26}
+                className={
+                  item.is_liked ? "text-red-500 fill-current" : "text-black"
+                }
+              />
+              {item.like_count > 0 && (
+                <span className="font-bold text-sm">{item.like_count}</span>
+              )}
+            </button>
+            <button className="hover:opacity-70 transition-opacity">
+              <MessageCircle size={26} className="text-black" />
+            </button>
+            <button className="hover:opacity-70 transition-opacity">
+              <Send size={26} className="text-black" />
+            </button>
+          </div>
+        </div>
+
+        {/* Caption */}
+        <div className="px-4 text-sm leading-snug">
+          <span className="font-bold mr-2">@{item.username}</span>
+          <span className="text-black">
+            {item.caption || item.name}
+            {(item.caption || item.name)?.length > 60 && (
+              <button className="text-gray-500 ml-1">... more</button>
+            )}
+          </span>
+        </div>
+
+        {/* Date */}
+        <div className="px-4 mt-2">
+          <p className="text-[10px] text-gray-400 font-bold uppercase">
+            {new Date(item.created_at).toLocaleDateString(undefined, {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const mediaSrc =
     post?.image_url || post?.media || post?.image || "/placeholder.png";
 
@@ -213,21 +385,21 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 md:p-10"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 md:p-4 lg:p-10"
       onClick={onClose}
     >
-      {/* Close Button */}
+      {/* Close Button - Desktop Only */}
       <button
-        className="absolute top-4 right-4 text-white hover:text-gray-300 z-60"
+        className="absolute top-4 right-4 text-white hover:text-gray-300 z-60 hidden md:block"
         onClick={onClose}
       >
         <X size={32} />
       </button>
 
-      {/* Navigation Carets */}
+      {/* Navigation Carets - Desktop Only */}
       {currentIndex > 0 && (
         <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors z-60"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors z-60 hidden md:block"
           onClick={handlePrev}
         >
           <ChevronLeft size={48} />
@@ -235,7 +407,7 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
       )}
       {currentIndex < posts.length - 1 && (
         <button
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors z-60"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors z-60 hidden md:block"
           onClick={handleNext}
         >
           <ChevronRight size={48} />
@@ -244,163 +416,186 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
 
       {/* Main Container */}
       <div
-        className="flex flex-col md:flex-row w-full max-w-6xl h-full max-h-[90vh] bg-white overflow-hidden rounded-xl shadow-2xl"
+        ref={containerRef}
+        className="flex flex-col md:flex-row w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-white overflow-y-auto md:overflow-hidden md:rounded-xl shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left Side: Media */}
-        <div className="flex-1 bg-white flex items-center justify-center relative min-h-[300px] md:min-h-0">
-          {isVideo ? (
-            <video
-              src={mediaSrc}
-              className="max-w-full max-h-full object-contain"
-              controls
-              autoPlay
-              loop
-              muted
-            />
-          ) : (
-            <img
-              src={mediaSrc}
-              alt="Post media"
-              className="max-w-full max-h-full object-contain"
-            />
-          )}
+        {/* Mobile Title Bar */}
+        <div className="flex md:hidden items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-30">
+          <button onClick={onClose} className="p-1 -ml-1">
+            <ChevronLeft size={28} className="text-black" />
+          </button>
+          <h2 className="font-bold text-lg">Post</h2>
+          <div className="w-7" /> {/* Spacer */}
         </div>
 
-        {/* Right Side: Info & Comments */}
-        <div className="w-full md:w-[450px] bg-white flex flex-col border-l border-black text-black">
-          {/* Header */}
-          <div className="p-4 flex items-center justify-between border-b border-black">
-            <div className="flex items-center gap-3">
-              <img
-                src={post.userpic || "/profile-icon.svg"}
-                alt={post.username}
-                className="w-10 h-10 rounded-full object-cover border border-black"
+        {/* Mobile View: Scrollable Feed */}
+        <div className="md:hidden flex-1 pb-24">
+          {posts.map((item) => (
+            <MobilePostItem key={item.id} item={item} />
+          ))}
+        </div>
+
+        {/* Desktop View: Side-by-Side (Hidden on Mobile) */}
+        <div className="hidden md:flex w-full h-full">
+          {/* Left Side: Media */}
+          <div className="w-full md:flex-1 bg-white flex items-center justify-center relative min-h-[300px] md:min-h-0">
+            {isVideo ? (
+              <video
+                src={mediaSrc}
+                className="w-full md:max-w-full md:max-h-full object-contain"
+                controls
+                autoPlay
+                loop
+                muted
               />
-              <span className="font-bold text-[15px]">@{post.username}</span>
-              <span className="text-black">•</span>
-              <button className="text-lily text-sm font-bold hover:opacity-80 transition-opacity">
-                Follow
-              </button>
-            </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowDropdown(true)}
-                className="text-black"
-              >
-                <MoreHorizontal size={20} />
-              </button>
-            </div>
+            ) : (
+              <img
+                src={mediaSrc}
+                alt="Post media"
+                className="w-full md:max-w-full md:max-h-full object-contain"
+              />
+            )}
           </div>
 
-          {/* Body: Caption & Comments */}
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            {/* Caption */}
-            <div className="flex gap-3 mb-6">
-              <img
-                src={post.userpic || "/profile-icon.svg"}
-                alt={post.username}
-                className="w-10 h-10 rounded-full object-cover shrink-0 border border-black"
-              />
-              <div className="text-[15px] leading-snug">
-                <span className="font-bold mr-2">@{post.username}</span>
-                <span className="text-black whitespace-pre-wrap">
-                  {post.caption || post.name}
-                </span>
-                <div className="mt-2 text-xs text-gray-500 font-bold">
-                  {new Date(post.created_at).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-
-            {/* Comments List */}
-            <div className="space-y-1">
-              {commentsStatus === "loading" && <CommentSkeleton count={3} />}
-              {commentsStatus === "succeeded" && comments.length === 0 && (
-                <p className="text-center text-gray-400 text-sm mt-10">
-                  Be the first to comment!
-                </p>
-              )}
-              {comments.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={{
-                    ...comment,
-                    comment_text: comment.comment_text || comment.text,
-                  }}
-                  currentUserId={currentUserId}
-                  onLike={() => handleLikeComment(comment.id)}
-                  onDelete={() => handleDeleteComment(comment.id)}
-                  onReply={() => {
-                    setCommentText(`@${comment.user_name} `);
-                    textareaRef.current?.focus();
-                  }}
+          {/* Right Side: Info & Comments */}
+          <div className="w-full md:w-[450px] bg-white flex flex-col md:border-l border-black text-black">
+            {/* Header - Desktop Only */}
+            <div className="hidden md:flex p-4 items-center justify-between border-b border-black">
+              <div className="flex items-center gap-3">
+                <img
+                  src={post.userpic || "/profile-icon.svg"}
+                  alt={post.username}
+                  className="w-10 h-10 rounded-full object-cover border border-black"
                 />
-              ))}
-            </div>
-          </div>
-
-          {/* Footer: Actions & Input */}
-          <div className="p-4 border-t border-black space-y-3 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+                <span className="font-bold text-[15px]">@{post.username}</span>
+                <span className="text-black">•</span>
+                <button className="text-lily text-sm font-bold hover:opacity-80 transition-opacity">
+                  Follow
+                </button>
+              </div>
+              <div className="relative">
                 <button
-                  onClick={handleLike}
-                  className="hover:opacity-70 transition-opacity"
+                  onClick={() => {
+                    setDropdownPost(post);
+                    setShowDropdown(true);
+                  }}
+                  className="text-black"
                 >
-                  <Heart
-                    size={26}
-                    className={
-                      isLiked ? "text-lily fill-current" : "text-black"
-                    }
-                  />
+                  <MoreHorizontal size={20} />
                 </button>
               </div>
             </div>
 
-            <div className="text-sm">
-              <p className="font-bold text-black">
-                {likeCount.toLocaleString()} likes
-              </p>
-              <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">
-                {new Date(post.created_at).toLocaleDateString(undefined, {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
+            {/* Body: Caption & Comments */}
+            <div className="flex-1 md:overflow-y-auto p-4 custom-scrollbar">
+              {/* Caption */}
+              <div className="flex gap-3 mb-6">
+                <img
+                  src={post.userpic || "/profile-icon.svg"}
+                  alt={post.username}
+                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-black"
+                />
+                <div className="text-[15px] leading-snug">
+                  <span className="font-bold mr-2">@{post.username}</span>
+                  <span className="text-black whitespace-pre-wrap">
+                    {post.caption || post.name}
+                  </span>
+                  <div className="mt-2 text-xs text-gray-500 font-bold">
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-1">
+                {commentsStatus === "loading" && <CommentSkeleton count={3} />}
+                {commentsStatus === "succeeded" && comments.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm mt-10">
+                    Be the first to comment!
+                  </p>
+                )}
+                {comments.map((comment) => (
+                  <CommentItem
+                    key={comment.id}
+                    comment={{
+                      ...comment,
+                      comment_text: comment.comment_text || comment.text,
+                    }}
+                    currentUserId={currentUserId}
+                    onLike={() => handleLikeComment(comment.id)}
+                    onDelete={() => handleDeleteComment(comment.id)}
+                    onReply={() => {
+                      setCommentText(`@${comment.user_name} `);
+                      textareaRef.current?.focus();
+                    }}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Comment Input */}
-            <form
-              onSubmit={handleSubmitComment}
-              className="pt-3 flex items-center gap-3 border-t border-black mt-2"
-            >
-              <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-black">
-                {currentUser?.profile_pic && (
-                  <img
-                    src={currentUser.profile_pic}
-                    alt="User"
-                    className="w-full h-full object-cover"
-                  />
-                )}
+            {/* Footer: Actions & Input */}
+            <div className="p-4 border-t border-black space-y-3 bg-white relative">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleLike(post)}
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    <Heart
+                      size={26}
+                      className={
+                        isLiked ? "text-lily fill-current" : "text-black"
+                      }
+                    />
+                  </button>
+                </div>
               </div>
-              <textarea
-                ref={textareaRef}
-                value={commentText}
-                onChange={handleCommentChange}
-                placeholder="Add a comment..."
-                className="flex-1 bg-transparent border-none focus:ring-0 text-[15px] py-1 resize-none max-h-24 text-black placeholder:text-gray-400 font-medium"
-                rows={1}
-              />
-              <button
-                type="submit"
-                disabled={!commentText.trim() || isPosting}
-                className="text-lily font-bold text-sm disabled:opacity-30 hover:opacity-80 transition-opacity"
+
+              <div className="text-sm">
+                <p className="font-bold text-black">
+                  {likeCount.toLocaleString()} likes
+                </p>
+                <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">
+                  {new Date(post.created_at).toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+
+              {/* Comment Input */}
+              <form
+                onSubmit={handleSubmitComment}
+                className="pt-3 flex items-center gap-3 border-t border-black mt-2"
               >
-                Post
-              </button>
-            </form>
+                <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-black">
+                  {currentUser?.profile_pic && (
+                    <img
+                      src={currentUser.profile_pic}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={commentText}
+                  onChange={handleCommentChange}
+                  placeholder="Add a comment..."
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-[15px] py-1 resize-none max-h-24 text-black placeholder:text-gray-400 font-medium"
+                  rows={1}
+                />
+                <button
+                  type="submit"
+                  disabled={!commentText.trim() || isPosting}
+                  className="text-lily font-bold text-sm disabled:opacity-30 hover:opacity-80 transition-opacity"
+                >
+                  Post
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -422,10 +617,14 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-xl overflow-hidden w-full max-w-sm z-10 border border-black"
             >
-              {currentUserId === post.user_id && (
+              {currentUserId === post.user_id ? (
                 <>
-                  <button className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-gray-50 transition-colors">
-                    Delete
+                  <button
+                    onClick={handleDeletePost}
+                    disabled={isDeleting}
+                    className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
                   </button>
                   <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
                     Edit
@@ -435,6 +634,15 @@ const PostDetailOverlay = ({ posts, initialIndex, onClose }) => {
                   </button>
                   <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
                     Turn off commenting
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-gray-50 transition-colors">
+                    Report
+                  </button>
+                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
+                    Unfollow
                   </button>
                 </>
               )}
