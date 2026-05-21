@@ -603,7 +603,10 @@ const PostDetailOverlay = ({
       {/* Centered Menu Modal */}
       <AnimatePresence>
         {showDropdown && (
-          <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-100 flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -626,15 +629,6 @@ const PostDetailOverlay = ({
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Edit
-                  </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Hide like count to others
-                  </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Turn off commenting
-                  </button>
                 </>
               ) : (
                 <>
@@ -646,9 +640,6 @@ const PostDetailOverlay = ({
                   </button>
                 </>
               )}
-              <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                Go to post
-              </button>
               <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
                 Share to...
               </button>
@@ -662,9 +653,6 @@ const PostDetailOverlay = ({
                 }}
               >
                 Copy link
-              </button>
-              <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                About this account
               </button>
               <button
                 className="w-full py-4 text-black font-bold hover:bg-gray-50 transition-colors"
