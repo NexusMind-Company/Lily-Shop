@@ -1,5 +1,5 @@
 // src/pages/VerificationPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 

@@ -50,6 +50,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.29",
     "tailwindcss": "^4.0.0",
+    "terser": "^5.47.1",
     "vite": "^6.1.1"
   }
 }

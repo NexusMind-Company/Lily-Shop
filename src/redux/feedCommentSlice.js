@@ -185,7 +185,7 @@ export const postComment = createAsyncThunk(
 
 export const toggleCommentLike = createAsyncThunk(
   "feed/toggleCommentLike",
-  async ({ commentId, postId, itemType }, { dispatch, rejectWithValue }) => {
+  async ({ commentId, _postId, itemType }, { dispatch, rejectWithValue }) => {
     // Optimistically update the UI before the server responds
     dispatch(toggleLocalCommentLike(commentId));
 
@@ -255,10 +255,10 @@ const feedSlice = createSlice({
         const localId = action.meta.arg.id;
         findCommentAndReplace(state.comments, localId, serverComment);
       })
-      .addCase(postComment.rejected, (state, action) => {
+      .addCase(postComment.rejected, (_state, _action) => {
         // Silent failure in Redux state, handled by component if necessary
       })
-      .addCase(toggleCommentLike.rejected, (state, action) => {
+      .addCase(toggleCommentLike.rejected, (_state, _action) => {
         // Silent failure, optimistic update was already reverted in the thunk
       });
   },
