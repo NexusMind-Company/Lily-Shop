@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import toast from "react-hot-toast";
 import {
-  Grid,
+  Grid3x3,
   Heart,
   ChevronLeft,
   Play,
@@ -18,6 +18,9 @@ import {
   Calendar,
   Bookmark,
   UserSquare,
+  PlusSquare,
+  AlignJustify,
+  Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
@@ -342,7 +345,7 @@ const ProfileOwner = () => {
     if (!items || items.length === 0) {
       return (
         <div className="w-full flex flex-col items-center my-20 text-gray-400">
-          <Grid size={64} className="mb-4 opacity-20" />
+          <Grid3x3 size={64} className="mb-4 opacity-20" />
           <p className="text-xl font-bold">{emptyMessage}</p>
         </div>
       );
@@ -438,23 +441,23 @@ const ProfileOwner = () => {
       )}
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between py-3">
-        <button onClick={() => navigate(-1)}>
-          <ChevronLeft size={28} />
-        </button>
-        <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
-        <div className="flex gap-4">
-          <Link to="/settings">
-            <Settings size={24} />
+        <div className="flex items-center gap-1">
+          <h1 className="font-bold text-xl">@{user.username || "profile"}</h1>
+          <ChevronLeft size={16} className="-rotate-90 mt-1" />
+        </div>
+        <div className="flex gap-6 items-center">
+          <Link to="/create-content">
+            <PlusSquare size={24} />
           </Link>
-          <button onClick={handleLogoutClick}>
-            <LogOut size={24} />
+          <button onClick={() => navigate("/settings")}>
+            <AlignJustify size={24} />
           </button>
         </div>
       </div>
       {/* Profile Header Section */}
-      <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-6 md:py-12 border-b-0 md:border-b border-gray-200">
-        {/* Avatar */}
-        <div className="flex justify-start md:justify-center md:w-1/3 mb-4 md:mb-0">
+      <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-4 md:py-12 border-b-0 md:border-b border-gray-200">
+        {/* Avatar and Stats for Mobile */}
+        <div className="flex items-center justify-between md:justify-start md:w-1/3 mb-4 md:mb-0">
           <div className="relative group">
             <img
               src={profileImageUrl}
@@ -466,19 +469,44 @@ const ProfileOwner = () => {
               }}
             />
           </div>
+
+          {/* Stats - Mobile Only (IG Style: next to avatar) */}
+          <div className="md:hidden flex-1 flex justify-around text-center ml-4">
+            <div className="flex flex-col">
+              <span className="font-bold text-lg">{displayPostCount}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
+                Posts
+              </span>
+            </div>
+            <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
+              <span className="font-bold text-lg">
+                {user.followers_count || 0}
+              </span>
+              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
+                Followers
+              </span>
+            </Link>
+            <Link to={`/following/${user.id || ""}`} className="flex flex-col">
+              <span className="font-bold text-lg">{followingCount}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
+                Following
+              </span>
+            </Link>
+          </div>
         </div>
 
         {/* Info */}
-        <div className="md:w-2/3 flex flex-col gap-5">
-          {/* Username and Settings */}
-          <div className="flex items-center gap-2">
+        <div className="md:w-2/3 flex flex-col gap-4 md:gap-5">
+          {/* Username and Settings - Desktop Only */}
+          <div className="hidden md:flex items-center gap-2">
             <h2 className="text-xl font-normal">
               @{user.username || "unknown"}
             </h2>
             <Link to="/settings">
-              <Settings className="cursor-pointer hidden md:block" size={24} />
+              <Settings className="cursor-pointer" size={24} />
             </Link>
           </div>
+
           {/* Stats - Desktop Only */}
           <div className="hidden md:flex gap-10">
             <div>
@@ -501,124 +529,121 @@ const ProfileOwner = () => {
           </div>
 
           {/* Name and Bio */}
-          <div>
-            <h3 className="font-semibold text-sm md:text-base">
+          <div className="space-y-0.5">
+            <h3 className="font-bold text-[15px] md:text-base">
               {user.name || user.username || "Unnamed User"}
             </h3>
+            <p className="text-[14px] leading-snug whitespace-pre-wrap">
+              {user && user.bio
+                ? user.bio
+                : "Add a bio to let people know more about you and your products!"}
+            </p>
             <div
-              className="flex items-center gap-1 text-gray-500 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit"
+              className="flex items-center gap-1 text-gray-500 text-sm py-1 cursor-pointer hover:text-lily transition-colors w-fit"
               onClick={() => {
                 const profileUrl = `${window.location.origin}/profile/${user.id}`;
                 navigator.clipboard.writeText(profileUrl);
                 toast.success("Profile link copied!");
               }}
             >
-              {" "}
-              <IconLink size={14} />
-              <span>@{user.username || "unknown"}</span>
+              <IconLink size={14} className="text-blue-900" />
+              <span className="text-blue-900 font-bold truncate max-w-[200px]">
+                @{user.username || "unknown"}
+              </span>
             </div>
-            <p className="text-sm whitespace-pre-wrap leading-tight">
-              {user && user.bio
-                ? user.bio
-                : "Add a bio to let people know more about you and your products!"}
-            </p>
           </div>
 
-          {/* Location/Birthday */}
-          {(user.location || user.birthdate || user.birthday) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
-              {user.location && (
-                <div className="flex items-center gap-1">
-                  <MapPin size={12} />
-                  <span>{user.location}</span>
-                </div>
-              )}
-              {(user.birthdate || user.birthday) && (
-                <div className="flex items-center gap-1">
-                  <Calendar size={12} />
-                  <span>
-                    Born{" "}
-                    {new Date(
-                      user.birthdate || user.birthday,
-                    ).toLocaleDateString(undefined, {
+          {/* Location/Birthday - Desktop Only or refined for mobile */}
+          <div className="hidden md:flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+            {user.location && (
+              <div className="flex items-center gap-1">
+                <MapPin size={12} />
+                <span>{user.location}</span>
+              </div>
+            )}
+            {(user.birthdate || user.birthday) && (
+              <div className="flex items-center gap-1">
+                <Calendar size={12} />
+                <span>
+                  Born{" "}
+                  {new Date(user.birthdate || user.birthday).toLocaleDateString(
+                    undefined,
+                    {
                       month: "long",
                       day: "numeric",
-                    })}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+                    },
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
-      {/* Stats - Mobile Only */}
-      <div className="md:hidden flex justify-around py-4 border-t border-gray-100 text-center">
-        <div className="flex flex-col">
-          <span className="font-bold">{displayPostCount}</span>
-          <span className="text-gray-400 text-xs">posts</span>
-        </div>
-        <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
-          <span className="font-bold">{user.followers_count || 0}</span>
-          <span className="text-gray-400 text-xs">followers</span>
-        </Link>
-        <Link to={`/following/${user.id || ""}`} className="flex flex-col">
-          <span className="font-bold">{followingCount}</span>
-          <span className="text-gray-400 text-xs">following</span>
-        </Link>
-      </div>
-      {/* Action Buttons - Repositioned */}
-      <div className="flex flex-row gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100">
+      {/* Action Buttons - Repositioned for IG Mobile Look */}
+      <div className="flex flex-row gap-2 w-full py-2 border-t md:border-t-0 border-gray-100">
         <Link to="/editProfile" className="flex-1">
-          <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
+          <button className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors">
             Edit profile
           </button>
         </Link>
-
-        {user?.vendor_id ? (
-          <Link to="/vendor-dashboard" className="flex-1">
-            <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
-              Vendor Dashboard
-            </button>
-          </Link>
-        ) : (
-          <Link to="/create-vendor" className="flex-1">
-            <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
-              Become a Vendor
-            </button>
-          </Link>
-        )}
+        <button
+          className="flex-1 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors"
+          onClick={() => {
+            const profileUrl = `${window.location.origin}/profile/${user.id}`;
+            navigator.clipboard.writeText(profileUrl);
+            toast.success("Profile link copied!");
+          }}
+        >
+          Share profile
+        </button>
+        <button className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors">
+          <UserSquare size={20} className="mx-auto" />
+        </button>
       </div>
+
+      {/* Highlights */}
+      <div className="flex gap-4 py-4 overflow-x-auto no-scrollbar">
+        <div className="flex flex-col items-center gap-1.5 cursor-pointer flex-shrink-0">
+          <div className="w-[64px] h-[64px] rounded-full border border-gray-200 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors">
+            <Plus size={28} className="text-gray-900" />
+          </div>
+          <span className="text-[11px] font-medium">New</span>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="flex md:justify-center border-t border-gray-200">
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-3 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 0
-              ? "border-lily text-lily"
+              ? "border-black text-black"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(0)}
         >
-          <Grid size={16} /> <span className="hidden md:inline">POSTS</span>
+          <Grid3x3 size={isMobile ? 24 : 16} />
+          <span className="hidden md:inline">POSTS</span>
         </button>
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-3 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 1
-              ? "border-lily text-lily"
+              ? "border-black text-black"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(1)}
         >
-          <Bookmark size={16} /> <span className="hidden md:inline">SAVED</span>
+          <Bookmark size={isMobile ? 24 : 16} />
+          <span className="hidden md:inline">SAVED</span>
         </button>
         <button
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-3 md:py-4 border-t-2 md:mx-6 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
             activeTab === 2
-              ? "border-lily text-lily"
+              ? "border-black text-black"
               : "border-transparent text-gray-400"
           }`}
           onClick={() => setActiveTab(2)}
         >
-          <UserSquare size={16} />{" "}
+          <UserSquare size={isMobile ? 24 : 16} />
           <span className="hidden md:inline">TAGGED</span>
         </button>
       </div>
