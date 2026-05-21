@@ -36,6 +36,67 @@ import CommentsModal from "../feed/comments/commentsModal";
 import ShareModal from "../feed/share/shareModal";
 import toast from "react-hot-toast";
 
+const parseIsLiked = (p) =>
+  p?.is_liked === true || p?.is_liked === "true" || p?.has_liked === true;
+
+const EngagementActions = ({
+  item,
+  isLiked,
+  likeCount,
+  onLike,
+  onOpenComments,
+  onOpenShare,
+  onOpenMessage,
+  showCounts = true,
+  iconSize = 26,
+}) => {
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onLike(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <div className="relative">
+          <Heart
+            size={iconSize}
+            className={`transition-all ${
+              isLiked ? "text-red-500 fill-current" : "text-black"
+            }`}
+          />
+        </div>
+        {showCounts && likeCount > 0 && (
+          <span className="text-[10px] font-bold mt-0.5">
+            {likeCount.toLocaleString()}
+          </span>
+        )}
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenComments(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <MessageCircle size={iconSize} className="text-black" />
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenShare(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <Send size={iconSize} className="text-black" />
+      </button>
+    </div>
+  );
+};
+
 const PostDetailOverlay = ({
   posts,
   initialIndex,
@@ -67,8 +128,10 @@ const PostDetailOverlay = ({
 
   const [commentText, setCommentText] = useState("");
   const [isPosting, setIsPosting] = useState(false);
-  const [isLiked, setIsLiked] = useState(post?.is_liked);
-  const [likeCount, setLikeCount] = useState(post?.like_count || 0);
+  const [isLiked, setIsLiked] = useState(parseIsLiked(post));
+  const [likeCount, setLikeCount] = useState(
+    Number(post?.like_count || post?.likes_count || post?.likes || 0),
+  );
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
 
@@ -119,8 +182,10 @@ const PostDetailOverlay = ({
       const recordView = isProduct ? recordProductView : recordContentView;
       recordView(post.id).catch(console.error);
 
-      setIsLiked(post.is_liked);
-      setLikeCount(post.like_count || 0);
+      setIsLiked(parseIsLiked(post));
+      setLikeCount(
+        Number(post.like_count || post.likes_count || post.likes || 0),
+      );
     }
   }, [post?.id, isProduct, dispatch]);
 
@@ -169,10 +234,6 @@ const PostDetailOverlay = ({
         return { previousIsLiked, previousLikeCount, isCurrentPost: true };
       }
 
-      // For mobile posts that aren't the "current" one in the sidebar
-      // We'd need to update the posts array if we wanted to reflect it everywhere,
-      // but since we're using a prop, we can't easily.
-      // However, we can at least fire the API call.
       return { isCurrentPost: false };
     },
     onError: (err, target, context) => {
@@ -327,6 +388,39 @@ const PostDetailOverlay = ({
       item.is_video ||
       (typeof itemMediaSrc === "string" && itemMediaSrc.endsWith(".mp4"));
 
+    const [localIsLiked, setLocalIsLiked] = useState(parseIsLiked(item));
+    const [localLikeCount, setLocalLikeCount] = useState(
+      Number(item.like_count || item.likes_count || item.likes || 0),
+    );
+
+    const handleLocalLike = async (target) => {
+      if (!isAuthenticated) return navigate("/login");
+
+      const prevLiked = localIsLiked;
+      const prevCount = localLikeCount;
+
+      setLocalIsLiked(!prevLiked);
+      setLocalLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+
+      try {
+        const isTargetProduct =
+          target.itemType === "product" ||
+          target.type?.toLowerCase() === "product" ||
+          target.price !== undefined ||
+          target.price_in_naira !== undefined;
+
+        if (isTargetProduct) {
+          await likeProduct(target.id);
+        } else {
+          await likeContent(target.id);
+        }
+      } catch (error) {
+        setLocalIsLiked(prevLiked);
+        setLocalLikeCount(prevCount);
+        toast.error("Failed to update like");
+      }
+    };
+
     return (
       <div
         id={`post-${item.id}`}
@@ -373,34 +467,15 @@ const PostDetailOverlay = ({
 
         {/* Engagement Bar */}
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => handleLike(item)}
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-            >
-              <Heart
-                size={26}
-                className={
-                  item.is_liked ? "text-red-500 fill-current" : "text-black"
-                }
-              />
-              {item.like_count > 0 && (
-                <span className="font-bold text-sm">{item.like_count}</span>
-              )}
-            </button>
-            <button
-              onClick={() => handleOpenComments(item)}
-              className="hover:opacity-70 transition-opacity"
-            >
-              <MessageCircle size={26} className="text-black" />
-            </button>
-            <button
-              onClick={() => handleOpenShare(item)}
-              className="hover:opacity-70 transition-opacity"
-            >
-              <Send size={26} className="text-black" />
-            </button>
-          </div>
+          <EngagementActions
+            item={item}
+            isLiked={localIsLiked}
+            likeCount={localLikeCount}
+            onLike={handleLocalLike}
+            onOpenComments={handleOpenComments}
+            onOpenShare={handleOpenShare}
+            onOpenMessage={() => navigate(`/chat/${item.user_id}`)}
+          />
         </div>
 
         {/* Caption */}
@@ -591,31 +666,15 @@ const PostDetailOverlay = ({
             {/* Footer: Actions & Input */}
             <div className="p-4 border-t border-black space-y-3 bg-white relative">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleLike(post)}
-                    className="hover:opacity-70 transition-opacity"
-                  >
-                    <Heart
-                      size={26}
-                      className={
-                        isLiked ? "text-lily fill-current" : "text-black"
-                      }
-                    />
-                  </button>
-                  <button
-                    onClick={() => handleOpenComments(post)}
-                    className="hover:opacity-70 transition-opacity"
-                  >
-                    <MessageCircle size={26} className="text-black" />
-                  </button>
-                  <button
-                    onClick={() => handleOpenShare(post)}
-                    className="hover:opacity-70 transition-opacity"
-                  >
-                    <Send size={26} className="text-black" />
-                  </button>
-                </div>
+                <EngagementActions
+                  item={post}
+                  isLiked={isLiked}
+                  likeCount={likeCount}
+                  onLike={handleLike}
+                  onOpenComments={handleOpenComments}
+                  onOpenShare={handleOpenShare}
+                  onOpenMessage={() => navigate(`/chat/${post.user_id}`)}
+                />
               </div>
 
               <div className="text-sm">
