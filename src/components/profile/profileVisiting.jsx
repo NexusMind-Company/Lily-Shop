@@ -402,15 +402,12 @@ const ProfileVisiting = () => {
           }}
         />
       )}
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100">
-        <div className="flex items-center gap-1">
-          <button onClick={() => navigate(-1)} className="mr-1">
-            <ChevronLeft size={28} />
-          </button>
-          <h1 className="font-bold text-xl">@{user.username || "profile"}</h1>
-          <ChevronLeft size={16} className="-rotate-90 mt-1" />
-        </div>
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">
+        <button onClick={() => navigate(-1)}>
+          <ChevronLeft size={28} />
+        </button>
+        <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
         <div className="flex gap-4">
           <button onClick={() => setDropdownOpen(!dropdownOpen)}>
             <EllipsisVertical size={24} />
@@ -418,9 +415,9 @@ const ProfileVisiting = () => {
         </div>
       </div>
 
-      <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-4 md:py-12">
-        {/* Avatar and Stats for Mobile */}
-        <div className="flex items-center justify-between md:justify-start md:w-1/3 mb-4 md:mb-0">
+      <header className="flex flex-col md:flex-row md:items-start md:gap-20 py-6 md:py-12">
+        {/* Avatar */}
+        <div className="flex justify-start md:justify-center md:w-1/3 mb-4 md:mb-0">
           <div className="relative">
             <img
               src={user.profile_pic || "/user.png"}
@@ -433,43 +430,17 @@ const ProfileVisiting = () => {
               </div>
             )}
           </div>
-
-          {/* Stats - Mobile Only (IG Style: next to avatar) */}
-          <div className="md:hidden flex-1 flex justify-around text-center ml-4">
-            <div className="flex flex-col">
-              <span className="font-bold text-lg">{posts.length}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
-                Posts
-              </span>
-            </div>
-            <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
-              <span className="font-bold text-lg">
-                {user.followers_count || 0}
-              </span>
-              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
-                Followers
-              </span>
-            </Link>
-            <Link to={`/following/${user.id || ""}`} className="flex flex-col">
-              <span className="font-bold text-lg">
-                {user.following_count || 0}
-              </span>
-              <span className="text-xs text-gray-500 uppercase tracking-tight font-medium">
-                Following
-              </span>
-            </Link>
-          </div>
         </div>
 
         {/* Info */}
-        <div className="md:w-2/3 flex flex-col gap-4 md:gap-5">
-          <div className="hidden md:flex flex-col md:flex-row md:items-center gap-4">
+        <div className="md:w-2/3 flex flex-col gap-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-normal">
                 @{user.username || "unknown"}
               </h2>
               <MoreHorizontal
-                className="cursor-pointer"
+                className="cursor-pointer hidden md:block"
                 size={24}
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               />
@@ -500,84 +471,89 @@ const ProfileVisiting = () => {
           </div>
 
           {/* Name and Bio */}
-          <div className="space-y-0.5">
-            <h3 className="font-bold text-[15px] md:text-base">
+          <div>
+            <h3 className="font-semibold text-sm md:text-base">
               {user.full_name || user.username || "User"}
             </h3>
-            <p className="text-[14px] leading-snug whitespace-pre-wrap">
-              {user.bio || "No bio yet."}
-            </p>
             <div
-              className="flex items-center gap-1 text-gray-500 text-sm py-1 cursor-pointer hover:text-lily transition-colors w-fit"
+              className="flex items-center gap-1 text-gray-500 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit"
               onClick={() => {
                 const profileUrl = `${window.location.origin}/profile/${user.id}`;
                 navigator.clipboard.writeText(profileUrl);
                 toast.success("Profile link copied!");
               }}
             >
-              <IconLink size={14} className="text-blue-900" />
-              <span className="text-blue-900 font-bold truncate max-w-[200px]">
-                @{user.username || "unknown"}
-              </span>
+              <IconLink size={14} />
+              <span>@{user.username || "unknown"}</span>
             </div>
+            <p className="text-sm whitespace-pre-wrap leading-tight">
+              {user.bio || "No bio yet."}
+            </p>
           </div>
         </div>
       </header>
 
-      {/* Action Buttons - Repositioned for IG Mobile Look */}
-      <div className="flex flex-row gap-2 w-full py-2 border-t md:border-t-0 border-gray-100 mb-4">
+      {/* Stats - Mobile Only */}
+      <div className="md:hidden flex justify-around py-4 border-t border-b border-gray-100 text-center mb-4">
+        <div className="flex flex-col">
+          <span className="font-bold">{posts.length}</span>
+          <span className="text-gray-400 text-xs">posts</span>
+        </div>
+        <Link to={`/followers/${user.id || ""}`} className="flex flex-col">
+          <span className="font-bold">{user.followers_count || 0}</span>
+          <span className="text-gray-400 text-xs">followers</span>
+        </Link>
+        <Link to={`/following/${user.id || ""}`} className="flex flex-col">
+          <span className="font-bold">{user.following_count || 0}</span>
+          <span className="text-gray-400 text-xs">following</span>
+        </Link>
+      </div>
+
+      {/* Action Buttons - Repositioned */}
+      <div className="flex flex-row gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100 mb-4">
         <button
           onClick={handleFollow}
           disabled={followLoading}
-          className={`flex-1 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+          className={`flex-1 py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
             isFollowing
-              ? "bg-gray-100 text-gray-900 hover:bg-gray-200"
-              : "bg-lily text-white hover:opacity-90"
+              ? "bg-gray-100 border-gray-100 text-gray-700 hover:bg-gray-200"
+              : "border-lily text-lily hover:bg-lily/5"
           }`}
         >
           {isFollowing ? "Following" : "Follow"}
         </button>
 
         <Link to={`/messages/new?user=${user.id}`} className="flex-1">
-          <button className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors">
+          <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
             Message
           </button>
         </Link>
 
-        <button
-          className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors"
-          onClick={() => {
-            const profileUrl = `${window.location.origin}/profile/${user.id}`;
-            navigator.clipboard.writeText(profileUrl);
-            toast.success("Profile link copied!");
-          }}
-        >
+        <button className="px-4 py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
           <Share2 size={18} className="mx-auto" />
         </button>
       </div>
-
       {/* Tabs */}
       <div className="flex md:justify-center border-t border-gray-200">
         <button
           onClick={() => setActiveTab("posts")}
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-3 md:py-4 border-t-2 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all border-t-2 ${
             activeTab === "posts"
-              ? "border-black text-black"
+              ? "border-lily text-lily"
               : "border-transparent text-gray-400"
           }`}
         >
-          <Grid3x3 size={isMobile ? 24 : 16} />{" "}
-          <span className="hidden md:inline">POSTS</span>
+          <Grid3x3 size={16} /> <span className="hidden md:inline">POSTS</span>
         </button>
         <button
           onClick={() => setActiveTab("products")}
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-3 md:py-4 border-t-2 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all ${
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 py-4 md:mx-10 uppercase text-[10px] md:text-xs tracking-widest font-semibold transition-all border-t-2 ${
             activeTab === "products"
-              ? "border-black text-black"
+              ? "border-lily text-lily"
               : "border-transparent text-gray-400"
           }`}
         >
-          <Package size={isMobile ? 24 : 16} />{" "}
+          <Package size={16} />{" "}
           <span className="hidden md:inline">PRODUCTS</span>
         </button>
       </div>
