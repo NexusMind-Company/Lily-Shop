@@ -76,7 +76,11 @@ const PostDetailOverlay = ({
   const [showShareModal, setShowShareModal] = useState(false);
   const [activeModalPost, setActiveModalPost] = useState(null);
 
-  const isProduct = post?.itemType === "product" || post?.type === "product";
+  const isProduct =
+    post?.itemType === "product" ||
+    post?.type?.toLowerCase() === "product" ||
+    post?.price !== undefined ||
+    post?.price_in_naira !== undefined;
 
   useEffect(() => {
     // Scroll to the initial post on mobile
@@ -137,7 +141,10 @@ const PostDetailOverlay = ({
   const { mutate: toggleLike } = useMutation({
     mutationFn: async (target) => {
       const isTargetProduct =
-        target.itemType === "product" || target.type === "product";
+        target.itemType === "product" ||
+        target.type?.toLowerCase() === "product" ||
+        target.price !== undefined ||
+        target.price_in_naira !== undefined;
       if (isTargetProduct) {
         return likeProduct(target.id);
       } else {
@@ -288,7 +295,9 @@ const PostDetailOverlay = ({
     try {
       const isTargetProduct =
         postToDelete?.itemType === "product" ||
-        postToDelete?.type === "product";
+        postToDelete?.type?.toLowerCase() === "product" ||
+        postToDelete?.price !== undefined ||
+        postToDelete?.price_in_naira !== undefined;
       if (isTargetProduct) {
         await deleteProductPost(postToDelete.id);
       } else {
