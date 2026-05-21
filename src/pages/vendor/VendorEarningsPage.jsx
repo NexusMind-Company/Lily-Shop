@@ -51,7 +51,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs shadow-lg  ">
       <p className="mb-1 text-gray-500">{label}</p>
-      <p className="font-bold text-[#4eb75e]">
+      <p className="font-bold text-lily">
         {formatMoney(payload[0].value)}
       </p>
     </div>
@@ -132,12 +132,12 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
               placeholder={`Max ${formatMoney(availableBalance)}`}
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none   "
+              className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-[#111813] focus:border-lily focus:outline-none   "
             />
             {amount &&
               Number(amount) > 0 &&
               Number(amount) <= availableBalance && (
-                <p className="mt-1 text-xs text-[#4eb75e]">
+                <p className="mt-1 text-xs text-lily">
                   You will receive {formatMoney(Number(amount))} in your
                   account.
                 </p>
@@ -146,7 +146,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
 
           <div className="space-y-3 rounded-2xl bg-gray-50 p-4 ">
             <div className="mb-2 flex items-center gap-2">
-              <Building2 size={14} className="text-[#4eb75e]" />
+              <Building2 size={14} className="text-lily" />
               <p className="text-xs font-bold text-[#111813] ">Bank Details</p>
             </div>
 
@@ -179,7 +179,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
                   placeholder={field.placeholder}
                   value={field.value}
                   onChange={(event) => field.setter(event.target.value)}
-                  className="w-full rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm text-[#111813] focus:border-[#4eb75e] focus:outline-none   "
+                  className="w-full rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm text-[#111813] focus:border-lily focus:outline-none   "
                 />
               </div>
             ))}
@@ -195,7 +195,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-lily py-3.5 text-sm font-bold text-white transition-colors hover:bg-darklily disabled:opacity-60"
           >
             <CreditCard size={15} />
             {isPending ? "Processing..." : "Confirm Withdrawal"}
@@ -305,7 +305,7 @@ const VendorEarningsPage = () => {
           </div>
           <div>
             <p className="text-[10px] text-gray-400">Net Earnings</p>
-            <p className="text-sm font-bold text-[#4eb75e]">
+            <p className="text-sm font-bold text-lily">
               {formatMoney(netEarnings)}
             </p>
           </div>
@@ -330,7 +330,7 @@ const VendorEarningsPage = () => {
         <button
           onClick={() => setShowWithdraw(true)}
           disabled={availableBalance <= 0}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4eb75e] py-3 text-sm font-bold text-white transition-colors hover:bg-[#3da64d] disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-lily py-3 text-sm font-bold text-white transition-colors hover:bg-darklily disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ArrowDownToLine size={15} />
           Withdraw to Bank Account
@@ -344,7 +344,7 @@ const VendorEarningsPage = () => {
             onClick={() => setPeriod(key)}
             className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-all ${
               period === key
-                ? "bg-[#4eb75e] text-white shadow-sm"
+                ? "bg-lily text-white shadow-sm"
                 : "border border-gray-100 bg-white text-gray-500  "
             }`}
           >
@@ -358,7 +358,7 @@ const VendorEarningsPage = () => {
           <h3 className="text-sm font-bold text-[#111813] ">
             {PERIODS.find((entry) => entry.key === period)?.label} Earnings
           </h3>
-          <p className="text-lg font-bold text-[#4eb75e]">
+          <p className="text-lg font-bold text-lily">
             {formatMoney(periodEarnings)}
           </p>
         </div>
@@ -423,7 +423,7 @@ const VendorEarningsPage = () => {
             {(historyData?.results ?? []).map((payment) => (
               <div key={payment.id} className="px-4 py-4">
                 <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lily/10 text-sm font-bold text-lily">
                     {payment.customer_name?.charAt(0) ?? "?"}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -434,8 +434,8 @@ const VendorEarningsPage = () => {
                       {payment.subscription_plan}
                     </p>
                   </div>
-                  <div className="flex-shrink-0 text-right">
-                    <p className="text-sm font-bold text-[#4eb75e]">
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-bold text-lily">
                       {formatMoney(payment.amount)}
                     </p>
                     <span
