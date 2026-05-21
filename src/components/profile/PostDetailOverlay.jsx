@@ -439,7 +439,7 @@ const PostDetailOverlay = ({
         {/* Desktop View: Side-by-Side (Hidden on Mobile) */}
         <div className="hidden md:flex w-full h-full">
           {/* Left Side: Media */}
-          <div className="w-full md:flex-1 bg-white flex items-center justify-center relative min-h-[300px] md:min-h-0">
+          <div className="w-full md:flex-1 bg-white flex items-center justify-center relative min-h-75 md:min-h-0">
             {isVideo ? (
               <video
                 src={mediaSrc}
@@ -459,7 +459,7 @@ const PostDetailOverlay = ({
           </div>
 
           {/* Right Side: Info & Comments */}
-          <div className="w-full md:w-[450px] bg-white flex flex-col md:border-l border-black text-black">
+          <div className="w-full md:w-112.5 bg-white flex flex-col md:border-l border-black text-black">
             {/* Header - Desktop Only */}
             <div className="hidden md:flex p-4 items-center justify-between border-b border-black">
               <div className="flex items-center gap-3">
@@ -603,7 +603,7 @@ const PostDetailOverlay = ({
       {/* Centered Menu Modal */}
       <AnimatePresence>
         {showDropdown && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
