@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 const About = () => {
@@ -18,16 +18,13 @@ const About = () => {
       {
         title: "About Us",
         content: `Lilyshops is your all-in-one app where social media meets easy shopping and stress-free eating.
-         Scroll through fun feeds of videos, photos, and posts, like dances or daily vibes, from creators and vendors. 
-         Spot something cool? Tap to buy it right there, no jumping apps. 
-         Plus, for food lovers, subscribe to your favorite restaurants or vendors once weekly or monthly—and get meals delivered daily without re-ordering. 
+         Scroll through fun feeds of videos, photos, and posts, like dances or daily vibes, from creators and vendors.
+         Spot something cool? Tap to buy it right there, no jumping apps.
+         Plus, for food lovers, subscribe to your favorite restaurants or vendors once weekly or monthly—and get meals delivered daily without re-ordering.
          Save time, save money, and enjoy a community where buying feels like hanging out
-         
-         Our mission is to make commerce social, fun and available to everyone 
+
+         Our mission is to make commerce social, fun and available to everyone
          Our vision is to be the biggest social commerce in the world`,
-
-
-
       },
       {
         title: "Privacy Policy",
@@ -76,8 +73,8 @@ Vendor Responsibilities
 
 Commission & Payments
 • LilyShops takes a 10% commission on each sale and subscription fess
-• Payment held in escrow until confirmation (for shop from feed) 
-while restaurants for food subscription gets their money instantly 
+• Payment held in escrow until confirmation (for shop from feed)
+while restaurants for food subscription gets their money instantly
 • Vendors may withdraw net earnings
 
 Content & Intellectual Property
@@ -101,7 +98,7 @@ We aim to respond to all inquiries within 48 hours.`,
         content: `Frequently Asked Questions
 
         Q: How do I sign up as a restaurant?
-A: You signup and login as a restaurant by navigating to food 
+A: You signup and login as a restaurant by navigating to food
 
 Q: What is the food subscription?
 A: The food subscription feature is a feature where users can subscribe for
@@ -114,7 +111,7 @@ Q: How much commission do you charge vendors?
 A: We charge a 10% commission per successful sale.
 
 Q: When can I withdraw money from my vendor wallet?
-A:  Anytime, you can request withdrawal to your bank.  
+A:  Anytime, you can request withdrawal to your bank.
 
 Q: Can I post content without selling?
 A: Yes — you can post purely social content without a "Buy Now" CTA.
@@ -178,9 +175,9 @@ Terms and thresholds apply; your affiliate balance must meet minimum of ₦1000 
 4. Payment held in escrow
 5. Vendor fulfills order
 6. Buyer confirms receipt → funds released
-7. You click on ‘Food’ 
+7. You click on ‘Food’
 8. ⁠You subscribe and get unlimited food for the week
-9. ⁠Vendors get payment and withdraw to their account 
+9. ⁠Vendors get payment and withdraw to their account
 10. ⁠It's seamless, entertaining, social, and safe.
 
 It's seamless, entertaining, social, and safe.`,
@@ -203,7 +200,7 @@ Contact "info.lilyshops@gmail.com" for more media kits and rates.`,
 • 10% Commission from every sale
 • Advertising revenue from brands
 • Featured / sponsored posts
-• Transaction fees and premium features, 
+• Transaction fees and premium features,
 We aim for fair rates that let vendors and creators thrive.`,
       },
       {

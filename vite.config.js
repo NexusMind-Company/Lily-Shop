@@ -7,17 +7,6 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "react-router-dom"],
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          router: ["react-router-dom"],
-          redux: ["@reduxjs/toolkit", "react-redux"],
-          query: ["@tanstack/react-query"],
-          animation: ["framer-motion", "swiper"],
-        },
-      },
-    },
     chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
     sourcemap: false,
