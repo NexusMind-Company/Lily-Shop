@@ -71,7 +71,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
             className="p-1 hover:bg-white/10 rounded-full transition-colors"
             onClick={() => setIsSearchModalOpen(true)}
           >
-            <img src="/icons/search-icon.svg" alt="Search" className="w-6 h-6" />
+            <img src="/icons/search-icon.svg" alt="Search" className="w-6 h-6" style={{ backgroundColor: 'transparent' }} />
           </button>
 
           <button className="relative p-1 hover:bg-white/10 rounded-full transition-colors" onClick={handleOpenCart}>
@@ -79,6 +79,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
               src="./icons/cart.svg"
               alt="Cart"
               className="w-6 h-6"
+              style={{ backgroundColor: 'transparent' }}
             />
             {cartItemCount > 0 && (
               <div className="bg-lily grid place-items-center rounded-full min-w-[18px] h-[18px] px-1 absolute -top-1 -right-1">
