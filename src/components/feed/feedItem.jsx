@@ -611,11 +611,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             )}
           </div>
 
-          <div className="absolute right-3 bottom-28 md:bottom-20 flex flex-col items-center gap-4 pointer-events-auto shrink-0">
+          <div className="absolute right-3 bottom-28 md:bottom-20 flex flex-col items-center gap-4 pointer-events-auto shrink-0 bg-transparent">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={handleLike}
-              className="flex flex-col items-center group"
+              className="flex flex-col items-center group bg-transparent"
             >
               <motion.div
                 animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
@@ -624,7 +624,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 <img
                   src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
                   alt="Like"
-                  className={`transition-all group-hover:scale-110 ${isLiked ? "w-9 h-9 drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" : ""}`}
+                  className={`w-8 h-8 transition-all group-hover:scale-110 ${isLiked ? "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" : ""}`}
+                  style={{ backgroundColor: 'transparent' }}
                 />
               </motion.div>
               <span className="text-xs font-semibold drop-shadow-md mt-1">
@@ -635,12 +636,13 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={handleOpenComments}
-              className="flex flex-col items-center group"
+              className="flex flex-col items-center group bg-transparent"
             >
               <img
                 src="/icons/message-alt.svg"
                 alt="Comment"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
+                style={{ backgroundColor: 'transparent' }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(commentCount)}
@@ -650,12 +652,13 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={handleOpenShare}
-              className="flex flex-col items-center group"
+              className="flex flex-col items-center group bg-transparent"
             >
               <img
                 src="/icons/share.svg"
                 alt="Share"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
+                style={{ backgroundColor: 'transparent' }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(post.shares || 0)}
@@ -665,20 +668,21 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={handleOpenMessage}
-              className="flex flex-col items-center group"
+              className="flex flex-col items-center group bg-transparent"
             >
               <img
                 src="/icons/send-alt.svg"
                 alt="Message"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
+                style={{ backgroundColor: 'transparent' }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 Message
               </span>
             </motion.button>
 
-            <div className="flex flex-col items-center">
-              <img src="/icons/eye.svg" alt="View" className="w-8 h-8" />
+            <div className="flex flex-col items-center bg-transparent">
+              <img src="/icons/eye.svg" alt="View" className="w-8 h-8" style={{ backgroundColor: 'transparent' }} />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(viewCount)}
               </span>
