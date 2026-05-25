@@ -21,7 +21,9 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
-  const userId = useSelector((state) => state.auth?.user_data?.id);
+  const userData = useSelector((state) => state.auth?.user_data);
+  const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
+  const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
 
   const isShopReview = !!shopId;
   const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
@@ -34,10 +36,15 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   }, [isOpen]);
 
   const createReviewMutation = useMutation({
-    mutationFn: (data) =>
-      isShopReview
-        ? createShopReview({ shop_id: shopId, rating: data.rating, comment: data.comment })
-        : createVendorReview(vendorId, { ...data, user: userId }),
+    mutationFn: (data) => {
+      const payload = isShopReview
+        ? { shop_id: shopId, rating: data.rating, comment: data.comment }
+        : { ...data, user: userId };
+      console.log("Submitting review payload:", payload);
+      return isShopReview
+        ? createShopReview(payload)
+        : createVendorReview(vendorId, payload);
+    },
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
       if (isShopReview) {
