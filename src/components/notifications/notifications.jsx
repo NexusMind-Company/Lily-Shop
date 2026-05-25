@@ -1,6 +1,6 @@
 import { ChevronLeft, CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchNotifications,
@@ -118,7 +118,7 @@ const Notifications = () => {
             >
               {/* Icon based on type */}
               <div
-                className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-3 text-lg
+                className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center mr-3 text-lg
                     ${
                       notification.type === "ORDER"
                         ? "bg-orange-100 text-orange-600"

@@ -68,13 +68,13 @@ const VendorBroadcastPage = () => {
   return (
     <VendorLayout title="Broadcast">
       <div className="space-y-4">
-        <div className="bg-[#4eb75e]/10 border border-[#4eb75e]/20 rounded-2xl px-4 py-3 flex gap-3">
+        <div className="bg-lily/10 border border-lily/20 rounded-2xl px-4 py-3 flex gap-3">
           <Megaphone
             size={16}
-            className="text-[#4eb75e] flex-shrink-0 mt-0.5"
+            className="text-lily shrink-0 mt-0.5"
           />
           <div>
-            <p className="text-xs font-bold text-[#4eb75e]">Direct Broadcast</p>
+            <p className="text-xs font-bold text-lily">Direct Broadcast</p>
             <p className="text-xs text-gray-500 mt-0.5">
               Send announcements to all your active subscribers at once.
             </p>
@@ -91,7 +91,7 @@ const VendorBroadcastPage = () => {
               placeholder="e.g. Weekend Special"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
           <div>
@@ -104,7 +104,7 @@ const VendorBroadcastPage = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={300}
-              className={`w-full px-4 py-3 rounded-xl border bg-gray-50  text-sm text-[#111813]  focus:outline-none resize-none transition-colors ${message.length > 280 ? "border-orange-400 focus:border-orange-400" : "border-gray-100  focus:border-[#4eb75e]"}`}
+              className={`w-full px-4 py-3 rounded-xl border bg-gray-50  text-sm text-[#111813]  focus:outline-none resize-none transition-colors ${message.length > 280 ? "border-orange-400 focus:border-orange-400" : "border-gray-100  focus:border-lily"}`}
             />
             <p
               className={`text-right text-[10px] mt-1 ${message.length > 280 ? "text-orange-500" : "text-gray-400"}`}
@@ -122,7 +122,7 @@ const VendorBroadcastPage = () => {
                 <button
                   key={i}
                   onClick={() => setMessage(t)}
-                  className="w-full text-left text-xs bg-gray-50  border border-gray-100  rounded-xl px-3 py-2 text-gray-500 hover:border-[#4eb75e]/30 hover:text-[#4eb75e] transition-colors"
+                  className="w-full text-left text-xs bg-gray-50  border border-gray-100  rounded-xl px-3 py-2 text-gray-500 hover:border-lily/30 hover:text-lily transition-colors"
                 >
                   {t}
                 </button>
@@ -133,7 +133,7 @@ const VendorBroadcastPage = () => {
           <button
             onClick={handleSend}
             disabled={!message.trim() || isPending}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm transition-all ${message.trim() && !isPending ? "bg-[#4eb75e] hover:bg-[#3da64d]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm transition-all ${message.trim() && !isPending ? "bg-lily hover:bg-darklily" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
           >
             <Send size={15} />
             {isPending ? "Sending..." : "Send to All Subscribers"}
@@ -157,7 +157,7 @@ const VendorBroadcastPage = () => {
               <p className="text-xs text-gray-400">Couldn't load history</p>
               <button
                 onClick={refetch}
-                className="text-xs text-[#4eb75e] font-semibold"
+                className="text-xs text-lily font-semibold"
               >
                 Retry
               </button>
@@ -176,7 +176,7 @@ const VendorBroadcastPage = () => {
                   <p className="text-sm font-bold text-[#111813] ">
                     {h.title ?? "Broadcast"}
                   </p>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400 shrink-0 ml-2">
                     <Users size={10} />
                     {h.recipients_count}
                   </div>

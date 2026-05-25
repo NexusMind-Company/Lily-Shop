@@ -10,7 +10,7 @@ import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
 import ReviewModal from "../common/ReviewModal";
 import { ReviewCard } from "../common/ReviewList";
-import { fetchVendorReviews } from "../../services/api";
+import { fetchShopReviews } from "../../services/shopApi";
 import {
   ChevronLeft, MapPin, Phone, Share2, MessageCircle,
   Star, Store, Eye, Package, Grid3x3, ShoppingCart,
@@ -36,7 +36,7 @@ const ShopDetails = () => {
 
   const { data: reviews } = useQuery({
     queryKey: ["shopReviews", id],
-    queryFn: () => fetchVendorReviews(id),
+    queryFn: () => fetchShopReviews(id),
     enabled: !!id,
   });
 
@@ -397,8 +397,8 @@ const ShopDetails = () => {
       <ReviewModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
-        vendorId={id}
-        vendorName={shop?.name}
+        shopId={id}
+        shopName={shop?.name}
       />
     </div>
   );

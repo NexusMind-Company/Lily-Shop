@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSelector } from "react-redux";
 import { createVendorReview } from "../../services/api";
 import { createReview as createShopReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
@@ -20,6 +21,11 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
+  const userData = useSelector((state) => state.auth?.user_data);
+  const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
+  const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
+  const profileId = useSelector((state) => state.profile?.data?.user?.id);
+  const resolvedUserId = userId || profileId;
 
   const isShopReview = !!shopId;
   const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
@@ -32,10 +38,19 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   }, [isOpen]);
 
   const createReviewMutation = useMutation({
-    mutationFn: (data) =>
-      isShopReview
-        ? createShopReview({ shop_id: shopId, rating: data.rating, comment: data.comment })
-        : createVendorReview(vendorId, data),
+    mutationFn: (data) => {
+      console.log("DEBUG auth.user_data:", userData);
+      console.log("DEBUG localStorage user_data:", localUser);
+      console.log("DEBUG profileId:", profileId);
+      console.log("DEBUG resolvedUserId:", resolvedUserId);
+      const payload = isShopReview
+        ? { shop_id: shopId, rating: data.rating, comment: data.comment }
+        : { ...data, user: resolvedUserId };
+      console.log("Submitting review payload:", payload);
+      return isShopReview
+        ? createShopReview(payload)
+        : createVendorReview(vendorId, payload);
+    },
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
       if (isShopReview) {
@@ -48,7 +63,15 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
       onClose();
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to submit review. Please try again.");
+      console.error("Review submission failed:", error?.response?.status, error?.response?.data);
+      console.error("FULL ERROR:", JSON.stringify(error?.response?.data, null, 2));
+      const msg =
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === "object"
+          ? Object.values(error.response.data).flat().join(". ")
+          : null) ||
+        "Failed to submit review. Please try again.";
+      toast.error(msg);
     },
   });
 

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import BottomNav from "./bottomNav";
-import { Link } from "react-router";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import BottomNav from "./bottomNav";
 
 const InboxList = () => {
   const [activePage, setActivePage] = useState("inbox");
@@ -21,21 +20,18 @@ const InboxList = () => {
       title: "Activity",
       message: "See Activity on your account",
       link: "/activity",
-      ChevronRight,
     },
     {
       icon: "💬",
       title: "Your Messages",
       message: "Check for new messages",
       link: "/messages",
-      ChevronRight,
     },
     {
       icon: "📦",
       title: "Your orders",
       message: "Check your orders",
       link: "/orders",
-      ChevronRight,
     },
   ];
 
@@ -50,7 +46,7 @@ const InboxList = () => {
         <div>
           {inboxItems.map((item, index) => (
             <Link to={item.link} key={index}>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-5">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-5 mb-5">
                 <div className="flex items-center space-x-3">
                   <div className="text-4xl">{item.icon}</div>
                   <div>
@@ -59,22 +55,14 @@ const InboxList = () => {
                   </div>
                 </div>
                 <div className="text-xs text-gray-400 text-right">
-                  {item.time && <p>{item.time}</p>}
-                  {item.unread && (
-                    <span className="bg-lily text-white rounded-full px-2 py-0.5 text-[10px]">
-                      {item.unread}
-                    </span>
-                  )}
-                  {item.ChevronRight && (
-                    <ChevronRight className="text-gray-500 h-8 w-8" />
-                  )}
+                  <ChevronRight className="text-gray-500 h-8 w-8" />
                 </div>
               </div>
             </Link>
           ))}
         </div>
       </section>
-      <BottomNav activePage={activePage} setActivePage={setActivePage} />
+      <BottomNav activePage={activePage} />
     </div>
   );
 };

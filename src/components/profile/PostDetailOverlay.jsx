@@ -20,6 +20,7 @@ import {
 import CommentItem from "../feed/comments/commentItem";
 import { CommentSkeleton } from "../common/skeletons";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   likeProduct,
   likeContent,
@@ -31,7 +32,70 @@ import {
   deleteProductPost,
 } from "../../services/api";
 import MentionSuggestions from "../common/MentionSuggestions";
+import CommentsModal from "../feed/comments/commentsModal";
+import ShareModal from "../feed/share/shareModal";
 import toast from "react-hot-toast";
+
+const parseIsLiked = (p) =>
+  p?.is_liked === true || p?.is_liked === "true" || p?.has_liked === true;
+
+const EngagementActions = ({
+  item,
+  isLiked,
+  likeCount,
+  onLike,
+  onOpenComments,
+  onOpenShare,
+  onOpenMessage,
+  showCounts = true,
+  iconSize = 26,
+}) => {
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onLike(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <div className="relative">
+          <Heart
+            size={iconSize}
+            className={`transition-all ${
+              isLiked ? "text-red-500 fill-current" : "text-black"
+            }`}
+          />
+        </div>
+        {showCounts && likeCount > 0 && (
+          <span className="text-[10px] font-bold mt-0.5">
+            {likeCount.toLocaleString()}
+          </span>
+        )}
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenComments(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <MessageCircle size={iconSize} className="text-black" />
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenShare(item);
+        }}
+        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+      >
+        <Send size={iconSize} className="text-black" />
+      </button>
+    </div>
+  );
+};
 
 const PostDetailOverlay = ({
   posts,
@@ -49,6 +113,7 @@ const PostDetailOverlay = ({
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   const dropdownRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const authState = useSelector((state) => state.auth);
   const profileState = useSelector((state) => state.profile);
@@ -63,12 +128,22 @@ const PostDetailOverlay = ({
 
   const [commentText, setCommentText] = useState("");
   const [isPosting, setIsPosting] = useState(false);
-  const [isLiked, setIsLiked] = useState(post?.is_liked);
-  const [likeCount, setLikeCount] = useState(post?.like_count || 0);
+  const [isLiked, setIsLiked] = useState(parseIsLiked(post));
+  const [likeCount, setLikeCount] = useState(
+    Number(post?.like_count || post?.likes_count || post?.likes || 0),
+  );
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
 
-  const isProduct = post?.itemType === "product" || post?.type === "product";
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [activeModalPost, setActiveModalPost] = useState(null);
+
+  const isProduct =
+    post?.itemType === "product" ||
+    post?.type?.toLowerCase() === "product" ||
+    post?.price !== undefined ||
+    post?.price_in_naira !== undefined;
 
   useEffect(() => {
     // Scroll to the initial post on mobile
@@ -107,8 +182,10 @@ const PostDetailOverlay = ({
       const recordView = isProduct ? recordProductView : recordContentView;
       recordView(post.id).catch(console.error);
 
-      setIsLiked(post.is_liked);
-      setLikeCount(post.like_count || 0);
+      setIsLiked(parseIsLiked(post));
+      setLikeCount(
+        Number(post.like_count || post.likes_count || post.likes || 0),
+      );
     }
   }, [post?.id, isProduct, dispatch]);
 
@@ -126,35 +203,66 @@ const PostDetailOverlay = ({
     }
   };
 
-  const handleLike = async (targetPost) => {
-    if (!isAuthenticated) return navigate("/login");
-
-    const target = targetPost || post;
-    const isCurrentPost = target.id === post?.id;
-
-    const prevLiked = isCurrentPost ? isLiked : target.is_liked;
-
-    // Optimistic UI update (for single post view)
-    if (isCurrentPost) {
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
-    }
-
-    try {
+  const { mutate: toggleLike } = useMutation({
+    mutationFn: async (target) => {
       const isTargetProduct =
-        target.itemType === "product" || target.type === "product";
+        target.itemType === "product" ||
+        target.type?.toLowerCase() === "product" ||
+        target.price !== undefined ||
+        target.price_in_naira !== undefined;
       if (isTargetProduct) {
-        await likeProduct(target.id);
+        return likeProduct(target.id);
       } else {
-        await likeContent(target.id);
+        return likeContent(target.id);
       }
-    } catch (error) {
+    },
+    onMutate: async (target) => {
+      if (!isAuthenticated) return;
+
+      const isCurrentPost = target.id === post?.id;
+
       if (isCurrentPost) {
-        setIsLiked(prevLiked);
-        setLikeCount(post.like_count || 0);
+        const previousIsLiked = isLiked;
+        const previousLikeCount = likeCount;
+        const newIsLiked = !previousIsLiked;
+        const newLikeCount = newIsLiked
+          ? previousLikeCount + 1
+          : Math.max(0, previousLikeCount - 1);
+
+        setIsLiked(newIsLiked);
+        setLikeCount(newLikeCount);
+        return { previousIsLiked, previousLikeCount, isCurrentPost: true };
+      }
+
+      return { isCurrentPost: false };
+    },
+    onError: (err, target, context) => {
+      if (context?.isCurrentPost) {
+        setIsLiked(context.previousIsLiked);
+        setLikeCount(context.previousLikeCount);
       }
       toast.error("Failed to update like");
-    }
+    },
+    onSuccess: (data, target) => {
+      if (target.id === post?.id && data && data.like_count !== undefined) {
+        setLikeCount(Number(data.like_count));
+      }
+    },
+  });
+
+  const handleLike = (targetPost) => {
+    if (!isAuthenticated) return navigate("/login");
+    toggleLike(targetPost || post);
+  };
+
+  const handleOpenComments = (targetPost) => {
+    setActiveModalPost(targetPost || post);
+    setShowCommentsModal(true);
+  };
+
+  const handleOpenShare = (targetPost) => {
+    setActiveModalPost(targetPost || post);
+    setShowShareModal(true);
   };
 
   const handleCommentChange = (e) => {
@@ -248,7 +356,9 @@ const PostDetailOverlay = ({
     try {
       const isTargetProduct =
         postToDelete?.itemType === "product" ||
-        postToDelete?.type === "product";
+        postToDelete?.type?.toLowerCase() === "product" ||
+        postToDelete?.price !== undefined ||
+        postToDelete?.price_in_naira !== undefined;
       if (isTargetProduct) {
         await deleteProductPost(postToDelete.id);
       } else {
@@ -277,7 +387,39 @@ const PostDetailOverlay = ({
     const itemIsVideo =
       item.is_video ||
       (typeof itemMediaSrc === "string" && itemMediaSrc.endsWith(".mp4"));
-    const isOwner = currentUserId === item.user_id;
+
+    const [localIsLiked, setLocalIsLiked] = useState(parseIsLiked(item));
+    const [localLikeCount, setLocalLikeCount] = useState(
+      Number(item.like_count || item.likes_count || item.likes || 0),
+    );
+
+    const handleLocalLike = async (target) => {
+      if (!isAuthenticated) return navigate("/login");
+
+      const prevLiked = localIsLiked;
+      const prevCount = localLikeCount;
+
+      setLocalIsLiked(!prevLiked);
+      setLocalLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+
+      try {
+        const isTargetProduct =
+          target.itemType === "product" ||
+          target.type?.toLowerCase() === "product" ||
+          target.price !== undefined ||
+          target.price_in_naira !== undefined;
+
+        if (isTargetProduct) {
+          await likeProduct(target.id);
+        } else {
+          await likeContent(target.id);
+        }
+      } catch (error) {
+        setLocalIsLiked(prevLiked);
+        setLocalLikeCount(prevCount);
+        toast.error("Failed to update like");
+      }
+    };
 
     return (
       <div
@@ -325,28 +467,15 @@ const PostDetailOverlay = ({
 
         {/* Engagement Bar */}
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => handleLike(item)} // This needs handleLike to take post param or update
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-            >
-              <Heart
-                size={26}
-                className={
-                  item.is_liked ? "text-red-500 fill-current" : "text-black"
-                }
-              />
-              {item.like_count > 0 && (
-                <span className="font-bold text-sm">{item.like_count}</span>
-              )}
-            </button>
-            <button className="hover:opacity-70 transition-opacity">
-              <MessageCircle size={26} className="text-black" />
-            </button>
-            <button className="hover:opacity-70 transition-opacity">
-              <Send size={26} className="text-black" />
-            </button>
-          </div>
+          <EngagementActions
+            item={item}
+            isLiked={localIsLiked}
+            likeCount={localLikeCount}
+            onLike={handleLocalLike}
+            onOpenComments={handleOpenComments}
+            onOpenShare={handleOpenShare}
+            onOpenMessage={() => navigate(`/chat/${item.user_id}`)}
+          />
         </div>
 
         {/* Caption */}
@@ -537,19 +666,15 @@ const PostDetailOverlay = ({
             {/* Footer: Actions & Input */}
             <div className="p-4 border-t border-black space-y-3 bg-white relative">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleLike(post)}
-                    className="hover:opacity-70 transition-opacity"
-                  >
-                    <Heart
-                      size={26}
-                      className={
-                        isLiked ? "text-lily fill-current" : "text-black"
-                      }
-                    />
-                  </button>
-                </div>
+                <EngagementActions
+                  item={post}
+                  isLiked={isLiked}
+                  likeCount={likeCount}
+                  onLike={handleLike}
+                  onOpenComments={handleOpenComments}
+                  onOpenShare={handleOpenShare}
+                  onOpenMessage={() => navigate(`/chat/${post.user_id}`)}
+                />
               </div>
 
               <div className="text-sm">
@@ -603,7 +728,10 @@ const PostDetailOverlay = ({
       {/* Centered Menu Modal */}
       <AnimatePresence>
         {showDropdown && (
-          <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-100 flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -626,15 +754,6 @@ const PostDetailOverlay = ({
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Edit
-                  </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Hide like count to others
-                  </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                    Turn off commenting
-                  </button>
                 </>
               ) : (
                 <>
@@ -646,9 +765,6 @@ const PostDetailOverlay = ({
                   </button>
                 </>
               )}
-              <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                Go to post
-              </button>
               <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
                 Share to...
               </button>
@@ -662,9 +778,6 @@ const PostDetailOverlay = ({
                 }}
               >
                 Copy link
-              </button>
-              <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
-                About this account
               </button>
               <button
                 className="w-full py-4 text-black font-bold hover:bg-gray-50 transition-colors"
