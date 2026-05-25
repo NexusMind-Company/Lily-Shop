@@ -24,6 +24,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   const userData = useSelector((state) => state.auth?.user_data);
   const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
   const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
+  const profileId = useSelector((state) => state.profile?.data?.user?.id);
+  const resolvedUserId = userId || profileId;
 
   const isShopReview = !!shopId;
   const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
@@ -37,9 +39,13 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => {
+      console.log("DEBUG auth.user_data:", userData);
+      console.log("DEBUG localStorage user_data:", localUser);
+      console.log("DEBUG profileId:", profileId);
+      console.log("DEBUG resolvedUserId:", resolvedUserId);
       const payload = isShopReview
         ? { shop_id: shopId, rating: data.rating, comment: data.comment }
-        : { ...data, user: userId };
+        : { ...data, user: resolvedUserId };
       console.log("Submitting review payload:", payload);
       return isShopReview
         ? createShopReview(payload)
@@ -58,6 +64,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
     },
     onError: (error) => {
       console.error("Review submission failed:", error?.response?.status, error?.response?.data);
+      console.error("FULL ERROR:", JSON.stringify(error?.response?.data, null, 2));
       const msg =
         error?.response?.data?.message ||
         (typeof error?.response?.data === "object"
