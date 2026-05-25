@@ -52,11 +52,11 @@ const ChatView = ({ conversation, onBack }) => {
       <div className="flex items-center gap-3 py-3 border-b border-gray-100 ">
         <button
           onClick={onBack}
-          className="text-[#4eb75e] text-sm font-semibold"
+          className="text-lily text-sm font-semibold"
         >
           ← Back
         </button>
-        <div className="w-8 h-8 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-sm font-bold text-[#4eb75e]">
+        <div className="w-8 h-8 rounded-full bg-lily/10 flex items-center justify-center text-sm font-bold text-lily">
           {conversation.customer_name?.charAt(0) ?? "?"}
         </div>
         <p className="text-sm font-bold text-[#111813] ">
@@ -75,7 +75,7 @@ const ChatView = ({ conversation, onBack }) => {
           <p className="text-xs text-gray-400">Could not load messages</p>
           <button
             onClick={refetch}
-            className="text-xs text-[#4eb75e] font-semibold"
+            className="text-xs text-lily font-semibold"
           >
             Retry
           </button>
@@ -93,7 +93,7 @@ const ChatView = ({ conversation, onBack }) => {
                 className={`flex ${msg.sender === "vendor" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${msg.sender === "vendor" ? "bg-[#4eb75e] text-white rounded-br-sm" : "bg-white  text-[#111813]  border border-gray-100  rounded-bl-sm"}`}
+                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${msg.sender === "vendor" ? "bg-lily text-white rounded-br-sm" : "bg-white  text-[#111813]  border border-gray-100  rounded-bl-sm"}`}
                 >
                   {msg.text}
                   <p
@@ -115,12 +115,12 @@ const ChatView = ({ conversation, onBack }) => {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+          className="flex-1 px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
         />
         <button
           onClick={handleSend}
           disabled={!text.trim() || sending}
-          className="w-12 h-12 rounded-xl bg-[#4eb75e] flex items-center justify-center text-white hover:bg-[#3da64d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-12 h-12 rounded-xl bg-lily flex items-center justify-center text-white hover:bg-darklily disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Send size={16} />
         </button>
@@ -175,7 +175,7 @@ const VendorMessagesPage = () => {
           </p>
           <button
             onClick={refetch}
-            className="text-xs text-[#4eb75e] font-semibold"
+            className="text-xs text-lily font-semibold"
           >
             Retry
           </button>
@@ -192,14 +192,14 @@ const VendorMessagesPage = () => {
             <button
               key={convo.id}
               onClick={() => setActiveConvo(convo)}
-              className="w-full flex items-center gap-3 bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  hover:border-[#4eb75e]/30 transition-colors text-left"
+              className="w-full flex items-center gap-3 bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  hover:border-lily/30 transition-colors text-left"
             >
-              <div className="relative flex-shrink-0">
-                <div className="w-11 h-11 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-base font-bold text-[#4eb75e]">
+              <div className="relative shrink-0">
+                <div className="w-11 h-11 rounded-full bg-lily/10 flex items-center justify-center text-base font-bold text-lily">
                   {convo.customer_name?.charAt(0) ?? "?"}
                 </div>
                 {(convo.unread_count ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#4eb75e] text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-lily text-white text-[10px] font-bold flex items-center justify-center">
                     {convo.unread_count}
                   </span>
                 )}
@@ -212,7 +212,7 @@ const VendorMessagesPage = () => {
                   {convo.last_message}
                 </p>
               </div>
-              <div className="text-right flex-shrink-0">
+              <div className="text-right shrink-0">
                 <p className="text-[10px] text-gray-400">
                   {convo.last_message_time}
                 </p>

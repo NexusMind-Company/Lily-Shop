@@ -108,7 +108,9 @@ const SubscriptionPaymentPage = () => {
       }
 
       if (!phone) {
-        toast.error("Phone number is required. Please go back and add your phone number.");
+        toast.error(
+          "Phone number is required. Please go back and add your phone number.",
+        );
         return;
       }
 
@@ -140,7 +142,10 @@ const SubscriptionPaymentPage = () => {
 
       console.log("Sending subscription data:", paymentData);
 
-      const response = await createSubscriptionWithPaystack(plan.id, paymentData);
+      const response = await createSubscriptionWithPaystack(
+        plan.id,
+        paymentData,
+      );
 
       console.log("Subscription response:", response);
 
@@ -175,7 +180,11 @@ const SubscriptionPaymentPage = () => {
         toast.success("Redirecting to Paystack...");
 
         window.location.href = response.authorization_url;
-      } else if (response.subscription || response.status === "success" || response.status === "pending") {
+      } else if (
+        response.subscription ||
+        response.status === "success" ||
+        response.status === "pending"
+      ) {
         toast.dismiss();
         toast.success("Subscription activated successfully!");
         navigate("/subscriptions", {

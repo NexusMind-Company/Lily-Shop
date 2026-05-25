@@ -147,7 +147,7 @@ const FoodGuidelines = ({ onClose }) => (
       </div>
       <button
         onClick={onClose}
-        className="w-full mt-5 py-3 rounded-xl bg-[#4eb75e] text-white font-bold text-sm"
+        className="w-full mt-5 py-3 rounded-xl bg-lily text-white font-bold text-sm"
       >
         I Understand
       </button>
@@ -157,7 +157,6 @@ const FoodGuidelines = ({ onClose }) => (
 
 const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
   const fileRef = useRef();
-  const videoRef = useRef();
   const [form, setForm] = useState({
     name: meal?.name ?? "",
     price: meal?.price ?? "",
@@ -251,7 +250,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
         <div className="relative w-full max-w-md bg-white  rounded-t-3xl p-6 pb-8 shadow-2xl">
           <div className="text-center mb-5">
-            <div className="w-14 h-14 rounded-full bg-[#4eb75e]/10 flex items-center justify-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-full bg-lily/10 flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">🍛</span>
             </div>
             <h3 className="font-bold text-[#111813]  text-lg">
@@ -274,7 +273,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               >
                 <CheckCircle
                   size={14}
-                  className="text-[#4eb75e] flex-shrink-0"
+                  className="text-lily shrink-0"
                 />
                 {point}
               </div>
@@ -282,7 +281,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
           </div>
           <button
             onClick={() => setShowGuidelines(false)}
-            className="w-full py-3 rounded-xl bg-[#4eb75e] text-white font-bold text-sm"
+            className="w-full py-3 rounded-xl bg-lily text-white font-bold text-sm"
           >
             I Understand – Continue
           </button>
@@ -318,7 +317,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
         <div className="space-y-4">
           <div
             onClick={() => fileRef.current.click()}
-            className="w-full h-28 rounded-xl border-2 border-dashed border-gray-200  flex flex-col items-center justify-center cursor-pointer hover:border-[#4eb75e] transition-colors"
+            className="w-full h-28 rounded-xl border-2 border-dashed border-gray-200  flex flex-col items-center justify-center cursor-pointer hover:border-lily transition-colors"
           >
             <Upload size={20} className="text-gray-300 mb-1" />
             <p className="text-xs text-gray-400">
@@ -345,7 +344,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               placeholder="e.g. Jollof Rice + Chicken"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -358,7 +357,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 <button
                   key={size}
                   onClick={() => setForm({ ...form, size_category: size })}
-                  className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${form.size_category === size ? "bg-[#4eb75e] text-white shadow-sm" : "bg-gray-50  text-gray-500 border border-gray-100 "}`}
+                  className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${form.size_category === size ? "bg-lily text-white shadow-sm" : "bg-gray-50  text-gray-500 border border-gray-100 "}`}
                 >
                   {size}
                 </button>
@@ -373,7 +372,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               </label>
               <button
                 onClick={() => setShowPriceGuide(true)}
-                className="text-[10px] text-[#4eb75e] font-semibold flex items-center gap-1"
+                className="text-[10px] text-lily font-semibold flex items-center gap-1"
               >
                 <Info size={11} /> View price guide
               </button>
@@ -384,7 +383,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               placeholder={`₦${range.min.toLocaleString()} – ₦${range.max.toLocaleString()}`}
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
-              className={`w-full px-4 py-3 rounded-xl border bg-gray-50  text-sm text-[#111813]  focus:outline-none transition-colors ${priceWarning ? "border-red-400 focus:border-red-400" : "border-gray-100  focus:border-[#4eb75e]"}`}
+              className={`w-full px-4 py-3 rounded-xl border bg-gray-50  text-sm text-[#111813]  focus:outline-none transition-colors ${priceWarning ? "border-red-400 focus:border-red-400" : "border-gray-100  focus:border-lily"}`}
             />
             {priceWarning && (
               <p className="flex items-center gap-1 text-xs text-red-500 mt-1.5">
@@ -394,7 +393,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               </p>
             )}
             {form.price && priceValid && (
-              <p className="flex items-center gap-1 text-xs text-[#4eb75e] mt-1.5">
+              <p className="flex items-center gap-1 text-xs text-lily mt-1.5">
                 <CheckCircle size={11} /> Price is within the approved range
               </p>
             )}
@@ -411,7 +410,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e] resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily resize-none"
             />
           </div>
 
@@ -424,7 +423,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               placeholder="https://youtube.com/watch?v=..."
               value={form.video_url}
               onChange={(e) => setForm({ ...form, video_url: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -434,7 +433,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
             </label>
             <div
               onClick={() => fileRef.current.click()}
-              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200  flex flex-col items-center justify-center cursor-pointer hover:border-[#4eb75e] transition-colors"
+              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200  flex flex-col items-center justify-center cursor-pointer hover:border-lily transition-colors"
             >
               <FileVideo size={18} className="text-gray-300 mb-1" />
               <p className="text-xs text-gray-400">Add more images or videos</p>
@@ -452,7 +451,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 {mediaPreviews.map((preview, idx) => (
                   <div
                     key={idx}
-                    className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0"
+                    className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0"
                   >
                     <img
                       src={preview}
@@ -481,7 +480,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 placeholder="e.g. 350"
                 value={form.calories}
                 onChange={(e) => setForm({ ...form, calories: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
             <div>
@@ -495,7 +494,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 onChange={(e) =>
                   setForm({ ...form, preparation_time: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
           </div>
@@ -511,7 +510,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 placeholder="e.g. 25"
                 value={form.protein}
                 onChange={(e) => setForm({ ...form, protein: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
             <div>
@@ -524,7 +523,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 placeholder="e.g. 45"
                 value={form.carbs}
                 onChange={(e) => setForm({ ...form, carbs: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
             <div>
@@ -537,7 +536,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 placeholder="e.g. 12"
                 value={form.fat}
                 onChange={(e) => setForm({ ...form, fat: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
           </div>
@@ -553,7 +552,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               onChange={(e) =>
                 setForm({ ...form, ingredients: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -566,7 +565,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               placeholder="e.g. Peanuts, Dairy, Gluten"
               value={form.allergens}
               onChange={(e) => setForm({ ...form, allergens: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -581,7 +580,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               onChange={(e) =>
                 setForm({ ...form, dietary_tags: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -596,14 +595,14 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
               onChange={(e) =>
                 setForm({ ...form, serving_size: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
           <button
             onClick={handleSubmit}
             disabled={priceWarning || isSaving}
-            className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all ${priceWarning || isSaving ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#4eb75e] hover:bg-[#3da64d]"}`}
+            className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all ${priceWarning || isSaving ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-lily hover:bg-darklily"}`}
           >
             {isSaving ? "Saving..." : meal ? "Save Changes" : "Add Meal"}
           </button>
@@ -689,7 +688,7 @@ const VendorMenuPage = () => {
         </button>
         <button
           onClick={() => setShowForm(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#4eb75e] text-white text-sm font-bold shadow-sm hover:bg-[#3da64d] transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-lily text-white text-sm font-bold shadow-sm hover:bg-darklily transition-colors"
         >
           <Plus size={16} /> Add Meal
         </button>
@@ -721,7 +720,7 @@ const VendorMenuPage = () => {
               key={meal.id}
               className={`bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  flex items-center gap-3 transition-opacity ${deletingId === meal.id ? "opacity-40" : ""}`}
             >
-              <div className="w-12 h-12 rounded-xl bg-gray-100  flex items-center justify-center text-xl overflow-hidden flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gray-100  flex items-center justify-center text-xl overflow-hidden shrink-0">
                 {meal.image_url ? (
                   <img
                     src={meal.image_url}
@@ -737,7 +736,7 @@ const VendorMenuPage = () => {
                   {meal.name}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className="text-xs font-bold text-[#4eb75e]">
+                  <span className="text-xs font-bold text-lily">
                     ₦{parseFloat(meal.price).toLocaleString()}
                   </span>
                   {!meal.is_available && (
@@ -747,10 +746,10 @@ const VendorMenuPage = () => {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex gap-2 shrink-0">
                 <button
                   onClick={() => setEditMeal(meal)}
-                  className="p-2 rounded-xl hover:bg-gray-50  text-gray-400 hover:text-[#4eb75e] transition-colors"
+                  className="p-2 rounded-xl hover:bg-gray-50  text-gray-400 hover:text-lily transition-colors"
                 >
                   <Pencil size={15} />
                 </button>

@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { FeedProvider } from "../context/feedContext";
 import BottomNav from "../components/feed/bottomNav";
 import SideNav from "../components/feed/SideNav";
 import BackToTop from "../components/common/BackToTop";
@@ -32,26 +31,22 @@ const FeedLayout = () => {
   const isFeedRoute = path === "/";
 
   return (
-    <FeedProvider>
-      <div className="flex min-h-screen w-full bg-white md:bg-gray-50">
-        <SideNav activePage={activePage} />
+    <div className="flex min-h-screen w-full bg-white md:bg-gray-50">
+      <SideNav activePage={activePage} />
 
-        <main
-          ref={mainContainerRef}
-          className={`flex-1 w-full md:ml-64 relative h-screen md:pb-0 ${
-            isFeedRoute
-              ? "overflow-hidden"
-              : "overflow-y-auto overflow-x-hidden"
-          } ${shouldShowBottomNav ? "pb-20" : "pb-0"}`}
-        >
-          <Outlet />
-        </main>
+      <main
+        ref={mainContainerRef}
+        className={`flex-1 w-full md:ml-64 relative h-screen md:pb-0 ${
+          isFeedRoute ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"
+        } ${shouldShowBottomNav ? "pb-20" : "pb-0"}`}
+      >
+        <Outlet />
+      </main>
 
-        {/* Only render BottomNav if the current path exactly matches a main tab */}
-        {shouldShowBottomNav && <BottomNav activePage={activePage} />}
-        <BackToTop containerRef={mainContainerRef} />
-      </div>
-    </FeedProvider>
+      {/* Only render BottomNav if the current path exactly matches a main tab */}
+      {shouldShowBottomNav && <BottomNav activePage={activePage} />}
+      <BackToTop containerRef={mainContainerRef} />
+    </div>
   );
 };
 

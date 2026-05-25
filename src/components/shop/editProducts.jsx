@@ -82,7 +82,7 @@ const EditProducts = () => {
         price: initialProductData.price ? String(initialProductData.price) : "",
       });
       setCurrentImagePreview(
-        initialProductData.image_url || initialProductData.preview || null
+        initialProductData.image_url || initialProductData.preview || null,
       );
       setOriginalProduct(initialProductData);
       setSelectedFile(null);
@@ -90,7 +90,7 @@ const EditProducts = () => {
       setFieldErrors({});
     } else {
       setUiSubmissionError(
-        "Product data not available for editing. Please go back and select a product."
+        "Product data not available for editing. Please go back and select a product.",
       );
       setUiSubmissionStatus("failed");
     }
@@ -128,7 +128,7 @@ const EditProducts = () => {
 
       if (!file) {
         setCurrentImagePreview(
-          originalProduct?.image_url || originalProduct?.preview || null
+          originalProduct?.image_url || originalProduct?.preview || null,
         );
         return;
       }
@@ -137,20 +137,20 @@ const EditProducts = () => {
         setImageError(validationError);
         if (imageInputRef.current) imageInputRef.current.value = "";
         setCurrentImagePreview(
-          originalProduct?.image_url || originalProduct?.preview || null
+          originalProduct?.image_url || originalProduct?.preview || null,
         );
         return;
       }
       setSelectedFile(file);
       setFieldErrors((prev) => ({ ...prev, productImage: undefined }));
     },
-    [originalProduct, setFieldErrors]
+    [originalProduct, setFieldErrors],
   );
 
   const actualSubmitLogic = async (formValues) => {
     if (!product_id || !originalProduct) {
       setUiSubmissionError(
-        "Cannot update product: Missing ID or initial data."
+        "Cannot update product: Missing ID or initial data.",
       );
       setUiSubmissionStatus("failed");
       return;
@@ -225,8 +225,8 @@ const EditProducts = () => {
         typeof err.payload.message === "string"
           ? err.payload.message
           : typeof err === "string"
-          ? err
-          : "Failed to update product. Please try again.";
+            ? err
+            : "Failed to update product. Please try again.";
       setUiSubmissionError(errorMsg);
       setUiSubmissionStatus("failed");
     }
@@ -246,7 +246,7 @@ const EditProducts = () => {
   return (
     <section className="mt-28 mb-20 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 items-center max-w-4xl mx-auto overflow-hidden">
       <div className="w-full">
-        <div className="rounded-2xl border-[1px] border-solid border-black h-16 w-full flex items-center justify-center">
+        <div className="rounded-2xl border border-solid border-black h-16 w-full flex items-center justify-center">
           <h1 className="text-xl font-normal font-poppins">
             Edit <span className="text-lily">Product</span>
           </h1>
@@ -290,7 +290,7 @@ const EditProducts = () => {
               value={values.name}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={`input h-[46px] w-full ${
+              className={`input h-11.5 w-full ${
                 fieldErrors.name ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -314,7 +314,7 @@ const EditProducts = () => {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="e.g., 1500.50"
-              className={`input h-[46px] w-full ${
+              className={`input h-11.5 w-full ${
                 fieldErrors.price ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -375,8 +375,8 @@ const EditProducts = () => {
                       {selectedFile
                         ? "Change file"
                         : currentImagePreview
-                        ? "Change file"
-                        : "Upload an image"}
+                          ? "Change file"
+                          : "Upload an image"}
                     </span>
                     <input
                       type="file"
@@ -410,7 +410,7 @@ const EditProducts = () => {
                     setCurrentImagePreview(
                       originalProduct?.image_url ||
                         originalProduct?.preview ||
-                        null
+                        null,
                     );
                     if (imageInputRef.current) imageInputRef.current.value = "";
                     setFieldErrors((prev) => ({
@@ -418,7 +418,7 @@ const EditProducts = () => {
                       productImage: undefined,
                     }));
                   }}
-                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 font-medium flex-shrink-0"
+                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0"
                 >
                   Cancel Change
                 </button>

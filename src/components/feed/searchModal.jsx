@@ -57,7 +57,7 @@ const extractArray = (data) => {
   if (Array.isArray(data.data)) return data.data;
   // Try to find any array property
   const arrayProp = Object.keys(data).find(
-    (key) => Array.isArray(data[key]) && data[key].length > 0
+    (key) => Array.isArray(data[key]) && data[key].length > 0,
   );
   if (arrayProp) return data[arrayProp];
   return [];
@@ -106,7 +106,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             lon: position.coords.longitude,
           });
         },
-        () => {}
+        () => {},
       );
     }
   }, []);
