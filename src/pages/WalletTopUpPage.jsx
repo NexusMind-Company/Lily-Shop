@@ -76,7 +76,7 @@ const WalletTopUpPage = () => {
         </p>
         <button
           onClick={() => navigate("/wallet")}
-          className="w-full max-w-sm bg-lily-500 text-white font-black py-5 rounded-[2rem] text-lg shadow-glow active:scale-95 transition-all"
+          className="w-full max-w-sm bg-lily-500 text-white font-black py-5 rounded-4xl text-lg shadow-glow active:scale-95 transition-all"
         >
           Go to Wallet
         </button>

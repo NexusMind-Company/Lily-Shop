@@ -790,30 +790,6 @@ const PostDetailOverlay = ({
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showCommentsModal && activeModalPost && (
-          <CommentsModal
-            isOpen={showCommentsModal}
-            onClose={() => setShowCommentsModal(false)}
-            postId={activeModalPost.id}
-            itemType={activeModalPost.itemType || activeModalPost.type}
-            totalComments={activeModalPost.comment_count}
-            onCommentCountUpdate={() => {
-              // Optionally refresh comments here
-            }}
-          />
-        )}
-
-        {showShareModal && activeModalPost && (
-          <ShareModal
-            isOpen={showShareModal}
-            onClose={() => setShowShareModal(false)}
-            postUrl={`${window.location.origin}/product/${activeModalPost.id}`}
-            postCaption={activeModalPost.caption || activeModalPost.name}
-          />
-        )}
-      </AnimatePresence>
-
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

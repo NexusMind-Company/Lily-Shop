@@ -17,9 +17,6 @@ body {
     scrollbar-width: none;
 }
 
-/* Lazy image placeholder - prevents CLS */
-img {
-}
 
 /* Native lazy loading for images */
 img[loading="lazy"] {

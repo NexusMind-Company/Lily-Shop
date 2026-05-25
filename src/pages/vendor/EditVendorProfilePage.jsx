@@ -104,7 +104,7 @@ const EditVendorProfilePage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white ">
-        <Loader2 className="w-8 h-8 animate-spin text-[#4eb75e]" />
+        <Loader2 className="w-8 h-8 animate-spin text-lily" />
       </div>
     );
   }
@@ -122,7 +122,7 @@ const EditVendorProfilePage = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="text-[#4eb75e] font-semibold disabled:text-gray-400"
+          className="text-lily font-semibold disabled:text-gray-400"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}
         </button>
@@ -209,7 +209,7 @@ const EditVendorProfilePage = () => {
             type="text"
             value={form.shop_name}
             onChange={(e) => handleChange("shop_name", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter shop name"
           />
         </div>
@@ -223,7 +223,7 @@ const EditVendorProfilePage = () => {
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition resize-none"
             placeholder="Describe your food business"
           />
         </div>
@@ -237,7 +237,7 @@ const EditVendorProfilePage = () => {
             type="text"
             value={form.address}
             onChange={(e) => handleChange("address", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter your address"
           />
         </div>
@@ -251,7 +251,7 @@ const EditVendorProfilePage = () => {
             type="text"
             value={form.category}
             onChange={(e) => handleChange("category", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="e.g., Nigerian, Italian, Fast Food"
           />
         </div>
@@ -265,7 +265,7 @@ const EditVendorProfilePage = () => {
             type="email"
             value={form.contact_email}
             onChange={(e) => handleChange("contact_email", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter contact email"
           />
         </div>
@@ -279,7 +279,7 @@ const EditVendorProfilePage = () => {
             type="tel"
             value={form.contact_phone}
             onChange={(e) => handleChange("contact_phone", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-[#4eb75e] transition"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter contact phone"
           />
         </div>
