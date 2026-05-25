@@ -580,7 +580,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
             <p className="font-light flex items-center gap-2 text-sm text-white/70">
               <span className="shrink-0">
-                <img src="/icons/music.svg" alt="" className="w-4 h-4" />
+                <img src="/icons/music.svg" alt="" className="w-4 h-4" style={{ backgroundColor: 'transparent' }} />
               </span>
               <span className="truncate">
                 {post.musicTrack || "Original Audio"}
