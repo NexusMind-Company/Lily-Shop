@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
 import ErrorDisplay from "../common/ErrorDisplay";
-import Ratings from "./ratings";
 import ContactVendorButton from "../subscription/ContactVendorButton";
 import ReviewModal from "../common/ReviewModal";
 import { ReviewCard } from "../common/ReviewList";
@@ -29,7 +28,6 @@ const ShopDetails = () => {
     error,
   } = useSelector((state) => state.shops);
 
-  const [activeTab, setActiveTab] = useState("products");
   const [orderingProductId, setOrderingProductId] = useState(null);
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
   const [following, setFollowing] = useState(false);
@@ -234,158 +232,132 @@ const ShopDetails = () => {
 
       {/* Products Section */}
       <div className="bg-white mt-2">
-        <div className="flex border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h3 className="font-bold text-base flex items-center gap-2">
+            <Grid3x3 size={20} className="text-lily" />
+            Products
+          </h3>
+        </div>
+
+        <div className="p-4">
+          {shop.products && shop.products.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {shop.products.map((product) => (
+                <motion.div
+                  key={product.id}
+                  layout
+                  className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
+                >
+                  <div className="relative aspect-square">
+                    <img
+                      src={product.image_url || "/placeholder.png"}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  <div className="p-3">
+                    <h4 className="font-semibold text-sm mb-1 truncate">
+                      {product.name}
+                    </h4>
+                    <p className="text-lily font-bold mb-3">
+                      ₦{product.price?.toLocaleString()}
+                    </p>
+
+                    {orderingProductId === product.id ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
+                          <button
+                            onClick={() => handleQuantityChange(-1)}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="font-semibold min-w-[30px] text-center">
+                            {currentOrderQuantity}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(1)}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleConfirmOrder(product.id)}
+                            className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setOrderingProductId(null)}
+                            className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleStartOrder(product.id)}
+                        className="w-full bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition flex items-center justify-center gap-2"
+                      >
+                        <ShoppingCart size={16} />
+                        Order
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <Package size={64} className="mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500">No products yet</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="bg-white mt-2 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-base flex items-center gap-2">
+            <Star size={20} className="text-amber-400" />
+            Reviews
+            {shop.review_count > 0 && (
+              <span className="bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                {shop.review_count}
+              </span>
+            )}
+          </h3>
           <button
-            onClick={() => setActiveTab("products")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "products"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
-            }`}
+            onClick={() => setIsReviewModalOpen(true)}
+            className="text-sm font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5"
           >
-            <Grid3x3 size={20} />
-            <span className="text-sm font-semibold">Products</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("reviews")}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-2 transition ${
-              activeTab === "reviews"
-                ? "border-lily text-lily"
-                : "border-transparent text-gray-500"
-            }`}
-          >
-            <Star size={20} />
-            <span className="text-sm font-semibold">Reviews</span>
+            Write Review
           </button>
         </div>
 
-        {/* Products Grid */}
-        <AnimatePresence mode="wait">
-          {activeTab === "products" && (
-            <motion.div
-              key="products"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-4"
-            >
-              {shop.products && shop.products.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {shop.products.map((product) => (
-                    <motion.div
-                      key={product.id}
-                      layout
-                      className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
-                    >
-                      <div className="relative aspect-square">
-                        <img
-                          src={product.image_url || "/placeholder.png"}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      
-                      <div className="p-3">
-                        <h4 className="font-semibold text-sm mb-1 truncate">
-                          {product.name}
-                        </h4>
-                        <p className="text-lily font-bold mb-3">
-                          ₦{product.price?.toLocaleString()}
-                        </p>
-
-                        {orderingProductId === product.id ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
-                              <button
-                                onClick={() => handleQuantityChange(-1)}
-                                className="p-1 hover:bg-gray-100 rounded"
-                              >
-                                <Minus size={16} />
-                              </button>
-                              <span className="font-semibold min-w-[30px] text-center">
-                                {currentOrderQuantity}
-                              </span>
-                              <button
-                                onClick={() => handleQuantityChange(1)}
-                                className="p-1 hover:bg-gray-100 rounded"
-                              >
-                                <Plus size={16} />
-                              </button>
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleConfirmOrder(product.id)}
-                                className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                onClick={() => setOrderingProductId(null)}
-                                className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleStartOrder(product.id)}
-                            className="w-full bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition flex items-center justify-center gap-2"
-                          >
-                            <ShoppingCart size={16} />
-                            Order
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <Package size={64} className="mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500">No products yet</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === "reviews" && (
-            <motion.div
-              key="reviews"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-4 space-y-4"
-            >
-              <button
-                onClick={() => setIsReviewModalOpen(true)}
-                className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-600 hover:from-amber-100 hover:to-orange-100 transition-all flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Star size={18} className="fill-amber-400 text-amber-400" />
-                Write a Review
-              </button>
-
-              {(reviews?.results || []).length > 0 ? (
-                <div className="space-y-3">
-                  {(reviews?.results || []).map((review, idx) => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      isLast={idx === (reviews.results.length - 1)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-                  <Star size={48} className="mx-auto text-gray-300 mb-4" />
-                  <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
-                  <p className="text-sm text-gray-400">Be the first to share your experience!</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {(reviews?.results || []).length > 0 ? (
+          <div className="space-y-3">
+            {(reviews?.results || []).map((review, idx) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                isLast={idx === (reviews.results.length - 1)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+            <Star size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
+            <p className="text-sm text-gray-400">Be the first to share your experience!</p>
+          </div>
+        )}
       </div>
 
       {/* Share Menu */}

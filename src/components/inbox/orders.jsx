@@ -4,6 +4,7 @@ import { fetchOrders, selectOrders, selectOrderLoading, selectOrderError } from 
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import BottomNav from "./bottomNav";
+import ReviewModal from "../common/ReviewModal";
 
 const Orders = () => {
   const dispatch = useDispatch();
@@ -12,6 +13,15 @@ const Orders = () => {
   const error = useSelector(selectOrderError);
 
   const [activePage, setActivePage] = useState("inbox");
+  const [reviewTarget, setReviewTarget] = useState(null);
+
+  const openReviewModal = (productId, productName) => {
+    setReviewTarget({ productId, productName });
+  };
+
+  const closeReviewModal = () => {
+    setReviewTarget(null);
+  };
 
   useEffect(() => {
     dispatch(fetchOrders());
@@ -109,7 +119,17 @@ const Orders = () => {
                 </div>
 
                 {order.status === "Delivered" && (
-                  <button className="text-pink-600 text-xs font-medium">Rate product</button>
+                  <button
+                    onClick={() =>
+                      openReviewModal(
+                        order.product?.shop || order.shop_id,
+                        order.product?.shop_name || order.shop_name || order.name || order.product_name,
+                      )
+                    }
+                    className="text-pink-600 text-xs font-medium"
+                  >
+                    Rate product
+                  </button>
                 )}
               </div>
             );
@@ -118,6 +138,13 @@ const Orders = () => {
       </section>
 
       <BottomNav activePage={activePage} setActivePage={setActivePage} />
+
+      <ReviewModal
+        isOpen={!!reviewTarget}
+        onClose={closeReviewModal}
+        shopId={reviewTarget?.shopId}
+        shopName={reviewTarget?.shopName}
+      />
     </div>
   );
 };
