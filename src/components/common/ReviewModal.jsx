@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSelector } from "react-redux";
 import { createVendorReview } from "../../services/api";
 import { createReview as createShopReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
@@ -20,6 +21,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
+  const userId = useSelector((state) => state.auth?.user_data?.id);
 
   const isShopReview = !!shopId;
   const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
@@ -35,7 +37,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
     mutationFn: (data) =>
       isShopReview
         ? createShopReview({ shop_id: shopId, rating: data.rating, comment: data.comment })
-        : createVendorReview(vendorId, data),
+        : createVendorReview(vendorId, { ...data, user: userId }),
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
       if (isShopReview) {
