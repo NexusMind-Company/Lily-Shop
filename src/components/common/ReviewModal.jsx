@@ -48,7 +48,14 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
       onClose();
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to submit review. Please try again.");
+      console.error("Review submission failed:", error?.response?.status, error?.response?.data);
+      const msg =
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === "object"
+          ? Object.values(error.response.data).flat().join(". ")
+          : null) ||
+        "Failed to submit review. Please try again.";
+      toast.error(msg);
     },
   });
 
