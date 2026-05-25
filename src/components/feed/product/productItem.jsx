@@ -28,6 +28,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 import { Star } from "lucide-react";
 import MentionText from "../../common/MentionText";
+import ReviewModal from "../../common/ReviewModal";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
@@ -127,6 +128,7 @@ const ProductItem = ({ product }) => {
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
 
   // Social & Engagement states (initialized from product props)
@@ -519,7 +521,10 @@ const ProductItem = ({ product }) => {
                 </span>
               )}
             </div>
-            <button className="text-xs font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5">
+            <button
+              onClick={() => setShowReviewModal(true)}
+              className="text-xs font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5"
+            >
               Write Review
             </button>
           </div>
@@ -696,6 +701,13 @@ const ProductItem = ({ product }) => {
           </div>
         </div>
       </div>
+
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        shopId={product.shop}
+        shopName={product.shop_name || product.name || product.title}
+      />
     </div>
   );
 };

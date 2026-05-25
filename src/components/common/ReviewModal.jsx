@@ -4,6 +4,7 @@ import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { createVendorReview } from "../../services/api";
+import { createReview as createShopReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
 
 const RATING_LABELS = {
@@ -15,10 +16,13 @@ const RATING_LABELS = {
   5: "Excellent 🤩",
 };
 
-const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
+const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
+
+  const isShopReview = !!shopId;
+  const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
 
   useEffect(() => {
     if (!isOpen) {
@@ -28,12 +32,19 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
   }, [isOpen]);
 
   const createReviewMutation = useMutation({
-    mutationFn: (data) => createVendorReview(vendorId, data),
+    mutationFn: (data) =>
+      isShopReview
+        ? createShopReview({ shop_id: shopId, rating: data.rating, comment: data.comment })
+        : createVendorReview(vendorId, data),
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
-      queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
-      queryClient.invalidateQueries({ queryKey: ["shopReviews", vendorId] });
-      queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
+      if (isShopReview) {
+        queryClient.invalidateQueries({ queryKey: ["shopReviews", shopId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
+        queryClient.invalidateQueries({ queryKey: ["shopReviews", vendorId] });
+        queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
+      }
       onClose();
     },
     onError: (error) => {
@@ -83,7 +94,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
               <Star size={32} className="text-amber-500" strokeWidth={0} />
             </div>
             <h2 className="text-xl font-black text-gray-900">
-              Rate {vendorName || "this vendor"}
+              Rate {title}
             </h2>
             <p className="text-sm text-gray-400 mt-1">Your review helps others</p>
           </div>

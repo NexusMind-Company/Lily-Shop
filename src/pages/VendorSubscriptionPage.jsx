@@ -218,25 +218,25 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
               />
             </div>
 
-{reviews?.results?.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-400" fill="currentColor" />
-                    <span className="font-black text-gray-900 text-lg">
-                      {Number(vendor?.avg_rating || 0).toFixed(1)}
-                    </span>
-                    <span className="text-gray-400 text-sm font-medium">
-                      ({vendor?.review_count || 0} reviews)
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setIsReviewModalOpen(true)}
-                    className="px-4 py-2 bg-lily text-white rounded-full text-sm font-semibold hover:bg-lily/90 transition-colors shadow-sm shadow-lily/25"
-                  >
-                    Write Review
-                  </button>
+            <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-amber-400" fill="currentColor" />
+                  <span className="font-black text-gray-900 text-lg">
+                    {Number(vendor?.avg_rating || 0).toFixed(1)}
+                  </span>
+                  <span className="text-gray-400 text-sm font-medium">
+                    ({vendor?.review_count || 0} reviews)
+                  </span>
                 </div>
+                <button
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="px-4 py-2 bg-lily text-white rounded-full text-sm font-semibold hover:bg-lily/90 transition-colors shadow-sm shadow-lily/25"
+                >
+                  Write Review
+                </button>
+              </div>
+              {(reviews?.results || []).length > 0 ? (
                 <div className="space-y-3">
                   {reviews.results.slice(0, 3).map((review, idx) => (
                     <ReviewCard
@@ -246,8 +246,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                     />
                   ))}
                 </div>
-              </div>
-)}
+              ) : (
+                <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200">
+                  <Star size={36} className="mx-auto text-gray-300 mb-3" />
+                  <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
+                  <p className="text-sm text-gray-400">Be the first to share your experience!</p>
+                </div>
+              )}
+            </div>
 
             <div className="mb-6">
               <h3 className="text-xl font-bold mb-4 px-2">Choose a Plan</h3>
