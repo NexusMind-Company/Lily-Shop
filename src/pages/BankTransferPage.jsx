@@ -23,7 +23,11 @@ const BankTransferPage = () => {
     onError: (error) => {
       console.error("Bank transfer initiation failed:", error);
       navigate("/deposit", {
-        state: { error: error.response?.data?.detail || "Failed to initiate bank transfer. Please try again." },
+        state: {
+          error:
+            error.response?.data?.detail ||
+            "Failed to initiate bank transfer. Please try again.",
+        },
       });
     },
   });
@@ -75,7 +79,7 @@ const BankTransferPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
+      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center shrink-0">
         <button
           onClick={() => navigate("/deposit")}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"

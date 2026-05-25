@@ -152,7 +152,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                       name: t.key !== "custom" ? t.label + " Menu" : f.name,
                     }))
                   }
-                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold text-left transition-all border-2 ${form.tier === t.key ? "border-[#4eb75e] bg-[#4eb75e]/5" : "border-gray-100 "}`}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold text-left transition-all border-2 ${form.tier === t.key ? "border-lily bg-lily/5" : "border-gray-100 "}`}
                 >
                   <span
                     className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-1 ${t.color}`}
@@ -177,7 +177,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Student Menu, Premium Pack"
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -194,7 +194,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                 setForm((f) => ({ ...f, base_price: e.target.value }))
               }
               placeholder="e.g. 15000"
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
             />
             <p className="text-[10px] text-gray-400 mt-1">
               Price shown to customers before adding extras
@@ -250,7 +250,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
               placeholder="What makes this package special?"
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e] resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily resize-none"
             />
           </div>
 
@@ -271,7 +271,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                   includes_delivery: !f.includes_delivery,
                 }))
               }
-              className={`w-12 h-6 rounded-full transition-all relative ${form.includes_delivery ? "bg-[#4eb75e]" : "bg-gray-200 "}`}
+              className={`w-12 h-6 rounded-full transition-all relative ${form.includes_delivery ? "bg-lily" : "bg-gray-200 "}`}
             >
               <div
                 className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${form.includes_delivery ? "right-1" : "left-1"}`}
@@ -296,7 +296,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                 <span className="text-xs font-semibold text-[#111813]  flex-1">
                   {extra.name}
                 </span>
-                <span className="text-xs font-bold text-[#4eb75e]">
+                <span className="text-xs font-bold text-lily">
                   +₦{extra.price.toLocaleString()}
                 </span>
                 <button
@@ -316,7 +316,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                 onChange={(e) =>
                   setNewExtra((p) => ({ ...p, name: e.target.value }))
                 }
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-100  bg-gray-50  text-xs text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="flex-1 px-3 py-2 rounded-xl border border-gray-100  bg-gray-50  text-xs text-[#111813]  focus:outline-none focus:border-lily"
               />
               <input
                 type="number"
@@ -325,11 +325,11 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
                 onChange={(e) =>
                   setNewExtra((p) => ({ ...p, price: e.target.value }))
                 }
-                className="w-20 px-3 py-2 rounded-xl border border-gray-100  bg-gray-50  text-xs text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-20 px-3 py-2 rounded-xl border border-gray-100  bg-gray-50  text-xs text-[#111813]  focus:outline-none focus:border-lily"
               />
               <button
                 onClick={addExtra}
-                className="px-3 py-2 rounded-xl bg-[#4eb75e] text-white text-xs font-bold hover:bg-[#3da64d] transition-colors"
+                className="px-3 py-2 rounded-xl bg-lily text-white text-xs font-bold hover:bg-darklily transition-colors"
               >
                 Add
               </button>
@@ -339,7 +339,7 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="w-full py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+            className="w-full py-3.5 rounded-xl bg-lily text-white font-bold text-sm hover:bg-darklily disabled:opacity-60 transition-colors"
           >
             {isSaving ? "Saving..." : pkg ? "Save Changes" : "Create Package"}
           </button>
@@ -379,7 +379,7 @@ const PackageCard = ({ pkg, onEdit, onDelete, isDeleting }) => {
             )}
           </div>
           <div className="text-right shrink-0">
-            <p className="text-lg font-bold text-[#4eb75e]">
+            <p className="text-lg font-bold text-lily">
               ₦{(pkg.base_price ?? 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-gray-400">
@@ -407,7 +407,7 @@ const PackageCard = ({ pkg, onEdit, onDelete, isDeleting }) => {
                 className="flex justify-between text-xs bg-gray-50  rounded-lg px-3 py-1.5"
               >
                 <span className="text-gray-600 ">{e.name}</span>
-                <span className="font-bold text-[#4eb75e]">
+                <span className="font-bold text-lily">
                   +₦{(e.price ?? 0).toLocaleString()}
                 </span>
               </div>
@@ -419,7 +419,7 @@ const PackageCard = ({ pkg, onEdit, onDelete, isDeleting }) => {
       <div className="flex border-t border-gray-50 ">
         <button
           onClick={() => onEdit(pkg)}
-          className="flex-1 py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#4eb75e] hover:bg-gray-50  transition-colors"
+          className="flex-1 py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-lily hover:bg-gray-50  transition-colors"
         >
           <Pencil size={13} /> Edit
         </button>
@@ -502,8 +502,8 @@ const VendorPackagesPage = () => {
 
   return (
     <VendorLayout title="Packages">
-      <div className="bg-[#4eb75e]/10 border border-[#4eb75e]/20 rounded-2xl px-4 py-3">
-        <p className="text-xs font-bold text-[#4eb75e] mb-0.5">
+      <div className="bg-lily/10 border border-lily/20 rounded-2xl px-4 py-3">
+        <p className="text-xs font-bold text-lily mb-0.5">
           💡 Package Pricing
         </p>
         <p className="text-xs text-gray-500">
@@ -515,7 +515,7 @@ const VendorPackagesPage = () => {
 
       <button
         onClick={() => setShowForm(true)}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#4eb75e] text-white text-sm font-bold shadow-sm hover:bg-[#3da64d] transition-colors"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-lily text-white text-sm font-bold shadow-sm hover:bg-darklily transition-colors"
       >
         <Plus size={16} /> Create Package
       </button>

@@ -500,7 +500,8 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
   const queryClient = useQueryClient();
 
   const successState = location.state;
-  const showSuccessBanner = successState?.subscriptionId && successState?.paymentMethod === "paystack";
+  const showSuccessBanner =
+    successState?.subscriptionId && successState?.paymentMethod === "paystack";
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [planToCancel, setPlanToCancel] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -510,20 +511,31 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
 
   const playSuccessSound = () => {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
-      oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
-      
+      oscillator.frequency.setValueAtTime(
+        659.25,
+        audioContext.currentTime + 0.1,
+      );
+      oscillator.frequency.setValueAtTime(
+        783.99,
+        audioContext.currentTime + 0.2,
+      );
+
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.4,
+      );
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.4);
     } catch (e) {
@@ -615,20 +627,27 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
                 <CheckCircle size={40} className="text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-[#111813]">Payment Successful!</h2>
+              <h2 className="text-2xl font-bold text-[#111813]">
+                Payment Successful!
+              </h2>
               <p className="mt-2 text-sm text-gray-500">
-                Your food subscription has been activated. You can now enjoy your meals!
+                Your food subscription has been activated. You can now enjoy
+                your meals!
               </p>
               {successState?.vendor && (
                 <div className="mt-4 rounded-xl bg-gray-50 p-3">
                   <p className="text-xs text-gray-400">Subscribed to</p>
-                  <p className="font-semibold text-[#111813]">{successState.vendor.name}</p>
+                  <p className="font-semibold text-[#111813]">
+                    {successState.vendor.name}
+                  </p>
                 </div>
               )}
               {successState?.plan && (
                 <div className="mt-2 rounded-xl bg-gray-50 p-3">
                   <p className="text-xs text-gray-400">Plan</p>
-                  <p className="font-semibold text-[#111813]">{successState.plan.plan_name}</p>
+                  <p className="font-semibold text-[#111813]">
+                    {successState.plan.plan_name}
+                  </p>
                 </div>
               )}
               <button

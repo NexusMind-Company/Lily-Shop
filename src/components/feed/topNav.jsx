@@ -85,7 +85,7 @@ const TopNav = ({ activeTab, setActiveTab }) => {
           >
             <img src="./icons/cart.svg" alt="Cart" className="w-6 h-6" />
             {cartItemCount > 0 && (
-              <div className="bg-lily grid place-items-center rounded-full min-w-[18px] h-[18px] px-1 absolute -top-1 -right-1">
+              <div className="bg-lily grid place-items-center rounded-full min-w-4.5 h-4.5 px-1 absolute -top-1 -right-1">
                 <p className="font-semibold text-center text-[10px] text-white leading-none">
                   {cartItemCount > 99 ? "99+" : cartItemCount}
                 </p>

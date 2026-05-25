@@ -11,7 +11,7 @@ const Step1 = () => {
   return (
     <section className="mt-28 min-h-screen flex flex-col px-4 md:px-7 gap-5 md:gap-7 max-w-4xl mx-auto overflow-hidden">
       <div className="flex flex-col gap-5">
-        <div className="rounded-2xl border border-black h-[70px] md:w-full flex items-center justify-center">
+        <div className="rounded-2xl border border-black h-17.5 md:w-full flex items-center justify-center">
           <h1 className="text-xl/[30px] font-normal font-poppins">
             Purchase <span className="text-lily">Ads</span>
           </h1>
