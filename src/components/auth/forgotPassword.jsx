@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import {
@@ -8,30 +8,24 @@ import {
 } from "../../redux/passwordResetSlice";
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Get state from Redux slice
-  const { status, error, successMessage, step } = useSelector(
-    (state) => state.passwordReset,
-  );
+  const { status, error, step } = useSelector((state) => state.passwordReset);
 
   const loading = status === "loading";
   const emailSent = step === "verify";
 
-  // Navigate on success
+  // Handle success state
   useEffect(() => {
     if (emailSent) {
-      toast.success("Verification code sent to your email!");
-      setTimeout(() => {
-        navigate(`/reset-verify-code?email=${encodeURIComponent(email)}`);
-        dispatch(clearPasswordResetState());
-      }, 1500);
+      setIsSubmitted(true);
     }
-  }, [emailSent, navigate, email, dispatch]);
+  }, [emailSent]);
 
   useEffect(() => {
     if (error) {
@@ -39,6 +33,13 @@ const ForgotPassword = () => {
       dispatch(clearPasswordResetState());
     }
   }, [error, dispatch]);
+
+  // Handle cleanup on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearPasswordResetState());
+    };
+  }, [dispatch]);
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -52,6 +53,42 @@ const ForgotPassword = () => {
 
     dispatch(requestPasswordReset(email));
   };
+
+  if (isSubmitted) {
+    return (
+      <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+        <div className="flex items-center bg-white absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
+          <Link to="/">
+            <h1 className="font-bold text-2xl text-lily uppercase">
+              Lily Shops
+            </h1>
+          </Link>
+        </div>
+
+        <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
+          <span className="border-b-2 border-solid pb-0.5 border-lily">
+            Chec
+          </span>
+          k Your Email
+        </h2>
+
+        <p className="text-sm font-medium text-ash -mt-4">
+          We've sent a password reset link to{" "}
+          <span className="text-black font-semibold">{email}</span>. Please
+          check your inbox and follow the instructions.
+        </p>
+
+        <div className="self-start mt-4">
+          <Link to="/login" className="flex items-center gap-2">
+            <img src="/arrowleft.png" alt="arrow" className="size-4" />
+            <p className="font-semibold text-black font-poppins text-sm">
+              Back to Log in
+            </p>
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
