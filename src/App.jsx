@@ -245,10 +245,15 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-code" element={<VerifyCode />} />
           <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route
+            path="/password-reset/:token"
+            element={<ResetPasswordPage />}
+          />
 
           {/* ================= PROTECTED ROUTES ================= */}
           <Route element={<ProtectedRoute />}>
