@@ -1,40 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { api, fetchPublicProfile, followUser } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Grid3x3,
   Heart,
   Eye,
   EllipsisVertical,
   ChevronLeft,
-  MessageCircle,
-  Flag,
-  Ban,
-  Play,
   Package,
   CheckCircle2,
-  UserPlus,
-  UserCheck,
   Share2,
   MoreHorizontal,
   Link as IconLink,
-  MapPin,
-  Calendar,
+  Play,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import ProfileFeedViewer from "./profileFeedViewer";
 import PostDetailOverlay from "./PostDetailOverlay";
 
 const ProfileVisiting = () => {
-  console.log("ProfileVisiting Component rendered");
   const [activeTab, setActiveTab] = useState("posts");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
@@ -46,6 +35,7 @@ const ProfileVisiting = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const { userId, username } = useParams();
   const profileIdentifier = userId || username;
@@ -64,287 +54,244 @@ const ProfileVisiting = () => {
     }
   }, [user_data, profileIdentifier, navigate]);
 
-  // Fetch profile data
-  useEffect(() => {
-    if (!profileIdentifier) return;
+  // Query 1: Fetch the basic public profile
+  const {
+    data: profileResult,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useQuery({
+    queryKey: ["public-profile", profileIdentifier],
+    queryFn: () => fetchPublicProfile(profileIdentifier),
+    enabled: !!profileIdentifier,
+    staleTime: 60 * 1000,
+  });
 
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const result = await fetchPublicProfile(profileIdentifier);
-        const targetId = result.id || result.user?.id || profileIdentifier;
+  const targetId = useMemo(() => {
+    return profileResult?.id || profileResult?.user?.id || profileIdentifier;
+  }, [profileResult, profileIdentifier]);
 
-        let actualFollowingCount =
-          result.following_count || result.user?.following_count || 0;
+  // Query 2: Fetch contents and products once we have the targetId
+  const { data: secondaryData, isLoading: secondaryLoading } = useQuery({
+    queryKey: ["public-profile-secondary", targetId],
+    queryFn: async () => {
+      let fetchedPosts = [];
+      let fetchedProducts = [];
+      let actualFollowingCount =
+        profileResult?.following_count ||
+        profileResult?.user?.following_count ||
+        0;
 
-        if (actualFollowingCount === 0) {
-          try {
-            const followingRes = await api.get(`/auth/following/${targetId}/`);
-            const followingData = Array.isArray(followingRes.data)
-              ? followingRes.data
-              : followingRes.data?.following ||
-                followingRes.data?.results ||
-                [];
-            actualFollowingCount = followingData.length;
-          } catch (err) {
-            console.warn("Could not fetch following count fallback", err);
-          }
-        }
-
-        let fetchedPosts = [];
-        let fetchedProducts = [];
-
+      // Fallback for following count if 0
+      if (actualFollowingCount === 0 && targetId) {
         try {
-          const [postsRes, productsRes] = await Promise.all([
-            api.get(`/shops/contents/${targetId}/`),
-            api.get(`/shops/products/${targetId}/`),
-          ]);
-
-          const rawPosts = postsRes.data?.results || postsRes.data || [];
-          fetchedPosts = rawPosts.map((p) => {
-            const item = p.content || p;
-            return {
-              ...item,
-              itemType: "content",
-              type: "content",
-              username: item.user?.username || result.username || "Unknown",
-              userpic:
-                item.user?.profile_pic ||
-                result.profile_pic ||
-                "/profile-icon.svg",
-              like_count: item.likes_count ?? item.like_count ?? item.likes,
-              view_count: item.views ?? item.view_count ?? item.visit_count,
-              comment_count: item.comment_count,
-              is_liked: item.is_liked ?? item.has_liked,
-            };
-          });
-
-          const rawProducts =
-            productsRes.data?.results || productsRes.data || [];
-          fetchedProducts = rawProducts.map((p) => {
-            const item = p.product || p;
-            return {
-              ...item,
-              itemType: "product",
-              type: "product",
-              username:
-                item.shop?.shop_name ||
-                item.user?.username ||
-                result.username ||
-                "Unknown",
-              userpic:
-                item.shop?.logo ||
-                item.user?.profile_pic ||
-                result.profile_pic ||
-                "/profile-icon.svg",
-              like_count: item.likes_count ?? item.like_count ?? item.likes,
-              view_count: item.views ?? item.view_count ?? item.visit_count,
-              comment_count:
-                item.comments_count ?? item.comment_count ?? item.comments,
-              is_liked: item.is_liked ?? item.has_liked,
-            };
-          });
+          const followingRes = await api.get(`/auth/following/${targetId}/`);
+          const followingData = Array.isArray(followingRes.data)
+            ? followingRes.data
+            : followingRes.data?.following || followingRes.data?.results || [];
+          actualFollowingCount = followingData.length;
         } catch (err) {
-          console.warn(
-            "Could not fetch user contents/products, falling back to profile data",
-            err,
-          );
-          const rawPosts =
-            result.posted_contents ||
-            result.contents ||
-            result.user?.posted_contents ||
-            [];
-          const rawProducts =
-            result.posted_products ||
-            result.products ||
-            result.user?.posted_products ||
-            [];
-
-          fetchedPosts = rawPosts.map((p) => {
-            const item = p.content || p;
-            return {
-              ...item,
-              itemType: "content",
-              type: "content",
-              username: item.user?.username || result.username || "Unknown",
-              userpic:
-                item.user?.profile_pic ||
-                result.profile_pic ||
-                "/profile-icon.svg",
-              like_count: item.likes_count ?? item.like_count ?? item.likes,
-              view_count: item.views ?? item.view_count ?? item.visit_count,
-              comment_count: item.comment_count,
-              is_liked: item.is_liked ?? item.has_liked,
-            };
-          });
-
-          fetchedProducts = rawProducts.map((p) => {
-            const item = p.product || p;
-            return {
-              ...item,
-              itemType: "product",
-              type: "product",
-              username:
-                item.shop?.shop_name ||
-                item.user?.username ||
-                result.username ||
-                "Unknown",
-              userpic:
-                item.shop?.logo ||
-                item.user?.profile_pic ||
-                result.profile_pic ||
-                "/profile-icon.svg",
-              like_count: item.likes_count ?? item.like_count ?? item.likes,
-              view_count: item.views ?? item.view_count ?? item.visit_count,
-              comment_count:
-                item.comments_count ?? item.comment_count ?? item.comments,
-              is_liked: item.is_liked ?? item.has_liked,
-            };
-          });
+          console.warn("Could not fetch following count fallback", err);
         }
-
-        const normalizedData = {
-          user: {
-            ...result,
-            ...result.user,
-            id: targetId,
-            full_name:
-              result.full_name ||
-              result.user?.full_name ||
-              result.username ||
-              "User",
-            username: result.username || result.user?.username,
-            profile_pic: result.profile_pic || result.user?.profile_pic,
-            bio: result.bio || result.user?.bio,
-            followers_count:
-              result.follower_count || result.followers_count || 0,
-            following_count: actualFollowingCount,
-            verified: result.verified || false,
-          },
-          posts: fetchedPosts,
-          products: fetchedProducts,
-        };
-
-        const checkIsFollowing =
-          result.is_following === true ||
-          String(result.is_following).toLowerCase() === "true" ||
-          result.user?.is_following === true ||
-          String(result.user?.is_following).toLowerCase() === "true" ||
-          result.is_followed === true ||
-          String(result.is_followed).toLowerCase() === "true";
-
-        setData(normalizedData);
-        setIsFollowing(checkIsFollowing);
-        setError(null);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load profile");
-        setLoading(false);
       }
-    };
 
-    loadData();
-  }, [profileIdentifier]);
+      try {
+        const [postsRes, productsRes] = await Promise.all([
+          api.get(`/shops/contents/${targetId}/`),
+          api.get(`/shops/products/${targetId}/`),
+        ]);
+
+        const rawPosts = postsRes.data?.results || postsRes.data || [];
+        fetchedPosts = rawPosts.map((p) => {
+          const item = p.content || p;
+          return {
+            ...item,
+            itemType: "content",
+            type: "content",
+            username:
+              item.user?.username || profileResult?.username || "Unknown",
+            userpic:
+              item.user?.profile_pic ||
+              profileResult?.profile_pic ||
+              "/profile-icon.svg",
+            like_count: item.likes_count ?? item.like_count ?? item.likes,
+            view_count: item.views ?? item.view_count ?? item.visit_count,
+            comment_count: item.comment_count,
+            is_liked: item.is_liked ?? item.has_liked,
+          };
+        });
+
+        const rawProducts = productsRes.data?.results || productsRes.data || [];
+        fetchedProducts = rawProducts.map((p) => {
+          const item = p.product || p;
+          return {
+            ...item,
+            itemType: "product",
+            type: "product",
+            username:
+              item.shop?.shop_name ||
+              item.user?.username ||
+              profileResult?.username ||
+              "Unknown",
+            userpic:
+              item.shop?.logo ||
+              item.user?.profile_pic ||
+              profileResult?.profile_pic ||
+              "/profile-icon.svg",
+            like_count: item.likes_count ?? item.like_count ?? item.likes,
+            view_count: item.views ?? item.view_count ?? item.visit_count,
+            comment_count:
+              item.comments_count ?? item.comment_count ?? item.comments,
+            is_liked: item.is_liked ?? item.has_liked,
+          };
+        });
+      } catch (err) {
+        console.warn("Falling back to profile data", err);
+        const rawPosts =
+          profileResult?.posted_contents ||
+          profileResult?.contents ||
+          profileResult?.user?.posted_contents ||
+          [];
+        const rawProducts =
+          profileResult?.posted_products ||
+          profileResult?.products ||
+          profileResult?.user?.posted_products ||
+          [];
+
+        fetchedPosts = rawPosts.map((p) => {
+          const item = p.content || p;
+          return {
+            ...item,
+            itemType: "content",
+            type: "content",
+            username:
+              item.user?.username || profileResult?.username || "Unknown",
+            userpic:
+              item.user?.profile_pic ||
+              profileResult?.profile_pic ||
+              "/profile-icon.svg",
+            like_count: item.likes_count ?? item.like_count ?? item.likes,
+            view_count: item.views ?? item.view_count ?? item.visit_count,
+            comment_count: item.comment_count,
+            is_liked: item.is_liked ?? item.has_liked,
+          };
+        });
+
+        fetchedProducts = rawProducts.map((p) => {
+          const item = p.product || p;
+          return {
+            ...item,
+            itemType: "product",
+            type: "product",
+            username:
+              item.shop?.shop_name ||
+              item.user?.username ||
+              profileResult?.username ||
+              "Unknown",
+            userpic:
+              item.shop?.logo ||
+              item.user?.profile_pic ||
+              profileResult?.profile_pic ||
+              "/profile-icon.svg",
+            like_count: item.likes_count ?? item.like_count ?? item.likes,
+            view_count: item.views ?? item.view_count ?? item.visit_count,
+            comment_count:
+              item.comments_count ?? item.comment_count ?? item.comments,
+            is_liked: item.is_liked ?? item.has_liked,
+          };
+        });
+      }
+
+      return {
+        posts: fetchedPosts,
+        products: fetchedProducts,
+        following_count: actualFollowingCount,
+      };
+    },
+    enabled: !!profileResult && !!targetId,
+    staleTime: 60 * 1000,
+  });
+
+  // Consolidate final data
+  const data = useMemo(() => {
+    if (!profileResult) return null;
+    return {
+      user: {
+        ...profileResult,
+        ...profileResult.user,
+        id: targetId,
+        full_name:
+          profileResult.full_name ||
+          profileResult.user?.full_name ||
+          profileResult.username ||
+          "User",
+        username: profileResult.username || profileResult.user?.username,
+        profile_pic:
+          profileResult.profile_pic || profileResult.user?.profile_pic,
+        bio: profileResult.bio || profileResult.user?.bio,
+        followers_count:
+          profileResult.follower_count || profileResult.followers_count || 0,
+        following_count:
+          secondaryData?.following_count || profileResult.following_count || 0,
+        verified: profileResult.verified || false,
+      },
+      posts: secondaryData?.posts || [],
+      products: secondaryData?.products || [],
+    };
+  }, [profileResult, targetId, secondaryData]);
+
+  // Sync isFollowing state
+  useEffect(() => {
+    if (profileResult) {
+      const checkIsFollowing =
+        profileResult.is_following === true ||
+        String(profileResult.is_following).toLowerCase() === "true" ||
+        profileResult.user?.is_following === true ||
+        String(profileResult.user?.is_following).toLowerCase() === "true" ||
+        profileResult.is_followed === true ||
+        String(profileResult.is_followed).toLowerCase() === "true";
+      setIsFollowing(checkIsFollowing);
+    }
+  }, [profileResult]);
 
   const handleFollow = async () => {
-    const targetId =
-      data?.user?.id || data?.user?.username || profileIdentifier;
-    if (!targetId || followLoading) return;
+    const followId = data?.user?.id || profileIdentifier;
+    if (!followId || followLoading) return;
 
     setFollowLoading(true);
-    const previousState = isFollowing;
     const newState = !isFollowing;
 
+    // Optimistic update
     setIsFollowing(newState);
-    setData((prev) => ({
-      ...prev,
-      user: {
-        ...prev.user,
-        followers_count: Math.max(
-          0,
-          (prev.user.followers_count || 0) + (newState ? 1 : -1),
-        ),
-      },
-    }));
 
     try {
-      const response = await followUser(targetId);
+      const response = await followUser(followId);
       const responseMsg = response?.message?.toLowerCase() || "";
 
       if (responseMsg.includes("unfollow") && newState === true) {
         setIsFollowing(false);
-        setData((prev) => ({
-          ...prev,
-          user: {
-            ...prev.user,
-            followers_count: Math.max(0, (prev.user.followers_count || 0) - 2),
-          },
-        }));
       } else if (
         responseMsg.includes("follow") &&
         !responseMsg.includes("unfollow") &&
         newState === false
       ) {
         setIsFollowing(true);
-        setData((prev) => ({
-          ...prev,
-          user: {
-            ...prev.user,
-            followers_count: (prev.user.followers_count || 0) + 2,
-          },
-        }));
-      } else if (response && typeof response.is_following !== "undefined") {
-        setIsFollowing(
-          response.is_following === true ||
-            String(response.is_following).toLowerCase() === "true",
-        );
       }
 
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({
+        queryKey: ["public-profile", profileIdentifier],
+      });
+      // Also refresh authenticated profile to sync following counts
       dispatch(fetchProfile());
     } catch (err) {
-      console.error("Follow failed", err);
-      setIsFollowing(previousState);
-      setData((prev) => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          followers_count: Math.max(
-            0,
-            (prev.user.followers_count || 0) + (previousState ? 1 : -1),
-          ),
-        },
-      }));
+      setIsFollowing(!newState);
+      toast.error("Failed to update follow status");
     } finally {
       setFollowLoading(false);
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lily"></div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center px-4">
-          <p className="text-red-500 mb-4 font-semibold">{error}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-6 py-2 bg-lily text-white rounded-full font-bold"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-
-  if (!data) return null;
-
-  const { user = {}, posts = [], products = [] } = data;
+  const loading = profileLoading || (!!profileResult && secondaryLoading);
 
   const renderGrid = (items, emptyMessage) => {
     if (!items || items.length === 0) {
@@ -380,11 +327,10 @@ const ProfileVisiting = () => {
                 if (activeTab === "products") {
                   navigate(`/product-details/${item.id}`);
                 } else {
-                  const clickedIndex = items.findIndex((p) => p.id === item.id);
                   setFeedOverlay({
                     isOpen: true,
                     items: items,
-                    initialIndex: clickedIndex !== -1 ? clickedIndex : 0,
+                    initialIndex: i,
                   });
                 }
               }}
@@ -432,6 +378,34 @@ const ProfileVisiting = () => {
     );
   };
 
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lily"></div>
+      </div>
+    );
+
+  if (profileError)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center px-4">
+          <p className="text-red-500 mb-4 font-semibold">
+            Failed to load profile
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-6 py-2 bg-lily text-white rounded-full font-bold"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+
+  if (!data) return null;
+
+  const { user = {}, posts = [], products = [] } = data;
+
   return (
     <div className="w-full max-w-full mx-auto min-h-screen pb-10 px-4 md:px-12 bg-white">
       {feedOverlay.isOpen && (
@@ -439,13 +413,6 @@ const ProfileVisiting = () => {
           posts={feedOverlay.items}
           initialIndex={feedOverlay.initialIndex}
           onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          onDeleteSuccess={(_postId) => {
-            // This is visiting profile, but if the visitor owns the post (e.g. tagged?),
-            // we might want to refresh. For now just handle it gracefully.
-            if (window.location.reload) {
-              // Or just let it close.
-            }
-          }}
         />
       )}
       {/* Mobile Header */}
