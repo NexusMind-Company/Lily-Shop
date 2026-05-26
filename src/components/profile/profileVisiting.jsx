@@ -52,25 +52,26 @@ const ProfileVisiting = () => {
 
   const { user_data } = useSelector((state) => state.auth);
 
+  // Redirect if visiting own profile
   useEffect(() => {
-    if (!profileIdentifier) return;
-
-    if (user_data) {
+    if (user_data && profileIdentifier) {
       if (
         String(user_data.id) === String(profileIdentifier) ||
         user_data.username === profileIdentifier
       ) {
         navigate("/profile");
-        return;
       }
     }
+  }, [user_data, profileIdentifier, navigate]);
+
+  // Fetch profile data
+  useEffect(() => {
+    if (!profileIdentifier) return;
 
     const loadData = async () => {
       try {
-        console.log("loadData triggered for:", profileIdentifier);
         setLoading(true);
         const result = await fetchPublicProfile(profileIdentifier);
-        console.log("Public profile result:", result);
         const targetId = result.id || result.user?.id || profileIdentifier;
 
         let actualFollowingCount =
@@ -94,14 +95,12 @@ const ProfileVisiting = () => {
         let fetchedProducts = [];
 
         try {
-          console.log("Fetching posts/products for targetId:", targetId);
           const [postsRes, productsRes] = await Promise.all([
             api.get(`/shops/contents/${targetId}/`),
             api.get(`/shops/products/${targetId}/`),
           ]);
 
           const rawPosts = postsRes.data?.results || postsRes.data || [];
-          console.log("Raw posts from API:", rawPosts);
           fetchedPosts = rawPosts.map((p) => {
             const item = p.content || p;
             return {
@@ -122,7 +121,6 @@ const ProfileVisiting = () => {
 
           const rawProducts =
             productsRes.data?.results || productsRes.data || [];
-          console.log("Raw products from API:", rawProducts);
           fetchedProducts = rawProducts.map((p) => {
             const item = p.product || p;
             return {
@@ -161,8 +159,6 @@ const ProfileVisiting = () => {
             result.products ||
             result.user?.posted_products ||
             [];
-
-          console.log("Fallback raw data:", { rawPosts, rawProducts });
 
           fetchedPosts = rawPosts.map((p) => {
             const item = p.content || p;
@@ -239,6 +235,7 @@ const ProfileVisiting = () => {
 
         setData(normalizedData);
         setIsFollowing(checkIsFollowing);
+        setError(null);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -248,7 +245,7 @@ const ProfileVisiting = () => {
     };
 
     loadData();
-  }, [profileIdentifier, user_data, navigate]);
+  }, [profileIdentifier]);
 
   const handleFollow = async () => {
     const targetId =
