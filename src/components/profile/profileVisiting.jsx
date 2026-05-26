@@ -29,6 +29,7 @@ import ProfileFeedViewer from "./profileFeedViewer";
 import PostDetailOverlay from "./PostDetailOverlay";
 
 const ProfileVisiting = () => {
+  console.log("ProfileVisiting Component rendered");
   const [activeTab, setActiveTab] = useState("posts");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [data, setData] = useState(null);
@@ -66,8 +67,10 @@ const ProfileVisiting = () => {
 
     const loadData = async () => {
       try {
+        console.log("loadData triggered for:", profileIdentifier);
         setLoading(true);
         const result = await fetchPublicProfile(profileIdentifier);
+        console.log("Public profile result:", result);
         const targetId = result.id || result.user?.id || profileIdentifier;
 
         let actualFollowingCount =
@@ -91,12 +94,14 @@ const ProfileVisiting = () => {
         let fetchedProducts = [];
 
         try {
+          console.log("Fetching posts/products for targetId:", targetId);
           const [postsRes, productsRes] = await Promise.all([
-            api.get(`/shops/contents/${targetId}`),
+            api.get(`/shops/contents/${targetId}/`),
             api.get(`/shops/products/${targetId}/`),
           ]);
 
           const rawPosts = postsRes.data?.results || postsRes.data || [];
+          console.log("Raw posts from API:", rawPosts);
           fetchedPosts = rawPosts.map((p) => {
             const item = p.content || p;
             return {
@@ -117,6 +122,7 @@ const ProfileVisiting = () => {
 
           const rawProducts =
             productsRes.data?.results || productsRes.data || [];
+          console.log("Raw products from API:", rawProducts);
           fetchedProducts = rawProducts.map((p) => {
             const item = p.product || p;
             return {
@@ -145,16 +151,60 @@ const ProfileVisiting = () => {
             "Could not fetch user contents/products, falling back to profile data",
             err,
           );
-          fetchedPosts =
+          const rawPosts =
             result.posted_contents ||
             result.contents ||
             result.user?.posted_contents ||
             [];
-          fetchedProducts =
+          const rawProducts =
             result.posted_products ||
             result.products ||
             result.user?.posted_products ||
             [];
+
+          console.log("Fallback raw data:", { rawPosts, rawProducts });
+
+          fetchedPosts = rawPosts.map((p) => {
+            const item = p.content || p;
+            return {
+              ...item,
+              itemType: "content",
+              type: "content",
+              username: item.user?.username || result.username || "Unknown",
+              userpic:
+                item.user?.profile_pic ||
+                result.profile_pic ||
+                "/profile-icon.svg",
+              like_count: item.likes_count ?? item.like_count ?? item.likes,
+              view_count: item.views ?? item.view_count ?? item.visit_count,
+              comment_count: item.comment_count,
+              is_liked: item.is_liked ?? item.has_liked,
+            };
+          });
+
+          fetchedProducts = rawProducts.map((p) => {
+            const item = p.product || p;
+            return {
+              ...item,
+              itemType: "product",
+              type: "product",
+              username:
+                item.shop?.shop_name ||
+                item.user?.username ||
+                result.username ||
+                "Unknown",
+              userpic:
+                item.shop?.logo ||
+                item.user?.profile_pic ||
+                result.profile_pic ||
+                "/profile-icon.svg",
+              like_count: item.likes_count ?? item.like_count ?? item.likes,
+              view_count: item.views ?? item.view_count ?? item.visit_count,
+              comment_count:
+                item.comments_count ?? item.comment_count ?? item.comments,
+              is_liked: item.is_liked ?? item.has_liked,
+            };
+          });
         }
 
         const normalizedData = {
