@@ -70,7 +70,7 @@ const ProfileVisiting = () => {
     return profileResult?.id || profileResult?.user?.id || profileIdentifier;
   }, [profileResult, profileIdentifier]);
 
-  // Query 2: Fetch contents and products once we have the targetId
+  // Query 2: Fetch contents and products using IDs from the profile
   const { data: secondaryData, isLoading: secondaryLoading } = useQuery({
     queryKey: ["public-profile-secondary", targetId],
     queryFn: async () => {
@@ -94,14 +94,63 @@ const ProfileVisiting = () => {
         }
       }
 
-      try {
-        const [postsRes, productsRes] = await Promise.all([
-          api.get(`/shops/contents/${targetId}/`),
-          api.get(`/shops/products/${targetId}/`),
-        ]);
+      // Extract raw items from profile
+      const rawFallbackPosts =
+        profileResult?.posted_contents ||
+        profileResult?.contents ||
+        profileResult?.user?.posted_contents ||
+        [];
+      const rawFallbackProducts =
+        profileResult?.posted_products ||
+        profileResult?.products ||
+        profileResult?.user?.posted_products ||
+        [];
 
-        const rawPosts = postsRes.data?.results || postsRes.data || [];
-        fetchedPosts = rawPosts.map((p) => {
+      // Extract IDs
+      const contentIds = rawFallbackPosts
+        .map((p) => p.id || p.content?.id || (typeof p === "string" ? p : null))
+        .filter(Boolean);
+      const productIds = rawFallbackProducts
+        .map((p) => p.id || p.product?.id || (typeof p === "string" ? p : null))
+        .filter(Boolean);
+
+      // Fetch Detailed Contents
+      if (contentIds.length > 0) {
+        try {
+          const contentPromises = contentIds.map((id) =>
+            api.get(`/shops/contents/${id}/`).catch(() => null),
+          );
+          const contentResponses = await Promise.all(contentPromises);
+
+          fetchedPosts = contentResponses
+            .filter((res) => res?.data)
+            .map((res) => {
+              const p = res.data;
+              const item = p.content || p;
+              return {
+                ...item,
+                itemType: "content",
+                type: "content",
+                username:
+                  item.user?.username || profileResult?.username || "Unknown",
+                userpic:
+                  item.user?.profile_pic ||
+                  profileResult?.profile_pic ||
+                  "/profile-icon.svg",
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count: item.comment_count,
+                is_liked: item.is_liked ?? item.has_liked,
+              };
+            });
+        } catch (err) {
+          console.warn("Failed fetching detailed contents", err);
+        }
+      }
+
+      // Fallback if detailed fetch failed or returned nothing
+      if (fetchedPosts.length === 0 && rawFallbackPosts.length > 0) {
+        fetchedPosts = rawFallbackPosts.map((p) => {
           const item = p.content || p;
           return {
             ...item,
@@ -119,64 +168,50 @@ const ProfileVisiting = () => {
             is_liked: item.is_liked ?? item.has_liked,
           };
         });
+      }
 
-        const rawProducts = productsRes.data?.results || productsRes.data || [];
-        fetchedProducts = rawProducts.map((p) => {
-          const item = p.product || p;
-          return {
-            ...item,
-            itemType: "product",
-            type: "product",
-            username:
-              item.shop?.shop_name ||
-              item.user?.username ||
-              profileResult?.username ||
-              "Unknown",
-            userpic:
-              item.shop?.logo ||
-              item.user?.profile_pic ||
-              profileResult?.profile_pic ||
-              "/profile-icon.svg",
-            like_count: item.likes_count ?? item.like_count ?? item.likes,
-            view_count: item.views ?? item.view_count ?? item.visit_count,
-            comment_count:
-              item.comments_count ?? item.comment_count ?? item.comments,
-            is_liked: item.is_liked ?? item.has_liked,
-          };
-        });
-      } catch (err) {
-        console.warn("Falling back to profile data", err);
-        const rawPosts =
-          profileResult?.posted_contents ||
-          profileResult?.contents ||
-          profileResult?.user?.posted_contents ||
-          [];
-        const rawProducts =
-          profileResult?.posted_products ||
-          profileResult?.products ||
-          profileResult?.user?.posted_products ||
-          [];
+      // Fetch Detailed Products
+      if (productIds.length > 0) {
+        try {
+          const productPromises = productIds.map((id) =>
+            api.get(`/shops/products/${id}/`).catch(() => null),
+          );
+          const productResponses = await Promise.all(productPromises);
 
-        fetchedPosts = rawPosts.map((p) => {
-          const item = p.content || p;
-          return {
-            ...item,
-            itemType: "content",
-            type: "content",
-            username:
-              item.user?.username || profileResult?.username || "Unknown",
-            userpic:
-              item.user?.profile_pic ||
-              profileResult?.profile_pic ||
-              "/profile-icon.svg",
-            like_count: item.likes_count ?? item.like_count ?? item.likes,
-            view_count: item.views ?? item.view_count ?? item.visit_count,
-            comment_count: item.comment_count,
-            is_liked: item.is_liked ?? item.has_liked,
-          };
-        });
+          fetchedProducts = productResponses
+            .filter((res) => res?.data)
+            .map((res) => {
+              const p = res.data;
+              const item = p.product || p;
+              return {
+                ...item,
+                itemType: "product",
+                type: "product",
+                username:
+                  item.shop?.shop_name ||
+                  item.user?.username ||
+                  profileResult?.username ||
+                  "Unknown",
+                userpic:
+                  item.shop?.logo ||
+                  item.user?.profile_pic ||
+                  profileResult?.profile_pic ||
+                  "/profile-icon.svg",
+                like_count: item.likes_count ?? item.like_count ?? item.likes,
+                view_count: item.views ?? item.view_count ?? item.visit_count,
+                comment_count:
+                  item.comments_count ?? item.comment_count ?? item.comments,
+                is_liked: item.is_liked ?? item.has_liked,
+              };
+            });
+        } catch (err) {
+          console.warn("Failed fetching detailed products", err);
+        }
+      }
 
-        fetchedProducts = rawProducts.map((p) => {
+      // Fallback if detailed fetch failed or returned nothing
+      if (fetchedProducts.length === 0 && rawFallbackProducts.length > 0) {
+        fetchedProducts = rawFallbackProducts.map((p) => {
           const item = p.product || p;
           return {
             ...item,
@@ -418,7 +453,7 @@ const ProfileVisiting = () => {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">
         <button onClick={() => navigate(-1)}>
-          <ChevronLeft size={28} />
+          <ChevronLeft size size={28} />
         </button>
         <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
         <div className="flex gap-4">
