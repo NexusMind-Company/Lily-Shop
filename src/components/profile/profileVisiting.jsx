@@ -453,7 +453,7 @@ const ProfileVisiting = () => {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between py-3 border-b border-gray-100 mb-2">
         <button onClick={() => navigate(-1)}>
-          <ChevronLeft size size={28} />
+          <ChevronLeft size={28} />
         </button>
         <h1 className="font-bold text-lg">@{user.username || "profile"}</h1>
         <div className="flex gap-4">
