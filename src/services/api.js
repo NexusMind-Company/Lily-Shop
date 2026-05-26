@@ -79,11 +79,31 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Don't intercept 401s for password reset endpoints - let the component handle errors
+    if (originalRequest.url?.includes("/auth/password-reset/")) {
+      return Promise.reject(error);
+    }
+
+    const publicPaths = [
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/forgotPassword",
+      "/verify-email",
+      "/verify-code",
+      "/reset-password",
+      "/password-reset",
+    ];
+
+    const isPublicPath = publicPaths.some((path) =>
+      window.location.pathname.includes(path),
+    );
+
     if (originalRequest._isRefreshRequest) {
       isRefreshing = false;
       processQueue(error, null);
       clearAuthTokens();
-      if (!window.location.pathname.includes("/login")) {
+      if (!isPublicPath) {
         window.location.href = "/login";
       }
       return Promise.reject(error);
@@ -109,7 +129,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         clearAuthTokens();
-        if (!window.location.pathname.includes("/login")) {
+        if (!isPublicPath) {
           window.location.href = "/login";
         }
         return Promise.reject(new Error("No refresh token available"));
@@ -133,7 +153,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         clearAuthTokens();
-        if (!window.location.pathname.includes("/login")) {
+        if (!isPublicPath) {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Link,
   useNavigate,
@@ -20,6 +20,7 @@ const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const { token: pathToken } = useParams();
   const token = pathToken || searchParams.get("token");
+  const initializedToken = useRef(null);
 
   const [values, setValues] = useState({
     new_password: "",
@@ -36,17 +37,15 @@ const ResetPasswordPage = () => {
   const isResetting = status === "loading" && step === "confirm";
   const isSuccess = step === "completed";
 
-  // 1. Verify token on mount
+  // 1. Verify token on mount (Strict Mode safe)
   useEffect(() => {
-    if (token) {
+    if (token && initializedToken.current !== token) {
+      dispatch(clearResetState());
       dispatch(verifyResetToken(token));
-    } else {
+      initializedToken.current = token;
+    } else if (!token) {
       toast.error("No reset token found.");
     }
-
-    return () => {
-      dispatch(clearResetState());
-    };
   }, [dispatch, token]);
 
   // Redirect on success
@@ -69,6 +68,7 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isResetting) return;
     setValidationErrors({});
 
     const { new_password, confirmPassword } = values;
