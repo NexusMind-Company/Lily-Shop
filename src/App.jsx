@@ -17,7 +17,6 @@ import SignUp from "./components/auth/signUp";
 import ForgotPassword from "./components/auth/forgotPassword";
 import VerifyEmail from "./components/auth/verifyEmail";
 import VerifyCode from "./components/auth/verifyCode";
-import ResetVerifyCode from "./components/auth/Reset_Password/verifyCode";
 import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPage";
 
 /* ---------------- FEED - Critical, load immediately ---------------- */
@@ -248,7 +247,6 @@ function App() {
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-code" element={<VerifyCode />} />
-          <Route path="/reset-verify-code" element={<ResetVerifyCode />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/password-reset/:token"
