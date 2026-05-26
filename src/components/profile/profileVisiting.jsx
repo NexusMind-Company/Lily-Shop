@@ -11,12 +11,19 @@ import {
   Eye,
   EllipsisVertical,
   ChevronLeft,
+  MessageCircle,
+  Flag,
+  Ban,
+  Play,
   Package,
   CheckCircle2,
+  UserPlus,
+  UserCheck,
   Share2,
   MoreHorizontal,
   Link as IconLink,
-  Play,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import PostDetailOverlay from "./PostDetailOverlay";
