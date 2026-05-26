@@ -60,7 +60,9 @@ const Login = () => {
         navigate("/");
       }, 1500);
     } else if (loginUser.rejected.match(resultAction)) {
-      toast.error(resultAction.payload || "Login failed. Please check your credentials.");
+      toast.error(
+        resultAction.payload || "Login failed. Please check your credentials.",
+      );
     }
   };
 
@@ -130,7 +132,11 @@ const Login = () => {
 
         {/* Forgot Password */}
         <div className="text-sm font-medium self-end">
-          <Link to="/forgotPassword" className="underline">
+          <Link
+            to="/forgot-password"
+            title="Forgot Password?"
+            className="underline"
+          >
             Forgot Password?
           </Link>
         </div>
