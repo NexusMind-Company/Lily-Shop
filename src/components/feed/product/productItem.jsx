@@ -10,6 +10,9 @@ import {
   Volume2,
   Heart,
   MoreVertical,
+  Trash2,
+  Share2,
+  Copy,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +22,7 @@ import {
   likeProduct,
   followUser,
   recordProductView,
+  deleteProductPost,
 } from "../../../services/api";
 
 import "swiper/css";
@@ -29,6 +33,7 @@ import ProductReview from "./productReview";
 import { Star } from "lucide-react";
 import MentionText from "../../common/MentionText";
 import ReviewModal from "../../common/ReviewModal";
+import toast from "react-hot-toast";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
 
@@ -130,6 +135,9 @@ const ProductItem = ({ product }) => {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef(null);
 
   // Social & Engagement states (initialized from product props)
   const [isLiked, setIsLiked] = useState(
@@ -153,6 +161,25 @@ const ProductItem = ({ product }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const currentUser = useSelector((state) => state.profile?.data?.user);
+
+  const currentUserId = currentUser?.id;
+  const isOwner =
+    currentUserId &&
+    (product.user_id === currentUserId ||
+      product.userId === currentUserId ||
+      product.user === currentUserId ||
+      product.user?.id === currentUserId);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // --- Data Normalization ---
   // Handle varying backend media structures (string vs array)
@@ -241,6 +268,48 @@ const ProductItem = ({ product }) => {
   const handleFollow = () => {
     if (!isAuthenticated) return navigate("/login");
     toggleFollow();
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      setIsDeleting(true);
+      try {
+        await deleteProductPost(product.id);
+        toast.success("Product deleted successfully");
+        navigate(-1);
+      } catch (error) {
+        console.error("Failed to delete product:", error);
+        toast.error("Failed to delete product. Please try again.");
+      } finally {
+        setIsDeleting(false);
+        setShowMenu(false);
+      }
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Link copied to clipboard!");
+    setShowMenu(false);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.productName || product.name || "Product",
+          url: window.location.href,
+        });
+        setShowMenu(false);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Error sharing:", err);
+          handleCopyLink();
+        }
+      }
+    } else {
+      handleCopyLink();
+    }
   };
 
   const handleAddToCart = async () => {
@@ -354,9 +423,48 @@ const ProductItem = ({ product }) => {
           <ChevronLeft size={24} strokeWidth={2.5} />
         </button>
 
-        <button className="bg-white/80 absolute top-4 right-4 z-20 rounded-full p-1.5 cursor-pointer text-black hover:bg-white shadow-sm">
-          <MoreVertical size={24} strokeWidth={2.5} />
-        </button>
+        <div className="absolute top-4 right-4 z-20" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="bg-white/80 rounded-full p-1.5 cursor-pointer text-black hover:bg-white shadow-sm"
+          >
+            <MoreVertical size={24} strokeWidth={2.5} />
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 z-30 border border-gray-100 overflow-hidden">
+              <button
+                onClick={handleCopyLink}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+              >
+                <Copy size={18} className="text-gray-500" />
+                Copy Link
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+              >
+                <Share2 size={18} className="text-gray-500" />
+                Share
+              </button>
+
+              {isOwner && (
+                <>
+                  <div className="h-px bg-gray-100 my-1" />
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                  >
+                    <Trash2 size={18} />
+                    {isDeleting ? "Deleting..." : "Delete Product"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* --- Padded Content Section --- */}
