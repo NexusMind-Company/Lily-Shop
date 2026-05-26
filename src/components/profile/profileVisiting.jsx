@@ -134,7 +134,7 @@ const ProfileVisiting = () => {
                 result.profile_pic ||
                 "/profile-icon.svg",
               like_count: item.likes_count ?? item.like_count ?? item.likes,
-              view_count: item.views,
+              view_count: item.views ?? item.view_count ?? item.visit_count,
               comment_count:
                 item.comments_count ?? item.comment_count ?? item.comments,
               is_liked: item.is_liked ?? item.has_liked,
@@ -363,12 +363,18 @@ const ProfileVisiting = () => {
                   <Heart fill="white" size={20} /> {item.like_count || 0}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Eye size={20} /> {item.view_count || item.visit_count || 0}
+                  <Eye size={20} /> {item.view_count || 0}
                 </div>
               </div>
 
+              {/* Mobile View Count Overlay */}
+              <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded md:hidden">
+                <Eye size={12} />
+                <span>{item.view_count || 0}</span>
+              </div>
+
               {isVideo && (
-                <div className="absolute top-2 right-2 text-white md:hidden">
+                <div className="absolute top-2 right-2 text-white">
                   <Play size={18} fill="white" />
                 </div>
               )}
