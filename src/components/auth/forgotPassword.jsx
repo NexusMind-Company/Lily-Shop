@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
@@ -9,6 +9,7 @@ import {
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
+  const initialized = useRef(false);
 
   const [email, setEmail] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
@@ -34,16 +35,18 @@ const ForgotPassword = () => {
     }
   }, [error, dispatch]);
 
-  // Handle cleanup on unmount
+  // Handle initialization cleanup
   useEffect(() => {
-    return () => {
+    if (!initialized.current) {
       dispatch(clearPasswordResetState());
-    };
+      initialized.current = true;
+    }
   }, [dispatch]);
 
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) return;
     setValidationErrors({});
 
     if (!email.trim()) {

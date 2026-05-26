@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "../services/api"; 
+import { api } from "../services/api";
 
 // 1️⃣ REQUEST PASSWORD RESET (send email)
 export const requestPasswordReset = createAsyncThunk(
@@ -10,10 +10,10 @@ export const requestPasswordReset = createAsyncThunk(
       return res.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data || { detail: "Failed to send reset email." }
+        err.response?.data || { detail: "Failed to send reset email." },
       );
     }
-  }
+  },
 );
 
 // 2️⃣ VERIFY TOKEN (before allowing reset)
@@ -21,14 +21,26 @@ export const verifyResetToken = createAsyncThunk(
   "passwordReset/verify",
   async (token, { rejectWithValue }) => {
     try {
+      if (import.meta.env.DEV) {
+        console.log("Password Reset: Verifying token...", token);
+      }
       const res = await api.post("/auth/password-reset/verify/", { token });
+      if (import.meta.env.DEV) {
+        console.log("Password Reset: Token verification response:", res.data);
+      }
       return res.data;
     } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error(
+          "Password Reset: Token verification failed:",
+          err.response?.data || err.message,
+        );
+      }
       return rejectWithValue(
-        err.response?.data || { detail: "Invalid or expired token." }
+        err.response?.data || { detail: "Invalid or expired token." },
       );
     }
-  }
+  },
 );
 
 // 3️⃣ CONFIRM PASSWORD RESET
@@ -43,10 +55,10 @@ export const confirmPasswordReset = createAsyncThunk(
       return res.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data || { detail: "Failed to reset password." }
+        err.response?.data || { detail: "Failed to reset password." },
       );
     }
-  }
+  },
 );
 
 const initialState = {
