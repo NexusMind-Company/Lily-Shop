@@ -415,7 +415,7 @@ const CartPage = () => {
     }
 
     const orderData = {
-      items: orderItems,
+      order_items: orderItems,
       total_amount_kobo: Math.round(backendTotal * 100), // Convert Naira to Kobo for backend consistency
       payment_method: apiPaymentMethod,
       delivery_type: deliveryType,
@@ -462,10 +462,7 @@ const CartPage = () => {
         });
       } else {
         if (authorizationUrl) {
-          localStorage.setItem(
-            "lily_pending_order",
-            JSON.stringify(newOrder),
-          );
+          localStorage.setItem("lily_pending_order", JSON.stringify(newOrder));
           window.location.href = authorizationUrl;
         } else {
           console.warn("No authorization URL returned for Paystack payment");

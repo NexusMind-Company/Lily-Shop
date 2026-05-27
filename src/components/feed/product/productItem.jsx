@@ -17,7 +17,11 @@ import {
 
 import { useDispatch, useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
-import { addToCart } from "../../../redux/cartSlice";
+import {
+  addToCart,
+  selectCartItems,
+  fetchCart,
+} from "../../../redux/cartSlice";
 import {
   likeProduct,
   followUser,
@@ -161,6 +165,21 @@ const ProductItem = ({ product }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const cartItems = useSelector(selectCartItems) || [];
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, isAuthenticated]);
+
+  const isAlreadyInCart = cartItems.some(
+    (item) =>
+      String(item.product?.id) === String(product.id) ||
+      String(item.product_id) === String(product.id),
+  );
+
+  const itemInCart = isAddedToCart || isAlreadyInCart;
   const currentUser = useSelector((state) => state.profile?.data?.user);
 
   const currentUserId = currentUser?.id;
@@ -364,7 +383,7 @@ const ProductItem = ({ product }) => {
     : `/profile/${product.user_id || product.userId}`;
 
   return (
-    <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-35 flex flex-col">
+    <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-44 flex flex-col">
       {/* --- Edge-to-Edge Media Carousel --- */}
       <div className="w-full aspect-4/5 relative group bg-gray-100 overflow-hidden shrink-0">
         {mediaArray.length > 0 ? (
@@ -770,11 +789,11 @@ const ProductItem = ({ product }) => {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={isAddingToCart || isAddedToCart || isOutOfStock}
+              disabled={isAddingToCart || itemInCart || isOutOfStock}
               className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center ${
                 isOutOfStock
                   ? "border-2 border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : isAddedToCart
+                  : itemInCart
                     ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-not-allowed"
                     : isAddingToCart
                       ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-wait"
@@ -783,7 +802,7 @@ const ProductItem = ({ product }) => {
             >
               {isAddingToCart ? (
                 "Adding..."
-              ) : isAddedToCart ? (
+              ) : itemInCart ? (
                 <>
                   <img src="/icons/cart-tick.svg" className="size-8 mr-2" />
                   Added to cart
