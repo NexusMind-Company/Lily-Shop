@@ -383,7 +383,7 @@ const ProductItem = ({ product }) => {
     : `/profile/${product.user_id || product.userId}`;
 
   return (
-    <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-44 flex flex-col">
+    <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-6 flex flex-col">
       {/* --- Edge-to-Edge Media Carousel --- */}
       <div className="w-full aspect-4/5 relative group bg-gray-100 overflow-hidden shrink-0">
         {mediaArray.length > 0 ? (
@@ -782,6 +782,8 @@ const ProductItem = ({ product }) => {
           </div>
         </div>
       </div>
+
+      <div className="h-32 w-full" />
 
       {/* --- Fixed Bottom Call-To-Action Actions --- */}
       <div className="fixed bottom-0 w-full md:max-w-xl z-30 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
