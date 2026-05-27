@@ -1,13 +1,18 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   Camera,
   SendHorizontal,
   EllipsisVertical,
   Phone,
   ChevronLeft,
+  Heart,
+  Eye,
+  Play,
+  ShoppingCart,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 import {
   fetchConversationMessages,
@@ -15,14 +20,123 @@ import {
   clearConversation,
   fetchConversations,
 } from "../../redux/messageConversationSlice";
+import { fetchPublicProfile } from "../../services/api";
+import { addToCart } from "../../redux/cartSlice";
+
+const SharedProductCard = ({ product, isMine }) => {
+  const dispatch = useDispatch();
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dispatch(addToCart({ product_id: product.id, quantity: 1 }));
+    toast.success("Added to cart");
+  };
+
+  return (
+    <div
+      className={`flex flex-col rounded-2xl overflow-hidden max-w-[280px] shadow-lg ${isMine ? "bg-pink-50" : "bg-pink-100"}`}
+    >
+      <div className="relative aspect-square w-full">
+        <img
+          src={
+            product.image_url || product.media?.[0]?.file || "/lily-logo.jpg"
+          }
+          alt={product.name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-lily font-bold text-sm shadow-sm">
+          ₦{Number(product.price || 0).toLocaleString()}
+        </div>
+      </div>
+      <div className="p-3 space-y-2">
+        <h3 className="font-bold text-gray-900 text-sm truncate">
+          {product.name}
+        </h3>
+        <div className="flex items-center gap-3 text-[10px] text-gray-500">
+          <span className="flex items-center gap-1">
+            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+            {product.like_count || 0}
+          </span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            {product.view_count || 0}
+          </span>
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Link
+            to={`/product/${product.id}`}
+            className="flex-1 bg-white text-lily text-center py-2 rounded-xl text-xs font-bold border border-pink-200 hover:bg-pink-50 transition-colors"
+          >
+            Buy Now
+          </Link>
+          <button
+            onClick={handleAddToCart}
+            className="bg-lily text-white p-2 rounded-xl hover:bg-lily/90 transition-colors"
+          >
+            <ShoppingCart className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SharedContentCard = ({ content, isMine }) => {
+  return (
+    <div
+      className={`flex flex-col rounded-2xl overflow-hidden max-w-[280px] shadow-lg ${isMine ? "bg-pink-50" : "bg-pink-100"}`}
+    >
+      <div className="relative aspect-square w-full group">
+        <img
+          src={content.media || "/lily-logo.jpg"}
+          alt="Shared content"
+          className="w-full h-full object-cover"
+        />
+        {content.is_video && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+            <div className="w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50">
+              <Play className="w-6 h-6 text-white fill-white ml-1" />
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="p-3 space-y-2">
+        {content.caption && (
+          <p className="text-sm text-gray-800 line-clamp-2">
+            {content.caption}
+          </p>
+        )}
+        <div className="flex items-center gap-3 text-[10px] text-gray-500">
+          <span className="flex items-center gap-1">
+            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+            {content.likes || 0}
+          </span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            {content.views || 0}
+          </span>
+        </div>
+        <Link
+          to={`/product/${content.id}`}
+          className="block w-full bg-white text-lily text-center py-2 rounded-xl text-xs font-bold border border-pink-200 hover:bg-pink-50 transition-colors"
+        >
+          View Post
+        </Link>
+      </div>
+    </div>
+  );
+};
 
 const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [fetchedUserProfile, setFetchedUserProfile] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const chatBoxRef = useRef(null);
+  const menuRef = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -39,9 +153,76 @@ const ChatPage = () => {
   const { user_data } = useSelector((state) => state.auth);
   const currentUserId = user_data?.id || user_data?.user?.id;
 
-  // Find recipient data from conversations list or messages
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch target user's profile in the background
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!conversationId) return;
+      try {
+        const profileData = await fetchPublicProfile(conversationId);
+        setFetchedUserProfile(profileData);
+      } catch (error) {
+        console.error("Error fetching user profile for chat:", error);
+      }
+    };
+
+    loadUserProfile();
+  }, [conversationId]);
+
+  // Helper to format last seen or show online
+  const formatUserStatus = (lastSeen) => {
+    if (!lastSeen) return { text: "Online", isOnline: true };
+
+    const lastSeenDate = new Date(lastSeen);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - lastSeenDate) / 60000);
+
+    // If active within last 5 minutes, show as Online
+    if (diffInMinutes < 5) {
+      return { text: "Online", isOnline: true };
+    }
+
+    // Format last seen time
+    if (diffInMinutes < 60) {
+      return { text: `Last seen ${diffInMinutes}m ago`, isOnline: false };
+    }
+
+    const hours = Math.floor(diffInMinutes / 60);
+    if (hours < 24) {
+      return { text: `Last seen ${hours}h ago`, isOnline: false };
+    }
+
+    return {
+      text: `Last seen ${lastSeenDate.toLocaleDateString()}`,
+      isOnline: false,
+    };
+  };
+
+  // Find recipient data from fetched profile, conversations list, or messages
   const recipientData = useMemo(() => {
-    // 1. Try to find in conversations list (more reliable for metadata)
+    // 1. Prioritize freshly fetched profile data
+    if (fetchedUserProfile) {
+      const statusInfo = formatUserStatus(fetchedUserProfile.last_seen);
+      return {
+        name: fetchedUserProfile.username || fetchedUserProfile.name || "User",
+        role: fetchedUserProfile.vendor_id ? "Vendor" : "Customer",
+        profilePic: fetchedUserProfile.profile_pic,
+        statusText: statusInfo.text,
+        isOnline: statusInfo.isOnline,
+      };
+    }
+
+    // 2. Fallback to conversations list (from metadata)
     const convFromList = conversations.find(
       (c) =>
         String(c.other_user?.id) === String(conversationId) ||
@@ -62,16 +243,18 @@ const ChatPage = () => {
 
       return {
         name:
+          otherUser?.username ||
           otherUser?.name ||
           otherUser?.full_name ||
-          otherUser?.username ||
           "Chat",
         role,
         profilePic: otherUser?.profile_pic,
+        statusText: "Online", // Default fallback
+        isOnline: true,
       };
     }
 
-    // 2. Fallback to messages
+    // 3. Fallback to messages
     if (conversation && conversation.length > 0) {
       const otherMessage = conversation.find(
         (msg) => String(msg.sender_id) === String(conversationId),
@@ -79,14 +262,22 @@ const ChatPage = () => {
       if (otherMessage) {
         return {
           name:
-            otherMessage.sender_name || otherMessage.sender_username || "Chat",
+            otherMessage.sender_username || otherMessage.sender_name || "Chat",
           role: null,
+          statusText: "Online",
+          isOnline: true,
         };
       }
     }
 
-    return { name: "Chat", role: null };
-  }, [conversations, conversation, conversationId, currentUserId]);
+    return { name: "Chat", role: null, statusText: "Online", isOnline: true };
+  }, [
+    fetchedUserProfile,
+    conversations,
+    conversation,
+    conversationId,
+    currentUserId,
+  ]);
 
   // Reverse messages for display (since backend returns newest first)
   const displayMessages = useMemo(() => {
@@ -172,7 +363,7 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm">
+      <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
@@ -203,15 +394,57 @@ const ChatPage = () => {
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-              Online
+            <p
+              className={`text-[10px] font-semibold flex items-center gap-1 ${
+                recipientData.isOnline ? "text-green-600" : "text-gray-500"
+              }`}
+            >
+              {recipientData.isOnline && (
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              )}
+              {recipientData.statusText}
             </p>
           </div>
         </div>
-        <div className="flex space-x-4">
-          <Phone className="h-7 w-7" />
-          <EllipsisVertical className="h-7 w-7" />
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() =>
+              toast("Voice call coming soon", {
+                icon: "📞",
+              })
+            }
+          >
+            <Phone className="h-7 w-7 text-gray-600" />
+          </button>
+
+          <div className="relative" ref={menuRef}>
+            <button onClick={() => setShowMenu(!showMenu)}>
+              <EllipsisVertical className="h-7 w-7 text-gray-600" />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-xl z-50 py-1 overflow-hidden animate-in fade-in zoom-in duration-200">
+                <button
+                  onClick={() => {
+                    navigate(`/profile/${conversationId}`);
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("User reported successfully");
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t"
+                >
+                  Report User
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -226,32 +459,68 @@ const ChatPage = () => {
         ) : displayMessages.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
-          displayMessages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                String(msg.sender_id) === String(currentUserId)
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
+          displayMessages.map((msg) => {
+            const isMine = String(msg.sender_id) === String(currentUserId);
+
+            // Check for shared product from backend
+            if (msg.product) {
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                >
+                  <SharedProductCard product={msg.product} isMine={isMine} />
+                </div>
+              );
+            }
+
+            // Check for shared content (custom prefix)
+            if (
+              typeof msg.content === "string" &&
+              msg.content.startsWith("LILY_SHARE:")
+            ) {
+              try {
+                const sharedData = JSON.parse(
+                  msg.content.replace("LILY_SHARE:", ""),
+                );
+                if (sharedData.type === "shared_content") {
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                    >
+                      <SharedContentCard content={sharedData} isMine={isMine} />
+                    </div>
+                  );
+                }
+              } catch (e) {
+                console.error("Failed to parse shared content", e);
+              }
+            }
+
+            return (
               <div
-                className={`max-w-[75%] p-3 rounded-2xl text-sm ${
-                  String(msg.sender_id) === String(currentUserId)
-                    ? "bg-green-100 text-gray-800 rounded-br-none"
-                    : "bg-pink-100 text-gray-800 rounded-bl-none"
-                }`}
+                key={msg.id}
+                className={`flex ${isMine ? "justify-end" : "justify-start"}`}
               >
-                {msg.content}
-                <p className="text-[10px] mt-1 opacity-70 text-right">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+                <div
+                  className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                    isMine
+                      ? "bg-green-100 text-gray-800 rounded-br-none"
+                      : "bg-pink-100 text-gray-800 rounded-bl-none"
+                  }`}
+                >
+                  {msg.content}
+                  <p className="text-[10px] mt-1 opacity-70 text-right">
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
 
         <div ref={messagesEndRef} />
