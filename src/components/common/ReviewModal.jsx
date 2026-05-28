@@ -39,14 +39,9 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => {
-      console.log("DEBUG auth.user_data:", userData);
-      console.log("DEBUG localStorage user_data:", localUser);
-      console.log("DEBUG profileId:", profileId);
-      console.log("DEBUG resolvedUserId:", resolvedUserId);
       const payload = isShopReview
         ? { shop_id: shopId, rating: data.rating, comment: data.comment }
         : { ...data, user: resolvedUserId };
-      console.log("Submitting review payload:", payload);
       return isShopReview
         ? createShopReview(payload)
         : createVendorReview(vendorId, payload);
