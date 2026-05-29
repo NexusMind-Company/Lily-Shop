@@ -95,9 +95,11 @@ api.interceptors.response.use(
       "/password-reset",
     ];
 
-    const isPublicPath = publicPaths.some((path) =>
-      window.location.pathname.includes(path),
-    );
+    const currentPath = window.location.pathname;
+    const isPublicPath =
+      currentPath === "/" ||
+      currentPath === "/feed" ||
+      publicPaths.some((path) => currentPath.includes(path));
 
     if (originalRequest._isRefreshRequest) {
       isRefreshing = false;

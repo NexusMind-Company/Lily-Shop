@@ -580,7 +580,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
 
             <p className="font-light flex items-center gap-2 text-sm text-white/70">
               <span className="shrink-0">
-                <img src="/icons/music.svg" alt="" className="w-4 h-4" style={{ backgroundColor: 'transparent' }} />
+                <img
+                  src="/icons/music.svg"
+                  alt=""
+                  className="w-4 h-4"
+                  style={{ backgroundColor: "transparent" }}
+                />
               </span>
               <span className="truncate">
                 {post.musicTrack || "Original Audio"}
@@ -625,7 +630,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                   src={isLiked ? "/icons/heart-red.svg" : "/icons/heart.svg"}
                   alt="Like"
                   className={`w-8 h-8 transition-all group-hover:scale-110 ${isLiked ? "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" : ""}`}
-                  style={{ backgroundColor: 'transparent' }}
+                  style={{ backgroundColor: "transparent" }}
                 />
               </motion.div>
               <span className="text-xs font-semibold drop-shadow-md mt-1">
@@ -642,7 +647,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 src="/icons/message-alt.svg"
                 alt="Comment"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
-                style={{ backgroundColor: 'transparent' }}
+                style={{ backgroundColor: "transparent" }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(commentCount)}
@@ -658,7 +663,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 src="/icons/share.svg"
                 alt="Share"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
-                style={{ backgroundColor: 'transparent' }}
+                style={{ backgroundColor: "transparent" }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(post.shares || 0)}
@@ -674,7 +679,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
                 src="/icons/send-alt.svg"
                 alt="Message"
                 className="w-8 h-8 transition-transform group-hover:scale-110"
-                style={{ backgroundColor: 'transparent' }}
+                style={{ backgroundColor: "transparent" }}
               />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 Message
@@ -682,7 +687,12 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             </motion.button>
 
             <div className="flex flex-col items-center bg-transparent">
-              <img src="/icons/eye.svg" alt="View" className="w-8 h-8" style={{ backgroundColor: 'transparent' }} />
+              <img
+                src="/icons/eye.svg"
+                alt="View"
+                className="w-8 h-8"
+                style={{ backgroundColor: "transparent" }}
+              />
               <span className="text-xs font-semibold drop-shadow-md mt-1">
                 {formatCount(viewCount)}
               </span>
@@ -708,7 +718,9 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
             postUrl={shareUrl}
-            postCaption={post.caption}
+            postCaption={post.caption || post.name}
+            post={post}
+            isProduct={isProduct}
           />
         )}
       </AnimatePresence>
