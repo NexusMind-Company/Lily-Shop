@@ -252,13 +252,17 @@ function App() {
             path="/password-reset/:token"
             element={<ResetPasswordPage />}
           />
+          <Route element={<FeedLayout />}>
+            <Route path="/" element={<Feed />} />
+            <Route path="/feed" element={<Navigate to="/" replace />} />
+          </Route>
 
           {/* ================= PROTECTED ROUTES ================= */}
           <Route element={<ProtectedRoute />}>
             <Route element={<FeedLayout />}>
               {/* Feed - Critical pages, immediate load */}
-              <Route path="/" element={<Feed />} />
-              <Route path="/feed" element={<Navigate to="/" replace />} />
+              {/* <Route path="/" element={<Feed />} />
+              <Route path="/feed" element={<Navigate to="/" replace />} />*/}
               <Route path="/search" element={<SearchResults />} />
               <Route path="/searchResults" element={<SearchResults />} />
               <Route path="/product/:id" element={<FeedProductDetails />} />
