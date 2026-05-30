@@ -179,21 +179,7 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  const formData = new FormData();
-
-  Object.entries(profileData).forEach(([key, value]) => {
-    if (value != null) {
-      if (value instanceof File) {
-        formData.append(key, value);
-      } else if (Array.isArray(value)) {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value);
-      }
-    }
-  });
-
-  const response = await api.put("/auth/profile/update/", formData);
+  const response = await api.patch("/auth/profile/update/", profileData);
   return response.data;
 };
 
