@@ -48,7 +48,7 @@ const VALIDATION_RULES = {
 
 const fetchFoodVendorProfile = async (vendorId) => {
   if (!vendorId) return null;
-  const res = await api.get(`/foods/food-vendors/${vendorId}`);
+  const res = await api.get(`/foods/food-vendors/${vendorId}/`);
   return res.data;
 };
 
