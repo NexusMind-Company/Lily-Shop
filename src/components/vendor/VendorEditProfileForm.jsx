@@ -94,9 +94,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     VALIDATION_RULES,
   );
 
-  const [bannerFile, setBannerFile] = useState(null);
   const [profileFile, setProfileFile] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
 
   useEffect(() => {
@@ -148,9 +146,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       if (vendor.image_url) {
         setProfilePreview(vendor.image_url);
       }
-      if (vendor.banner_image) {
-        setBannerPreview(vendor.banner_image);
-      }
     }
   }, [vendor, setValues]);
 
@@ -165,7 +160,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         lga: data.lga,
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
-        banner_image: bannerFile,
         profile_image: profileFile,
       }),
     onSuccess: () => {
@@ -183,14 +177,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
   const onSubmit = (validatedValues) => {
     updateProfile(validatedValues);
-  };
-
-  const handleBannerChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
   };
 
   const handleProfileChange = (e) => {
@@ -409,49 +395,9 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
         {/* Media */}
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Banner Image */}
-            <div>
-              <label className="block text-sm font-medium text-[#111813] mb-1.5">
-                Banner Image
-              </label>
-              <div className="flex flex-col gap-2 relative">
-                {bannerPreview ? (
-                  <div className="relative w-full h-36 rounded-xl overflow-hidden shadow-sm border border-black">
-                    <img
-                      src={bannerPreview}
-                      alt="Banner"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBannerFile(null);
-                        setBannerPreview(null);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-lily hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
-                    <span className="text-xs font-semibold text-gray-500 text-center px-4">
-                      Upload Banner (Optional)
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleBannerChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
+          <div className="flex justify-center">
             {/* Profile Image */}
-            <div>
+            <div className="w-full max-w-sm">
               <label className="block text-sm font-medium text-[#111813] mb-1.5">
                 Logo / Profile
               </label>
