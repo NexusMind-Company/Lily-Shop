@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Search, X } from "lucide-react";
+import { ChevronLeft, Search, X, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchAllFeed,
   fetchProducts,
   searchShops,
   searchContents,
+  searchFoodVendors,
+  searchMealPlans,
 } from "../../services/api";
 import {
   SearchSuggestionSkeleton,
@@ -16,6 +18,7 @@ import {
 } from "../common/skeletons";
 
 const RECENT_SEARCHES_KEY = "lily_recent_searches";
+const ENABLE_INLINE_FILTERS = true; // Set to false to push ALL filtering to the dedicated search results page
 
 const getRecentSearches = () => {
   try {
@@ -55,7 +58,6 @@ const extractArray = (data) => {
   if (Array.isArray(data.feed)) return data.feed;
   if (Array.isArray(data.items)) return data.items;
   if (Array.isArray(data.data)) return data.data;
-  // Try to find any array property
   const arrayProp = Object.keys(data).find(
     (key) => Array.isArray(data[key]) && data[key].length > 0,
   );
@@ -95,6 +97,16 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const [activeTab, setActiveTab] = useState("Top");
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
   const [userLocation, setUserLocation] = useState(null);
+  const [filters, setFilters] = useState({
+    state: "",
+    lga: "",
+    verified: false,
+    min_price: "",
+    max_price: "",
+    frequency: "",
+    ordering: "",
+  });
+
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
@@ -113,13 +125,31 @@ const SearchModal = ({ isOpen = true, onClose }) => {
 
   const buildParams = () => {
     const term = debouncedSearchTerm.trim();
-    if (!term) return null;
-    const params = { search: term };
+    const params = {};
+    if (term) params.search = term;
+
     if (userLocation) {
       params.lat = userLocation.lat;
       params.lon = userLocation.lon;
     }
-    return params;
+
+    if (activeTab === "Contents" && filters.ordering) {
+      params.ordering = filters.ordering;
+    }
+
+    if (activeTab === "Food Vendors") {
+      if (filters.state) params.state = filters.state;
+      if (filters.lga) params.lga = filters.lga;
+      if (filters.verified) params.verified = true;
+    }
+
+    if (activeTab === "Meal Plans") {
+      if (filters.min_price) params.min_price = filters.min_price;
+      if (filters.max_price) params.max_price = filters.max_price;
+      if (filters.frequency) params.frequency = filters.frequency;
+    }
+
+    return Object.keys(params).length > 0 ? params : null;
   };
 
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
@@ -133,34 +163,59 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       !!debouncedSearchTerm,
   });
 
-  const { data: shopResults, isLoading: isSearchingShops } = useQuery({
-    queryKey: ["searchShops", debouncedSearchTerm, userLocation],
-    queryFn: async () => {
-      const params = buildParams();
-      console.log("🔍 Search Shops API call:", {
-        url: "/shops/",
-        params,
-        hasLocation: !!userLocation,
-        lat: params?.lat,
-        lon: params?.lon,
-      });
-      const raw = await searchShops(params);
-      return extractArray(raw);
-    },
-    enabled:
-      (activeTab === "Top" || activeTab === "Shops") && !!debouncedSearchTerm,
-  });
-
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
-    queryKey: ["searchContents", debouncedSearchTerm, userLocation],
+    queryKey: [
+      "searchContents",
+      debouncedSearchTerm,
+      userLocation,
+      filters.ordering,
+    ],
     queryFn: async () => {
-      const raw = await searchContents(buildParams());
-      const arr = extractArray(raw);
-      return extractContents({ results: arr });
+      const contentRaw = await searchContents(buildParams());
+      const contents = extractContents({ results: extractArray(contentRaw) });
+
+      let shops = [];
+      if (!filters.ordering || activeTab === "Contents") {
+        const shopRaw = await searchShops(buildParams());
+        shops = extractArray(shopRaw);
+      }
+
+      return [...shops, ...contents];
     },
     enabled:
       (activeTab === "Top" || activeTab === "Contents") &&
       !!debouncedSearchTerm,
+  });
+
+  const { data: foodVendorResults, isLoading: isSearchingFoodVendors } =
+    useQuery({
+      queryKey: [
+        "searchFoodVendors",
+        debouncedSearchTerm,
+        filters.state,
+        filters.lga,
+        filters.verified,
+      ],
+      queryFn: async () => {
+        const raw = await searchFoodVendors(buildParams());
+        return extractArray(raw);
+      },
+      enabled: activeTab === "Food Vendors" && !!debouncedSearchTerm,
+    });
+
+  const { data: mealPlanResults, isLoading: isSearchingMealPlans } = useQuery({
+    queryKey: [
+      "searchMealPlans",
+      debouncedSearchTerm,
+      filters.min_price,
+      filters.max_price,
+      filters.frequency,
+    ],
+    queryFn: async () => {
+      const raw = await searchMealPlans(buildParams());
+      return extractArray(raw);
+    },
+    enabled: activeTab === "Meal Plans" && !!debouncedSearchTerm,
   });
 
   const {
@@ -173,6 +228,22 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     select: extractArray,
     enabled: activeTab === "Top" && !debouncedSearchTerm,
   });
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      state: "",
+      lga: "",
+      verified: false,
+      min_price: "",
+      max_price: "",
+      frequency: "",
+      ordering: "",
+    });
+  };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -190,9 +261,18 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       setRecentSearches(newSearches);
       saveRecentSearches(newSearches);
 
-      navigate(
-        `/searchResults?q=${encodeURIComponent(trimmedTerm)}&tab=${activeTab}`,
-      );
+      const queryParams = new URLSearchParams({
+        q: trimmedTerm,
+        tab: activeTab,
+      });
+      if (filters.ordering) queryParams.append("ordering", filters.ordering);
+      if (filters.state) queryParams.append("state", filters.state);
+      if (filters.verified) queryParams.append("verified", filters.verified);
+      if (filters.min_price) queryParams.append("min_price", filters.min_price);
+      if (filters.max_price) queryParams.append("max_price", filters.max_price);
+      if (filters.frequency) queryParams.append("frequency", filters.frequency);
+
+      navigate(`/searchResults?${queryParams.toString()}`);
       onClose();
     }
   };
@@ -205,6 +285,220 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     const newSearches = recentSearches.filter((term) => term !== termToRemove);
     setRecentSearches(newSearches);
     saveRecentSearches(newSearches);
+  };
+
+  const renderFoodVendorList = (vendors, limit = 5, showHeader = true) => {
+    if (!Array.isArray(vendors) || vendors.length === 0) {
+      return showHeader ? (
+        <p className="text-gray-500 text-center py-4 text-sm">
+          No food vendors found for "{debouncedSearchTerm}"
+        </p>
+      ) : null;
+    }
+
+    return (
+      <div className="space-y-4">
+        {showHeader && (
+          <h3 className="font-semibold text-gray-800">Food Vendors</h3>
+        )}
+        {vendors.slice(0, limit).map((vendor) => (
+          <div
+            key={vendor.id}
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+            onClick={() => {
+              navigate(`/food-vendor/${vendor.id}`);
+              onClose();
+            }}
+          >
+            <img
+              src={vendor.image_url || "/user.png"}
+              alt={vendor.name}
+              className="w-12 h-12 rounded-full bg-gray-200 object-cover border border-gray-100"
+              onError={(e) => {
+                e.target.src = "/user.png";
+              }}
+            />
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-gray-900 block truncate">
+                {vendor.name}
+              </span>
+              <p className="text-xs text-gray-500 truncate">
+                {vendor.cuisine || "Food Vendor"} •{" "}
+                {vendor.location || "Nigeria"}
+              </p>
+            </div>
+            {vendor.verified && (
+              <Check size={16} className="text-lily shrink-0" />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderMealPlanList = (plans, limit = 5, showHeader = true) => {
+    if (!Array.isArray(plans) || plans.length === 0) {
+      return showHeader ? (
+        <p className="text-gray-500 text-center py-4 text-sm">
+          No meal plans found for "{debouncedSearchTerm}"
+        </p>
+      ) : null;
+    }
+
+    return (
+      <div className="space-y-4">
+        {showHeader && (
+          <h3 className="font-semibold text-gray-800">Meal Plans</h3>
+        )}
+        {plans.slice(0, limit).map((plan) => (
+          <div
+            key={plan.id}
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+            onClick={() => {
+              navigate(`/meal-plan/${plan.id}`);
+              onClose();
+            }}
+          >
+            <div className="w-12 h-12 rounded-lg bg-lily/10 flex items-center justify-center text-lily font-bold">
+              MP
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-gray-900 block truncate">
+                {plan.plan_name}
+              </span>
+              <p className="text-xs text-gray-500 truncate">
+                {plan.price || "Price unavailable"} •{" "}
+                {plan.frequency || "Monthly"}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderInlineFilters = () => {
+    if (!ENABLE_INLINE_FILTERS) return null;
+
+    const renderContentFilters = () => (
+      <>
+        {["Newest", "Popular", "Rating"].map((opt) => (
+          <button
+            key={opt}
+            onClick={() =>
+              handleFilterChange(
+                "ordering",
+                filters.ordering === opt.toLowerCase() ? "" : opt.toLowerCase(),
+              )
+            }
+            className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filters.ordering === opt.toLowerCase()
+                ? "bg-lily text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </>
+    );
+
+    const renderVendorFilters = () => (
+      <>
+        <button
+          onClick={() => handleFilterChange("verified", !filters.verified)}
+          className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+            filters.verified
+              ? "bg-lily text-white border-lily"
+              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+          }`}
+        >
+          Verified Only
+        </button>
+        {["Lagos", "Abuja", "Rivers", "Oyo", "Enugu"].map((state) => (
+          <button
+            key={state}
+            onClick={() =>
+              handleFilterChange("state", filters.state === state ? "" : state)
+            }
+            className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filters.state === state
+                ? "bg-lily text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {state}
+          </button>
+        ))}
+      </>
+    );
+
+    const renderMealFilters = () => (
+      <>
+        {[
+          { label: "Under ₦5k", min: "0", max: "5000" },
+          { label: "₦5k - ₦15k", min: "5000", max: "15000" },
+          { label: "₦15k - ₦30k", min: "15000", max: "30000" },
+          { label: "Above ₦30k", min: "30000", max: "1000000" },
+        ].map((range) => (
+          <button
+            key={range.label}
+            onClick={() => {
+              if (
+                filters.min_price === range.min &&
+                filters.max_price === range.max
+              ) {
+                handleFilterChange("min_price", "");
+                handleFilterChange("max_price", "");
+              } else {
+                handleFilterChange("min_price", range.min);
+                handleFilterChange("max_price", range.max);
+              }
+            }}
+            className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filters.min_price === range.min && filters.max_price === range.max
+                ? "bg-lily text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {range.label}
+          </button>
+        ))}
+        {["Daily", "Weekly", "Monthly"].map((freq) => (
+          <button
+            key={freq}
+            onClick={() =>
+              handleFilterChange(
+                "frequency",
+                filters.frequency === freq.toLowerCase()
+                  ? ""
+                  : freq.toLowerCase(),
+              )
+            }
+            className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filters.frequency === freq.toLowerCase()
+                ? "bg-lily text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {freq}
+          </button>
+        ))}
+      </>
+    );
+
+    let items = null;
+    if (activeTab === "Contents") items = renderContentFilters();
+    if (activeTab === "Food Vendors") items = renderVendorFilters();
+    if (activeTab === "Meal Plans") items = renderMealFilters();
+
+    if (!items) return null;
+
+    return (
+      <div className="flex overflow-x-auto no-scrollbar gap-2 px-4 pb-3 border-b border-gray-100">
+        {items}
+      </div>
+    );
   };
 
   const renderProductList = (products, limit = 5, showHeader = true) => {
@@ -268,67 +562,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     );
   };
 
-  const renderShopList = (shops, limit = 5, showHeader = true) => {
-    if (!Array.isArray(shops) || shops.length === 0) {
-      return showHeader ? (
-        <div className="text-center py-4">
-          <p className="text-gray-500 text-sm">
-            No shops found for "{debouncedSearchTerm}"
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Hint: Try searching by Shop Name instead of username.
-          </p>
-        </div>
-      ) : null;
-    }
-
-    return (
-      <div className="space-y-4">
-        {showHeader && <h3 className="font-semibold text-gray-800">Shops</h3>}
-        {shops.slice(0, limit).map((shop) => (
-          <div
-            key={shop.id}
-            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-            onClick={() => {
-              navigate(`/shop/${shop.id}`);
-              onClose();
-            }}
-          >
-            <img
-              src={shop.image_url || shop.image || "/user.png"}
-              alt={shop.name}
-              className="w-12 h-12 rounded-full bg-gray-200 object-cover border border-gray-100"
-              onError={(e) => {
-                e.target.src = "/user.png";
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <span className="font-medium text-gray-900 block truncate">
-                {shop.name}
-              </span>
-              <p className="text-xs text-gray-500 truncate">
-                {shop.owner && shop.owner.username
-                  ? `@${shop.owner.username} • `
-                  : ""}
-                {shop.category || "Vendor"} • {shop.follower_count || 0}{" "}
-                followers
-              </p>
-            </div>
-          </div>
-        ))}
-        {showHeader && shops.length > limit && (
-          <div
-            className="pt-2 border-t border-gray-100 mt-2 cursor-pointer text-lily font-medium flex items-center gap-2"
-            onClick={() => setActiveTab("Shops")}
-          >
-            <Search size={16} />
-            See all shop results
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderContentList = (contents, limit = 6, showHeader = true) => {
     if (!Array.isArray(contents) || contents.length === 0) {
       return showHeader ? (
@@ -349,19 +582,23 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               key={content.id}
               className="cursor-pointer group"
               onClick={() => {
-                navigate(`/contents/${content.id}`);
+                navigate(
+                  content.owner
+                    ? `/shop/${content.id}`
+                    : `/contents/${content.id}`,
+                );
                 onClose();
               }}
             >
               <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-square">
-                {content.media || content.image_url ? (
+                {content.media || content.image_url || content.image ? (
                   <img
                     src={
                       Array.isArray(content.media)
                         ? content.media[0]?.src || content.media[0]
-                        : content.media || content.image_url
+                        : content.media || content.image_url || content.image
                     }
-                    alt={content.caption || "Content"}
+                    alt={content.caption || content.name || "Content"}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
@@ -371,10 +608,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 )}
               </div>
               <p className="mt-1 text-sm font-medium truncate text-gray-800">
-                {content.caption || "Untitled"}
+                {content.caption || content.name || "Untitled"}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                @{content.user?.username || content.user_name || "user"}
+                {content.user?.username || content.owner?.username
+                  ? `@${content.user?.username || content.owner?.username}`
+                  : "vendor"}
               </p>
             </div>
           ))}
@@ -453,7 +692,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   };
 
   const renderTopSearchResults = () => {
-    if (isSearchingProducts || isSearchingShops || isSearchingContents) {
+    if (
+      isSearchingProducts ||
+      isSearchingContents ||
+      isSearchingFoodVendors ||
+      isSearchingMealPlans
+    ) {
       return (
         <div className="space-y-6">
           <div className="space-y-3">
@@ -470,8 +714,9 @@ const SearchModal = ({ isOpen = true, onClose }) => {
 
     const hasAnyResults =
       (Array.isArray(productResults) && productResults.length > 0) ||
-      (Array.isArray(shopResults) && shopResults.length > 0) ||
-      (Array.isArray(contentResults) && contentResults.length > 0);
+      (Array.isArray(contentResults) && contentResults.length > 0) ||
+      (Array.isArray(foodVendorResults) && foodVendorResults.length > 0) ||
+      (Array.isArray(mealPlanResults) && mealPlanResults.length > 0);
 
     if (!hasAnyResults) {
       return (
@@ -490,15 +735,18 @@ const SearchModal = ({ isOpen = true, onClose }) => {
 
     return (
       <div className="space-y-8 pb-4">
-        {Array.isArray(shopResults) &&
-          shopResults.length > 0 &&
-          renderShopList(shopResults, 3, true)}
         {Array.isArray(productResults) &&
           productResults.length > 0 &&
           renderProductList(productResults, 3, true)}
         {Array.isArray(contentResults) &&
           contentResults.length > 0 &&
           renderContentList(contentResults, 4, true)}
+        {Array.isArray(foodVendorResults) &&
+          foodVendorResults.length > 0 &&
+          renderFoodVendorList(foodVendorResults, 3, true)}
+        {Array.isArray(mealPlanResults) &&
+          mealPlanResults.length > 0 &&
+          renderMealPlanList(mealPlanResults, 3, true)}
       </div>
     );
   };
@@ -571,24 +819,40 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           )
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
-            <p className="text-sm">Search for contents and posts.</p>
+            <p className="text-sm">Search for contents, posts, and shops.</p>
             <p className="text-xs mt-1">Start typing to find contents.</p>
           </div>
         );
-      case "Shops":
+      case "Food Vendors":
         return debouncedSearchTerm ? (
-          isSearchingShops ? (
+          isSearchingFoodVendors ? (
             <div className="space-y-3">
               <SearchSuggestionSkeleton />
               <SearchSuggestionSkeleton />
             </div>
           ) : (
-            renderShopList(shopResults, 20, false)
+            renderFoodVendorList(foodVendorResults, 20, false)
           )
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
-            <p className="text-sm">Search for shops and vendors.</p>
-            <p className="text-xs mt-1">Start typing to find shops.</p>
+            <p className="text-sm">Search for food vendors.</p>
+            <p className="text-xs mt-1">Start typing to find food vendors.</p>
+          </div>
+        );
+      case "Meal Plans":
+        return debouncedSearchTerm ? (
+          isSearchingMealPlans ? (
+            <div className="space-y-3">
+              <SearchSuggestionSkeleton />
+              <SearchSuggestionSkeleton />
+            </div>
+          ) : (
+            renderMealPlanList(mealPlanResults, 20, false)
+          )
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-center px-4">
+            <p className="text-sm">Search for subscription meal plans.</p>
+            <p className="text-xs mt-1">Start typing to find meal plans.</p>
           </div>
         );
       case "Recent":
@@ -631,7 +895,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               <form onSubmit={handleSearchSubmit} className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search products, contents, or shops"
+                  placeholder="Search Lily Shop"
                   className="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-lily/50 text-gray-800 placeholder:text-gray-400 transition-all"
                   value={searchTerm}
                   onChange={handleSearchChange}
@@ -652,33 +916,40 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               </form>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-              <div className="space-y-6">
-                <div className="flex space-x-6 border-b border-gray-200 overflow-x-auto no-scrollbar">
-                  {["Top", "Products", "Contents", "Shops", "Recent"].map(
-                    (tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`pb-3 font-semibold text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
-                          activeTab === tab
-                            ? "text-lily"
-                            : "text-gray-500 hover:text-gray-800"
-                        }`}
-                      >
-                        {tab}
-                        {activeTab === tab && (
-                          <motion.div
-                            layoutId="activeTabIndicator"
-                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
-                          />
-                        )}
-                      </button>
-                    ),
-                  )}
-                </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="flex space-x-6 px-4 pt-4 border-b border-gray-200 overflow-x-auto no-scrollbar">
+                {[
+                  "Top",
+                  "Products",
+                  "Contents",
+                  "Food Vendors",
+                  "Meal Plans",
+                  "Recent",
+                ].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-3 font-semibold text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
+                      activeTab === tab
+                        ? "text-lily"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    {tab}
+                    {activeTab === tab && (
+                      <motion.div
+                        layoutId="activeTabIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
 
-                <div className="animate-fadeIn">{renderTabContent()}</div>
+              {renderInlineFilters()}
+
+              <div className="p-4 space-y-6 animate-fadeIn">
+                {renderTabContent()}
               </div>
             </div>
           </motion.div>
