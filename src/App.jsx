@@ -542,17 +542,18 @@ function App() {
                 element={<EditPlanPage />}
               />
 
-              {/* Ads */}
-              <Route path="/ads" element={<PurchaseAds />} />
-              <Route path="/purchaseAds" element={<PurchaseAds />} />
-              <Route path="/ads/details" element={<FetchAdDetails />} />
-              <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
-              <Route path="/ads/payment" element={<PaymentInitiation />} />
-              <Route path="/ads/verify" element={<VerifyTransaction />} />
-              <Route
-                path="/verify-transaction"
-                element={<VerifyTransaction />}
-              />
+               {/* Ads */}
+               <Route path="/ads" element={<PurchaseAds />} />
+               <Route path="/purchaseAds" element={<PurchaseAds />} />
+               <Route path="/ads/details" element={<FetchAdDetails />} />
+               <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+               <Route path="/ads/payment" element={<PaymentInitiation />} />
+               <Route path="/ads/verify" element={<VerifyTransaction />} />
+               <Route
+                 path="/verify-transaction"
+                 element={<VerifyTransaction />}
+               />
+               <Route path="/ads/order/success" element={<AdsOrderSuccessPage />} />
 
               {/* AI Chat */}
               <Route path="/lily-chat" element={<LilyChat />} />

@@ -10,11 +10,11 @@ import toast from "react-hot-toast";
 
 const RATING_LABELS = {
   0: "Tap to rate",
-  1: "Poor 😞",
-  2: "Fair 😐",
-  3: "Good 🙂",
-  4: "Very Good 😊",
-  5: "Excellent 🤩",
+  1: "Poor",
+  2: "Fair",
+  3: "Good",
+  4: "Very Good",
+  5: "Excellent",
 };
 
 const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }) => {

@@ -92,7 +92,7 @@ const ReviewCard = ({ review, isLast }) => (
             <div className="flex items-center gap-1">
               <ReviewStars rating={Number(review.rating || 0)} size={12} />
               <span className="text-xs font-bold text-amber-500 ml-0.5">
-                {Number(review.rating || 0).toFixed(1)}
+                {Number(review.rating || 0)}
               </span>
             </div>
           </div>

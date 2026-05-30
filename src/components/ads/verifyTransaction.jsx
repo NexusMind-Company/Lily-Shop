@@ -11,6 +11,8 @@ const VerifyTransaction = () => {
     useSelector((state) => state.ads);
 
   const [reference, setReference] = useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [redirectTimer, setRedirectTimer] = useState(null);
 
   useEffect(() => {
     // Extract query params
@@ -22,6 +24,39 @@ const VerifyTransaction = () => {
       dispatch(verifyPayment({ reference: ref })); // Dispatch verifyPayment on mount
     }
   }, [location.search, dispatch]);
+
+  useEffect(() => {
+    // Show success popup and start redirect timer when verification succeeds
+    if (verificationStatus === "succeeded") {
+      setShowSuccessPopup(true);
+      
+      // Clear any existing timer
+      if (redirectTimer !== null) {
+        clearTimeout(redirectTimer);
+      }
+      
+      // Set timer to redirect after 3 seconds
+      const timer = setTimeout(() => {
+        // Pass payment data and reference to the success page
+        navigate("/ads/order/success", {
+          state: {
+            paymentData: verificationData,
+            reference: reference,
+            shopId: verificationData?.shop || verificationData?.shop_id || ""
+          }
+        });
+      }, 3000);
+      
+      setRedirectTimer(timer);
+    }
+    
+    // Cleanup timer on unmount or if verification status changes
+    return () => {
+      if (redirectTimer !== null) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [verificationStatus, verificationData, reference, navigate, redirectTimer]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -60,59 +95,49 @@ const VerifyTransaction = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Success Card */}
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
-            <div className="text-4xl text-green-500 mb-2">✓</div>
-            <h3 className="text-xl font-semibold text-green-800">
-              Payment Verified
-            </h3>
-            <p className="text-green-600 mt-1">
-              Your transaction was successful
-            </p>
-          </div>
-
-          {/* Transaction Details */}
-          <div className="border rounded-lg divide-y">
-            <div className="p-3 flex justify-between">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-medium">
-                {verificationData?.amount || "N/A"}
-              </span>
+          {/* Success Popup */}
+          {showSuccessPopup && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+              <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+                <div className="w-24 h-24 rounded-full bg-lily-100 flex items-center justify-center mb-6">
+                  <CheckCircle className="w-14 h-14 text-lily-600" />
+                </div>
+                
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  Payment Successful!
+                </h2>
+                <p className="text-gray-500 mb-4">
+                  Your ads payment has been processed successfully.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500 font-medium">
+                      Amount Paid
+                    </span>
+                    <span className="text-xl font-bold text-lily-700">
+                      ₦{Number(verificationData?.amount || 0)
+                        .toFixed(0)
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500 font-medium">
+                      Reference ID
+                    </span>
+                    <span className="text-sm font-medium break-all">
+                      {reference}
+                    </span>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-500">
+                  You'll be redirected to view your order slip shortly...
+                </p>
+              </div>
             </div>
-            <div className="p-3 flex justify-between">
-              <span className="text-gray-600">Date:</span>
-              <span className="font-medium">
-                {new Date(verificationData?.date).toLocaleString() || "N/A"}
-              </span>
-            </div>
-          </div>
-
-          {/* Reference ID Section */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-600 font-medium mb-2">
-              Your Reference ID
-            </p>
-            <div className="flex justify-between items-center">
-              <p className="font-mono text-blue-800 break-all">{reference}</p>
-              <button
-                onClick={() => copyToClipboard(reference)}
-                className="ml-2 text-blue-600 hover:text-blue-800 text-sm font-medium whitespace-nowrap"
-              >
-                Copy
-              </button>
-            </div>
-            <p className="text-xs text-ash mt-2">
-              Save this ID for your records
-            </p>
-          </div>
-
-          {/* Primary Action */}
-          <button
-            onClick={() => navigate("/myShop")}
-            className="w-full py-3 bg-sun text-white rounded-md hover:bg-lily"
-          >
-            Return to your Shop
-          </button>
+          )}
         </div>
       )}
     </div>
