@@ -3,6 +3,7 @@ import { Camera, ArrowLeft, Upload, X, ZoomIn, RotateCcw } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useSelector, useDispatch } from "react-redux";
+import { api } from "../../../services/api";
 
 // Image compression utility
 const compressImage = (file, quality = 0.8, maxWidth = 800) => {
@@ -111,35 +112,22 @@ const UploadProfilePic = () => {
   }, [cleanup]);
 
   // Enhanced upload mutation with timeout and retry
+
   const uploadMutation = useMutation({
     mutationFn: async (formData) => {
-      // Cancel previous upload
-      if (uploadControllerRef.current) {
-        uploadControllerRef.current.abort();
-      }
-
-      // Create new abort controller
-      uploadControllerRef.current = new AbortController();
-
-      const response = await fetch(`${apiUrl}/api/upload-profile-picture`, {
-        method: "POST",
+      const response = await api.post("/api/upload-profile-picture", formData, {
         headers: {
-          Authorization: `Bearer ${user?.token}`,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
-        signal: uploadControllerRef.current.signal,
-        // Add timeout
-        timeout: 30000, // 30 seconds
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
+          setUploadProgress(percentCompleted);
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Upload failed (${response.status})`,
-        );
-      }
-
-      return response.json();
+      return response.data;
     },
     onSuccess: (data) => {
       setUploadProgress(100);

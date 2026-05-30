@@ -166,6 +166,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Login failed.";
         state.isAuthenticated = false;
+        state.user_data = null;
+        localStorage.removeItem("user_data");
+        clearAuthTokens();
       })
 
       // Register cases
