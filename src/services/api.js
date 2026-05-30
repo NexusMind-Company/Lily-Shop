@@ -274,6 +274,18 @@ export const searchShops = async (params = {}) => {
   return response.data;
 };
 
+export const searchFoodVendors = async (params = {}) => {
+  const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const searchMealPlans = async (params = {}) => {
+  const response = await api.get("/foods/subscriptions/vendor/plans/", {
+    params,
+  });
+  return response.data;
+};
+
 export const searchProducts = async (params = {}) => {
   const response = await api.get("/shops/products/search/", { params });
   return response.data;
