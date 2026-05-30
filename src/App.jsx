@@ -21,7 +21,6 @@ import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPag
 
 /* ---------------- FEED - Critical, load immediately ---------------- */
 import Feed from "./pages/feed";
-import SearchResults from "./pages/searchResults";
 import VendorsList from "./pages/VendorsList";
 import FeedProductDetails from "./pages/feedProductDetails";
 
@@ -265,8 +264,6 @@ function App() {
               {/* Feed - Critical pages, immediate load */}
               {/* <Route path="/" element={<Feed />} />
               <Route path="/feed" element={<Navigate to="/" replace />} />*/}
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/searchResults" element={<SearchResults />} />
               <Route path="/product/:id" element={<FeedProductDetails />} />
               <Route
                 path="/product-details/:id"
