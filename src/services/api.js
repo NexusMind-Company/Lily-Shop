@@ -793,15 +793,25 @@ export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
   formData.append("name", vendorData.shop_name);
   formData.append("description", vendorData.description);
-  formData.append("address", vendorData.address);
+  formData.append("street_address", vendorData.address);
   formData.append("cuisine", vendorData.category);
+
+  if (vendorData.state !== undefined && vendorData.state !== null) {
+    formData.append("state", vendorData.state);
+  }
+  if (vendorData.lga !== undefined && vendorData.lga !== null) {
+    formData.append("lga", vendorData.lga);
+  }
 
   if (vendorData.contact_email) {
     const email = vendorData.contact_email.trim();
-    if (email) formData.append("contact_email", email);
+    if (email) {
+      const USE_OMIT_STRATEGY = true; // Set to true to omit from payload, false to send ""
+      if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
+    }
   } else if (vendorData.contact_email === null) {
-    // If explicitly null, we omit it to avoid "Enter a valid email address" error from empty strings
-    // but if the backend requires a value to clear it, this might need adjustment.
+    const USE_OMIT_STRATEGY = true;
+    if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
   }
 
   if (vendorData.contact_phone) {
@@ -824,15 +834,25 @@ export const updateFoodVendor = async (vendorData) => {
   if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
-  if (vendorData.address) formData.append("address", vendorData.address);
+  if (vendorData.address) formData.append("street_address", vendorData.address);
   if (vendorData.category) formData.append("cuisine", vendorData.category);
+
+  if (vendorData.state !== undefined && vendorData.state !== null) {
+    formData.append("state", vendorData.state);
+  }
+  if (vendorData.lga !== undefined && vendorData.lga !== null) {
+    formData.append("lga", vendorData.lga);
+  }
 
   if (vendorData.contact_email) {
     const email = vendorData.contact_email.trim();
-    if (email) formData.append("contact_email", email);
+    if (email) {
+      const USE_OMIT_STRATEGY = true; // Set to true to omit from payload, false to send ""
+      if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
+    }
   } else if (vendorData.contact_email === null) {
-    // If explicitly null, we omit it to avoid "Enter a valid email address" error from empty strings
-    // but if the backend requires a value to clear it, this might need adjustment.
+    const USE_OMIT_STRATEGY = true;
+    if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
   }
 
   if (vendorData.contact_phone) {
@@ -861,6 +881,18 @@ export const fetchFoodVendor = async (vendorId) => {
 
 export const fetchAllFoodVendors = async (params = {}) => {
   const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const fetchStates = async () => {
+  const response = await api.get("/locations/states/");
+  return response.data;
+};
+
+export const fetchLgas = async (stateId) => {
+  const response = await api.get("/locations/lgas/", {
+    params: { state_id: stateId },
+  });
   return response.data;
 };
 

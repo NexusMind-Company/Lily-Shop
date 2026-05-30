@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { ChevronLeft, Loader2, Save, Camera } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateFoodVendor, fetchFoodVendor } from "../../services/api";
+import {
+  updateFoodVendor,
+  fetchFoodVendor,
+  fetchStates,
+  fetchLgas,
+} from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 
 const EditVendorProfilePage = () => {
@@ -14,6 +19,11 @@ const EditVendorProfilePage = () => {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
+
   const [form, setForm] = useState({
     shop_name: "",
     description: "",
@@ -21,6 +31,8 @@ const EditVendorProfilePage = () => {
     category: "",
     contact_email: "",
     contact_phone: "",
+    state: "",
+    lga: "",
   });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
@@ -35,6 +47,40 @@ const EditVendorProfilePage = () => {
     }
   }, [vendorId]);
 
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!form.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(form.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [form.state]);
+
   const loadVendorData = async () => {
     setLoading(true);
     try {
@@ -46,6 +92,8 @@ const EditVendorProfilePage = () => {
         category: data.category || "",
         contact_email: data.contact_email || "",
         contact_phone: data.contact_phone || "",
+        state: data.state || "",
+        lga: data.lga || "",
       });
       setProfileImagePreview(data.profile_pic || data.profile_image || "");
       setBannerImagePreview(data.banner_image || "");
@@ -78,12 +126,18 @@ const EditVendorProfilePage = () => {
   };
 
   const handleSave = async () => {
+    if (!form.state || !form.lga || !form.address) {
+      toast.error("State, LGA and Address are required");
+      return;
+    }
     setSaving(true);
     try {
       await updateFoodVendor({
         shop_name: form.shop_name,
         description: form.description,
         address: form.address,
+        state: form.state,
+        lga: form.lga,
         category: form.category,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
@@ -212,6 +266,50 @@ const EditVendorProfilePage = () => {
             className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter shop name"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* State Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              State
+            </label>
+            <select
+              value={form.state}
+              onChange={(e) => {
+                setForm({ ...form, state: e.target.value, lga: "" });
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              LGA
+            </label>
+            <select
+              value={form.lga}
+              onChange={(e) => handleChange("lga", e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              disabled={lgasLoading || !form.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Description */}
