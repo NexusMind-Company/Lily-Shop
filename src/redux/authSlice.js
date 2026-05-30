@@ -178,6 +178,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.registrationSuccess = true;
+        // Clear any stale session from a previous logged-in user on this device
+        // so the newly registered account doesn't accidentally inherit old tokens/data
+        state.user_data = null;
+        state.isAuthenticated = false;
+        localStorage.removeItem("user_data");
+        clearAuthTokens();
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
