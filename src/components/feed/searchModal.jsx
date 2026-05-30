@@ -377,7 +377,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
         {renderProductList(productResults, 3)}
         {renderVendorList(foodVendorResults, 3)}
         {renderContentList(contentResults, 4)}
-        {renderMealPlanList(mealPlanResults, 3)}
       </div>
     );
   };
@@ -585,32 +584,27 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-white">
               {/* Tabs */}
               <div className="flex space-x-6 px-6 pt-4 border-b border-gray-50 overflow-x-auto no-scrollbar shrink-0">
-                {[
-                  "Top",
-                  "Products",
-                  "Contents",
-                  "Food Vendors",
-                  "Meal Plans",
-                  "Recent",
-                ].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`pb-3 font-black text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
-                      activeTab === tab
-                        ? "text-lily"
-                        : "text-gray-300 hover:text-gray-600"
-                    }`}
-                  >
-                    {tab}
-                    {activeTab === tab && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
-                      />
-                    )}
-                  </button>
-                ))}
+                {["Top", "Products", "Contents", "Food Vendors", "Recent"].map(
+                  (tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`pb-3 font-black text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
+                        activeTab === tab
+                          ? "text-lily"
+                          : "text-gray-300 hover:text-gray-600"
+                      }`}
+                    >
+                      {tab}
+                      {activeTab === tab && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
+                        />
+                      )}
+                    </button>
+                  ),
+                )}
               </div>
 
               {/* Dynamic Content */}
@@ -628,19 +622,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 </AnimatePresence>
               </div>
             </div>
-
-            {/* Footer Prompt */}
-            {searchTerm && (
-              <div className="p-4 bg-white border-t border-gray-50">
-                <button
-                  onClick={handleSearchSubmit}
-                  className="w-full py-3 bg-lily text-white rounded-2xl font-black text-sm hover:bg-lily/90 transition-all flex items-center justify-center gap-2"
-                >
-                  <Search size={16} strokeWidth={3} />
-                  View all results for "{searchTerm}"
-                </button>
-              </div>
-            )}
           </motion.div>
         </motion.div>
       )}
