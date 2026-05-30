@@ -11,7 +11,7 @@ import {
   MessageCircle,
   ArrowRight,
 } from "lucide-react";
-import { getPublicProfile } from "../services/api";
+import { fetchShopDetails } from "../services/api";
 
 const AdsOrderSuccessPage = () => {
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ const AdsOrderSuccessPage = () => {
       const fetchAdDetails = async () => {
         try {
           // First get the shop profile to see if we can find associated ads
-          const shopData = await getPublicProfile(shopId);
+          const shopData = await fetchShopDetails(shopId);
           // For now, we'll show the shop info as context
           // In a real implementation, we might have a specific endpoint for user's ads
           setAdDetails({
