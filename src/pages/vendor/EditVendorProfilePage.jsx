@@ -86,16 +86,18 @@ const EditVendorProfilePage = () => {
     try {
       const data = await fetchFoodVendor(vendorId);
       setForm({
-        shop_name: data.shop_name || "",
+        shop_name: data.name || "",
         description: data.description || "",
-        address: data.address || "",
-        category: data.category || "",
+        address: data.address || data.street_address || "",
+        category: data.cuisine || "",
         contact_email: data.contact_email || "",
         contact_phone: data.contact_phone || "",
         state: data.state || "",
         lga: data.lga || "",
       });
-      setProfileImagePreview(data.profile_pic || data.profile_image || "");
+      setProfileImagePreview(
+        data.image_url || data.profile_pic || data.profile_image || "",
+      );
       setBannerImagePreview(data.banner_image || "");
     } catch (error) {
       console.error("Error loading vendor data:", error);
