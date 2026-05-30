@@ -73,6 +73,7 @@ const OrderHistoryPage = lazy(() => import("./pages/OrderHistoryPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
+const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
 
 /* SUBSCRIPTIONS */
 const VendorSubscriptionPage = lazy(
