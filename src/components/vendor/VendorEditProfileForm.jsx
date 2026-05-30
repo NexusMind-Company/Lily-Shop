@@ -141,15 +141,16 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         description: vendor.description || "",
         contact_email: vendor.contact_email || "",
         contact_phone: vendor.contact_phone || "",
-        address: vendor.address || "",
+        address: vendor.address || vendor.street_address || "",
         state: vendor.state || "",
         lga: vendor.lga || "",
       });
       if (vendor.image_url) {
         setProfilePreview(vendor.image_url);
       }
-      // Note: banner_image might not be separate in the current response,
-      // but we'll handle it if it exists or if the user uploads a new one.
+      if (vendor.banner_image) {
+        setBannerPreview(vendor.banner_image);
+      }
     }
   }, [vendor, setValues]);
 
