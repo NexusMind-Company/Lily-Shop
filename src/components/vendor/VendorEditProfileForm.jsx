@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { api, updateFoodVendor } from "../../services/api";
+import {
+  api,
+  updateFoodVendor,
+  fetchStates,
+  fetchLgas,
+} from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
 import { X } from "lucide-react";
 
@@ -16,6 +21,14 @@ const VALIDATION_RULES = {
   address: {
     required: true,
     requiredMessage: "Address is required.",
+  },
+  state: {
+    required: true,
+    requiredMessage: "State is required.",
+  },
+  lga: {
+    required: true,
+    requiredMessage: "LGA is required.",
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
@@ -46,6 +59,11 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
   const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
+
   const { data: vendor, isLoading: vendorLoading } = useQuery({
     queryKey: ["myVendorProfile", vendorId],
     queryFn: () => fetchFoodVendorProfile(vendorId),
@@ -70,6 +88,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       contact_email: "",
       contact_phone: "",
       address: "",
+      state: "",
+      lga: "",
     },
     VALIDATION_RULES,
   );
@@ -80,6 +100,40 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const [profilePreview, setProfilePreview] = useState(null);
 
   useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!values.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(values.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [values.state]);
+
+  useEffect(() => {
     if (vendor) {
       setValues({
         name: vendor.name || "",
@@ -88,6 +142,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         contact_email: vendor.contact_email || "",
         contact_phone: vendor.contact_phone || "",
         address: vendor.address || "",
+        state: vendor.state || "",
+        lga: vendor.lga || "",
       });
       if (vendor.image_url) {
         setProfilePreview(vendor.image_url);
@@ -104,6 +160,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         category: data.cuisine,
         description: data.description,
         address: data.address,
+        state: data.state,
+        lga: data.lga,
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
         banner_image: bannerFile,
@@ -184,6 +242,61 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           {fieldErrors.name && (
             <p className="text-red-500 text-xs mt-1.5">{fieldErrors.name}</p>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* State Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              State <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="state"
+              value={values.state}
+              onChange={(e) => {
+                handleChange(e);
+                setValues((prev) => ({ ...prev, lga: "" }));
+              }}
+              onBlur={handleBlur}
+              className={inputClass("state")}
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.state && (
+              <p className="text-red-500 text-xs mt-1.5">{fieldErrors.state}</p>
+            )}
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              LGA <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="lga"
+              value={values.lga}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={inputClass("lga")}
+              disabled={lgasLoading || !values.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.lga && (
+              <p className="text-red-500 text-xs mt-1.5">{fieldErrors.lga}</p>
+            )}
+          </div>
         </div>
 
         {/* Restaurant Address */}
