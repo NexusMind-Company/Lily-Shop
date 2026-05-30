@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import { toast } from "react-hot-toast";
+import { fetchStates, fetchLgas } from "../../services/api";
 import ErrorDisplay from "../common/ErrorDisplay";
 
 const INITIAL_FORM_STATE = {
@@ -13,6 +14,8 @@ const INITIAL_FORM_STATE = {
   contact_email: "",
   contact_phone: "",
   address: "",
+  state: "",
+  lga: "",
 };
 
 const VALIDATION_RULES = {
@@ -26,6 +29,14 @@ const VALIDATION_RULES = {
     required: true,
     requiredMessage:
       "Address is required. Customers need to know where you are.",
+  },
+  state: {
+    required: true,
+    requiredMessage: "State is required.",
+  },
+  lga: {
+    required: true,
+    requiredMessage: "LGA is required.",
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
@@ -51,6 +62,11 @@ const CreateSubscriptionVendor = () => {
   const { user_data } = useSelector((state) => state.auth);
   const { data: profileData } = useSelector((state) => state.profile);
 
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
+
   // If already a vendor, redirect immediately — don't show the form
   const isAlreadyVendor = Boolean(
     user_data?.vendor_id || profileData?.user?.vendor_id,
@@ -70,7 +86,44 @@ const CreateSubscriptionVendor = () => {
     handleBlur,
     handleSubmit: handleFormSubmit,
     resetForm,
+    setValues,
   } = useFormValidation(INITIAL_FORM_STATE, VALIDATION_RULES);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+        toast.error("Failed to load states");
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!values.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(values.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+        toast.error("Failed to load LGAs");
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [values.state]);
 
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [bannerFile, setBannerFile] = useState(null);
@@ -111,6 +164,8 @@ const CreateSubscriptionVendor = () => {
       contact_email: null,
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
+      state: validatedTextValues.state,
+      lga: validatedTextValues.lga,
       banner_image: bannerFile,
       profile_image: profileFile,
       service_days: JSON.stringify([
@@ -221,6 +276,69 @@ const CreateSubscriptionVendor = () => {
           {fieldErrors.name && (
             <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* State Select */}
+          <div>
+            <label
+              htmlFor="state"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              State <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="state"
+              name="state"
+              value={values.state}
+              onChange={(e) => {
+                handleChange(e);
+                setValues((prev) => ({ ...prev, lga: "" }));
+              }}
+              onBlur={handleBlur}
+              className={inputClass("state")}
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.state && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>
+            )}
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label
+              htmlFor="lga"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              LGA <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="lga"
+              name="lga"
+              value={values.lga}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={inputClass("lga")}
+              disabled={lgasLoading || !values.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.lga && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.lga}</p>
+            )}
+          </div>
         </div>
 
         {/* Address — required */}
