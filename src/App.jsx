@@ -140,6 +140,7 @@ const PaymentFailedPage = lazy(() => import("./pages/paymentFailedPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/paymentsSucessPage"));
 const PaymentLoadingPage = lazy(() => import("./pages/paymentLoading"));
 const PaystackCallbackPage = lazy(() => import("./pages/PaystackCallbackPage"));
+const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
 
 /* VENDOR DASHBOARD */
 const VendorDashboardOverview = lazy(
@@ -543,18 +544,21 @@ function App() {
                 element={<EditPlanPage />}
               />
 
-               {/* Ads */}
-               <Route path="/ads" element={<PurchaseAds />} />
-               <Route path="/purchaseAds" element={<PurchaseAds />} />
-               <Route path="/ads/details" element={<FetchAdDetails />} />
-               <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
-               <Route path="/ads/payment" element={<PaymentInitiation />} />
-               <Route path="/ads/verify" element={<VerifyTransaction />} />
-               <Route
-                 path="/verify-transaction"
-                 element={<VerifyTransaction />}
-               />
-               <Route path="/ads/order/success" element={<AdsOrderSuccessPage />} />
+              {/* Ads */}
+              <Route path="/ads" element={<PurchaseAds />} />
+              <Route path="/purchaseAds" element={<PurchaseAds />} />
+              <Route path="/ads/details" element={<FetchAdDetails />} />
+              <Route path="/fetchAdDetails" element={<FetchAdDetails />} />
+              <Route path="/ads/payment" element={<PaymentInitiation />} />
+              <Route path="/ads/verify" element={<VerifyTransaction />} />
+              <Route
+                path="/verify-transaction"
+                element={<VerifyTransaction />}
+              />
+              <Route
+                path="/ads/order/success"
+                element={<AdsOrderSuccessPage />}
+              />
 
               {/* AI Chat */}
               <Route path="/lily-chat" element={<LilyChat />} />
