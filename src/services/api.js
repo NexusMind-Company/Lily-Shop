@@ -193,7 +193,7 @@ export const updateProfile = async (profileData) => {
     }
   });
 
-  const response = await api.patch("/auth/profile/update/", formData);
+  const response = await api.put("/auth/profile/update/", formData);
   return response.data;
 };
 
@@ -1237,7 +1237,9 @@ export const fetchAvailableInterests = async (params = {}) => {
 };
 
 export const updateUserInterests = async (interests) => {
-  const response = await api.put("/auth/profile/add-interests/", { interests });
+  const response = await api.patch("/auth/profile/add-interests/", {
+    interests,
+  });
   return response.data;
 };
 
