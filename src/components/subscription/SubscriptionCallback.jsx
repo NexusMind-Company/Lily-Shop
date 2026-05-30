@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { api } from "../../services/api";
@@ -13,11 +13,18 @@ const clearSubscriptionRedirectMarkers = () => {
   localStorage.removeItem("lily_subscription_payment_ref");
 };
 
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 2500;
+
 export default function SubscriptionCallback() {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const params = new URLSearchParams(location.search);
     const reference = params.get("reference") || params.get("trxref");
     const status = params.get("status");
@@ -48,12 +55,20 @@ export default function SubscriptionCallback() {
 
     let isMounted = true;
 
-    const verifySubscriptionPayment = async () => {
+    const verifyWithRetry = async (attempt = 1) => {
       try {
         const response = await api.get("/wallet/paystack/callback/", {
           params: { reference },
         });
         const payload = response.data || {};
+
+        // If the webhook Celery task hasn't finished yet, status will be
+        // "pending". Retry a few times to give it time to process.
+        if (payload.status === "pending" && attempt < MAX_RETRIES) {
+          if (!isMounted) return;
+          await new Promise((res) => setTimeout(res, RETRY_DELAY_MS));
+          return verifyWithRetry(attempt + 1);
+        }
 
         if (payload.status !== "success") {
           throw new Error(payload.message || "Payment verification failed.");
@@ -82,9 +97,7 @@ export default function SubscriptionCallback() {
         clearSubscriptionFlowState();
         clearSubscriptionRedirectMarkers();
 
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
 
         toast.success("Subscription activated successfully.");
         navigate("/subscriptions", {
@@ -99,15 +112,12 @@ export default function SubscriptionCallback() {
           error?.message ||
           "Payment verification failed. Please try again.";
 
-        if (!isMounted) {
-          return;
-        }
-
+        if (!isMounted) return;
         redirectToPayment(message);
       }
     };
 
-    verifySubscriptionPayment();
+    verifyWithRetry();
 
     return () => {
       isMounted = false;
