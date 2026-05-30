@@ -1,0 +1,112 @@
+export const mockPosts = [
+  {
+    id: 1,
+    username: "Bloom Threads",
+    vendorNumber: "+2348012345678",
+    vendorDetail:
+      "Bloom Threads offers expertly crafted clothing for every occasion. We focus on quality and unique designs that allow your personal style to bloom.",
+    caption:
+      "Your wardrobe called… it wants an upgrade 👗💖 Shop the new drop now! This flowery patterned sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral",
+    likes: 120,
+    userpic: "/new-profile-image.png",
+    comments: 34,
+    shares: 10,
+    views: 100,
+    productName: "Flowery Patterned Sundress",
+    rating: 4.8,
+    reviews: 24,
+    price: 12500,
+    postTime: "1hr",
+    description:
+      "This flowery patterned sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral pressings, prestigeous.",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "image", src: "/feed-image2.png" },
+      { type: "image", src: "/feed-image.png" },
+      { type: "video", src: "/video.mp4" },
+    ],
+    musicTrack: "Summer Renaissance - Beyoncé",
+    estDelivery: "2-7 days",
+    deliveryLocation: "Lagos, Ilorin, Abuja",
+
+    pickupAddress: "123 Bloom St, Victoria Island, Lagos",
+    deliveryAddress: "Default user address: 22 Owode street, Ajegunle, Lagos", // Example user address
+    deliveryCharge: 1500,
+
+    reviewsData: [],
+    commentsData: [],
+  },
+  {
+    id: 2,
+    username: "Sarah",
+    vendorNumber: "+2348011236578",
+    vendorDetail: "Chic and affordable fashion finds.",
+    caption: "Chilling on a Sunday 🌴",
+    likes: 200,
+    userpic: "/feed-image.png",
+    comments: 15,
+    shares: 8,
+    views: 10,
+    productName: "Yellow Sundress",
+    rating: 3.8,
+    reviews: 56,
+    price: 9000,
+    postTime: "3 days",
+    description:
+      "This Yellow sundress is perfect for a summer day. The light, airy fabric will keep you cool and comfortable, while the vibrant floral pressings, prestigeous.",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "image", src: "/feed-image2.png" },
+      { type: "image", src: "/feed-image.png" },
+      { type: "video", src: "/video.mp4" },
+    ],
+    musicTrack: "Good days - SZA",
+    estDelivery: "15-20 days",
+    deliveryLocation: "Lagos, Ogun, Oyo",
+
+    pickupAddress: "Shop 45, Tejuosho Market, Yaba, Lagos",
+    deliveryAddress: "Default user address: 10 Bodija Estate, Ibadan, Oyo", // Example user address
+    deliveryCharge: 1200,
+
+    reviewsData: [],
+    commentsData: [],
+  },
+  {
+    id: 3,
+    username: "La vida",
+    vendorNumber: "+2349022347645",
+    vendorDetail: "OOMOOO THIS THING EHHN!!!",
+    caption: "Building a website on a meet",
+    likes: 200,
+    userpic: "/feed-image2.png",
+    comments: 15,
+    shares: 8,
+    views: 167,
+    productName: "Anker Speaker",
+    rating: 4.8,
+    reviews: 14,
+    price: 122500,
+    postTime: "1 week",
+    description:
+      "This speaker has an ultra bass that gives you that pure music vibe",
+    colors: ["white", "pink", "black"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    media: [
+      { type: "image", src: "/feed-image2.png" },
+      { type: "video", src: "/video.mp4" },
+      { type: "image", src: "/feed-image.png" },
+    ],
+    musicTrack: "FE!N - Travis Scott",
+    estDelivery: "7-15 days",
+    deliveryLocation: "World wide",
+
+    pickupAddress: "Online Only - No Pickup Available",
+    deliveryAddress: "Default user address: Plot 5, Asokoro, Abuja",
+    deliveryCharge: 3500,
+
+    reviewsData: [],
+    commentsData: [],
+  },
+];

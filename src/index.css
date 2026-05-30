@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+/* ================= PERFORMANCE OPTIMIZATIONS ================= */
+
+/* Prevent layout shift from font loading */
+body {
+    @apply bg-white;
+    @apply border-black;
+}
+
+/* Hide scrollbars globally */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* Native lazy loading for images */
+img[loading="lazy"] {
+    content-visibility: auto;
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@layer components {
+    .label {
+        @apply absolute top-4 left-8 transform -translate-y-1/2 px-2 text-ash font-inter font-medium text-xs;
+    }
+
+    .input {
+        @apply w-full border-black border-solid border h-14 px-4 rounded-[7px];
+    }
+
+    .bLabel {
+        @apply text-black font-inter font-medium text-xs/[14.52px] mb-2;
+    }
+}
+
+@theme {
+    --font-inter: Inter, sans-serif;
+    --font-poppins: Poppins, sans-serif;
+    --color-ash: #898585;
+    --color-disabled: #d5d5d5;
+    --color-disabled__text: #979797;
+    --color-main: #fffae7;
+    --color-lily: #4eb75e;
+    --color-darklily: #3da64d;
+    --color-pink: #b61664;
+    --color-sun: #f6ad6d;
+}
+
+/* Hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.media-container-cover {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-box {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    overflow: hidden;
+}
+
+.media-box img,
+.media-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-container-cover img,
+.media-container-cover video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.media-container-contain {
+    width: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-container-contain img,
+.media-container-contain video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* PAGINATION (FRACTION NUMBERS) STYLING */
+.swiper-pagination {
+    position: absolute;
+    bottom: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    width: auto !important;
+}
+
+/* Target the actual pagination numbers/text inside the container */
+.swiper-pagination-fraction {
+    color: white !important;
+}
+
+/* ARROWS (NAVIGATION BUTTONS) STYLING */
+/* Targets the arrow button containers */
+.swiper-button-next,
+.swiper-button-prev {
+    color: #4eb75e !important;
+    font-size: 28px !important;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    padding: 2px;
+    width: 40px;
+    height: 40px;
+}
+
+.swiper-button-next.swiper-button-disabled,
+.swiper-button-prev.swiper-button-disabled {
+    opacity: 0.3 !important;
+    cursor: default;
+}
+
+.skeleton {
+    background-color: #333; /* Dark gray for your theme */
+    border-radius: 4px;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Feed Skeleton */
+.skeleton-post-media {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(110deg, #1a1a1a 8%, #252525 18%, #1a1a1a 33%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+}
+
+.skeleton-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #333;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+    height: 12px;
+    border-radius: 6px;
+    background: #333;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #333;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* Comment Skeleton */
+.skeleton-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+body {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    min-height: 100vh;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
