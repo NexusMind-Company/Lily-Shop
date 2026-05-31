@@ -160,7 +160,10 @@ const MentionSuggestions = ({
                   src={user.profile_pic || user.img || "/profile-icon.svg"}
                   alt={user.username}
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.target.src = "/profile-icon.svg")}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/profile-icon.svg";
+                  }}
                 />
               </div>
               <div className="flex-1 overflow-hidden">

@@ -467,9 +467,8 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             alt={post.name || post.productName || post.caption || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
-              if (!e.target.src.includes("/feed-image.png")) {
-                e.target.src = "/feed-image.png";
-              }
+              e.target.onerror = null;
+              e.target.src = "/feed-image.png";
             }}
           />
         )}

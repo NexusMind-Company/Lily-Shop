@@ -409,6 +409,7 @@ const ProductItem = ({ product }) => {
                     alt={`Product image ${index + 1}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      e.target.onerror = null;
                       e.target.src = "/placeholder-image.png";
                     }}
                   />
@@ -835,7 +836,12 @@ const ProductItem = ({ product }) => {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         vendorId={product.vendor_id || product.shop}
-        vendorName={product.vendor_name || product.shop_name || product.name || product.title}
+        vendorName={
+          product.vendor_name ||
+          product.shop_name ||
+          product.name ||
+          product.title
+        }
       />
     </div>
   );

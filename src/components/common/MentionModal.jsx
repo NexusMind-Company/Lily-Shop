@@ -28,13 +28,13 @@ const MentionModal = ({ username, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const profilePic =
-    profile?.profile_pic ||
-    profile?.user?.profile_pic ||
-    "/user.png";
+    profile?.profile_pic || profile?.user?.profile_pic || "/user.png";
 
   const displayName = profile?.username || profile?.user?.username || username;
   const fullName = profile
-    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.user?.first_name || "Lily User"
+    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+      profile.user?.first_name ||
+      "Lily User"
     : "Loading...";
 
   return (
@@ -73,7 +73,10 @@ const MentionModal = ({ username, isOpen, onClose }) => {
                     src={profilePic}
                     alt={displayName}
                     className="w-full h-full object-cover"
-                    onError={(e) => (e.target.src = "/user.png")}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/user.png";
+                    }}
                   />
                 </div>
                 <div className="flex-1">
@@ -99,10 +102,7 @@ const MentionModal = ({ username, isOpen, onClose }) => {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500 font-medium">User not found</p>
-              <button
-                onClick={onClose}
-                className="mt-4 text-lily font-bold"
-              >
+              <button onClick={onClose} className="mt-4 text-lily font-bold">
                 Close
               </button>
             </div>
