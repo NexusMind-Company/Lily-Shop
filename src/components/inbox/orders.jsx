@@ -15,8 +15,8 @@ const Orders = () => {
   const [activePage, setActivePage] = useState("inbox");
   const [reviewTarget, setReviewTarget] = useState(null);
 
-  const openReviewModal = (productId, productName) => {
-    setReviewTarget({ productId, productName });
+  const openReviewModal = (vendorId, vendorName) => {
+    setReviewTarget({ vendorId, vendorName });
   };
 
   const closeReviewModal = () => {
@@ -122,8 +122,8 @@ const Orders = () => {
                   <button
                     onClick={() =>
                       openReviewModal(
-                        order.product?.shop || order.shop_id,
-                        order.product?.shop_name || order.shop_name || order.name || order.product_name,
+                        order.product?.vendor_id || order.vendor_id,
+                        order.product?.vendor_name || order.vendor_name || order.name || order.product_name,
                       )
                     }
                     className="text-pink-600 text-xs font-medium"
@@ -142,8 +142,8 @@ const Orders = () => {
       <ReviewModal
         isOpen={!!reviewTarget}
         onClose={closeReviewModal}
-        shopId={reviewTarget?.shopId}
-        shopName={reviewTarget?.shopName}
+        vendorId={reviewTarget?.vendorId}
+        vendorName={reviewTarget?.vendorName}
       />
     </div>
   );
