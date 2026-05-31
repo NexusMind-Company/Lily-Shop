@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { createVendorReview } from "../../services/api";
-import { createReview as createShopReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
 
 const RATING_LABELS = {
@@ -17,7 +16,7 @@ const RATING_LABELS = {
   5: "Excellent",
 };
 
-const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }) => {
+const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
@@ -27,8 +26,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
   const profileId = useSelector((state) => state.profile?.data?.user?.id);
   const resolvedUserId = userId || profileId;
 
-  const isShopReview = !!shopId;
-  const title = isShopReview ? (shopName || "this shop") : (vendorName || "this vendor");
+  const title = vendorName || "this vendor";
 
   useEffect(() => {
     if (!isOpen) {
@@ -39,22 +37,12 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => {
-      const payload = isShopReview
-        ? { shop_id: shopId, rating: data.rating, comment: data.comment }
-        : { ...data, user: resolvedUserId };
-      return isShopReview
-        ? createShopReview(payload)
-        : createVendorReview(vendorId, payload);
+      return createVendorReview(vendorId, data);
     },
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
-      if (isShopReview) {
-        queryClient.invalidateQueries({ queryKey: ["shopReviews", shopId] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
-        queryClient.invalidateQueries({ queryKey: ["shopReviews", vendorId] });
-        queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
+      queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
       onClose();
     },
     onError: (error) => {

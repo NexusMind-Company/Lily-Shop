@@ -397,8 +397,8 @@ const ShopDetails = () => {
       <ReviewModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
-        shopId={id}
-        shopName={shop?.name}
+        vendorId={shop?.vendor_id || id}
+        vendorName={shop?.name}
       />
     </div>
   );
