@@ -126,25 +126,14 @@ const CreateSubscriptionVendor = () => {
   }, [values.state]);
 
   const [submissionStatus, setSubmissionStatus] = useState("idle");
-  const [bannerFile, setBannerFile] = useState(null);
   const [profileFile, setProfileFile] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
 
   useEffect(() => {
     return () => {
-      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
       if (profilePreview) URL.revokeObjectURL(profilePreview);
     };
-  }, [bannerPreview, profilePreview]);
-
-  const handleBannerChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  };
+  }, [profilePreview]);
 
   const handleProfileChange = (e) => {
     const file = e.target.files[0];
@@ -166,7 +155,6 @@ const CreateSubscriptionVendor = () => {
       address: validatedTextValues.address.trim(),
       state: validatedTextValues.state,
       lga: validatedTextValues.lga,
-      banner_image: bannerFile,
       profile_image: profileFile,
       service_days: JSON.stringify([
         "monday",
@@ -472,81 +460,9 @@ const CreateSubscriptionVendor = () => {
 
         {/* Media */}
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Banner Image */}
-            <div>
-              <label
-                htmlFor="banner_image"
-                className="block text-sm font-medium text-[#111813] mb-1"
-              >
-                Banner Image
-              </label>
-              <div className="flex flex-col gap-2 relative">
-                {bannerPreview ? (
-                  <div className="relative w-full h-30 rounded-xl overflow-hidden shadow-sm">
-                    <img
-                      src={bannerPreview}
-                      alt="Banner"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBannerFile(null);
-                        setBannerPreview(null);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-full h-30 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#13ec49] hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-gray-400 mb-2"
-                    >
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    <span className="text-xs font-semibold text-gray-500">
-                      Upload Banner (Optional)
-                    </span>
-                    <input
-                      type="file"
-                      id="banner_image"
-                      name="banner_image"
-                      accept="image/*"
-                      onChange={handleBannerChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
+          <div className="flex justify-center">
             {/* Profile Image */}
-            <div>
+            <div className="w-full">
               <label
                 htmlFor="profile_image"
                 className="block text-sm font-medium text-[#111813] mb-1"
