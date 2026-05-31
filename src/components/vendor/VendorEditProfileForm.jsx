@@ -19,16 +19,13 @@ const VALIDATION_RULES = {
   },
   description: { required: true, requiredMessage: "Description is required." },
   address: {
-    required: true,
-    requiredMessage: "Address is required.",
+    required: false,
   },
   state: {
-    required: true,
-    requiredMessage: "State is required.",
+    required: false,
   },
   lga: {
-    required: true,
-    requiredMessage: "LGA is required.",
+    required: false,
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
@@ -130,6 +127,36 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     };
     loadLgas();
   }, [values.state]);
+
+  // Handle pre-filling state ID from name if needed
+  useEffect(() => {
+    if (states.length > 0 && values.state) {
+      const isId = states.some((s) => String(s.id) === String(values.state));
+      if (!isId) {
+        const stateByName = states.find(
+          (s) => s.name.toLowerCase() === String(values.state).toLowerCase(),
+        );
+        if (stateByName) {
+          setValues((prev) => ({ ...prev, state: stateByName.id }));
+        }
+      }
+    }
+  }, [states, values.state, setValues]);
+
+  // Handle pre-filling lga ID from name if needed
+  useEffect(() => {
+    if (lgas.length > 0 && values.lga) {
+      const isId = lgas.some((l) => String(l.id) === String(values.lga));
+      if (!isId) {
+        const lgaByName = lgas.find(
+          (l) => l.name.toLowerCase() === String(values.lga).toLowerCase(),
+        );
+        if (lgaByName) {
+          setValues((prev) => ({ ...prev, lga: lgaByName.id }));
+        }
+      }
+    }
+  }, [lgas, values.lga, setValues]);
 
   useEffect(() => {
     if (vendor) {
@@ -238,7 +265,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           {/* State Select */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              State <span className="text-red-500">*</span>
+              State
             </label>
             <select
               name="state"
@@ -266,7 +293,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           {/* LGA Select */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              LGA <span className="text-red-500">*</span>
+              LGA
             </label>
             <select
               name="lga"
@@ -292,7 +319,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         {/* Restaurant Address */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Restaurant Address <span className="text-red-500">*</span>
+            Restaurant Address
           </label>
           <input
             type="text"
