@@ -146,6 +146,9 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       if (vendor.image_url) {
         setProfilePreview(vendor.image_url);
       }
+      if (vendor.banner_image) {
+        setBannerPreview(vendor.banner_image);
+      }
     }
   }, [vendor, setValues]);
 

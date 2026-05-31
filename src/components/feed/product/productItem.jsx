@@ -834,8 +834,8 @@ const ProductItem = ({ product }) => {
       <ReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
-        shopId={product.shop}
-        shopName={product.shop_name || product.name || product.title}
+        vendorId={product.vendor_id || product.shop}
+        vendorName={product.vendor_name || product.shop_name || product.name || product.title}
       />
     </div>
   );
