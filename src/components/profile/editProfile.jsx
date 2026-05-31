@@ -190,13 +190,7 @@ const EditProfile = () => {
           className="cursor-pointer"
         />
         <h2 className="font-semibold text-lg truncate">Edit Profile</h2>
-        <button
-          onClick={handleSave}
-          className="text-lily font-semibold shrink-0 disabled:text-gray-400"
-          disabled={isSaving}
-        >
-          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}
-        </button>
+        <div className="w-[25px]" />
       </div>
 
       <div className="flex flex-col items-center mt-6 px-4">
@@ -351,6 +345,14 @@ const EditProfile = () => {
             onChange={(val) => handleChange("gender", val)}
           />
         </div>
+
+        <button
+          onClick={handleSave}
+          className="w-full bg-lily text-white font-bold text-xl py-4 rounded-2xl mt-10 mb-6 flex items-center justify-center disabled:opacity-50 transition-colors shadow-lg shadow-lily/20"
+          disabled={isSaving}
+        >
+          {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : "Save"}
+        </button>
       </fieldset>
     </div>
   );

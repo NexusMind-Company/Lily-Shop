@@ -36,8 +36,6 @@ const EditVendorProfilePage = () => {
   });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
-  const [bannerImageFile, setBannerImageFile] = useState(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState("");
 
   const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
@@ -119,14 +117,6 @@ const EditVendorProfilePage = () => {
     }
   };
 
-  const handleBannerImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerImageFile(file);
-      setBannerImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSave = async () => {
     if (!form.state || !form.lga || !form.address) {
       toast.error("State, LGA and Address are required");
@@ -143,7 +133,6 @@ const EditVendorProfilePage = () => {
         category: form.category,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
-        banner_image: bannerImageFile || null,
         profile_image: profileImageFile || null,
       });
       toast.success("Vendor profile updated successfully!");
@@ -185,39 +174,6 @@ const EditVendorProfilePage = () => {
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Banner Image */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700  mb-2">
-            Banner Image
-          </label>
-          <div className="relative h-40 bg-gray-100  rounded-xl overflow-hidden">
-            {bannerImagePreview ? (
-              <img
-                src={bannerImagePreview}
-                alt="Banner"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                No banner image
-              </div>
-            )}
-            <label
-              htmlFor="banner-upload"
-              className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer opacity-0 hover:opacity-100 transition-opacity"
-            >
-              <Camera size={24} className="text-white" />
-            </label>
-            <input
-              id="banner-upload"
-              type="file"
-              onChange={handleBannerImageChange}
-              accept="image/*"
-              className="hidden"
-            />
-          </div>
-        </div>
-
         {/* Profile Image */}
         <div>
           <label className="block text-sm font-medium text-gray-700  mb-2">

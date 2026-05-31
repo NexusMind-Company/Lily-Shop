@@ -45,6 +45,8 @@ const CartPage = () => {
     (state) => state.wallet || {},
   );
 
+  const { user_data } = useSelector((state) => state.auth || {});
+
   const cartId = useSelector(selectCartId);
 
   useEffect(() => {
@@ -529,14 +531,12 @@ const CartPage = () => {
       .join(" ") ||
     userProfile?.fullName ||
     userProfile?.name ||
-    userProfile?.username ||
-    (userProfile?.email && userProfile.email.split("@")[0]) ||
+    user_data?.username ||
+    (user_data?.email && user_data.email.split("@")[0]) ||
     "Recipient";
 
   const userPhone =
     userProfile?.phone_number || userProfile?.phone || "No phone provided";
-
-  const savedCard = userProfile?.cards?.[0] || userProfile?.card;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50 border-x border-gray-100">
@@ -697,55 +697,6 @@ const CartPage = () => {
             Payment method
           </h3>
           <div className="space-y-5">
-            <div className="flex items-start">
-              <button
-                onClick={() => setPaymentMethod("card")}
-                className="mt-1 shrink-0 focus:outline-none"
-              >
-                {paymentMethod === "card" ? (
-                  <CheckCircle2 className="text-white fill-lily w-6 h-6" />
-                ) : (
-                  <Circle className="text-gray-400 w-6 h-6" />
-                )}
-              </button>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">Card</p>
-                {savedCard ? (
-                  <>
-                    <p className="text-sm text-gray-900 mt-1">
-                      **** **** **** {savedCard.last4}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      Exp: {savedCard.exp_month}/{savedCard.exp_year}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-600 mt-1">No card added</p>
-                )}
-                <button
-                  onClick={() =>
-                    navigate("/add-card", {
-                      state: { from: location.pathname },
-                    })
-                  }
-                  className="flex items-center text-pink font-medium text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
-                >
-                  <Plus size={16} className="mr-1" strokeWidth={3} /> Add new
-                  card
-                </button>
-              </div>
-              <button
-                onClick={() =>
-                  navigate("/choose-card", {
-                    state: { from: location.pathname },
-                  })
-                }
-                className="text-gray-400 mt-2 hover:text-gray-700"
-              >
-                <ChevronRight size={24} />
-              </button>
-            </div>
-
             <div
               className="flex items-center cursor-pointer"
               onClick={() => setPaymentMethod("bank")}
