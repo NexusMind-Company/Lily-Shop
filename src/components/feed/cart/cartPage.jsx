@@ -566,13 +566,13 @@ const CartPage = () => {
                         item.mediaSrc ||
                         item.product?.image_url ||
                         item.product?.media_url ||
-                        "/placeholder-image.png"
+                        "/feed-image.png"
                       }
                       alt={item.productName || item.product?.name || "Product"}
                       className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/placeholder-image.png";
+                        e.target.src = "/feed-image.png";
                       }}
                     />
                     <div className="flex-1 space-y-1">

@@ -463,7 +463,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
         ) : (
           <img
             ref={mediaRef}
-            src={mediaArray[0]?.src || "/placeholder-image.png"}
+            src={mediaArray[0]?.src || "/feed-image.png"}
             alt={post.name || post.productName || post.caption || "Post"}
             className="w-full h-full object-cover"
             onError={(e) => {
