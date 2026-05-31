@@ -139,7 +139,6 @@ const PaymentFailedPage = lazy(() => import("./pages/paymentFailedPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/paymentsSucessPage"));
 const PaymentLoadingPage = lazy(() => import("./pages/paymentLoading"));
 const PaystackCallbackPage = lazy(() => import("./pages/PaystackCallbackPage"));
-const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
 
 /* VENDOR DASHBOARD */
 const VendorDashboardOverview = lazy(
