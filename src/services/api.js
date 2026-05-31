@@ -1110,7 +1110,7 @@ export const fetchVendorReviews = async (vendorId) => {
 
 export const createVendorReview = async (vendorId, reviewData) => {
   const response = await api.post(
-    `/foods/vendors/${vendorId}/reviews/create/`,
+    `/foods/vendors/${vendorId}/reviews/`,
     reviewData,
   );
   return response.data;
