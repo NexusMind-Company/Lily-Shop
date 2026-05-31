@@ -39,12 +39,17 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, shopId, shopName }
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => {
-      const payload = isShopReview
-        ? { shop_id: shopId, rating: data.rating, comment: data.comment }
-        : { ...data, user: resolvedUserId };
-      return isShopReview
-        ? createShopReview(payload)
-        : createVendorReview(vendorId, payload);
+      if (isShopReview) {
+        const payload = { shop_id: shopId, rating: data.rating, comment: data.comment };
+        return createShopReview(payload);
+      }
+      // Guard: vendorId must be a valid value before hitting the API.
+      // If it is missing the backend <uuid:vendor_id> pattern rejects with 404.
+      if (!vendorId) {
+        return Promise.reject(new Error("Vendor not found. Please refresh and try again."));
+      }
+      const payload = { rating: data.rating, comment: data.comment };
+      return createVendorReview(vendorId, payload);
     },
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
