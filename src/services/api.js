@@ -789,6 +789,8 @@ const appendVendorMedia = (formData, vendorData = {}) => {
 
 export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
+  
+  // Map vendor data fields to API schema correctly
   formData.append("name", vendorData.shop_name);
   formData.append("description", vendorData.description);
   formData.append("street_address", vendorData.address);
@@ -801,23 +803,13 @@ export const createFoodVendor = async (vendorData) => {
     formData.append("lga", vendorData.lga);
   }
 
+  // Handle contact_email - can be null or valid email
   if (vendorData.contact_email) {
-    const email = vendorData.contact_email.trim();
-    if (email) {
-      const USE_OMIT_STRATEGY = true; // Set to true to omit from payload, false to send ""
-      if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
-    }
-  } else if (vendorData.contact_email === null) {
-    const USE_OMIT_STRATEGY = true;
-    if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
+    formData.append("contact_email", vendorData.contact_email.trim());
   }
 
   if (vendorData.contact_phone) {
     formData.append("contact_phone", vendorData.contact_phone.trim());
-  }
-
-  if (vendorData.service_days) {
-    formData.append("service_days", vendorData.service_days);
   }
 
   appendVendorMedia(formData, vendorData);
@@ -829,36 +821,27 @@ export const createFoodVendor = async (vendorData) => {
 
 export const updateFoodVendor = async (vendorData) => {
   const formData = new FormData();
+  
+  // Map vendor data fields to API schema correctly
   if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
-  if (vendorData.description)
-    formData.append("description", vendorData.description);
+  if (vendorData.description) formData.append("description", vendorData.description);
   if (vendorData.address) formData.append("street_address", vendorData.address);
   if (vendorData.category) formData.append("cuisine", vendorData.category);
 
-  if (vendorData.state !== undefined && vendorData.state !== null) {
-    formData.append("state", vendorData.state);
-  }
-  if (vendorData.lga !== undefined && vendorData.lga !== null) {
-    formData.append("lga", vendorData.lga);
-  }
-
+  // Handle contact_email - can be null or valid email
   if (vendorData.contact_email) {
-    const email = vendorData.contact_email.trim();
-    if (email) {
-      const USE_OMIT_STRATEGY = true; // Set to true to omit from payload, false to send ""
-      if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
-    }
-  } else if (vendorData.contact_email === null) {
-    const USE_OMIT_STRATEGY = true;
-    if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
+    formData.append("contact_email", vendorData.contact_email.trim());
   }
 
   if (vendorData.contact_phone) {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }
 
-  if (vendorData.service_days) {
-    formData.append("service_days", vendorData.service_days);
+  if (vendorData.state !== undefined && vendorData.state !== null) {
+    formData.append("state", vendorData.state);
+  }
+  if (vendorData.lga !== undefined && vendorData.lga !== null) {
+    formData.append("lga", vendorData.lga);
   }
 
   appendVendorMedia(formData, vendorData);
