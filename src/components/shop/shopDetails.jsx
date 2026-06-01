@@ -2,15 +2,17 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
 import LoaderSd from "../loaders/loaderSd";
 import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
-import ReviewModal from "../common/ReviewModal";
-import { ReviewCard } from "../common/ReviewList";
-import { fetchShopReviews } from "../../services/shopApi";
+import ShopReviewModal from "./ShopReviewModal";
+import EditReviewModal from "./EditReviewModal";
+import ReviewList from "../common/ReviewList";
+import { fetchShopReviews, updateReview, deleteReview, toggleReviewLike } from "../../services/shopApi";
+import toast from "react-hot-toast";
 import {
   ChevronLeft, MapPin, Phone, Share2, MessageCircle,
   Star, Store, Eye, Package, Grid3x3, ShoppingCart,
@@ -21,6 +23,7 @@ const ShopDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   
   const {
     selectedShop: shop,
@@ -28,16 +31,47 @@ const ShopDetails = () => {
     error,
   } = useSelector((state) => state.shops);
 
+  const userData = useSelector((state) => state.auth?.user_data);
+  const currentUserId = userData?.id || userData?.user?.id;
+
   const [orderingProductId, setOrderingProductId] = useState(null);
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
   const [following, setFollowing] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
 
   const { data: reviews } = useQuery({
     queryKey: ["shopReviews", id],
     queryFn: () => fetchShopReviews(id),
     enabled: !!id,
+  });
+
+  const updateReviewMutation = useMutation({
+    mutationFn: (data) => updateReview(data.reviewId, data.reviewData),
+    onSuccess: () => {
+      toast.success("Review updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
+      setEditingReview(null);
+    },
+    onError: () => toast.error("Failed to update review"),
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: (reviewId) => deleteReview(reviewId),
+    onSuccess: () => {
+      toast.success("Review deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
+    },
+    onError: () => toast.error("Failed to delete review"),
+  });
+
+  const toggleLikeMutation = useMutation({
+    mutationFn: (reviewId) => toggleReviewLike(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
+    },
+    onError: () => toast.error("Failed to toggle like"),
   });
 
   useEffect(() => {
@@ -323,41 +357,16 @@ const ShopDetails = () => {
 
       {/* Reviews Section */}
       <div className="bg-white mt-2 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-base flex items-center gap-2">
-            <Star size={20} className="text-amber-400" />
-            Reviews
-            {shop.review_count > 0 && (
-              <span className="bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                {shop.review_count}
-              </span>
-            )}
-          </h3>
-          <button
-            onClick={() => setIsReviewModalOpen(true)}
-            className="text-sm font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5"
-          >
-            Write Review
-          </button>
-        </div>
-
-        {(reviews?.results || []).length > 0 ? (
-          <div className="space-y-3">
-            {(reviews?.results || []).map((review, idx) => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                isLast={idx === (reviews.results.length - 1)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-            <Star size={48} className="mx-auto text-gray-300 mb-4" />
-            <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
-            <p className="text-sm text-gray-400">Be the first to share your experience!</p>
-          </div>
-        )}
+        <ReviewList
+          reviews={reviews?.results || []}
+          onWriteReview={() => setIsReviewModalOpen(true)}
+          currentUserId={currentUserId}
+          onReviewAction={{
+            onEdit: (review) => setEditingReview(review),
+            onDelete: (reviewId) => deleteReviewMutation.mutate(reviewId),
+            onLike: (reviewId) => toggleLikeMutation.mutate(reviewId),
+          }}
+        />
       </div>
 
       {/* Share Menu */}
@@ -394,11 +403,18 @@ const ShopDetails = () => {
         )}
       </AnimatePresence>
 
-      <ReviewModal
+      <ShopReviewModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
-        vendorId={shop?.vendor_id || id}
-        vendorName={shop?.name}
+        shopId={id}
+        shopName={shop?.name}
+      />
+
+      <EditReviewModal
+        isOpen={!!editingReview}
+        onClose={() => setEditingReview(null)}
+        review={editingReview}
+        shopId={id}
       />
     </div>
   );
