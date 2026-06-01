@@ -799,17 +799,10 @@ export const createFoodVendor = async (vendorData) => {
     formData.append("description", vendorData.description);
   }
   if (vendorData.address) {
-    formData.append("street_address", vendorData.address);
+    formData.append("address", vendorData.address);
   }
   if (vendorData.category) {
     formData.append("cuisine", vendorData.category);
-  }
-
-  if (vendorData.state !== undefined && vendorData.state !== null) {
-    formData.append("state", vendorData.state);
-  }
-  if (vendorData.lga !== undefined && vendorData.lga !== null) {
-    formData.append("lga", vendorData.lga);
   }
 
   // Handle contact_email - can be null or valid email
