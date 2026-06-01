@@ -791,10 +791,19 @@ export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
   
   // Map vendor data fields to API schema correctly
-  formData.append("name", vendorData.shop_name);
-  formData.append("description", vendorData.description);
-  formData.append("street_address", vendorData.address);
-  formData.append("cuisine", vendorData.category);
+  // Only append fields that have values to avoid 400 errors
+  if (vendorData.shop_name) {
+    formData.append("name", vendorData.shop_name);
+  }
+  if (vendorData.description) {
+    formData.append("description", vendorData.description);
+  }
+  if (vendorData.address) {
+    formData.append("street_address", vendorData.address);
+  }
+  if (vendorData.category) {
+    formData.append("cuisine", vendorData.category);
+  }
 
   if (vendorData.state !== undefined && vendorData.state !== null) {
     formData.append("state", vendorData.state);
