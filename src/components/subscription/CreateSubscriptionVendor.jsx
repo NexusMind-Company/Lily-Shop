@@ -153,8 +153,8 @@ const CreateSubscriptionVendor = () => {
       contact_email: validatedTextValues.contact_email?.trim() || null,
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
-      state: validatedTextValues.state,
-      lga: validatedTextValues.lga,
+      state: parseInt(validatedTextValues.state, 10),
+      lga: parseInt(validatedTextValues.lga, 10),
       profile_image: profileFile,
     };
 
