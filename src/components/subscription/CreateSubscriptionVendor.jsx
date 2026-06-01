@@ -150,19 +150,12 @@ const CreateSubscriptionVendor = () => {
       shop_name: validatedTextValues.name.trim(),
       category: validatedTextValues.cuisine.trim(),
       description: validatedTextValues.description.trim(),
-      contact_email: null,
+      contact_email: validatedTextValues.contact_email?.trim() || null,
       contact_phone: validatedTextValues.contact_phone.trim(),
       address: validatedTextValues.address.trim(),
       state: validatedTextValues.state,
       lga: validatedTextValues.lga,
       profile_image: profileFile,
-      service_days: JSON.stringify([
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-      ]),
     };
 
     try {
