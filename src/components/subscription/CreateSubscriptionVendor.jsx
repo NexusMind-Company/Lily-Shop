@@ -138,6 +138,21 @@ const CreateSubscriptionVendor = () => {
         typeof err.payload === "string"
       ) {
         errorMsg = err.payload;
+      } else if (
+        err &&
+        typeof err === "object" &&
+        err.non_field_errors
+      ) {
+        errorMsg = Array.isArray(err.non_field_errors)
+          ? err.non_field_errors.join(". ")
+          : err.non_field_errors;
+      } else if (err && typeof err === "object") {
+        const firstFieldError = Object.values(err).find(Array.isArray);
+        if (firstFieldError) {
+          errorMsg = firstFieldError.join(". ");
+        } else {
+          errorMsg += "Please try again later.";
+        }
       } else if (typeof err === "string") {
         errorMsg = err;
       } else {
