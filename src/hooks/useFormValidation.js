@@ -32,7 +32,7 @@ const useFormValidation = (initialState, validationRules) => {
 
         // Email format check
         if (rules.email && value) {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
           if (!emailRegex.test(value)) {
             tempErrors[field] = rules.invalidMessage || "Invalid email format";
             continue;
