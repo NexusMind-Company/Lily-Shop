@@ -789,11 +789,9 @@ const appendVendorMedia = (formData, vendorData = {}) => {
 
 export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
-  
-  // Map vendor data fields to API schema correctly
-  // Only append fields that have values to avoid 400 errors
-  if (vendorData.shop_name) {
-    formData.append("name", vendorData.shop_name);
+
+  if (vendorData.name) {
+    formData.append("name", vendorData.name);
   }
   if (vendorData.description) {
     formData.append("description", vendorData.description);
@@ -801,15 +799,12 @@ export const createFoodVendor = async (vendorData) => {
   if (vendorData.address) {
     formData.append("address", vendorData.address);
   }
-  if (vendorData.category) {
-    formData.append("cuisine", vendorData.category);
+  if (vendorData.cuisine) {
+    formData.append("cuisine", vendorData.cuisine);
   }
-
-  // Handle contact_email - can be null or valid email
   if (vendorData.contact_email) {
     formData.append("contact_email", vendorData.contact_email.trim());
   }
-
   if (vendorData.contact_phone) {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }

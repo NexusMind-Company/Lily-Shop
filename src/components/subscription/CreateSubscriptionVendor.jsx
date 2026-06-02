@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import { toast } from "react-hot-toast";
-import { fetchStates, fetchLgas } from "../../services/api";
-import ErrorDisplay from "../common/ErrorDisplay";
 
 const INITIAL_FORM_STATE = {
   name: "",
@@ -14,8 +12,6 @@ const INITIAL_FORM_STATE = {
   contact_email: "",
   contact_phone: "",
   address: "",
-  state: "",
-  lga: "",
 };
 
 const VALIDATION_RULES = {
@@ -24,21 +20,9 @@ const VALIDATION_RULES = {
     requiredMessage: "Restaurant/Vendor name is required.",
     maxLength: 255,
   },
-  description: { required: true, requiredMessage: "Description is required." },
-  address: {
-    required: true,
-    requiredMessage:
-      "Address is required. Customers need to know where you are.",
-  },
-  state: {
-    required: true,
-    requiredMessage: "State is required.",
-  },
-  lga: {
-    required: true,
-    requiredMessage: "LGA is required.",
-  },
   cuisine: { required: false, maxLength: 255 },
+  description: { required: false },
+  address: { required: false },
   contact_email: {
     required: false,
     email: true,
@@ -46,11 +30,7 @@ const VALIDATION_RULES = {
     maxLength: 254,
   },
   contact_phone: {
-    required: true,
-    requiredMessage: "Phone number is required.",
-    pattern: /^(\+234|0)[789]\d{9}$/,
-    patternMessage:
-      "Please enter a valid Nigerian phone number (e.g. 08012345678).",
+    required: false,
     maxLength: 20,
   },
 };
@@ -61,11 +41,6 @@ const CreateSubscriptionVendor = () => {
 
   const { user_data } = useSelector((state) => state.auth);
   const { data: profileData } = useSelector((state) => state.profile);
-
-  const [states, setStates] = useState([]);
-  const [lgas, setLgas] = useState([]);
-  const [statesLoading, setStatesLoading] = useState(false);
-  const [lgasLoading, setLgasLoading] = useState(false);
 
   // If already a vendor, redirect immediately — don't show the form
   const isAlreadyVendor = Boolean(
@@ -86,44 +61,7 @@ const CreateSubscriptionVendor = () => {
     handleBlur,
     handleSubmit: handleFormSubmit,
     resetForm,
-    setValues,
   } = useFormValidation(INITIAL_FORM_STATE, VALIDATION_RULES);
-
-  useEffect(() => {
-    const loadStates = async () => {
-      setStatesLoading(true);
-      try {
-        const data = await fetchStates();
-        setStates(data);
-      } catch (err) {
-        console.error("Failed to load states:", err);
-        toast.error("Failed to load states");
-      } finally {
-        setStatesLoading(false);
-      }
-    };
-    loadStates();
-  }, []);
-
-  useEffect(() => {
-    const loadLgas = async () => {
-      if (!values.state) {
-        setLgas([]);
-        return;
-      }
-      setLgasLoading(true);
-      try {
-        const data = await fetchLgas(values.state);
-        setLgas(data);
-      } catch (err) {
-        console.error("Failed to load LGAs:", err);
-        toast.error("Failed to load LGAs");
-      } finally {
-        setLgasLoading(false);
-      }
-    };
-    loadLgas();
-  }, [values.state]);
 
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [profileFile, setProfileFile] = useState(null);
@@ -147,12 +85,12 @@ const CreateSubscriptionVendor = () => {
     setSubmissionStatus("loading");
 
     const vendorData = {
-      shop_name: validatedTextValues.name.trim(),
-      category: validatedTextValues.cuisine.trim(),
-      description: validatedTextValues.description.trim(),
+      name: validatedTextValues.name.trim(),
+      cuisine: validatedTextValues.cuisine?.trim() || "",
+      description: validatedTextValues.description?.trim() || "",
       contact_email: validatedTextValues.contact_email?.trim() || null,
-      contact_phone: validatedTextValues.contact_phone.trim(),
-      address: validatedTextValues.address.trim(),
+      contact_phone: validatedTextValues.contact_phone?.trim() || null,
+      address: validatedTextValues.address?.trim() || "",
       profile_image: profileFile,
     };
 
@@ -257,97 +195,6 @@ const CreateSubscriptionVendor = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* State Select */}
-          <div>
-            <label
-              htmlFor="state"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              State <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="state"
-              name="state"
-              value={values.state}
-              onChange={(e) => {
-                handleChange(e);
-                setValues((prev) => ({ ...prev, lga: "" }));
-              }}
-              onBlur={handleBlur}
-              className={inputClass("state")}
-              disabled={statesLoading}
-            >
-              <option value="">Select State</option>
-              {states.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.state && (
-              <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>
-            )}
-          </div>
-
-          {/* LGA Select */}
-          <div>
-            <label
-              htmlFor="lga"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              LGA <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="lga"
-              name="lga"
-              value={values.lga}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClass("lga")}
-              disabled={lgasLoading || !values.state}
-            >
-              <option value="">Select LGA</option>
-              {lgas.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.lga && (
-              <p className="text-red-500 text-xs mt-1">{fieldErrors.lga}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Address — required */}
-        <div>
-          <label
-            htmlFor="address"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Restaurant Address <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={values.address}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
-            className={inputClass("address")}
-            aria-invalid={fieldErrors.address ? "true" : "false"}
-          />
-          {fieldErrors.address ? (
-            <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
-          ) : (
-            <p className="text-gray-400 text-xs mt-1">
-              Customers will use this to find your restaurant.
-            </p>
-          )}
-        </div>
-
         {/* Cuisine */}
         <div>
           <label
@@ -378,7 +225,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="description"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Description <span className="text-red-500">*</span>
+            Description
           </label>
           <textarea
             id="description"
@@ -393,6 +240,34 @@ const CreateSubscriptionVendor = () => {
           {fieldErrors.description && (
             <p className="text-red-500 text-xs mt-1">
               {fieldErrors.description}
+            </p>
+          )}
+        </div>
+
+        {/* Address */}
+        <div>
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Address
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            value={values.address}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
+            className={inputClass("address")}
+            aria-invalid={fieldErrors.address ? "true" : "false"}
+          />
+          {fieldErrors.address ? (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
+          ) : (
+            <p className="text-gray-400 text-xs mt-1">
+              Customers will use this to find your restaurant.
             </p>
           )}
         </div>
