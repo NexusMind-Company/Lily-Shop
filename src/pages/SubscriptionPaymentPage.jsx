@@ -119,7 +119,6 @@ const SubscriptionPaymentPage = () => {
       const formattedPhone = formatPhoneForAPI(phone) || phone;
 
       const paymentData = {
-        intent_id: crypto.randomUUID(),
         phone: formattedPhone,
       };
 
