@@ -189,7 +189,7 @@ const EditProfile = () => {
           className="cursor-pointer"
         />
         <h2 className="font-semibold text-lg truncate">Edit Profile</h2>
-        <div className="w-[25px]" />
+        <div className="w-6.25" />
       </div>
 
       <div className="flex flex-col items-center mt-6 px-4">
