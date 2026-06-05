@@ -837,10 +837,10 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }
 
-  if (vendorData.state !== undefined && vendorData.state !== null) {
+  if (vendorData.state) {
     formData.append("state", vendorData.state);
   }
-  if (vendorData.lga !== undefined && vendorData.lga !== null) {
+  if (vendorData.lga) {
     formData.append("lga", vendorData.lga);
   }
 
