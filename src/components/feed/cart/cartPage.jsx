@@ -399,10 +399,28 @@ const CartPage = () => {
       return;
     }
 
-    const orderItems = itemsToCheckout.map((item) => ({
-      product_id: item.product?.id || item.product_id || item.id,
-      quantity: parseInt(item.quantity, 10),
-    }));
+    const orderItems = itemsToCheckout
+      .map((item) => {
+        // Crucial: Ensure we get the actual product UUID.
+        // Cart items have a top-level 'id' which is the CartItem UUID, not the Product UUID.
+        const productId =
+          item.product?.id || item.product_id || (isDirectBuy ? item.id : null);
+
+        if (!productId) {
+          console.warn("Missing product ID for item:", item);
+        }
+
+        return {
+          product_id: productId,
+          quantity: parseInt(item.quantity, 10) || 1,
+        };
+      })
+      .filter((item) => item.product_id); // Filter out any items that failed to resolve a product ID
+
+    if (orderItems.length === 0) {
+      alert("No valid items found for checkout. Please try again.");
+      return;
+    }
 
     let apiPaymentMethod = "paystack";
     if (paymentMethod === "wallet") {
@@ -416,15 +434,17 @@ const CartPage = () => {
       }
     }
 
+    // Surgical payload construction
     const orderData = {
       order_items: orderItems,
-      total_amount_kobo: Math.round(backendTotal * 100), // Convert Naira to Kobo for backend consistency
+      total_amount_kobo: Math.round(backendTotal * 100),
       payment_method: apiPaymentMethod,
       delivery_type: deliveryType,
-      delivery_fee_naira: finalDeliveryFee,
-      platform_fee_naira: finalPlatformFee,
+      delivery_fee_naira: Number(finalDeliveryFee) || 0,
+      platform_fee_naira: Number(finalPlatformFee) || 0,
     };
 
+    // ONLY send the relevant ID to prevent backend confusion/500s
     if (deliveryType === "delivery") {
       orderData.delivery_address_id = selectedDelivery?.id;
     } else if (deliveryType === "pickup") {
