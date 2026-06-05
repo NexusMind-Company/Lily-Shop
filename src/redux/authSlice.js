@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
+import { resetCart } from "./cartSlice";
 import { queryClient } from "../queryClient";
 
 // ==================== LOGIN USER ====================
@@ -205,6 +206,7 @@ export const handleLogin = (userData) => (dispatch) => {
 export const handleLogout = () => (dispatch) => {
   dispatch(logout());
   dispatch(resetProfile());
+  dispatch(resetCart());
   queryClient.clear();
 };
 
