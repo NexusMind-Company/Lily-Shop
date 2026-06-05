@@ -181,7 +181,7 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  const response = await api.patch("/auth/profile/update/", profileData);
+  const response = await api.put("/auth/profile/update/", profileData);
   return response.data;
 };
 
