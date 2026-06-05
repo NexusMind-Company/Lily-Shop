@@ -86,7 +86,6 @@ const EditProfile = () => {
   const { data: user, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
     queryFn: fetchUserProfile,
-    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {

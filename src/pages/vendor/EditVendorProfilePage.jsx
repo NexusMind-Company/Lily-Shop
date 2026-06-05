@@ -96,7 +96,6 @@ const EditVendorProfilePage = () => {
       setProfileImagePreview(
         data.image_url || data.profile_pic || data.profile_image || "",
       );
-      setBannerImagePreview(data.banner_image || "");
     } catch (error) {
       console.error("Error loading vendor data:", error);
       toast.error("Failed to load vendor profile");
