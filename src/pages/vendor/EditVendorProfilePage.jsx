@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { ChevronLeft, Loader2, Save, Camera } from "lucide-react";
@@ -39,11 +39,36 @@ const EditVendorProfilePage = () => {
 
   const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
+  const loadVendorData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchFoodVendor(vendorId);
+      setForm({
+        shop_name: data.name || "",
+        description: data.description || "",
+        address: data.address || data.street_address || "",
+        category: data.cuisine || "",
+        contact_email: data.contact_email || "",
+        contact_phone: data.contact_phone || "",
+        state: data.state || "",
+        lga: data.lga || "",
+      });
+      setProfileImagePreview(
+        data.image_url || data.profile_pic || data.profile_image || "",
+      );
+    } catch (error) {
+      console.error("Error loading vendor data:", error);
+      toast.error("Failed to load vendor profile");
+    } finally {
+      setLoading(false);
+    }
+  }, [vendorId]);
+
   useEffect(() => {
     if (vendorId) {
       loadVendorData();
     }
-  }, [vendorId]);
+  }, [vendorId, loadVendorData]);
 
   useEffect(() => {
     const loadStates = async () => {
@@ -78,31 +103,6 @@ const EditVendorProfilePage = () => {
     };
     loadLgas();
   }, [form.state]);
-
-  const loadVendorData = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchFoodVendor(vendorId);
-      setForm({
-        shop_name: data.name || "",
-        description: data.description || "",
-        address: data.address || data.street_address || "",
-        category: data.cuisine || "",
-        contact_email: data.contact_email || "",
-        contact_phone: data.contact_phone || "",
-        state: data.state || "",
-        lga: data.lga || "",
-      });
-      setProfileImagePreview(
-        data.image_url || data.profile_pic || data.profile_image || "",
-      );
-    } catch (error) {
-      console.error("Error loading vendor data:", error);
-      toast.error("Failed to load vendor profile");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
