@@ -6,25 +6,9 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import "./index.css";
 import { store } from "./redux/store";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./queryClient";
 import { PaymentProvider } from "./context/paymentContext";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error) => {
-        if (error?.status >= 400 && error?.status < 500) return false;
-        return failureCount < 3;
-      },
-      staleTime: 30 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: true,
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -39,5 +23,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </QueryClientProvider>
       </BrowserRouter>
     </Provider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

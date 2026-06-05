@@ -45,7 +45,9 @@ const VALIDATION_RULES = {
 
 const fetchFoodVendorProfile = async (vendorId) => {
   if (!vendorId) return null;
-  const res = await api.get(`/foods/food-vendors/${vendorId}/`);
+  const res = await api.get(`/foods/food-vendors/${vendorId}/`, {
+    params: { t: Date.now() },
+  });
   return res.data;
 };
 
@@ -65,7 +67,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     queryKey: ["myVendorProfile", vendorId],
     queryFn: () => fetchFoodVendorProfile(vendorId),
     enabled: !!vendorId,
-    staleTime: 1000 * 60 * 10, // Keep data fresh for 10 minutes
     retry: false, // Prevent multiple requests if the endpoint fails
   });
 
@@ -172,9 +173,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       });
       if (vendor.image_url) {
         setProfilePreview(vendor.image_url);
-      }
-      if (vendor.banner_image) {
-        setBannerPreview(vendor.banner_image);
       }
     }
   }, [vendor, setValues]);
