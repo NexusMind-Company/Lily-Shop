@@ -119,6 +119,7 @@ const SubscriptionPaymentPage = () => {
       const formattedPhone = formatPhoneForAPI(phone) || phone;
 
       const paymentData = {
+        intent_id: crypto.randomUUID(),
         phone: formattedPhone,
       };
 
@@ -135,7 +136,7 @@ const SubscriptionPaymentPage = () => {
         paymentData.portion_size = flowState.portionSize;
       if (flowState?.specialInstructions)
         paymentData.special_instructions = flowState.specialInstructions;
-      if (collectionCode) paymentData.collection_code = collectionCode;
+      if (deliveryType === "pickup") paymentData.collection_code = collectionCode || "";
 
       console.log("Sending subscription data:", paymentData);
 
