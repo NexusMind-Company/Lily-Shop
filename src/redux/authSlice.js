@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
+import { queryClient } from "../queryClient";
 
 // ==================== LOGIN USER ====================
 export const loginUser = createAsyncThunk(
@@ -204,6 +205,7 @@ export const handleLogin = (userData) => (dispatch) => {
 export const handleLogout = () => (dispatch) => {
   dispatch(logout());
   dispatch(resetProfile());
+  queryClient.clear();
 };
 
 export const { loginSuccess, logout, clearError, clearRegistrationSuccess } =

@@ -169,7 +169,9 @@ api.interceptors.response.use(
 );
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/me/");
+  const response = await api.get("/auth/profile/me/", {
+    params: { t: Date.now() },
+  });
   return response.data;
 };
 
@@ -818,10 +820,11 @@ export const createFoodVendor = async (vendorData) => {
 
 export const updateFoodVendor = async (vendorData) => {
   const formData = new FormData();
-  
+
   // Map vendor data fields to API schema correctly
   if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
-  if (vendorData.description) formData.append("description", vendorData.description);
+  if (vendorData.description)
+    formData.append("description", vendorData.description);
   if (vendorData.address) formData.append("street_address", vendorData.address);
   if (vendorData.category) formData.append("cuisine", vendorData.category);
 
@@ -851,7 +854,7 @@ export const updateFoodVendor = async (vendorData) => {
 export const fetchFoodVendor = async (vendorId) => {
   // Use list endpoint with filter since /foods/food-vendors/{id}/ returns 405
   const response = await api.get(`/foods/vendors/`, {
-    params: { id: vendorId },
+    params: { id: vendorId, t: Date.now() },
   });
   const results = response.data.results || response.data;
   return results.find((v) => v.id === vendorId) || results[0] || null;
