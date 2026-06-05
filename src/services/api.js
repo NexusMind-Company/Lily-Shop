@@ -181,7 +181,7 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  const response = await api.patch("/auth/profile/update", profileData);
+  const response = await api.patch("/auth/profile/update/", profileData);
   return response.data;
 };
 
@@ -1086,7 +1086,7 @@ export const createVendorReview = async (vendorId, reviewData) => {
 };
 
 export const deleteVendorProfile = async () => {
-  const response = await api.delete("/foods/vendors/me/delete/");
+  const response = await api.delete("/foods/vendors/me/");
   return response.data;
 };
 
