@@ -17,15 +17,21 @@ const FeedProductDetails = () => {
 
   if (!product) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Product not found</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white p-4 text-center">
+        <p className="text-gray-500 mb-6 text-lg">Product not found</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-8 py-3 bg-lily text-white rounded-xl font-bold shadow-lg shadow-lily/20 active:scale-95 transition-transform"
+        >
+          Go Back
+        </button>
       </div>
     );
   }
 
   const handleAddToCart = async (product, quantity) => {
     try {
-      const response = await api.post('/orders/cart/add/', {
+      const response = await api.post("/orders/cart/add/", {
         product_id: product.id,
         quantity: quantity,
       });
@@ -33,23 +39,25 @@ const FeedProductDetails = () => {
       // Update Redux cart
       dispatch(addToCart(response.data));
     } catch (error) {
-      console.error('Failed to add to cart:', error);
-      alert('Failed to add to cart. Please try again.');
+      console.error("Failed to add to cart:", error);
+      alert("Failed to add to cart. Please try again.");
     }
   };
 
   const handleBuyNow = (product, quantity) => {
-    navigate('/checkout', { 
-      state: { 
-        directBuy: true, 
-        product: product, 
-        quantity: quantity 
-      } 
+    navigate("/checkout", {
+      state: {
+        directBuy: true,
+        product: product,
+        quantity: quantity,
+      },
     });
   };
 
   const handleMessageSeller = () => {
-    navigate(`/messages/new?seller=${product.user?.id || product.seller?.id}&product=${product.id}`);
+    navigate(
+      `/messages/new?seller=${product.user?.id || product.seller?.id}&product=${product.id}`,
+    );
   };
 
   const handleNavigateToShop = () => {
