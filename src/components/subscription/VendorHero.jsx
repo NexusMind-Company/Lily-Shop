@@ -11,25 +11,46 @@ import PropTypes from "prop-types";
 const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
   if (!vendor) return null;
 
+  // Determine media URL without the hardcoded Pinterest fallback
+  const rawMedia =
+    vendor.logo ||
+    vendor.image ||
+    vendor.all_media_urls?.[0] ||
+    vendor.profile_pic ||
+    vendor.banner_image ||
+    null;
+  const urlStr = Array.isArray(rawMedia) ? rawMedia[0] : rawMedia;
+  const mediaUrl =
+    typeof urlStr === "string"
+      ? urlStr.replace(/^http:\/\//i, "https://")
+      : urlStr;
+
+  // Generate initials fallback
+  const initials =
+    vendor.name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "NA";
+
   return (
     <div className="px-4 pt-2 pb-6">
       <div className="flex flex-col gap-5">
         {/* Vendor Image & Basic Info */}
         <div className="flex gap-4 items-center">
           <div className="relative shrink-0">
-            <div
-              className="bg-center bg-no-repeat bg-cover rounded-2xl h-24 w-24 shadow-sm"
-              style={{
-                backgroundImage: `url("${
-                  (() => {
-                    const media = vendor.logo || vendor.image || vendor.all_media_urls?.[0] || vendor.profile_pic || vendor.banner_image || "https://i.pinimg.com/736x/03/e9/84/03e984afeb479490cab605c39bfdac03.jpg";
-                    const urlStr = Array.isArray(media) ? media[0] : media;
-                    return typeof urlStr === 'string' ? urlStr.replace(/^http:\/\//i, 'https://') : urlStr;
-                  })()
-                }")`,
-              }}
-              alt={`${vendor.name} profile`}
-            />
+            {mediaUrl ? (
+              <div
+                className="bg-center bg-no-repeat bg-cover rounded-2xl h-24 w-24 shadow-sm"
+                style={{ backgroundImage: `url("${mediaUrl}")` }}
+                alt={`${vendor.name} profile`}
+              />
+            ) : (
+              <div className="flex items-center justify-center rounded-2xl h-24 w-24 bg-gray-100 text-black font-black text-2xl shadow-sm border border-gray-200">
+                {initials}
+              </div>
+            )}
             {vendor.verified && (
               <div className="absolute -bottom-2 -right-2 bg-[#ffffff] dark:bg-surface-dark p-1.5 rounded-full shadow-sm border border-black/5 dark:border-white/5">
                 <BadgeCheck className="text-lily text-[20px] fill-1" />
@@ -41,14 +62,23 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
               {vendor.name}
             </h1>
             <p className="text-slate-900 text-sm font-medium mt-1">
-              {vendor.cuisine ? `${vendor.cuisine}` : ""} 
-              {vendor.address && vendor.address !== "Lagos" && vendor.cuisine ? ` • ${vendor.address}` : ""}
-              {vendor.address && vendor.address !== "Lagos" && !vendor.cuisine ? vendor.address : ""}
+              {vendor.cuisine ? `${vendor.cuisine}` : ""}
+              {vendor.address && vendor.address !== "Lagos" && vendor.cuisine
+                ? ` • ${vendor.address}`
+                : ""}
+              {vendor.address && vendor.address !== "Lagos" && !vendor.cuisine
+                ? vendor.address
+                : ""}
             </p>
             {(vendor.contact_phone || vendor.phone) && (
               <p className="text-slate-900 text-sm font-medium mt-1">
                 <span className="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
                   {vendor.contact_phone || vendor.phone}
@@ -145,7 +175,7 @@ VendorHero.propTypes = {
       rating: PropTypes.number.isRequired,
       review_text: PropTypes.string.isRequired,
       created_at: PropTypes.string.isRequired,
-    })
+    }),
   ),
   hasSubscriptionPlans: PropTypes.bool,
 };
