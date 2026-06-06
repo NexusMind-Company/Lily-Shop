@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
 import CustomerSubscriptionsPage from "./CustomerSubscriptionsPage";
+import { getVendorImageUrl, getVendorInitials } from "../utils/vendorUtils";
 
 /* =========================
    Skeleton Card Component
@@ -26,25 +27,9 @@ const SkeletonCard = () => {
 const VendorCard = ({ vendor, onClick }) => {
   const [imageError, setImageError] = React.useState(false);
 
-  const rawUrl =
-    vendor.profile_pic ||
-    vendor.user?.profile_pic ||
-    vendor.logo ||
-    vendor.image ||
-    vendor.all_media_urls?.[0];
-  const imageUrl =
-    typeof rawUrl === "string"
-      ? rawUrl.replace(/^http:\/\//i, "https://")
-      : rawUrl;
+  const imageUrl = getVendorImageUrl(vendor);
   const showImage = imageUrl && !imageError;
-
-  const initials =
-    vendor.name
-      ?.split(" ")
-      .map((word) => word[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "NA";
+  const initials = getVendorInitials(vendor.name);
 
   return (
     <div

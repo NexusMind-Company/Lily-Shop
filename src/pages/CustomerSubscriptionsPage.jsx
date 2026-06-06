@@ -218,6 +218,8 @@ const UnsubscribeModal = ({ plan, onConfirm, onCancel, isLoading }) => (
   </motion.div>
 );
 
+import { getVendorImageUrl } from "../utils/vendorUtils";
+
 const SubscriptionCard = ({ sub, onUnsubscribe }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
@@ -238,10 +240,10 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-[#13ec49]/10">
-            {vendor?.logo || vendor?.image ? (
+            {getVendorImageUrl(vendor) ? (
               <img
-                src={vendor.logo || vendor.image}
-                alt={vendor.name}
+                src={getVendorImageUrl(vendor)}
+                alt={vendor?.name}
                 className="h-full w-full object-cover"
               />
             ) : (

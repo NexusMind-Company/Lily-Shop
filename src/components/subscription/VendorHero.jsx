@@ -1,5 +1,6 @@
 import { BadgeCheck, Star } from "lucide-react";
 import PropTypes from "prop-types";
+import { getVendorImageUrl, getVendorInitials } from "../../utils/vendorUtils";
 
 /**
  * VendorHero component displaying vendor profile and basic info
@@ -11,34 +12,25 @@ import PropTypes from "prop-types";
 const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
   if (!vendor) return null;
 
-  // Determine media URL without the hardcoded Pinterest fallback
-  const rawMedia =
-    vendor.logo ||
-    vendor.image ||
-    vendor.all_media_urls?.[0] ||
-    vendor.profile_pic ||
-    vendor.banner_image ||
-    null;
-  const urlStr = Array.isArray(rawMedia) ? rawMedia[0] : rawMedia;
-  const mediaUrl =
-    typeof urlStr === "string"
-      ? urlStr.replace(/^http:\/\//i, "https://")
-      : urlStr;
-
-  // Generate initials fallback
-  const initials =
-    vendor.name
-      ?.split(" ")
-      .map((word) => word[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "NA";
+  // Determine media URLs and initials using utilities
+  const mediaUrl = getVendorImageUrl(vendor);
+  const bannerUrl = getVendorBannerUrl(vendor);
+  const initials = getVendorInitials(vendor.name);
 
   return (
-    <div className="px-4 pt-2 pb-6">
-      <div className="flex flex-col gap-5">
-        {/* Vendor Image & Basic Info */}
-        <div className="flex gap-4 items-center">
+    <div className="pb-6">
+      {/* Banner Image */}
+      {bannerUrl && (
+        <div
+          className="w-full h-40 bg-center bg-no-repeat bg-cover"
+          style={{ backgroundImage: `url("${bannerUrl}")` }}
+        />
+      )}
+
+      <div className={`px-4 ${bannerUrl ? "-mt-10" : "pt-2"}`}>
+        <div className={`flex flex-col gap-5 ${bannerUrl ? "bg-white dark:bg-surface-dark rounded-t-[2rem] p-4 shadow-sm" : ""}`}>
+          {/* Vendor Image & Basic Info */}
+          <div className="flex gap-4 items-center">
           <div className="relative shrink-0">
             {mediaUrl ? (
               <div
@@ -159,13 +151,18 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
 VendorHero.propTypes = {
   vendor: PropTypes.shape({
     name: PropTypes.string.isRequired,
+    profile_image: PropTypes.string,
+    logo: PropTypes.string,
     image: PropTypes.string,
+    profile_pic: PropTypes.string,
+    banner_image: PropTypes.string,
     verified: PropTypes.bool,
     cuisine: PropTypes.string,
-    location: PropTypes.string,
+    address: PropTypes.string,
     rating: PropTypes.number,
     reviewCount: PropTypes.string,
     description: PropTypes.string,
+    contact_phone: PropTypes.string,
     phone: PropTypes.string,
   }),
   reviews: PropTypes.arrayOf(

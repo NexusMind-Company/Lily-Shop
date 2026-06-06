@@ -16,6 +16,7 @@ import {
   SearchSuggestionSkeleton,
   SearchGridItemSkeleton,
 } from "../common/skeletons";
+import { getVendorImageUrl } from "../../utils/vendorUtils";
 
 const RECENT_SEARCHES_KEY = "lily_recent_searches";
 
@@ -297,7 +298,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               }}
             >
               <img
-                src={vendor.image_url || "/user.png"}
+                src={getVendorImageUrl(vendor) || "/user.png"}
                 alt={vendor.name}
                 className="w-12 h-12 rounded-full bg-gray-50 object-cover border border-gray-100"
               />
