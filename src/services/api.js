@@ -175,6 +175,13 @@ export const fetchUserProfile = async () => {
   return response.data;
 };
 
+export const fetchUserProfileFormData = async () => {
+  const response = await api.get("/auth/profile/form-data/", {
+    params: { t: Date.now() },
+  });
+  return response.data;
+};
+
 export const updateUsername = async (username) => {
   const response = await api.put("/auth/username/set/", { username });
   return response.data;
