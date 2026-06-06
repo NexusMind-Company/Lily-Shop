@@ -7,6 +7,7 @@ import {
   updateFoodVendor,
   fetchStates,
   fetchLgas,
+  fetchVendorProfileFormData,
 } from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
 import { X } from "lucide-react";
@@ -43,14 +44,6 @@ const VALIDATION_RULES = {
   },
 };
 
-const fetchFoodVendorProfile = async (vendorId) => {
-  if (!vendorId) return null;
-  const res = await api.get(`/foods/food-vendors/${vendorId}/`, {
-    params: { t: Date.now() },
-  });
-  return res.data;
-};
-
 const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const queryClient = useQueryClient();
   const { data: profileData } = useSelector((state) => state.profile);
@@ -64,9 +57,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const [lgasLoading, setLgasLoading] = useState(false);
 
   const { data: vendor, isLoading: vendorLoading } = useQuery({
-    queryKey: ["myVendorProfile", vendorId],
-    queryFn: () => fetchFoodVendorProfile(vendorId),
-    enabled: !!vendorId,
+    queryKey: ["vendorProfileFormData"],
+    queryFn: fetchVendorProfileFormData,
     retry: false, // Prevent multiple requests if the endpoint fails
   });
 
@@ -94,6 +86,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
   const [profileFile, setProfileFile] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
 
   useEffect(() => {
     const loadStates = async () => {
@@ -171,8 +165,11 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         state: vendor.state || "",
         lga: vendor.lga || "",
       });
-      if (vendor.image_url) {
-        setProfilePreview(vendor.image_url);
+      if (vendor.image_url || vendor.profile_image) {
+        setProfilePreview(vendor.image_url || vendor.profile_image);
+      }
+      if (vendor.banner_image) {
+        setBannerPreview(vendor.banner_image);
       }
     }
   }, [vendor, setValues]);
@@ -189,10 +186,11 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
         profile_image: profileFile,
+        banner_image: bannerFile,
       }),
     onSuccess: () => {
       toast.success("Profile updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["myVendorProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorProfileFormData"] });
       queryClient.invalidateQueries({ queryKey: ["vendorDashboardOverview"] });
       onSuccess?.();
     },
@@ -212,6 +210,14 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     if (file) {
       setProfileFile(file);
       setProfilePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
     }
   };
 
@@ -423,9 +429,9 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
         {/* Media */}
         <div className="space-y-4">
-          <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Profile Image */}
-            <div className="w-full max-w-sm">
+            <div className="w-full">
               <label className="block text-sm font-medium text-[#111813] mb-1.5">
                 Logo / Profile
               </label>
@@ -457,6 +463,46 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
                       type="file"
                       accept="image/*"
                       onChange={handleProfileChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Banner Image */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-[#111813] mb-1.5">
+                Banner Image
+              </label>
+              <div className="flex flex-col gap-2 relative">
+                {bannerPreview ? (
+                  <div className="relative w-full h-36 rounded-xl overflow-hidden shadow-sm border border-black">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBannerFile(null);
+                        setBannerPreview(null);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-lily hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
+                    <span className="text-xs font-semibold text-gray-500 text-center px-4">
+                      Upload Banner (Optional)
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerChange}
                       className="hidden"
                     />
                   </label>

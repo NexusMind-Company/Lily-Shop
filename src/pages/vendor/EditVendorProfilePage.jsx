@@ -8,6 +8,7 @@ import {
   fetchFoodVendor,
   fetchStates,
   fetchLgas,
+  fetchVendorProfileFormData,
 } from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 
@@ -36,13 +37,15 @@ const EditVendorProfilePage = () => {
   });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
+  const [bannerImageFile, setBannerImageFile] = useState(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState("");
 
   const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
   const loadVendorData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchFoodVendor(vendorId);
+      const data = await fetchVendorProfileFormData();
       setForm({
         shop_name: data.name || "",
         description: data.description || "",
@@ -56,19 +59,18 @@ const EditVendorProfilePage = () => {
       setProfileImagePreview(
         data.image_url || data.profile_pic || data.profile_image || "",
       );
+      setBannerImagePreview(data.banner_image || "");
     } catch (error) {
       console.error("Error loading vendor data:", error);
       toast.error("Failed to load vendor profile");
     } finally {
       setLoading(false);
     }
-  }, [vendorId]);
+  }, []);
 
   useEffect(() => {
-    if (vendorId) {
-      loadVendorData();
-    }
-  }, [vendorId, loadVendorData]);
+    loadVendorData();
+  }, [loadVendorData]);
 
   useEffect(() => {
     const loadStates = async () => {
@@ -116,6 +118,14 @@ const EditVendorProfilePage = () => {
     }
   };
 
+  const handleBannerImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerImageFile(file);
+      setBannerImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSave = async () => {
     if (!form.state || !form.lga || !form.address) {
       toast.error("State, LGA and Address are required");
@@ -133,6 +143,7 @@ const EditVendorProfilePage = () => {
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
         profile_image: profileImageFile || null,
+        banner_image: bannerImageFile || null,
       });
       toast.success("Vendor profile updated successfully!");
       dispatch(fetchProfile());
@@ -173,6 +184,41 @@ const EditVendorProfilePage = () => {
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Banner Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Banner Image
+          </label>
+          <div className="flex items-center gap-4">
+            <div className="relative w-full h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+              {bannerImagePreview ? (
+                <img
+                  src={bannerImagePreview}
+                  alt="Banner"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No banner image
+                </div>
+              )}
+              <label
+                htmlFor="banner-upload"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer opacity-0 hover:opacity-100 transition-opacity"
+              >
+                <Camera size={24} className="text-white" />
+              </label>
+              <input
+                id="banner-upload"
+                type="file"
+                onChange={handleBannerImageChange}
+                accept="image/*"
+                className="hidden"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Profile Image */}
         <div>
           <label className="block text-sm font-medium text-gray-700  mb-2">
