@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import {
-  api,
   updateFoodVendor,
   fetchStates,
   fetchLgas,
@@ -46,10 +44,6 @@ const VALIDATION_RULES = {
 
 const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const queryClient = useQueryClient();
-  const { data: profileData } = useSelector((state) => state.profile);
-  const { user_data } = useSelector((state) => state.auth);
-
-  const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
   const [states, setStates] = useState([]);
   const [lgas, setLgas] = useState([]);
