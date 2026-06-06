@@ -18,6 +18,7 @@ import { useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import {
   fetchUserProfile,
+  fetchUserProfileFormData,
   updateUsername,
   updateProfile,
   updateProfilePic,
@@ -84,12 +85,17 @@ const EditProfile = () => {
   const dispatch = useDispatch();
 
   const { data: user, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
+    queryKey: ["userProfileFormData"],
+    queryFn: fetchUserProfileFormData,
   });
 
   useEffect(() => {
     if (user) {
+      let displayGender = user.gender || "";
+      if (user.gender === "F") displayGender = "Female";
+      else if (user.gender === "M") displayGender = "Male";
+      else if (user.gender === "NA") displayGender = "Other";
+
       setForm({
         name: user.name || "",
         username: user.username || "",
@@ -97,14 +103,11 @@ const EditProfile = () => {
         bio: user.bio || "",
         phone_number: user.phone_number || "",
         birthday: user.birthdate || "",
-        gender: user.gender || "",
+        gender: displayGender,
       });
 
       if (user.profile_pic) {
-        const picUrl = user.profile_pic.startsWith("http")
-          ? user.profile_pic
-          : `https://lily-shop.up.railway.app${user.profile_pic}`;
-        setProfileImagePreview(picUrl);
+        setProfileImagePreview(user.profile_pic);
       }
     }
   }, [user]);
@@ -141,6 +144,7 @@ const EditProfile = () => {
       return true;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries(["userProfileFormData"]);
       queryClient.invalidateQueries(["userProfile"]);
       dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
