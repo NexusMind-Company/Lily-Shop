@@ -188,7 +188,18 @@ export const updateUsername = async (username) => {
 };
 
 export const updateProfile = async (profileData) => {
-  const response = await api.put("/auth/profile/update/", profileData);
+  const formData = new FormData();
+
+  if (profileData.name) formData.append("name", profileData.name);
+  if (profileData.bio) formData.append("bio", profileData.bio);
+  if (profileData.phone_number)
+    formData.append("phone_number", profileData.phone_number);
+  if (profileData.gender) formData.append("gender", profileData.gender);
+  if (profileData.birthdate) formData.append("birthdate", profileData.birthdate);
+  if (profileData.profile_pic instanceof File)
+    formData.append("profile_pic", profileData.profile_pic);
+
+  const response = await api.patch("/auth/profile/update/", formData);
   return response.data;
 };
 

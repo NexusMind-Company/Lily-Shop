@@ -53,7 +53,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const { data: vendor, isLoading: vendorLoading } = useQuery({
     queryKey: ["vendorProfileFormData"],
     queryFn: fetchVendorProfileFormData,
-    retry: false, // Prevent multiple requests if the endpoint fails
+    retry: false,
   });
 
   const {
@@ -159,8 +159,10 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         state: vendor.state || "",
         lga: vendor.lga || "",
       });
-      if (vendor.profile_image) {
-        setProfilePreview(vendor.profile_image);
+      if (vendor.profile_image || vendor.image_url || vendor.profile_pic) {
+        setProfilePreview(
+          vendor.profile_image || vendor.image_url || vendor.profile_pic,
+        );
       }
       if (vendor.banner_image) {
         setBannerPreview(vendor.banner_image);
