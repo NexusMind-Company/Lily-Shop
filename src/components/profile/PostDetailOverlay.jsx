@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   MessageCircle,
   Send,
+  Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +31,8 @@ import {
   deleteContentComment,
   deleteContentPost,
   deleteProductPost,
+  followUser,
+  unfollowUser,
 } from "../../services/api";
 import MentionSuggestions from "../common/MentionSuggestions";
 import CommentsModal from "../feed/comments/commentsModal";
@@ -43,6 +46,7 @@ const EngagementActions = ({
   item,
   isLiked,
   likeCount,
+  commentCount,
   onLike,
   onOpenComments,
   onOpenShare,
@@ -51,24 +55,22 @@ const EngagementActions = ({
   iconSize = 26,
 }) => {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-5">
       <button
         onClick={(e) => {
           e.stopPropagation();
           onLike(item);
         }}
-        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+        className="flex items-center gap-1.5 group hover:opacity-70 transition-opacity"
       >
-        <div className="relative">
-          <Heart
-            size={iconSize}
-            className={`transition-all ${
-              isLiked ? "text-red-500 fill-current" : "text-black"
-            }`}
-          />
-        </div>
+        <Heart
+          size={iconSize}
+          className={`transition-all ${
+            isLiked ? "text-red-500 fill-current" : "text-black"
+          }`}
+        />
         {showCounts && likeCount > 0 && (
-          <span className="text-[10px] font-bold mt-0.5">
+          <span className="text-sm font-bold">
             {likeCount.toLocaleString()}
           </span>
         )}
@@ -79,9 +81,24 @@ const EngagementActions = ({
           e.stopPropagation();
           onOpenComments(item);
         }}
-        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+        className="flex items-center gap-1.5 group hover:opacity-70 transition-opacity"
       >
         <MessageCircle size={iconSize} className="text-black" />
+        {showCounts && commentCount > 0 && (
+          <span className="text-sm font-bold">
+            {commentCount.toLocaleString()}
+          </span>
+        )}
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenMessage(item);
+        }}
+        className="flex items-center group hover:opacity-70 transition-opacity"
+      >
+        <Send size={iconSize} className="text-black" />
       </button>
 
       <button
@@ -89,9 +106,9 @@ const EngagementActions = ({
           e.stopPropagation();
           onOpenShare(item);
         }}
-        className="flex flex-col items-center group hover:opacity-70 transition-opacity"
+        className="flex items-center group hover:opacity-70 transition-opacity"
       >
-        <Send size={iconSize} className="text-black" />
+        <Share2 size={iconSize} className="text-black" />
       </button>
     </div>
   );
@@ -132,6 +149,10 @@ const PostDetailOverlay = ({
   const [likeCount, setLikeCount] = useState(
     Number(post?.like_count || post?.likes_count || post?.likes || 0),
   );
+  const [commentCount, setCommentCount] = useState(
+    Number(post?.comment_count || post?.comments_count || post?.comments || 0),
+  );
+  const [isFollowing, setIsFollowing] = useState(post?.is_following || false);
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
 
@@ -185,6 +206,9 @@ const PostDetailOverlay = ({
       setIsLiked(parseIsLiked(post));
       setLikeCount(
         Number(post.like_count || post.likes_count || post.likes || 0),
+      );
+      setCommentCount(
+        Number(post.comment_count || post.comments_count || post.comments || 0),
       );
     }
   }, [post?.id, isProduct, dispatch]);
@@ -250,6 +274,33 @@ const PostDetailOverlay = ({
     },
   });
 
+  const { mutate: toggleFollow } = useMutation({
+    mutationFn: async (userId) => {
+      if (isFollowing) {
+        return unfollowUser(userId);
+      } else {
+        return followUser(userId);
+      }
+    },
+    onMutate: async () => {
+      const prevFollowing = isFollowing;
+      setIsFollowing(!prevFollowing);
+      return { prevFollowing };
+    },
+    onError: (err, userId, context) => {
+      setIsFollowing(context.prevFollowing);
+      toast.error("Failed to update follow status");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["profile"]);
+    },
+  });
+
+  const handleFollow = () => {
+    if (!isAuthenticated) return navigate("/login");
+    toggleFollow(post.user_id || post.user?.id);
+  };
+
   const handleLike = (targetPost) => {
     if (!isAuthenticated) return navigate("/login");
     toggleLike(targetPost || post);
@@ -309,6 +360,7 @@ const PostDetailOverlay = ({
     try {
       await dispatch(postComment(newComment)).unwrap();
       setCommentText("");
+      setCommentCount((prev) => prev + 1);
     } catch (error) {
       toast.error("Failed to post comment");
     } finally {
@@ -341,6 +393,7 @@ const PostDetailOverlay = ({
           itemType: isProduct ? "product" : "content",
         }),
       );
+      setCommentCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       toast.error("Failed to delete comment");
     }
@@ -424,7 +477,7 @@ const PostDetailOverlay = ({
     return (
       <div
         id={`post-${item.id}`}
-        className="bg-white border-b border-gray-100 last:border-b-0 pb-6"
+        className="bg-[#fffae7] border-b border-gray-100 last:border-b-0 pb-6"
       >
         {/* Post Header */}
         <div className="flex items-center justify-between p-3">
@@ -448,7 +501,7 @@ const PostDetailOverlay = ({
         </div>
 
         {/* Media */}
-        <div className="w-full bg-gray-50 aspect-square flex items-center justify-center overflow-hidden">
+        <div className="w-full bg-[#fffae7] aspect-square flex items-center justify-center overflow-hidden">
           {itemIsVideo ? (
             <video
               src={itemMediaSrc}
@@ -471,6 +524,9 @@ const PostDetailOverlay = ({
             item={item}
             isLiked={localIsLiked}
             likeCount={localLikeCount}
+            commentCount={Number(
+              item.comment_count || item.comments_count || item.comments || 0,
+            )}
             onLike={handleLocalLike}
             onOpenComments={handleOpenComments}
             onOpenShare={handleOpenShare}
@@ -546,11 +602,11 @@ const PostDetailOverlay = ({
       {/* Main Container */}
       <div
         ref={containerRef}
-        className="flex flex-col md:flex-row w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-white overflow-y-auto md:overflow-hidden md:rounded-xl shadow-2xl relative"
+        className="flex flex-col md:flex-row w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#fffae7] overflow-y-auto md:overflow-hidden md:rounded-xl shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Title Bar */}
-        <div className="flex md:hidden items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-30">
+        <div className="flex md:hidden items-center justify-between p-4 border-b border-gray-200 bg-[#fffae7] sticky top-0 z-30">
           <button onClick={onClose} className="p-1 -ml-1">
             <ChevronLeft size={28} className="text-black" />
           </button>
@@ -568,7 +624,7 @@ const PostDetailOverlay = ({
         {/* Desktop View: Side-by-Side (Hidden on Mobile) */}
         <div className="hidden md:flex w-full h-full">
           {/* Left Side: Media */}
-          <div className="w-full md:flex-1 bg-white flex items-center justify-center relative min-h-75 md:min-h-0">
+          <div className="w-full md:flex-1 bg-[#fffae7] flex items-center justify-center relative min-h-75 md:min-h-0">
             {isVideo ? (
               <video
                 src={mediaSrc}
@@ -588,7 +644,7 @@ const PostDetailOverlay = ({
           </div>
 
           {/* Right Side: Info & Comments */}
-          <div className="w-full md:w-112.5 bg-white flex flex-col md:border-l border-black text-black">
+          <div className="w-full md:w-112.5 bg-[#fffae7] flex flex-col md:border-l border-black text-black">
             {/* Header - Desktop Only */}
             <div className="hidden md:flex p-4 items-center justify-between border-b border-black">
               <div className="flex items-center gap-3">
@@ -598,10 +654,17 @@ const PostDetailOverlay = ({
                   className="w-10 h-10 rounded-full object-cover border border-black"
                 />
                 <span className="font-bold text-[15px]">@{post.username}</span>
-                <span className="text-black">•</span>
-                <button className="text-lily text-sm font-bold hover:opacity-80 transition-opacity">
-                  Follow
-                </button>
+                {currentUserId !== (post.user_id || post.user?.id) && (
+                  <>
+                    <span className="text-black">•</span>
+                    <button
+                      onClick={handleFollow}
+                      className="text-lily text-sm font-bold hover:opacity-80 transition-opacity"
+                    >
+                      {isFollowing ? "Following" : "Follow"}
+                    </button>
+                  </>
+                )}
               </div>
               <div className="relative">
                 <button
@@ -664,12 +727,13 @@ const PostDetailOverlay = ({
             </div>
 
             {/* Footer: Actions & Input */}
-            <div className="p-4 border-t border-black space-y-3 bg-white relative">
+            <div className="p-4 border-t border-black space-y-3 bg-[#fffae7] relative">
               <div className="flex items-center justify-between">
                 <EngagementActions
                   item={post}
                   isLiked={isLiked}
                   likeCount={likeCount}
+                  commentCount={commentCount}
                   onLike={handleLike}
                   onOpenComments={handleOpenComments}
                   onOpenShare={handleOpenShare}
@@ -695,7 +759,7 @@ const PostDetailOverlay = ({
                 onSubmit={handleSubmitComment}
                 className="pt-3 flex items-center gap-3 border-t border-black mt-2"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-black">
+                <div className="w-8 h-8 rounded-full bg-[#fffae7] overflow-hidden shrink-0 border border-black">
                   {currentUser?.profile_pic && (
                     <img
                       src={currentUser.profile_pic}
@@ -743,33 +807,33 @@ const PostDetailOverlay = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl overflow-hidden w-full max-w-sm z-10 border border-black"
+              className="bg-[#fffae7] rounded-xl overflow-hidden w-full max-w-sm z-10 border border-black"
             >
               {currentUserId === post.user_id ? (
                 <>
                   <button
                     onClick={handleDeletePost}
                     disabled={isDeleting}
-                    className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-[#fffae7] transition-colors disabled:opacity-50"
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-gray-50 transition-colors">
+                  <button className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-[#fffae7] transition-colors">
                     Report
                   </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
+                  <button className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors">
                     Unfollow
                   </button>
                 </>
               )}
-              <button className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors">
+              <button className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors">
                 Share to...
               </button>
               <button
-                className="w-full py-4 text-black border-b border-black hover:bg-gray-50 transition-colors"
+                className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors"
                 onClick={() => {
                   const postUrl = `${window.location.origin}/product/${post.id}`;
                   navigator.clipboard.writeText(postUrl);
@@ -780,13 +844,54 @@ const PostDetailOverlay = ({
                 Copy link
               </button>
               <button
-                className="w-full py-4 text-black font-bold hover:bg-gray-50 transition-colors"
+                className="w-full py-4 text-black font-bold hover:bg-[#fffae7] transition-colors"
                 onClick={() => setShowDropdown(false)}
               >
                 Cancel
               </button>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {showCommentsModal && activeModalPost && (
+          <CommentsModal
+            isOpen={showCommentsModal}
+            onClose={() => {
+              setShowCommentsModal(false);
+              setActiveModalPost(null);
+            }}
+            postId={activeModalPost.id}
+            itemType={
+              activeModalPost.itemType === "product" ||
+              activeModalPost.type?.toLowerCase() === "product" ||
+              activeModalPost.price !== undefined ||
+              activeModalPost.price_in_naira !== undefined
+                ? "product"
+                : "content"
+            }
+          />
+        )}
+
+        {showShareModal && activeModalPost && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => {
+              setShowShareModal(false);
+              setActiveModalPost(null);
+            }}
+            postUrl={`${window.location.origin}/?postId=${activeModalPost.id}`}
+            postCaption={activeModalPost.caption || activeModalPost.name}
+            post={activeModalPost}
+            isProduct={
+              activeModalPost.itemType === "product" ||
+              activeModalPost.type?.toLowerCase() === "product" ||
+              activeModalPost.price !== undefined ||
+              activeModalPost.price_in_naira !== undefined
+            }
+          />
         )}
       </AnimatePresence>
 
