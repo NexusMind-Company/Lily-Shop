@@ -1,7 +1,7 @@
 import React from "react";
-import { Edit3, MapPin, Layout, Maximize2, Minimize2 } from "lucide-react";
+import { MapPin, Layout, Maximize2, Minimize2 } from "lucide-react";
 
-const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
+const VendorDashboardHeader = ({ profile, style, onToggle }) => {
   if (!profile) return null;
 
   const bannerImage =
@@ -65,13 +65,6 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={onEdit}
-              className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 transition-colors"
-              title="Edit Profile"
-            >
-              <Edit3 size={18} />
-            </button>
             <button
               onClick={onToggle}
               className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 transition-colors"
@@ -140,16 +133,6 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
               {name}
             </h1>
           </div>
-        </div>
-
-        <div className="pb-2">
-          <button
-            onClick={onEdit}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-black hover:bg-gray-800 text-white font-bold text-sm transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
-          >
-            <Edit3 size={18} />
-            Edit Profile
-          </button>
         </div>
       </div>
     </div>
