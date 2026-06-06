@@ -58,9 +58,7 @@ const EditVendorProfilePage = () => {
         state: data.state || "",
         lga: data.lga || "",
       });
-      setProfileImagePreview(
-        data.image_url || data.profile_pic || data.profile_image || "",
-      );
+      setProfileImagePreview(data.profile_image || data.profile_pic || "");
       setBannerImagePreview(data.banner_image || "");
     } catch (error) {
       console.error("Error loading vendor data:", error);
