@@ -20,7 +20,6 @@ import {
   fetchUserProfileFormData,
   updateUsername,
   updateProfile,
-  updateProfilePic,
 } from "../../services/api";
 import { toast } from "sonner";
 import PhoneInput from "react-phone-number-input";
@@ -127,6 +126,7 @@ const EditProfile = () => {
       if (apiGender) profilePayload.gender = apiGender;
       if (form.birthday && form.birthday.trim() !== "")
         profilePayload.birthdate = form.birthday;
+      if (profileImageFile) profilePayload.profile_pic = profileImageFile;
 
       if (Object.keys(profilePayload).length > 0) {
         await updateProfile(profilePayload);
@@ -134,10 +134,6 @@ const EditProfile = () => {
 
       if (form.username && form.username !== user.username) {
         await updateUsername(form.username);
-      }
-
-      if (profileImageFile) {
-        await updateProfilePic(profileImageFile);
       }
 
       return true;
