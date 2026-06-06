@@ -782,8 +782,19 @@ export const createMeal = async (mealData) => {
 const appendVendorMedia = (formData, vendorData = {}) => {
   if (vendorData.banner_image instanceof File) {
     formData.append("banner_image", vendorData.banner_image);
+  } else if (
+    typeof vendorData.banner_image === "string" &&
+    vendorData.banner_image.startsWith("http")
+  ) {
+    formData.append("banner_image", vendorData.banner_image);
   }
+
   if (vendorData.profile_image instanceof File) {
+    formData.append("profile_image", vendorData.profile_image);
+  } else if (
+    typeof vendorData.profile_image === "string" &&
+    vendorData.profile_image.startsWith("http")
+  ) {
     formData.append("profile_image", vendorData.profile_image);
   }
 
