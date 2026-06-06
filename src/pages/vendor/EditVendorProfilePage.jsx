@@ -20,6 +20,7 @@ const EditVendorProfilePage = () => {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [vendorData, setVendorData] = useState(null);
   const [states, setStates] = useState([]);
   const [lgas, setLgas] = useState([]);
   const [statesLoading, setStatesLoading] = useState(false);
@@ -46,6 +47,7 @@ const EditVendorProfilePage = () => {
     setLoading(true);
     try {
       const data = await fetchVendorProfileFormData();
+      setVendorData(data);
       setForm({
         shop_name: data.name || "",
         description: data.description || "",
@@ -142,8 +144,12 @@ const EditVendorProfilePage = () => {
         category: form.category,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
-        profile_image: profileImageFile || null,
-        banner_image: bannerImageFile || null,
+        profile_image:
+          profileImageFile ||
+          vendorData?.profile_image ||
+          vendorData?.image_url ||
+          null,
+        banner_image: bannerImageFile || vendorData?.banner_image || null,
       });
       toast.success("Vendor profile updated successfully!");
       dispatch(fetchProfile());
