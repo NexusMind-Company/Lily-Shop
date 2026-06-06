@@ -23,14 +23,6 @@ const MentionSuggestions = ({
     auth?.user_data?.user?.id ||
     JSON.parse(localStorage.getItem("user_data") || "{}").id;
 
-  console.log("Mentions - Component State:", {
-    isOpen,
-    loggedInUserId,
-    hasUsers: usersList.length > 0,
-    authData: auth?.user_data,
-    profileData: profile?.data?.user,
-  });
-
   // Fetch following and followers list once
   useEffect(() => {
     const fetchUsers = async () => {
