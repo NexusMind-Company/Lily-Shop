@@ -4,11 +4,27 @@ import { Edit3, MapPin, Layout, Maximize2, Minimize2 } from "lucide-react";
 const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
   if (!profile) return null;
 
-  const bannerImage = profile.banner_image || "https://via.placeholder.com/1200x300?text=Vendor+Banner";
-  const logoImage = profile.profile_image || profile.image_url || "https://via.placeholder.com/150?text=Logo";
+  const bannerImage =
+    profile.banner_image ||
+    "https://via.placeholder.com/1200x300?text=Vendor+Banner";
+  const logoImage =
+    profile.profile_image || profile.logo || profile.image || null;
   const name = profile.name || "Vendor Name";
   const cuisine = profile.cuisine || "Various Cuisines";
-  const location = profile.street_address || profile.address || (profile.state && profile.lga ? `${profile.lga}, ${profile.state}` : "Location not set");
+  const location =
+    profile.street_address ||
+    profile.address ||
+    (profile.state && profile.lga
+      ? `${profile.lga}, ${profile.state}`
+      : "Location not set");
+
+  const initials =
+    name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "NA";
 
   if (style === "compact") {
     return (
@@ -22,13 +38,27 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
         <div className="relative flex items-center justify-between p-4 gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full border-2 border-lily overflow-hidden bg-white shrink-0">
-              <img src={logoImage} alt={name} className="w-full h-full object-cover" />
+              {logoImage ? (
+                <img
+                  src={logoImage}
+                  alt={name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 font-bold text-sm">
+                  {initials}
+                </div>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Welcome back 👋</p>
+                <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">
+                  Welcome back 👋
+                </p>
                 <span className="w-1 h-1 rounded-full bg-gray-300" />
-                <p className="text-xs text-lily font-bold uppercase tracking-wider">{cuisine}</p>
+                <p className="text-xs text-lily font-bold uppercase tracking-wider">
+                  {cuisine}
+                </p>
               </div>
               <h2 className="text-xl font-bold text-black">{name}</h2>
             </div>
@@ -82,7 +112,17 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
         <div className="flex flex-col md:flex-row md:items-end gap-5">
           {/* Logo */}
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl border-4 border-white overflow-hidden bg-white shadow-xl">
-            <img src={logoImage} alt={name} className="w-full h-full object-cover" />
+            {logoImage ? (
+              <img
+                src={logoImage}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-black text-2xl md:text-4xl">
+                {initials}
+              </div>
+            )}
           </div>
 
           <div className="pb-2">
@@ -96,7 +136,9 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
                 <span>{location}</span>
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-black tracking-tight">{name}</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-black tracking-tight">
+              {name}
+            </h1>
           </div>
         </div>
 
