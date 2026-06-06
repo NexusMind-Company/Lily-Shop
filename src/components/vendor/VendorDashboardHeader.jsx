@@ -45,7 +45,7 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 font-bold text-sm">
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-black font-bold text-sm">
                   {initials}
                 </div>
               )}
@@ -119,7 +119,7 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-black text-2xl md:text-4xl">
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-black font-black text-2xl md:text-4xl">
                 {initials}
               </div>
             )}
