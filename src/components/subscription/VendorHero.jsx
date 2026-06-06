@@ -33,7 +33,7 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
 
       <div className={`px-4 ${bannerUrl ? "-mt-10" : "pt-2"}`}>
         <div
-          className={`flex flex-col gap-5 ${bannerUrl ? "bg-white dark:bg-surface-dark rounded-t-[2rem] p-4 shadow-sm" : ""}`}
+          className={`flex flex-col gap-5 ${bannerUrl ? "bg-white dark:bg-surface-dark rounded-t-4xl p-4 shadow-sm" : ""}`}
         >
           {/* Vendor Image & Basic Info */}
           <div className="flex gap-4 items-center">
