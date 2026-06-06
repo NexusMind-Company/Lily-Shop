@@ -822,11 +822,17 @@ export const updateFoodVendor = async (vendorData) => {
   const formData = new FormData();
 
   // Map vendor data fields to API schema correctly
-  if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
+  if (vendorData.shop_name || vendorData.name)
+    formData.append("name", vendorData.shop_name || vendorData.name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
-  if (vendorData.address) formData.append("street_address", vendorData.address);
-  if (vendorData.category) formData.append("cuisine", vendorData.category);
+  if (vendorData.address || vendorData.street_address)
+    formData.append(
+      "street_address",
+      vendorData.address || vendorData.street_address,
+    );
+  if (vendorData.category || vendorData.cuisine)
+    formData.append("cuisine", vendorData.category || vendorData.cuisine);
 
   // Handle contact_email - can be null or valid email
   if (vendorData.contact_email) {
@@ -844,10 +850,25 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("lga", vendorData.lga);
   }
 
+  // Handle new fields from the new payload schema
+  if (vendorData.all_media_urls) {
+    formData.append("all_media_urls", vendorData.all_media_urls);
+  }
+  if (vendorData.image_url) {
+    formData.append("image_url", vendorData.image_url);
+  }
+
   appendVendorMedia(formData, vendorData);
 
   const response = await api.patch(`/foods/food-vendors/me/`, formData);
 
+  return response.data;
+};
+
+export const fetchVendorProfileFormData = async () => {
+  const response = await api.get("/foods/vendors/profiles/form-data/", {
+    params: { t: Date.now() },
+  });
   return response.data;
 };
 
