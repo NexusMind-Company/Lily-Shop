@@ -185,8 +185,9 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         lga: data.lga,
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
-        profile_image: profileFile,
-        banner_image: bannerFile,
+        profile_image:
+          profileFile || vendor?.profile_image || vendor?.image_url || null,
+        banner_image: bannerFile || vendor?.banner_image || null,
       }),
     onSuccess: () => {
       toast.success("Profile updated successfully!");
