@@ -165,8 +165,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         state: vendor.state || "",
         lga: vendor.lga || "",
       });
-      if (vendor.image_url || vendor.profile_image) {
-        setProfilePreview(vendor.image_url || vendor.profile_image);
+      if (vendor.profile_image) {
+        setProfilePreview(vendor.profile_image);
       }
       if (vendor.banner_image) {
         setBannerPreview(vendor.banner_image);

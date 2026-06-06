@@ -872,9 +872,6 @@ export const updateFoodVendor = async (vendorData) => {
   if (vendorData.all_media_urls) {
     formData.append("all_media_urls", vendorData.all_media_urls);
   }
-  if (vendorData.image_url) {
-    formData.append("image_url", vendorData.image_url);
-  }
 
   appendVendorMedia(formData, vendorData);
 
