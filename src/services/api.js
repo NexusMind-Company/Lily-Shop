@@ -199,7 +199,7 @@ export const updateProfile = async (profileData) => {
   if (profileData.profile_pic instanceof File)
     formData.append("profile_pic", profileData.profile_pic);
 
-  const response = await api.put("/auth/profile/update/", formData);
+  const response = await api.patch("/auth/profile/update/", formData);
   return response.data;
 };
 
