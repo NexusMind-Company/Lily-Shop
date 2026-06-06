@@ -1,12 +1,11 @@
 import React from "react";
-import { MapPin, Layout, Maximize2, Minimize2 } from "lucide-react";
+import { MapPin, Layout, Maximize2, Minimize2, PlusCircle } from "lucide-react";
 
-const VendorDashboardHeader = ({ profile, style, onToggle }) => {
+const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
   if (!profile) return null;
 
-  const bannerImage =
-    profile.banner_image ||
-    "https://via.placeholder.com/1200x300?text=Vendor+Banner";
+  const hasBanner = !!profile.banner_image;
+  const bannerImage = profile.banner_image;
   const logoImage =
     profile.profile_image || profile.logo || profile.image || null;
   const name = profile.name || "Vendor Name";
@@ -31,8 +30,8 @@ const VendorDashboardHeader = ({ profile, style, onToggle }) => {
       <div className="relative mb-6 rounded-2xl overflow-hidden border border-gray-900 bg-white shadow-sm">
         {/* Blurred Banner Background */}
         <div
-          className="absolute inset-0 opacity-10 bg-cover bg-center blur-sm"
-          style={{ backgroundImage: `url(${bannerImage})` }}
+          className={`absolute inset-0 opacity-10 ${hasBanner ? "bg-cover bg-center blur-sm" : "bg-gradient-to-r from-lily to-green-300"}`}
+          style={hasBanner ? { backgroundImage: `url(${bannerImage})` } : {}}
         />
 
         <div className="relative flex items-center justify-between p-4 gap-4">
@@ -82,13 +81,31 @@ const VendorDashboardHeader = ({ profile, style, onToggle }) => {
   return (
     <div className="mb-8">
       {/* Banner Section */}
-      <div className="relative h-48 md:h-64 rounded-3xl overflow-hidden border border-gray-900 group shadow-md">
-        <img
-          src={bannerImage}
-          alt="Banner"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      <div className="relative h-48 md:h-64 rounded-3xl overflow-hidden border border-gray-900 group shadow-md bg-gray-50 flex items-center justify-center">
+        {hasBanner ? (
+          <>
+            <img
+              src={bannerImage}
+              alt="Banner"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[#f6f8f6] to-[#e9eee9] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-3xl p-6 text-center transition-colors hover:bg-gray-50">
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md text-sm font-bold text-gray-700 hover:text-lily transition-all transform hover:-translate-y-0.5"
+            >
+              <PlusCircle size={18} />
+              Add Banner Image
+            </button>
+            <p className="text-xs text-gray-400 mt-2 max-w-xs">
+              Personalize your dashboard and storefront by adding a beautiful
+              banner image.
+            </p>
+          </div>
+        )}
 
         {/* Toggle Button Over Banner */}
         <button
