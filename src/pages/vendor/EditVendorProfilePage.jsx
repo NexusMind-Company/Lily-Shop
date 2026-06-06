@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { ChevronLeft, Loader2, Save, Camera } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   updateFoodVendor,
-  fetchFoodVendor,
   fetchStates,
   fetchLgas,
   fetchVendorProfileFormData,
@@ -15,8 +14,6 @@ import { fetchProfile } from "../../redux/profileSlice";
 const EditVendorProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data: profileData } = useSelector((state) => state.profile);
-  const { user_data } = useSelector((state) => state.auth);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -40,8 +37,6 @@ const EditVendorProfilePage = () => {
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [bannerImageFile, setBannerImageFile] = useState(null);
   const [bannerImagePreview, setBannerImagePreview] = useState("");
-
-  const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
 
   const loadVendorData = useCallback(async () => {
     setLoading(true);

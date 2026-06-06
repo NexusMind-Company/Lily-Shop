@@ -17,7 +17,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import {
-  fetchUserProfile,
   fetchUserProfileFormData,
   updateUsername,
   updateProfile,
