@@ -208,6 +208,7 @@ const VendorDashboardOverview = () => {
         profile={vendorProfile}
         style={headerStyle}
         onToggle={toggleHeaderStyle}
+        onEdit={() => setShowEditProfile(true)}
       />
 
       {(growthError || activityError) && (
