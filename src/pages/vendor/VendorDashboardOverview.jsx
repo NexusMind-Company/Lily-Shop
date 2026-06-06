@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
@@ -102,10 +101,8 @@ const CustomTooltip = ({ active, payload, label }) => {
   }
   return null;
 };
-
 const VendorDashboardOverview = () => {
   const navigate = useNavigate();
-  const { data: profileData } = useSelector((state) => state.profile);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [headerStyle, setHeaderStyle] = useState(() => {
     return localStorage.getItem("vendorHeaderStyle") || "hero";
@@ -117,11 +114,7 @@ const VendorDashboardOverview = () => {
     localStorage.setItem("vendorHeaderStyle", newStyle);
   };
 
-  const {
-    data: vendorProfile,
-    isLoading: profileLoading,
-    refetch: refetchProfile,
-  } = useQuery({
+  const { data: vendorProfile, refetch: refetchProfile } = useQuery({
     queryKey: ["vendorProfileFormData"],
     queryFn: fetchVendorProfileFormData,
   });
