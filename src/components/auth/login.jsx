@@ -73,7 +73,7 @@ const Login = () => {
   };
 
   return (
-    <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+    <section className="min-h-screen flex flex-col gap-7 px-7 max-w-3xl mx-auto relative pb-20">
       {/* Header */}
       <div className="flex items-center bg-white absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
         <Link to="/">
@@ -178,7 +178,7 @@ const Login = () => {
       </form>
 
       {/* Localized Footer */}
-      <footer className="mt-auto py-6 border-t border-gray-100">
+      <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
         <div className="flex justify-center gap-4 text-xs font-medium text-ash">
           <Link to="/about" className="hover:text-lily transition-colors">
             Privacy Policy
