@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import { toast } from "react-hot-toast";
-import ErrorDisplay from "../common/ErrorDisplay";
 
 const INITIAL_FORM_STATE = {
   name: "",
@@ -21,13 +20,9 @@ const VALIDATION_RULES = {
     requiredMessage: "Restaurant/Vendor name is required.",
     maxLength: 255,
   },
-  description: { required: true, requiredMessage: "Description is required." },
-  address: {
-    required: true,
-    requiredMessage:
-      "Address is required. Customers need to know where you are.",
-  },
   cuisine: { required: false, maxLength: 255 },
+  description: { required: false },
+  address: { required: false },
   contact_email: {
     required: false,
     email: true,
@@ -35,11 +30,7 @@ const VALIDATION_RULES = {
     maxLength: 254,
   },
   contact_phone: {
-    required: true,
-    requiredMessage: "Phone number is required.",
-    pattern: /^(\+234|0)[789]\d{9}$/,
-    patternMessage:
-      "Please enter a valid Nigerian phone number (e.g. 08012345678).",
+    required: false,
     maxLength: 20,
   },
 };
@@ -73,25 +64,14 @@ const CreateSubscriptionVendor = () => {
   } = useFormValidation(INITIAL_FORM_STATE, VALIDATION_RULES);
 
   const [submissionStatus, setSubmissionStatus] = useState("idle");
-  const [bannerFile, setBannerFile] = useState(null);
   const [profileFile, setProfileFile] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
 
   useEffect(() => {
     return () => {
-      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
       if (profilePreview) URL.revokeObjectURL(profilePreview);
     };
-  }, [bannerPreview, profilePreview]);
-
-  const handleBannerChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  };
+  }, [profilePreview]);
 
   const handleProfileChange = (e) => {
     const file = e.target.files[0];
@@ -105,21 +85,13 @@ const CreateSubscriptionVendor = () => {
     setSubmissionStatus("loading");
 
     const vendorData = {
-      shop_name: validatedTextValues.name.trim(),
-      category: validatedTextValues.cuisine.trim(),
-      description: validatedTextValues.description.trim(),
-      contact_email: null,
-      contact_phone: validatedTextValues.contact_phone.trim(),
-      address: validatedTextValues.address.trim(),
-      banner_image: bannerFile,
+      name: validatedTextValues.name.trim(),
+      cuisine: validatedTextValues.cuisine?.trim() || "",
+      description: validatedTextValues.description?.trim() || "",
+      contact_email: validatedTextValues.contact_email?.trim() || null,
+      contact_phone: validatedTextValues.contact_phone?.trim() || null,
+      address: validatedTextValues.address?.trim() || "",
       profile_image: profileFile,
-      service_days: JSON.stringify([
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-      ]),
     };
 
     try {
@@ -166,6 +138,21 @@ const CreateSubscriptionVendor = () => {
         typeof err.payload === "string"
       ) {
         errorMsg = err.payload;
+      } else if (
+        err &&
+        typeof err === "object" &&
+        err.non_field_errors
+      ) {
+        errorMsg = Array.isArray(err.non_field_errors)
+          ? err.non_field_errors.join(". ")
+          : err.non_field_errors;
+      } else if (err && typeof err === "object") {
+        const firstFieldError = Object.values(err).find(Array.isArray);
+        if (firstFieldError) {
+          errorMsg = firstFieldError.join(". ");
+        } else {
+          errorMsg += "Please try again later.";
+        }
       } else if (typeof err === "string") {
         errorMsg = err;
       } else {
@@ -223,34 +210,6 @@ const CreateSubscriptionVendor = () => {
           )}
         </div>
 
-        {/* Address — required */}
-        <div>
-          <label
-            htmlFor="address"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Restaurant Address <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={values.address}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
-            className={inputClass("address")}
-            aria-invalid={fieldErrors.address ? "true" : "false"}
-          />
-          {fieldErrors.address ? (
-            <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
-          ) : (
-            <p className="text-gray-400 text-xs mt-1">
-              Customers will use this to find your restaurant.
-            </p>
-          )}
-        </div>
-
         {/* Cuisine */}
         <div>
           <label
@@ -281,7 +240,7 @@ const CreateSubscriptionVendor = () => {
             htmlFor="description"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Description <span className="text-red-500">*</span>
+            Description
           </label>
           <textarea
             id="description"
@@ -296,6 +255,34 @@ const CreateSubscriptionVendor = () => {
           {fieldErrors.description && (
             <p className="text-red-500 text-xs mt-1">
               {fieldErrors.description}
+            </p>
+          )}
+        </div>
+
+        {/* Address */}
+        <div>
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Address
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            value={values.address}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
+            className={inputClass("address")}
+            aria-invalid={fieldErrors.address ? "true" : "false"}
+          />
+          {fieldErrors.address ? (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
+          ) : (
+            <p className="text-gray-400 text-xs mt-1">
+              Customers will use this to find your restaurant.
             </p>
           )}
         </div>
@@ -354,81 +341,9 @@ const CreateSubscriptionVendor = () => {
 
         {/* Media */}
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Banner Image */}
-            <div>
-              <label
-                htmlFor="banner_image"
-                className="block text-sm font-medium text-[#111813] mb-1"
-              >
-                Banner Image
-              </label>
-              <div className="flex flex-col gap-2 relative">
-                {bannerPreview ? (
-                  <div className="relative w-full h-30 rounded-xl overflow-hidden shadow-sm">
-                    <img
-                      src={bannerPreview}
-                      alt="Banner"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBannerFile(null);
-                        setBannerPreview(null);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-full h-30 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#13ec49] hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-gray-400 mb-2"
-                    >
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    <span className="text-xs font-semibold text-gray-500">
-                      Upload Banner (Optional)
-                    </span>
-                    <input
-                      type="file"
-                      id="banner_image"
-                      name="banner_image"
-                      accept="image/*"
-                      onChange={handleBannerChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
+          <div className="flex justify-center">
             {/* Profile Image */}
-            <div>
+            <div className="w-full">
               <label
                 htmlFor="profile_image"
                 className="block text-sm font-medium text-[#111813] mb-1"

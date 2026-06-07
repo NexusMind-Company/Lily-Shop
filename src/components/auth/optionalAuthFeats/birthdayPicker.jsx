@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { api } from "../../../services/api";
 
 const BirthdayPicker = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -44,23 +45,12 @@ const BirthdayPicker = () => {
         year: "numeric",
       });
 
-      const response = await fetch("/api/user/birthday", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          birthday: isoDate,
-          formatted_birthday: displayDate,
-        }),
+      const response = await api.post("/api/user/birthday", {
+        birthday: isoDate,
+        formatted_birthday: displayDate,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Birthday saved successfully:", result);
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      console.log("Birthday saved successfully:", response.data);
     } catch (error) {
       console.error("Error saving birthday:", error);
     } finally {

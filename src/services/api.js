@@ -169,7 +169,16 @@ api.interceptors.response.use(
 );
 
 export const fetchUserProfile = async () => {
-  const response = await api.get("/auth/profile/me/");
+  const response = await api.get("/auth/profile/me/", {
+    params: { t: Date.now() },
+  });
+  return response.data;
+};
+
+export const fetchUserProfileFormData = async () => {
+  const response = await api.get("/auth/profile/form-data/", {
+    params: { t: Date.now() },
+  });
   return response.data;
 };
 
@@ -181,17 +190,14 @@ export const updateUsername = async (username) => {
 export const updateProfile = async (profileData) => {
   const formData = new FormData();
 
-  Object.entries(profileData).forEach(([key, value]) => {
-    if (value != null) {
-      if (value instanceof File) {
-        formData.append(key, value);
-      } else if (Array.isArray(value)) {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value);
-      }
-    }
-  });
+  if (profileData.name) formData.append("name", profileData.name);
+  if (profileData.bio) formData.append("bio", profileData.bio);
+  if (profileData.phone_number)
+    formData.append("phone_number", profileData.phone_number);
+  if (profileData.gender) formData.append("gender", profileData.gender);
+  if (profileData.birthdate) formData.append("birthdate", profileData.birthdate);
+  if (profileData.profile_pic instanceof File)
+    formData.append("profile_pic", profileData.profile_pic);
 
   const response = await api.patch("/auth/profile/update/", formData);
   return response.data;
@@ -271,6 +277,18 @@ export const fetchContentById = async (contentId) => {
 
 export const searchShops = async (params = {}) => {
   const response = await api.get("/shops/", { params });
+  return response.data;
+};
+
+export const searchFoodVendors = async (params = {}) => {
+  const response = await api.get("/foods/vendors/", { params });
+  return response.data;
+};
+
+export const searchMealPlans = async (params = {}) => {
+  const response = await api.get("/foods/subscriptions/vendor/plans/", {
+    params,
+  });
   return response.data;
 };
 
@@ -775,8 +793,19 @@ export const createMeal = async (mealData) => {
 const appendVendorMedia = (formData, vendorData = {}) => {
   if (vendorData.banner_image instanceof File) {
     formData.append("banner_image", vendorData.banner_image);
+  } else if (
+    typeof vendorData.banner_image === "string" &&
+    vendorData.banner_image.startsWith("http")
+  ) {
+    formData.append("banner_image", vendorData.banner_image);
   }
+
   if (vendorData.profile_image instanceof File) {
+    formData.append("profile_image", vendorData.profile_image);
+  } else if (
+    typeof vendorData.profile_image === "string" &&
+    vendorData.profile_image.startsWith("http")
+  ) {
     formData.append("profile_image", vendorData.profile_image);
   }
 
@@ -813,13 +842,8 @@ export const createFoodVendor = async (vendorData) => {
     const USE_OMIT_STRATEGY = true;
     if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
   }
-
   if (vendorData.contact_phone) {
     formData.append("contact_phone", vendorData.contact_phone.trim());
-  }
-
-  if (vendorData.service_days) {
-    formData.append("service_days", vendorData.service_days);
   }
 
   appendVendorMedia(formData, vendorData);
@@ -855,8 +879,16 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_phone", vendorData.contact_phone.trim());
   }
 
-  if (vendorData.service_days) {
-    formData.append("service_days", vendorData.service_days);
+  if (vendorData.state) {
+    formData.append("state", vendorData.state);
+  }
+  if (vendorData.lga) {
+    formData.append("lga", vendorData.lga);
+  }
+
+  // Handle new fields from the new payload schema
+  if (vendorData.all_media_urls) {
+    formData.append("all_media_urls", vendorData.all_media_urls);
   }
 
   appendVendorMedia(formData, vendorData);
@@ -867,10 +899,17 @@ export const updateFoodVendor = async (vendorData) => {
   return response.data;
 };
 
+export const fetchVendorProfileFormData = async () => {
+  const response = await api.get("/foods/vendors/profiles/form-data/", {
+    params: { t: Date.now() },
+  });
+  return response.data;
+};
+
 export const fetchFoodVendor = async (vendorId) => {
   // Use list endpoint with filter since /foods/food-vendors/{id}/ returns 405
   const response = await api.get(`/foods/vendors/`, {
-    params: { id: vendorId },
+    params: { id: vendorId, t: Date.now() },
   });
   const results = response.data.results || response.data;
   return results.find((v) => v.id === vendorId) || results[0] || null;
@@ -1095,14 +1134,14 @@ export const fetchVendorReviews = async (vendorId) => {
 
 export const createVendorReview = async (vendorId, reviewData) => {
   const response = await api.post(
-    `/foods/vendors/${vendorId}/reviews/create/`,
+    `/foods/vendors/${vendorId}/reviews/`,
     reviewData,
   );
   return response.data;
 };
 
 export const deleteVendorProfile = async () => {
-  const response = await api.delete("/foods/vendors/me/delete/");
+  const response = await api.delete("/foods/vendors/me/");
   return response.data;
 };
 
@@ -1222,7 +1261,9 @@ export const fetchAvailableInterests = async (params = {}) => {
 };
 
 export const updateUserInterests = async (interests) => {
-  const response = await api.put("/auth/profile/add-interests/", { interests });
+  const response = await api.patch("/auth/profile/add-interests/", {
+    interests,
+  });
   return response.data;
 };
 

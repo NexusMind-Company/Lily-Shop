@@ -96,41 +96,7 @@ export const fetchVendorDetails = async (vendorId) => {
     // 1. Fetch core vendor detail
     const data = await fetchFoodVendor(vendorId);
 
-    // 2. Data Stitching: The detail view often omits media seen in the list view
-    if (data && !data.all_media_urls) {
-      try {
-        const vendorList = await fetchAllFoodVendors();
-        const listData = (vendorList.results || vendorList).find(
-          (v) => v.id === vendorId,
-        );
-        if (listData && listData.all_media_urls) {
-          data.all_media_urls = listData.all_media_urls;
-        }
-      } catch (e) {
-        console.warn("Could not stitch vendor list media", e);
-      }
-    }
-
-    // 3. User Avatar: Inject the vendor's actual associated user profile picture
-    if (data && data.user && !data.profile_pic) {
-      try {
-        const userId = typeof data.user === "string" ? data.user : data.user.id;
-        const profile = await fetchPublicProfile(userId);
-        if (profile) {
-          data.user_profile = profile;
-          data.profile_pic = profile.profile_pic;
-          // If address is still missing, maybe it's listed in the user's bio/metadata
-          if (!data.address && profile.address) data.address = profile.address;
-        }
-      } catch (err) {
-        console.warn(
-          "Could not fetch associated user profile for vendor avatar",
-          err,
-        );
-      }
-    }
-
-    // 4. Address Fallback: If vendor has no address, check their meal plans
+    // 2. Address Fallback: If vendor has no address, check their meal plans
     if (data && !data.address) {
       try {
         const plans = await apiFetchMealPlansByVendor(vendorId);

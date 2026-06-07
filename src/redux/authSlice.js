@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { setAuthTokens, clearAuthTokens } from "../services/api";
 import { fetchProfile, resetProfile } from "./profileSlice";
+import { resetCart } from "./cartSlice";
+import { queryClient } from "../queryClient";
 
 // ==================== LOGIN USER ====================
 export const loginUser = createAsyncThunk(
@@ -166,6 +168,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Login failed.";
         state.isAuthenticated = false;
+        state.user_data = null;
+        localStorage.removeItem("user_data");
+        clearAuthTokens();
       })
 
       // Register cases
@@ -201,6 +206,8 @@ export const handleLogin = (userData) => (dispatch) => {
 export const handleLogout = () => (dispatch) => {
   dispatch(logout());
   dispatch(resetProfile());
+  dispatch(resetCart());
+  queryClient.clear();
 };
 
 export const { loginSuccess, logout, clearError, clearRegistrationSuccess } =

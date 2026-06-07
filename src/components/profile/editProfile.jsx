@@ -17,10 +17,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import {
-  fetchUserProfile,
+  fetchUserProfileFormData,
   updateUsername,
   updateProfile,
-  updateProfilePic,
 } from "../../services/api";
 import { toast } from "sonner";
 import PhoneInput from "react-phone-number-input";
@@ -84,13 +83,17 @@ const EditProfile = () => {
   const dispatch = useDispatch();
 
   const { data: user, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
-    staleTime: 1000 * 60 * 5,
+    queryKey: ["userProfileFormData"],
+    queryFn: fetchUserProfileFormData,
   });
 
   useEffect(() => {
     if (user) {
+      let displayGender = user.gender || "";
+      if (user.gender === "F") displayGender = "Female";
+      else if (user.gender === "M") displayGender = "Male";
+      else if (user.gender === "NA") displayGender = "Other";
+
       setForm({
         name: user.name || "",
         username: user.username || "",
@@ -98,14 +101,11 @@ const EditProfile = () => {
         bio: user.bio || "",
         phone_number: user.phone_number || "",
         birthday: user.birthdate || "",
-        gender: user.gender || "",
+        gender: displayGender,
       });
 
       if (user.profile_pic) {
-        const picUrl = user.profile_pic.startsWith("http")
-          ? user.profile_pic
-          : `https://lily-shop.up.railway.app${user.profile_pic}`;
-        setProfileImagePreview(picUrl);
+        setProfileImagePreview(user.profile_pic);
       }
     }
   }, [user]);
@@ -126,6 +126,7 @@ const EditProfile = () => {
       if (apiGender) profilePayload.gender = apiGender;
       if (form.birthday && form.birthday.trim() !== "")
         profilePayload.birthdate = form.birthday;
+      if (profileImageFile) profilePayload.profile_pic = profileImageFile;
 
       if (Object.keys(profilePayload).length > 0) {
         await updateProfile(profilePayload);
@@ -135,13 +136,10 @@ const EditProfile = () => {
         await updateUsername(form.username);
       }
 
-      if (profileImageFile) {
-        await updateProfilePic(profileImageFile);
-      }
-
       return true;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries(["userProfileFormData"]);
       queryClient.invalidateQueries(["userProfile"]);
       dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
@@ -190,13 +188,7 @@ const EditProfile = () => {
           className="cursor-pointer"
         />
         <h2 className="font-semibold text-lg truncate">Edit Profile</h2>
-        <button
-          onClick={handleSave}
-          className="text-lily font-semibold shrink-0 disabled:text-gray-400"
-          disabled={isSaving}
-        >
-          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}
-        </button>
+        <div className="w-6.25" />
       </div>
 
       <div className="flex flex-col items-center mt-6 px-4">
@@ -351,6 +343,14 @@ const EditProfile = () => {
             onChange={(val) => handleChange("gender", val)}
           />
         </div>
+
+        <button
+          onClick={handleSave}
+          className="w-full bg-lily text-white font-bold text-xl py-4 rounded-2xl mt-10 mb-6 flex items-center justify-center disabled:opacity-50 transition-colors shadow-lg shadow-lily/20"
+          disabled={isSaving}
+        >
+          {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : "Save"}
+        </button>
       </fieldset>
     </div>
   );

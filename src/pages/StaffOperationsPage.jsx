@@ -29,6 +29,8 @@ import {
   deleteVendorAsStaff,
 } from "../services/api";
 
+import { getVendorImageUrl } from "../utils/vendorUtils";
+
 const StaffOperationsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -426,16 +428,7 @@ const StaffOperationsPage = () => {
                       <div className="flex items-center gap-4 min-w-50">
                         <div className="w-16 h-16 rounded-2xl bg-[#f6f8f6] flex items-center justify-center border border-gray-50 overflow-hidden">
                           {(() => {
-                            const rawUrl =
-                              vendor.profile_pic ||
-                              vendor.user?.profile_pic ||
-                              vendor.logo ||
-                              vendor.image ||
-                              vendor.all_media_urls?.[0];
-                            const imageUrl =
-                              typeof rawUrl === "string"
-                                ? rawUrl.replace(/^http:\/\//i, "https://")
-                                : rawUrl;
+                            const imageUrl = getVendorImageUrl(vendor);
                             return imageUrl ? (
                               <img
                                 src={imageUrl}

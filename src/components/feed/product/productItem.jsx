@@ -409,7 +409,8 @@ const ProductItem = ({ product }) => {
                     alt={`Product image ${index + 1}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = "/placeholder-image.png";
+                      e.target.onerror = null;
+                      e.target.src = "/feed-image.png";
                     }}
                   />
                 )}
@@ -834,8 +835,13 @@ const ProductItem = ({ product }) => {
       <ReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
-        shopId={product.shop}
-        shopName={product.shop_name || product.name || product.title}
+        vendorId={product.vendor_id || product.shop}
+        vendorName={
+          product.vendor_name ||
+          product.shop_name ||
+          product.name ||
+          product.title
+        }
       />
     </div>
   );

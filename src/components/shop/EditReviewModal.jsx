@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from "react-redux";
-import { createVendorReview } from "../../services/api";
+import { motion } from "framer-motion";
+import { updateReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
 
 const RATING_LABELS = {
@@ -16,44 +15,36 @@ const RATING_LABELS = {
   5: "Excellent",
 };
 
-const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
+const EditReviewModal = ({ isOpen, onClose, review, shopId }) => {
+  const [rating, setRating] = useState(review?.rating || 0);
+  const [comment, setComment] = useState(review?.comment || "");
   const queryClient = useQueryClient();
-  const userData = useSelector((state) => state.auth?.user_data);
-  const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
-  const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
-  const profileId = useSelector((state) => state.profile?.data?.user?.id);
-  const resolvedUserId = userId || profileId;
-
-  const title = vendorName || "this vendor";
 
   useEffect(() => {
-    if (!isOpen) {
-      setRating(0);
-      setComment("");
+    if (isOpen && review) {
+      setRating(review.rating || 0);
+      setComment(review.comment || "");
     }
-  }, [isOpen]);
+  }, [isOpen, review]);
 
-  const createReviewMutation = useMutation({
+  const updateReviewMutation = useMutation({
     mutationFn: (data) => {
-      return createVendorReview(vendorId, data);
+      return updateReview(review.id, data);
     },
     onSuccess: () => {
-      toast.success("Review submitted! Thanks for your feedback.");
-      queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
-      queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
+      toast.success("Review updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", shopId] });
+      queryClient.invalidateQueries({ queryKey: ["userReviews"] });
       onClose();
     },
     onError: (error) => {
-      console.error("Review submission failed:", error?.response?.status, error?.response?.data);
-      console.error("FULL ERROR:", JSON.stringify(error?.response?.data, null, 2));
+      console.error("Review update failed:", error?.response?.status, error?.response?.data);
       const msg =
         error?.response?.data?.message ||
         (typeof error?.response?.data === "object"
           ? Object.values(error.response.data).flat().join(". ")
           : null) ||
-        "Failed to submit review. Please try again.";
+        "Failed to update review. Please try again.";
       toast.error(msg);
     },
   });
@@ -63,7 +54,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
       toast.error("Please tap a star to rate");
       return;
     }
-    createReviewMutation.mutate({ rating, comment });
+    updateReviewMutation.mutate({ rating, comment: comment || null });
   };
 
   const handleBackdropClick = (e) => {
@@ -72,7 +63,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !review) return null;
 
   const modalContent = (
     <div
@@ -96,13 +87,13 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 shadow-inner">
-              <Star size={32} className="text-amber-500" strokeWidth={0} />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-3 shadow-inner">
+              <Star size={32} className="text-blue-500" strokeWidth={0} />
             </div>
             <h2 className="text-xl font-black text-gray-900">
-              Rate {title}
+              Update your review
             </h2>
-            <p className="text-sm text-gray-400 mt-1">Your review helps others</p>
+            <p className="text-sm text-gray-400 mt-1">Help other shoppers with your updated experience</p>
           </div>
         </div>
 
@@ -153,10 +144,10 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
             </label>
             <textarea
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Tell others about your experience..."
+              onChange={(e) => setComment(e.target.value.slice(0, 500))}
+              placeholder="Share your thoughts about this shop..."
               rows={3}
-              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:border-lily focus:outline-none resize-none text-sm text-gray-700 placeholder-gray-300 transition-colors bg-white"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none resize-none text-sm text-gray-700 placeholder-gray-300 transition-colors bg-white"
             />
             <p className="text-xs text-gray-400 text-right">
               {comment.length}/500
@@ -165,22 +156,22 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
 
           <button
             onClick={handleSubmit}
-            disabled={rating === 0 || createReviewMutation.isPending}
+            disabled={rating === 0 || updateReviewMutation.isPending}
             className={`w-full h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all ${
               rating === 0
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-lily text-white hover:bg-lily/90 active:scale-[0.98] shadow-lg shadow-lily/30"
+                : "bg-blue-500 text-white hover:bg-blue-600 active:scale-[0.98] shadow-lg shadow-blue-500/30"
             }`}
           >
-            {createReviewMutation.isPending ? (
+            {updateReviewMutation.isPending ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                Submitting...
+                Updating...
               </>
             ) : (
               <>
                 <Send size={18} />
-                Submit Review
+                Update Review
               </>
             )}
           </button>
@@ -193,4 +184,4 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
   return createPortal(modalContent, document.body);
 };
 
-export default ReviewModal;
+export default EditReviewModal;
