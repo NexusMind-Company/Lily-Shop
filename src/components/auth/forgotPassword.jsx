@@ -89,6 +89,19 @@ const ForgotPassword = () => {
             </p>
           </Link>
         </div>
+
+        {/* Localized Footer */}
+        <footer className="mt-auto py-6 border-t border-gray-100">
+          <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+            <Link to="/about" className="hover:text-lily transition-colors">
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link to="/about" className="hover:text-lily transition-colors">
+              Terms & Conditions
+            </Link>
+          </div>
+        </footer>
       </section>
     );
   }
@@ -159,6 +172,19 @@ const ForgotPassword = () => {
           </p>
         </Link>
       </div>
+
+      {/* Localized Footer */}
+      <footer className="mt-auto py-6 border-t border-gray-100">
+        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Terms & Conditions
+          </Link>
+        </div>
+      </footer>
     </section>
   );
 };

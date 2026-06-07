@@ -98,6 +98,20 @@ const ResetPasswordPage = () => {
     </div>
   );
 
+  const Footer = () => (
+    <footer className="mt-auto py-6 border-t border-gray-100">
+      <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Privacy Policy
+        </Link>
+        <span>•</span>
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Terms & Conditions
+        </Link>
+      </div>
+    </footer>
+  );
+
   // 🔹 STATE 1: VERIFYING TOKEN
   if (isVerifying) {
     return (
@@ -105,6 +119,7 @@ const ResetPasswordPage = () => {
         <Header />
         <div className="w-12 h-12 border-4 border-lily border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-ash font-medium">Verifying your reset link...</p>
+        <Footer />
       </section>
     );
   }
@@ -135,6 +150,7 @@ const ResetPasswordPage = () => {
             </p>
           </Link>
         </div>
+        <Footer />
       </section>
     );
   }
@@ -153,6 +169,7 @@ const ResetPasswordPage = () => {
         <p className="text-sm font-medium text-ash -mt-4">
           Your password has been successfully changed. Redirecting to login...
         </p>
+        <Footer />
       </section>
     );
   }
@@ -251,6 +268,7 @@ const ResetPasswordPage = () => {
           </p>
         </Link>
       </div>
+      <Footer />
     </section>
   );
 };
