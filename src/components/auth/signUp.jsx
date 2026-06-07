@@ -134,164 +134,170 @@ const SignUp = () => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <section className="min-h-screen flex flex-col gap-7 px-7 max-w-3xl mx-auto relative pb-20">
+    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
       {/* Header */}
       <div className="flex items-center bg-white w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
-        <Link to="/">
-          <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-        </Link>
+        <div className="max-w-3xl mx-auto w-full">
+          <Link to="/">
+            <h1 className="font-bold text-2xl text-lily uppercase">
+              Lily Shops
+            </h1>
+          </Link>
+        </div>
       </div>
 
-      {/* Page Title */}
-      <h2 className="font-poppins font-bold text-black text-xl/[30px]">
-        <span className="border-b-2 border-solid pb-0.5 border-lily">
-          Regis
-        </span>
-        ter
-      </h2>
+      <div className="flex-1 flex flex-col gap-7 px-7 max-w-3xl mx-auto w-full mt-24">
+        {/* Page Title */}
+        <h2 className="font-poppins font-bold text-black text-xl/[30px]">
+          <span className="border-b-2 border-solid pb-0.5 border-lily">
+            Regis
+          </span>
+          ter
+        </h2>
 
-      {/* Success/Error handled by Toasts */}
+        {/* Success/Error handled by Toasts */}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        {/* Email */}
-        <div>
-          <input
-            type="text"
-            name="email_or_phonenumber"
-            value={formData.email_or_phonenumber}
-            onChange={handleChange}
-            placeholder="Enter email"
-            disabled={loading || registrationSuccess}
-            className={`input rounded-[7px] h-11.5 w-full px-4 ${
-              validationErrors.email_or_phonenumber ? "border-red-500" : ""
-            }`}
-          />
-          {validationErrors.email_or_phonenumber && (
-            <p className="text-red-500 text-xs mt-1">
-              {validationErrors.email_or_phonenumber}
-            </p>
-          )}
-        </div>
-
-        {/* Password */}
-        <div>
-          <div className="relative">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Email */}
+          <div>
             <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
+              type="text"
+              name="email_or_phonenumber"
+              value={formData.email_or_phonenumber}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder="Enter email"
               disabled={loading || registrationSuccess}
-              className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
-                validationErrors.password ? "border-red-500" : ""
+              className={`input rounded-[7px] h-11.5 w-full px-4 ${
+                validationErrors.email_or_phonenumber ? "border-red-500" : ""
               }`}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              disabled={loading || registrationSuccess}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
-            >
-              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-            </button>
-          </div>
-          {validationErrors.password && (
-            <p className="text-red-500 text-xs mt-1">
-              {validationErrors.password}
-            </p>
-          )}
-          {formData.password && !validationErrors.password && (
-            <p className={`text-xs mt-1 ${passwordStrength.color}`}>
-              Password strength: {passwordStrength.text}
-            </p>
-          )}
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              disabled={loading || registrationSuccess}
-              className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
-                validationErrors.confirmPassword ? "border-red-500" : ""
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              disabled={loading || registrationSuccess}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
-            >
-              {showConfirmPassword ? (
-                <FiEyeOff size={20} />
-              ) : (
-                <FiEye size={20} />
-              )}
-            </button>
-          </div>
-          {validationErrors.confirmPassword && (
-            <p className="text-red-500 text-xs mt-1">
-              {validationErrors.confirmPassword}
-            </p>
-          )}
-          {formData.confirmPassword &&
-            formData.password === formData.confirmPassword &&
-            !validationErrors.confirmPassword && (
-              <p className="text-green-500 text-xs mt-1 flex items-center gap-1">
-                <FiCheck size={14} /> Passwords match
+            {validationErrors.email_or_phonenumber && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.email_or_phonenumber}
               </p>
             )}
-        </div>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="policyAccepted"
-            checked={policyAccepted}
-            onChange={(e) => setPolicyAccepted(e.target.checked)}
-            className="size-4 accent-lily cursor-pointer"
-          />
-          <label
-            htmlFor="policyAccepted"
-            className="text-sm font-medium cursor-pointer"
+          {/* Password */}
+          <div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                disabled={loading || registrationSuccess}
+                className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
+                  validationErrors.password ? "border-red-500" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading || registrationSuccess}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
+              >
+                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
+            </div>
+            {validationErrors.password && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.password}
+              </p>
+            )}
+            {formData.password && !validationErrors.password && (
+              <p className={`text-xs mt-1 ${passwordStrength.color}`}>
+                Password strength: {passwordStrength.text}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                disabled={loading || registrationSuccess}
+                className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
+                  validationErrors.confirmPassword ? "border-red-500" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading || registrationSuccess}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
+              >
+                {showConfirmPassword ? (
+                  <FiEyeOff size={20} />
+                ) : (
+                  <FiEye size={20} />
+                )}
+              </button>
+            </div>
+            {validationErrors.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.confirmPassword}
+              </p>
+            )}
+            {formData.confirmPassword &&
+              formData.password === formData.confirmPassword &&
+              !validationErrors.confirmPassword && (
+                <p className="text-green-500 text-xs mt-1 flex items-center gap-1">
+                  <FiCheck size={14} /> Passwords match
+                </p>
+              )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="policyAccepted"
+              checked={policyAccepted}
+              onChange={(e) => setPolicyAccepted(e.target.checked)}
+              className="size-4 accent-lily cursor-pointer"
+            />
+            <label
+              htmlFor="policyAccepted"
+              className="text-sm font-medium cursor-pointer"
+            >
+              I agree to the{" "}
+              <Link to="/about" className="text-lily underline">
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading || registrationSuccess}
+            className={`h-11.5 rounded-full font-bold text-white mt-2 ${
+              loading || registrationSuccess
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-lily hover:bg-darklily"
+            }`}
           >
-            I agree to the{" "}
-            <Link to="/about" className="text-lily underline">
-              Privacy Policy
-            </Link>
-          </label>
+            {loading
+              ? "REGISTERING..."
+              : registrationSuccess
+                ? "SUCCESS!"
+                : "REGISTER"}
+          </button>
+        </form>
+
+        {/* Login link */}
+        <div className="font-inter text-sm font-bold">
+          <Link to="/login">
+            Already a member?{" "}
+            <span className="text-lily font-bold underline">Log In</span>
+          </Link>
         </div>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading || registrationSuccess}
-          className={`h-11.5 rounded-full font-bold text-white mt-2 ${
-            loading || registrationSuccess
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-lily hover:bg-darklily"
-          }`}
-        >
-          {loading
-            ? "REGISTERING..."
-            : registrationSuccess
-              ? "SUCCESS!"
-              : "REGISTER"}
-        </button>
-      </form>
-
-      {/* Login link */}
-      <div className="font-inter text-sm font-bold">
-        <Link to="/login">
-          Already a member?{" "}
-          <span className="text-lily font-bold underline">Log In</span>
-        </Link>
       </div>
 
       {/* Localized Footer */}

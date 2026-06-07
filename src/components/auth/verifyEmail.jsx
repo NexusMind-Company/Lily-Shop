@@ -47,54 +47,75 @@ const VerifyEmail = () => {
   }, [error]);
 
   return (
-    <section className="mt-15 flex flex-col gap-7 px-7 max-h-screen max-w-3xl mx-auto">
+    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
       {/* Header */}
       <div className="flex items-center bg-white w-full absolute top-0 right-0 h-16 px-3 md:px-6 shadow-ash shadow z-40">
-        <Link to="/">
-          <h1 className="font-bold text-2xl text-lily uppercase">Lily Shops</h1>
-        </Link>
+        <div className="max-w-3xl mx-auto w-full">
+          <Link to="/">
+            <h1 className="font-bold text-2xl text-lily uppercase">
+              Lily Shops
+            </h1>
+          </Link>
+        </div>
       </div>
 
-      {/* Page Title */}
-      <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
-        <span className="border-b-2 border-solid pb-0.5 border-lily">Veri</span>
-        fying Email
-      </h2>
+      <div className="flex-1 flex flex-col gap-7 px-7 max-w-3xl mx-auto w-full mt-24">
+        {/* Page Title */}
+        <h2 className="font-poppins font-bold text-black text-xl/[30px]">
+          <span className="border-b-2 border-solid pb-0.5 border-lily">
+            Veri
+          </span>
+          fying Email
+        </h2>
 
-      <div className="flex flex-col gap-6">
-        <p className="text-sm font-medium text-ash">
-          {loading
-            ? "Please wait while we verify your email address..."
-            : success
-              ? "Your email has been successfully verified! You can now log in to your account."
-              : error
-                ? "There was an error verifying your email. The link might be expired or invalid."
-                : "Initializing verification..."}
-        </p>
-
-        {/* Action Button */}
-        <button
-          onClick={() => navigate("/login")}
-          disabled={loading}
-          className={`h-11.5 rounded-full font-bold text-white transition-all ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-lily hover:bg-darklily"
-          }`}
-        >
-          {loading ? "VERIFYING..." : "BACK TO LOGIN"}
-        </button>
-      </div>
-
-      {/* Back to login */}
-      <div className="self-start mt-4">
-        <Link to="/login" className="flex items-center gap-2">
-          <img src="/arrowleft.png" alt="arrow" className="size-4" />
-          <p className="font-semibold text-black font-poppins text-sm">
-            Back to Log in
+        <div className="flex flex-col gap-6">
+          <p className="text-sm font-medium text-ash">
+            {loading
+              ? "Please wait while we verify your email address..."
+              : success
+                ? "Your email has been successfully verified! You can now log in to your account."
+                : error
+                  ? "There was an error verifying your email. The link might be expired or invalid."
+                  : "Initializing verification..."}
           </p>
-        </Link>
+
+          {/* Action Button */}
+          <button
+            onClick={() => navigate("/login")}
+            disabled={loading}
+            className={`h-11.5 rounded-full font-bold text-white transition-all ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-lily hover:bg-darklily"
+            }`}
+          >
+            {loading ? "VERIFYING..." : "BACK TO LOGIN"}
+          </button>
+        </div>
+
+        {/* Back to login */}
+        <div className="self-start mt-4">
+          <Link to="/login" className="flex items-center gap-2">
+            <img src="/arrowleft.png" alt="arrow" className="size-4" />
+            <p className="font-semibold text-black font-poppins text-sm">
+              Back to Log in
+            </p>
+          </Link>
+        </div>
       </div>
+
+      {/* Localized Footer */}
+      <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
+        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Terms & Conditions
+          </Link>
+        </div>
+      </footer>
     </section>
   );
 };

@@ -64,13 +64,16 @@ const extractContents = (data) => {
   const arr = extractArray(data);
   return arr.filter(
     (item) =>
-      !(
+      item.post_type === "FUN" ||
+      (!(
+        item.post_type === "PRODUCT" ||
         item.type?.toLowerCase() === "product" ||
         item.price_in_naira !== undefined ||
         item.price !== undefined ||
         item.name !== undefined ||
         item.productName !== undefined
-      ),
+      ) &&
+        item.feed_item_category !== "product"),
   );
 };
 
@@ -114,7 +117,11 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     enabled:
       !!debouncedSearchTerm &&
       (activeTab === "Top" || activeTab === "Products"),
-    select: extractArray,
+    select: (data) =>
+      extractArray(data).filter(
+        (item) =>
+          item.post_type === "PRODUCT" || item.feed_item_category === "product",
+      ),
   });
 
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
@@ -216,12 +223,11 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               />
               <div className="flex-1 min-w-0">
                 <span className="font-bold text-gray-900 block truncate text-sm">
-                  {product.name}
+                  {product.caption || product.name || "Untitled"}
                 </span>
-                <p className="text-xs text-lily font-black">
-                  {product.price_in_naira
-                    ? `₦${product.price_in_naira}`
-                    : "₦---"}
+                <p className="text-[10px] text-gray-400 font-medium truncate mt-0.5">
+                  By {product.user || "Unknown"} • {product.post_type} •{" "}
+                  {product.like_count || 0} Likes
                 </p>
               </div>
             </div>
@@ -237,14 +243,14 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       <div className="space-y-4">
         {showHeader && (
           <h3 className="font-bold text-gray-900 text-xs uppercase tracking-widest px-2">
-            Contents & Shops
+            Contents
           </h3>
         )}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {contents.slice(0, limit).map((content) => (
             <div
               key={content.id}
-              className="cursor-pointer group"
+              className="cursor-pointer group flex flex-col"
               onClick={() => {
                 navigate(
                   content.owner
@@ -268,9 +274,18 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <p className="mt-2 text-xs font-bold truncate text-gray-900 px-1">
-                {content.name || content.caption || "Untitled"}
-              </p>
+              <div className="mt-2 px-1 space-y-0.5">
+                <p className="text-xs font-bold truncate text-gray-900">
+                  {content.caption || content.name || "Untitled"}
+                </p>
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium truncate">
+                  <span>{content.user || "User"}</span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
+                  <span>{content.post_type}</span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
+                  <span>{content.like_count || 0} Likes</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
