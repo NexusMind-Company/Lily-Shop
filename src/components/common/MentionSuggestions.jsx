@@ -23,14 +23,6 @@ const MentionSuggestions = ({
     auth?.user_data?.user?.id ||
     JSON.parse(localStorage.getItem("user_data") || "{}").id;
 
-  console.log("Mentions - Component State:", {
-    isOpen,
-    loggedInUserId,
-    hasUsers: usersList.length > 0,
-    authData: auth?.user_data,
-    profileData: profile?.data?.user,
-  });
-
   // Fetch following and followers list once
   useEffect(() => {
     const fetchUsers = async () => {
@@ -160,7 +152,10 @@ const MentionSuggestions = ({
                   src={user.profile_pic || user.img || "/profile-icon.svg"}
                   alt={user.username}
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.target.src = "/profile-icon.svg")}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/profile-icon.svg";
+                  }}
                 />
               </div>
               <div className="flex-1 overflow-hidden">

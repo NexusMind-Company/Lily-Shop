@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
-import { createVendorReview } from "../../services/api";
+import { createReview } from "../../services/shopApi";
 import toast from "react-hot-toast";
 
 const RATING_LABELS = {
@@ -16,17 +16,10 @@ const RATING_LABELS = {
   5: "Excellent",
 };
 
-const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
+const ShopReviewModal = ({ isOpen, onClose, shopId, shopName }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
-  const userData = useSelector((state) => state.auth?.user_data);
-  const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
-  const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
-  const profileId = useSelector((state) => state.profile?.data?.user?.id);
-  const resolvedUserId = userId || profileId;
-
-  const title = vendorName || "this vendor";
 
   useEffect(() => {
     if (!isOpen) {
@@ -37,17 +30,17 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => {
-      return createVendorReview(vendorId, data);
+      return createReview(data);
     },
     onSuccess: () => {
       toast.success("Review submitted! Thanks for your feedback.");
-      queryClient.invalidateQueries({ queryKey: ["reviews", vendorId] });
-      queryClient.invalidateQueries({ queryKey: ["vendorDetails", vendorId] });
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", shopId] });
+      queryClient.invalidateQueries({ queryKey: ["userReviews"] });
+      queryClient.invalidateQueries({ queryKey: ["shopDetails", shopId] });
       onClose();
     },
     onError: (error) => {
       console.error("Review submission failed:", error?.response?.status, error?.response?.data);
-      console.error("FULL ERROR:", JSON.stringify(error?.response?.data, null, 2));
       const msg =
         error?.response?.data?.message ||
         (typeof error?.response?.data === "object"
@@ -63,7 +56,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
       toast.error("Please tap a star to rate");
       return;
     }
-    createReviewMutation.mutate({ rating, comment });
+    createReviewMutation.mutate({ shop_id: shopId, rating, comment: comment || null });
   };
 
   const handleBackdropClick = (e) => {
@@ -100,9 +93,9 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
               <Star size={32} className="text-amber-500" strokeWidth={0} />
             </div>
             <h2 className="text-xl font-black text-gray-900">
-              Rate {title}
+              Rate {shopName || "this shop"}
             </h2>
-            <p className="text-sm text-gray-400 mt-1">Your review helps others</p>
+            <p className="text-sm text-gray-400 mt-1">Your review helps others discover great shops</p>
           </div>
         </div>
 
@@ -153,8 +146,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
             </label>
             <textarea
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Tell others about your experience..."
+              onChange={(e) => setComment(e.target.value.slice(0, 500))}
+              placeholder="Tell others about your experience with this shop..."
               rows={3}
               className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:border-lily focus:outline-none resize-none text-sm text-gray-700 placeholder-gray-300 transition-colors bg-white"
             />
@@ -193,4 +186,4 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
   return createPortal(modalContent, document.body);
 };
 
-export default ReviewModal;
+export default ShopReviewModal;

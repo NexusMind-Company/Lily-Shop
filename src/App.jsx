@@ -21,7 +21,6 @@ import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPag
 
 /* ---------------- FEED - Critical, load immediately ---------------- */
 import Feed from "./pages/feed";
-import SearchResults from "./pages/searchResults";
 import VendorsList from "./pages/VendorsList";
 import FeedProductDetails from "./pages/feedProductDetails";
 
@@ -73,6 +72,7 @@ const OrderHistoryPage = lazy(() => import("./pages/OrderHistoryPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
+const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
 
 /* SUBSCRIPTIONS */
 const VendorSubscriptionPage = lazy(
@@ -252,6 +252,7 @@ function App() {
             path="/password-reset/:token"
             element={<ResetPasswordPage />}
           />
+          <Route path="/about" element={<About />} />
           <Route element={<FeedLayout />}>
             <Route path="/" element={<Feed />} />
             <Route path="/feed" element={<Navigate to="/" replace />} />
@@ -263,8 +264,6 @@ function App() {
               {/* Feed - Critical pages, immediate load */}
               {/* <Route path="/" element={<Feed />} />
               <Route path="/feed" element={<Navigate to="/" replace />} />*/}
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/searchResults" element={<SearchResults />} />
               <Route path="/product/:id" element={<FeedProductDetails />} />
               <Route
                 path="/product-details/:id"
@@ -327,7 +326,6 @@ function App() {
               <Route path="/verify" element={<VerificationPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/editProfile" element={<EditProfile />} />
-              <Route path="/about" element={<About />} />
 
               {/* Inbox & Social */}
               <Route path="/inbox" element={<InboxPage />} />
@@ -552,6 +550,10 @@ function App() {
               <Route
                 path="/verify-transaction"
                 element={<VerifyTransaction />}
+              />
+              <Route
+                path="/ads/order/success"
+                element={<AdsOrderSuccessPage />}
               />
 
               {/* AI Chat */}

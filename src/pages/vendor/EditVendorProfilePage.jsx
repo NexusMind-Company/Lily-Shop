@@ -1,19 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { ChevronLeft, Loader2, Save, Camera } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateFoodVendor, fetchFoodVendor } from "../../services/api";
+import {
+  updateFoodVendor,
+  fetchStates,
+  fetchLgas,
+  fetchVendorProfileFormData,
+} from "../../services/api";
 import { fetchProfile } from "../../redux/profileSlice";
 
 const EditVendorProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data: profileData } = useSelector((state) => state.profile);
-  const { user_data } = useSelector((state) => state.auth);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [vendorData, setVendorData] = useState(null);
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
+
   const [form, setForm] = useState({
     shop_name: "",
     description: "",
@@ -21,33 +30,30 @@ const EditVendorProfilePage = () => {
     category: "",
     contact_email: "",
     contact_phone: "",
+    state: "",
+    lga: "",
   });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [bannerImageFile, setBannerImageFile] = useState(null);
   const [bannerImagePreview, setBannerImagePreview] = useState("");
 
-  const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
-
-  useEffect(() => {
-    if (vendorId) {
-      loadVendorData();
-    }
-  }, [vendorId]);
-
-  const loadVendorData = async () => {
+  const loadVendorData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchFoodVendor(vendorId);
+      const data = await fetchVendorProfileFormData();
+      setVendorData(data);
       setForm({
-        shop_name: data.shop_name || "",
+        shop_name: data.name || "",
         description: data.description || "",
-        address: data.address || "",
-        category: data.category || "",
+        address: data.address || data.street_address || "",
+        category: data.cuisine || "",
         contact_email: data.contact_email || "",
         contact_phone: data.contact_phone || "",
+        state: data.state || "",
+        lga: data.lga || "",
       });
-      setProfileImagePreview(data.profile_pic || data.profile_image || "");
+      setProfileImagePreview(data.profile_image || data.profile_pic || "");
       setBannerImagePreview(data.banner_image || "");
     } catch (error) {
       console.error("Error loading vendor data:", error);
@@ -55,7 +61,45 @@ const EditVendorProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadVendorData();
+  }, [loadVendorData]);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!form.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(form.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [form.state]);
 
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
@@ -78,17 +122,27 @@ const EditVendorProfilePage = () => {
   };
 
   const handleSave = async () => {
+    if (!form.state || !form.lga || !form.address) {
+      toast.error("State, LGA and Address are required");
+      return;
+    }
     setSaving(true);
     try {
       await updateFoodVendor({
         shop_name: form.shop_name,
         description: form.description,
         address: form.address,
+        state: form.state,
+        lga: form.lga,
         category: form.category,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
-        banner_image: bannerImageFile || null,
-        profile_image: profileImageFile || null,
+        profile_image:
+          profileImageFile ||
+          vendorData?.profile_image ||
+          vendorData?.image_url ||
+          null,
+        banner_image: bannerImageFile || vendorData?.banner_image || null,
       });
       toast.success("Vendor profile updated successfully!");
       dispatch(fetchProfile());
@@ -131,34 +185,36 @@ const EditVendorProfilePage = () => {
       <div className="p-4 space-y-6">
         {/* Banner Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700  mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Banner Image
           </label>
-          <div className="relative h-40 bg-gray-100  rounded-xl overflow-hidden">
-            {bannerImagePreview ? (
-              <img
-                src={bannerImagePreview}
-                alt="Banner"
-                className="w-full h-full object-cover"
+          <div className="flex items-center gap-4">
+            <div className="relative w-full h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+              {bannerImagePreview ? (
+                <img
+                  src={bannerImagePreview}
+                  alt="Banner"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No banner image
+                </div>
+              )}
+              <label
+                htmlFor="banner-upload"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer opacity-0 hover:opacity-100 transition-opacity"
+              >
+                <Camera size={24} className="text-white" />
+              </label>
+              <input
+                id="banner-upload"
+                type="file"
+                onChange={handleBannerImageChange}
+                accept="image/*"
+                className="hidden"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                No banner image
-              </div>
-            )}
-            <label
-              htmlFor="banner-upload"
-              className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer opacity-0 hover:opacity-100 transition-opacity"
-            >
-              <Camera size={24} className="text-white" />
-            </label>
-            <input
-              id="banner-upload"
-              type="file"
-              onChange={handleBannerImageChange}
-              accept="image/*"
-              className="hidden"
-            />
+            </div>
           </div>
         </div>
 
@@ -212,6 +268,50 @@ const EditVendorProfilePage = () => {
             className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
             placeholder="Enter shop name"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* State Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              State
+            </label>
+            <select
+              value={form.state}
+              onChange={(e) => {
+                setForm({ ...form, state: e.target.value, lga: "" });
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              LGA
+            </label>
+            <select
+              value={form.lga}
+              onChange={(e) => handleChange("lga", e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              disabled={lgasLoading || !form.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Description */}

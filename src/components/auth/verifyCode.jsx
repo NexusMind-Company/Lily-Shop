@@ -3,26 +3,18 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 
+import { api } from "../../services/api";
+
 // API call to verify code
 const verifyCodeApi = async ({ contact, code }) => {
-  const res = await fetch("/api/verify-code", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact, code }),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const res = await api.post("/api/verify-code", { contact, code });
+  return res.data;
 };
 
 // API call to resend code
 const resendCodeApi = async (contact) => {
-  const res = await fetch("/api/send-code", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contact }),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const res = await api.post("/api/send-code", { contact });
+  return res.data;
 };
 
 const VerifyCode = () => {

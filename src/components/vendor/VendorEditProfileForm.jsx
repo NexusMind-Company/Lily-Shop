@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { api, updateFoodVendor } from "../../services/api";
+import {
+  updateFoodVendor,
+  fetchStates,
+  fetchLgas,
+  fetchVendorProfileFormData,
+} from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
 import { X } from "lucide-react";
 
@@ -14,8 +18,13 @@ const VALIDATION_RULES = {
   },
   description: { required: true, requiredMessage: "Description is required." },
   address: {
-    required: true,
-    requiredMessage: "Address is required.",
+    required: false,
+  },
+  state: {
+    required: false,
+  },
+  lga: {
+    required: false,
   },
   cuisine: { required: false, maxLength: 255 },
   contact_email: {
@@ -33,25 +42,18 @@ const VALIDATION_RULES = {
   },
 };
 
-const fetchFoodVendorProfile = async (vendorId) => {
-  if (!vendorId) return null;
-  const res = await api.get(`/foods/food-vendors/${vendorId}`);
-  return res.data;
-};
-
 const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const queryClient = useQueryClient();
-  const { data: profileData } = useSelector((state) => state.profile);
-  const { user_data } = useSelector((state) => state.auth);
 
-  const vendorId = profileData?.user?.vendor_id || user_data?.vendor_id;
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
 
   const { data: vendor, isLoading: vendorLoading } = useQuery({
-    queryKey: ["myVendorProfile", vendorId],
-    queryFn: () => fetchFoodVendorProfile(vendorId),
-    enabled: !!vendorId,
-    staleTime: 1000 * 60 * 10, // Keep data fresh for 10 minutes
-    retry: false, // Prevent multiple requests if the endpoint fails
+    queryKey: ["vendorProfileFormData"],
+    queryFn: fetchVendorProfileFormData,
+    retry: false,
   });
 
   const {
@@ -70,14 +72,80 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       contact_email: "",
       contact_phone: "",
       address: "",
+      state: "",
+      lga: "",
     },
     VALIDATION_RULES,
   );
 
-  const [bannerFile, setBannerFile] = useState(null);
   const [profileFile, setProfileFile] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!values.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(values.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [values.state]);
+
+  // Handle pre-filling state ID from name if needed
+  useEffect(() => {
+    if (states.length > 0 && values.state) {
+      const isId = states.some((s) => String(s.id) === String(values.state));
+      if (!isId) {
+        const stateByName = states.find(
+          (s) => s.name.toLowerCase() === String(values.state).toLowerCase(),
+        );
+        if (stateByName) {
+          setValues((prev) => ({ ...prev, state: stateByName.id }));
+        }
+      }
+    }
+  }, [states, values.state, setValues]);
+
+  // Handle pre-filling lga ID from name if needed
+  useEffect(() => {
+    if (lgas.length > 0 && values.lga) {
+      const isId = lgas.some((l) => String(l.id) === String(values.lga));
+      if (!isId) {
+        const lgaByName = lgas.find(
+          (l) => l.name.toLowerCase() === String(values.lga).toLowerCase(),
+        );
+        if (lgaByName) {
+          setValues((prev) => ({ ...prev, lga: lgaByName.id }));
+        }
+      }
+    }
+  }, [lgas, values.lga, setValues]);
 
   useEffect(() => {
     if (vendor) {
@@ -87,13 +155,18 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         description: vendor.description || "",
         contact_email: vendor.contact_email || "",
         contact_phone: vendor.contact_phone || "",
-        address: vendor.address || "",
+        address: vendor.address || vendor.street_address || "",
+        state: vendor.state || "",
+        lga: vendor.lga || "",
       });
-      if (vendor.image_url) {
-        setProfilePreview(vendor.image_url);
+      if (vendor.profile_image || vendor.image_url || vendor.profile_pic) {
+        setProfilePreview(
+          vendor.profile_image || vendor.image_url || vendor.profile_pic,
+        );
       }
-      // Note: banner_image might not be separate in the current response,
-      // but we'll handle it if it exists or if the user uploads a new one.
+      if (vendor.banner_image) {
+        setBannerPreview(vendor.banner_image);
+      }
     }
   }, [vendor, setValues]);
 
@@ -104,14 +177,17 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         category: data.cuisine,
         description: data.description,
         address: data.address,
+        state: data.state,
+        lga: data.lga,
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone,
-        banner_image: bannerFile,
-        profile_image: profileFile,
+        profile_image:
+          profileFile || vendor?.profile_image || vendor?.image_url || null,
+        banner_image: bannerFile || vendor?.banner_image || null,
       }),
     onSuccess: () => {
       toast.success("Profile updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["myVendorProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorProfileFormData"] });
       queryClient.invalidateQueries({ queryKey: ["vendorDashboardOverview"] });
       onSuccess?.();
     },
@@ -126,19 +202,19 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     updateProfile(validatedValues);
   };
 
-  const handleBannerChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleProfileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setProfileFile(file);
       setProfilePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
     }
   };
 
@@ -186,10 +262,65 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           )}
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* State Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              State
+            </label>
+            <select
+              name="state"
+              value={values.state}
+              onChange={(e) => {
+                handleChange(e);
+                setValues((prev) => ({ ...prev, lga: "" }));
+              }}
+              onBlur={handleBlur}
+              className={inputClass("state")}
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.state && (
+              <p className="text-red-500 text-xs mt-1.5">{fieldErrors.state}</p>
+            )}
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              LGA
+            </label>
+            <select
+              name="lga"
+              value={values.lga}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={inputClass("lga")}
+              disabled={lgasLoading || !values.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.lga && (
+              <p className="text-red-500 text-xs mt-1.5">{fieldErrors.lga}</p>
+            )}
+          </div>
+        </div>
+
         {/* Restaurant Address */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Restaurant Address <span className="text-red-500">*</span>
+            Restaurant Address
           </label>
           <input
             type="text"
@@ -296,48 +427,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         {/* Media */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Banner Image */}
-            <div>
-              <label className="block text-sm font-medium text-[#111813] mb-1.5">
-                Banner Image
-              </label>
-              <div className="flex flex-col gap-2 relative">
-                {bannerPreview ? (
-                  <div className="relative w-full h-36 rounded-xl overflow-hidden shadow-sm border border-black">
-                    <img
-                      src={bannerPreview}
-                      alt="Banner"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBannerFile(null);
-                        setBannerPreview(null);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-lily hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
-                    <span className="text-xs font-semibold text-gray-500 text-center px-4">
-                      Upload Banner (Optional)
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleBannerChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
             {/* Profile Image */}
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium text-[#111813] mb-1.5">
                 Logo / Profile
               </label>
@@ -369,6 +460,46 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
                       type="file"
                       accept="image/*"
                       onChange={handleProfileChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Banner Image */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-[#111813] mb-1.5">
+                Banner Image
+              </label>
+              <div className="flex flex-col gap-2 relative">
+                {bannerPreview ? (
+                  <div className="relative w-full h-36 rounded-xl overflow-hidden shadow-sm border border-black">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBannerFile(null);
+                        setBannerPreview(null);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-lily hover:bg-[#f6f8f6] transition-all rounded-xl cursor-pointer">
+                    <span className="text-xs font-semibold text-gray-500 text-center px-4">
+                      Upload Banner (Optional)
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerChange}
                       className="hidden"
                     />
                   </label>

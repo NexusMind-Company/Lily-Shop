@@ -70,7 +70,7 @@ const ReviewStars = ({ rating, size = 16, interactive = false, onRate }) => {
   );
 };
 
-const ReviewCard = ({ review, isLast }) => (
+const ReviewCard = ({ review, isLast, canEdit = false, onEdit, onDelete, onLike, isLiked = false, likeCount = 0 }) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
@@ -92,7 +92,7 @@ const ReviewCard = ({ review, isLast }) => (
             <div className="flex items-center gap-1">
               <ReviewStars rating={Number(review.rating || 0)} size={12} />
               <span className="text-xs font-bold text-amber-500 ml-0.5">
-                {Number(review.rating || 0).toFixed(1)}
+                {Number(review.rating || 0)}
               </span>
             </div>
           </div>
@@ -106,12 +106,47 @@ const ReviewCard = ({ review, isLast }) => (
             {review.comment}
           </p>
         )}
+
+        {/* Like and Action Buttons */}
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
+          <button
+            onClick={() => onLike && onLike(review.id)}
+            className="flex items-center gap-1 text-xs text-gray-600 hover:text-lily transition-colors"
+          >
+            <Star
+              size={14}
+              className={`${
+                isLiked
+                  ? "fill-lily text-lily"
+                  : "fill-gray-200 text-gray-400"
+              }`}
+            />
+            <span>{likeCount}</span>
+          </button>
+
+          {canEdit && (
+            <>
+              <button
+                onClick={() => onEdit && onEdit(review)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete && onDelete(review.id)}
+                className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   </motion.div>
 );
 
-const ReviewList = ({ reviews, onWriteReview }) => {
+const ReviewList = ({ reviews, onWriteReview, currentUserId, onReviewAction }) => {
   if (!reviews || reviews.length === 0) {
     return (
       <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-gray-200">
@@ -156,6 +191,12 @@ const ReviewList = ({ reviews, onWriteReview }) => {
             key={review.id}
             review={review}
             isLast={index === reviews.length - 1}
+            canEdit={currentUserId === review.user}
+            onEdit={onReviewAction?.onEdit}
+            onDelete={onReviewAction?.onDelete}
+            onLike={onReviewAction?.onLike}
+            isLiked={review.is_liked}
+            likeCount={review.like_count}
           />
         ))}
       </div>

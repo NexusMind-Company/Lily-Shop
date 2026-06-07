@@ -270,9 +270,8 @@ const CartModal = ({ isOpen, onClose }) => {
                       alt={item.product?.name || "Product"}
                       className="w-20 h-20 object-cover rounded-lg shrink-0"
                       onError={(e) => {
-                        if (!e.target.src.includes("/feed-image.png")) {
-                          e.target.src = "/feed-image.png";
-                        }
+                        e.target.onerror = null;
+                        e.target.src = "/feed-image.png";
                       }}
                     />
                   </div>

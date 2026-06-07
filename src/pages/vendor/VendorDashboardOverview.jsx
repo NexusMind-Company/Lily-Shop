@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
@@ -34,7 +33,9 @@ import {
   fetchSubscriberGrowth,
   fetchRecentActivity,
 } from "../../services/vendorDashboardApi";
+import { fetchVendorProfileFormData } from "../../services/api";
 import VendorEditProfileForm from "../../components/vendor/VendorEditProfileForm";
+import VendorDashboardHeader from "../../components/vendor/VendorDashboardHeader";
 
 const StatCard = ({ icon: Icon, label, value, color, sub, subUp }) => (
   // ... (StatCard implementation remains same)
@@ -100,11 +101,23 @@ const CustomTooltip = ({ active, payload, label }) => {
   }
   return null;
 };
-
 const VendorDashboardOverview = () => {
   const navigate = useNavigate();
-  const { data: profileData } = useSelector((state) => state.profile);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [headerStyle, setHeaderStyle] = useState(() => {
+    return localStorage.getItem("vendorHeaderStyle") || "hero";
+  });
+
+  const toggleHeaderStyle = () => {
+    const newStyle = headerStyle === "hero" ? "compact" : "hero";
+    setHeaderStyle(newStyle);
+    localStorage.setItem("vendorHeaderStyle", newStyle);
+  };
+
+  const { data: vendorProfile, refetch: refetchProfile } = useQuery({
+    queryKey: ["vendorProfileFormData"],
+    queryFn: fetchVendorProfileFormData,
+  });
 
   const {
     data: overview,
@@ -174,6 +187,7 @@ const VendorDashboardOverview = () => {
             onSuccess={() => {
               setShowEditProfile(false);
               refetchOverview();
+              refetchProfile();
             }}
           />
         </div>
@@ -183,13 +197,12 @@ const VendorDashboardOverview = () => {
 
   return (
     <VendorLayout title="Overview">
-      {/* Welcome Area */}
-      <div className="flex items-center gap-2 mb-6">
-        <p className="text-xl text-gray-400 font-medium">Welcome back 👋</p>
-        <h2 className="text-2xl font-bold text-black">
-          {o.vendor_name ?? profileData?.user?.username ?? "Vendor"}
-        </h2>
-      </div>
+      <VendorDashboardHeader
+        profile={vendorProfile}
+        style={headerStyle}
+        onToggle={toggleHeaderStyle}
+        onEdit={() => setShowEditProfile(true)}
+      />
 
       {(growthError || activityError) && (
         <div className="bg-white border border-gray-900 rounded-xl px-4 py-2.5 mb-4">

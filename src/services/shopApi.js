@@ -378,12 +378,31 @@ export const createReview = async (data) => {
 };
 
 /**
+ * Fetch a specific review
+ * @param {string} reviewId - Review UUID
+ */
+export const fetchReviewById = async (reviewId) => {
+  const response = await api.get(`/shops/reviews/${reviewId}/`);
+  return response.data;
+};
+
+/**
  * Update a review
  * @param {string} reviewId - Review UUID
  * @param {Object} data - { rating, comment }
  */
 export const updateReview = async (reviewId, data) => {
   const response = await api.put(`/shops/reviews/${reviewId}/update/`, data);
+  return response.data;
+};
+
+/**
+ * Partially update a review
+ * @param {string} reviewId - Review UUID
+ * @param {Object} data - { rating?, comment? }
+ */
+export const partialUpdateReview = async (reviewId, data) => {
+  const response = await api.patch(`/shops/reviews/${reviewId}/update/`, data);
   return response.data;
 };
 
@@ -461,8 +480,10 @@ export default {
 
   // Reviews
   fetchShopReviews,
+  fetchReviewById,
   createReview,
   updateReview,
+  partialUpdateReview,
   deleteReview,
   toggleReviewLike,
   fetchUserReviews,
