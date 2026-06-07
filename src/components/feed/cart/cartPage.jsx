@@ -45,6 +45,8 @@ const CartPage = () => {
     (state) => state.wallet || {},
   );
 
+  const { user_data } = useSelector((state) => state.auth || {});
+
   const cartId = useSelector(selectCartId);
 
   useEffect(() => {
@@ -397,10 +399,31 @@ const CartPage = () => {
       return;
     }
 
-    const orderItems = itemsToCheckout.map((item) => ({
-      product_id: item.product?.id || item.product_id || item.id,
-      quantity: parseInt(item.quantity, 10),
-    }));
+    const orderItems = itemsToCheckout
+      .map((item) => {
+        // For direct buy: product_id is explicitly set on the item object in itemsToCheckout.
+        // For cart items: item.product.id is the actual Product UUID.
+        // NEVER fall back to item.id — that is the CartItem or post/content UUID, not the Product UUID.
+        const productId =
+          item.product?.id ||   // cart items: nested product object has the real UUID
+          item.product_id ||    // direct buy: explicitly set when building itemsToCheckout
+          null;                 // no item.id fallback — it resolves to the wrong ID
+
+        if (!productId) {
+          console.warn("Missing product ID for item:", item);
+        }
+
+        return {
+          product_id: productId,
+          quantity: parseInt(item.quantity, 10) || 1,
+        };
+      })
+      .filter((item) => item.product_id); // Filter out any items that failed to resolve a product ID
+
+    if (orderItems.length === 0) {
+      alert("No valid items found for checkout. Please try again.");
+      return;
+    }
 
     let apiPaymentMethod = "paystack";
     if (paymentMethod === "wallet") {
@@ -414,19 +437,30 @@ const CartPage = () => {
       }
     }
 
+    // Surgical payload construction
     const orderData = {
       order_items: orderItems,
-      total_amount_kobo: Math.round(backendTotal * 100), // Convert Naira to Kobo for backend consistency
+      total_amount_kobo: Math.round(backendTotal * 100),
       payment_method: apiPaymentMethod,
       delivery_type: deliveryType,
-      delivery_fee_naira: finalDeliveryFee,
-      platform_fee_naira: finalPlatformFee,
+      delivery_fee_naira: Number(finalDeliveryFee) || 0,
+      platform_fee_naira: Number(finalPlatformFee) || 0,
     };
 
+    // ONLY send the relevant ID to prevent backend confusion/500s.
+    // Guard: only set if the ID is actually resolved — never send undefined to the backend.
     if (deliveryType === "delivery") {
-      orderData.delivery_address_id = selectedDelivery?.id;
+      if (!selectedDelivery?.id) {
+        alert("Please select a valid delivery address before proceeding.");
+        return;
+      }
+      orderData.delivery_address_id = selectedDelivery.id;
     } else if (deliveryType === "pickup") {
-      orderData.pickup_location_id = selectedPickup?.id;
+      if (!selectedPickup?.id) {
+        alert("Please select a valid pickup location before proceeding.");
+        return;
+      }
+      orderData.pickup_location_id = selectedPickup.id;
     }
 
     if (cartId) {
@@ -529,14 +563,12 @@ const CartPage = () => {
       .join(" ") ||
     userProfile?.fullName ||
     userProfile?.name ||
-    userProfile?.username ||
-    (userProfile?.email && userProfile.email.split("@")[0]) ||
+    user_data?.username ||
+    (user_data?.email && user_data.email.split("@")[0]) ||
     "Recipient";
 
   const userPhone =
     userProfile?.phone_number || userProfile?.phone || "No phone provided";
-
-  const savedCard = userProfile?.cards?.[0] || userProfile?.card;
 
   return (
     <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50 border-x border-gray-100">
@@ -566,13 +598,13 @@ const CartPage = () => {
                         item.mediaSrc ||
                         item.product?.image_url ||
                         item.product?.media_url ||
-                        "/placeholder-image.png"
+                        "/feed-image.png"
                       }
                       alt={item.productName || item.product?.name || "Product"}
                       className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/placeholder-image.png";
+                        e.target.src = "/feed-image.png";
                       }}
                     />
                     <div className="flex-1 space-y-1">
@@ -697,55 +729,6 @@ const CartPage = () => {
             Payment method
           </h3>
           <div className="space-y-5">
-            <div className="flex items-start">
-              <button
-                onClick={() => setPaymentMethod("card")}
-                className="mt-1 shrink-0 focus:outline-none"
-              >
-                {paymentMethod === "card" ? (
-                  <CheckCircle2 className="text-white fill-lily w-6 h-6" />
-                ) : (
-                  <Circle className="text-gray-400 w-6 h-6" />
-                )}
-              </button>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">Card</p>
-                {savedCard ? (
-                  <>
-                    <p className="text-sm text-gray-900 mt-1">
-                      **** **** **** {savedCard.last4}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      Exp: {savedCard.exp_month}/{savedCard.exp_year}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-600 mt-1">No card added</p>
-                )}
-                <button
-                  onClick={() =>
-                    navigate("/add-card", {
-                      state: { from: location.pathname },
-                    })
-                  }
-                  className="flex items-center text-pink font-medium text-sm mt-2 hover:opacity-80 transition-opacity focus:outline-none"
-                >
-                  <Plus size={16} className="mr-1" strokeWidth={3} /> Add new
-                  card
-                </button>
-              </div>
-              <button
-                onClick={() =>
-                  navigate("/choose-card", {
-                    state: { from: location.pathname },
-                  })
-                }
-                className="text-gray-400 mt-2 hover:text-gray-700"
-              >
-                <ChevronRight size={24} />
-              </button>
-            </div>
-
             <div
               className="flex items-center cursor-pointer"
               onClick={() => setPaymentMethod("bank")}
