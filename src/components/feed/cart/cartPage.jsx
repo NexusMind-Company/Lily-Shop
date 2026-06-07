@@ -405,9 +405,9 @@ const CartPage = () => {
         // For cart items: item.product.id is the actual Product UUID.
         // NEVER fall back to item.id — that is the CartItem or post/content UUID, not the Product UUID.
         const productId =
-          item.product?.id ||   // cart items: nested product object has the real UUID
-          item.product_id ||    // direct buy: explicitly set when building itemsToCheckout
-          null;                 // no item.id fallback — it resolves to the wrong ID
+          item.product?.id || // cart items: nested product object has the real UUID
+          item.product_id || // direct buy: explicitly set when building itemsToCheckout
+          null; // no item.id fallback — it resolves to the wrong ID
 
         if (!productId) {
           console.warn("Missing product ID for item:", item);
