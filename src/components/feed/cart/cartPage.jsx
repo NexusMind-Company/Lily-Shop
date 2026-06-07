@@ -401,10 +401,13 @@ const CartPage = () => {
 
     const orderItems = itemsToCheckout
       .map((item) => {
-        // Crucial: Ensure we get the actual product UUID.
-        // Cart items have a top-level 'id' which is the CartItem UUID, not the Product UUID.
+        // For direct buy: product_id is explicitly set on the item object in itemsToCheckout.
+        // For cart items: item.product.id is the actual Product UUID.
+        // NEVER fall back to item.id — that is the CartItem or post/content UUID, not the Product UUID.
         const productId =
-          item.product?.id || item.product_id || (isDirectBuy ? item.id : null);
+          item.product?.id ||   // cart items: nested product object has the real UUID
+          item.product_id ||    // direct buy: explicitly set when building itemsToCheckout
+          null;                 // no item.id fallback — it resolves to the wrong ID
 
         if (!productId) {
           console.warn("Missing product ID for item:", item);
@@ -444,11 +447,20 @@ const CartPage = () => {
       platform_fee_naira: Number(finalPlatformFee) || 0,
     };
 
-    // ONLY send the relevant ID to prevent backend confusion/500s
+    // ONLY send the relevant ID to prevent backend confusion/500s.
+    // Guard: only set if the ID is actually resolved — never send undefined to the backend.
     if (deliveryType === "delivery") {
-      orderData.delivery_address_id = selectedDelivery?.id;
+      if (!selectedDelivery?.id) {
+        alert("Please select a valid delivery address before proceeding.");
+        return;
+      }
+      orderData.delivery_address_id = selectedDelivery.id;
     } else if (deliveryType === "pickup") {
-      orderData.pickup_location_id = selectedPickup?.id;
+      if (!selectedPickup?.id) {
+        alert("Please select a valid pickup location before proceeding.");
+        return;
+      }
+      orderData.pickup_location_id = selectedPickup.id;
     }
 
     if (cartId) {
