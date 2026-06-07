@@ -144,7 +144,7 @@ const SignUp = () => {
 
       {/* Page Title */}
       <h2 className="font-poppins font-bold text-black text-xl/[30px]">
-        <span className="border-b-[2px] border-solid pb-[2px] border-lily">
+        <span className="border-b-2 border-solid pb-0.5 border-lily">
           Regis
         </span>
         ter
@@ -162,7 +162,7 @@ const SignUp = () => {
             onChange={handleChange}
             placeholder="Enter email"
             disabled={loading || registrationSuccess}
-            className={`input rounded-[7px] h-[46px] w-full px-4 ${
+            className={`input rounded-[7px] h-11.5 w-full px-4 ${
               validationErrors.email_or_phonenumber ? "border-red-500" : ""
             }`}
           />
@@ -183,7 +183,7 @@ const SignUp = () => {
               onChange={handleChange}
               placeholder="Create a password"
               disabled={loading || registrationSuccess}
-              className={`input rounded-[7px] h-[46px] w-full px-4 pr-10 ${
+              className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
                 validationErrors.password ? "border-red-500" : ""
               }`}
             />
@@ -218,7 +218,7 @@ const SignUp = () => {
               onChange={handleChange}
               placeholder="Confirm your password"
               disabled={loading || registrationSuccess}
-              className={`input rounded-[7px] h-[46px] w-full px-4 pr-10 ${
+              className={`input rounded-[7px] h-11.5 w-full px-4 pr-10 ${
                 validationErrors.confirmPassword ? "border-red-500" : ""
               }`}
             />
@@ -272,7 +272,7 @@ const SignUp = () => {
         <button
           type="submit"
           disabled={loading || registrationSuccess}
-          className={`h-[46px] rounded-full font-bold text-white mt-2 ${
+          className={`h-11.5 rounded-full font-bold text-white mt-2 ${
             loading || registrationSuccess
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-lily hover:bg-darklily"
