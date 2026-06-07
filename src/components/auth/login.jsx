@@ -15,6 +15,7 @@ const Login = () => {
 
   const [formData, setFormData] = useState({ login: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -45,6 +46,11 @@ const Login = () => {
   // 7. Robust handleSubmit with validation
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!policyAccepted) {
+      toast.error("Please agree to the Privacy Policy to continue.");
+      return;
+    }
 
     // Basic validation to prevent empty space submission
     if (!formData.login.trim() || !formData.password.trim()) {
@@ -117,6 +123,25 @@ const Login = () => {
           </button>
         </div>
 
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="policyAccepted"
+            checked={policyAccepted}
+            onChange={(e) => setPolicyAccepted(e.target.checked)}
+            className="size-4 accent-lily cursor-pointer"
+          />
+          <label
+            htmlFor="policyAccepted"
+            className="text-sm font-medium cursor-pointer"
+          >
+            I agree to the{" "}
+            <Link to="/about" className="text-lily underline">
+              Privacy Policy
+            </Link>
+          </label>
+        </div>
+
         {/* Login Button UI from snippet 2, logic from snippet 1 */}
         <button
           type="submit"
@@ -151,6 +176,19 @@ const Login = () => {
           </Link>
         </div>
       </form>
+
+      {/* Localized Footer */}
+      <footer className="mt-auto py-6 border-t border-gray-100">
+        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Terms & Conditions
+          </Link>
+        </div>
+      </footer>
     </section>
   );
 };

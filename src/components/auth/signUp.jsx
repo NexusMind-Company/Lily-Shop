@@ -8,18 +8,21 @@ import { toast } from "react-hot-toast";
 const SignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Using authSlice state for consistency with Login
-  const { loading, error, registrationSuccess } = useSelector((state) => state.auth);
+  const { loading, error, registrationSuccess } = useSelector(
+    (state) => state.auth,
+  );
 
   const [formData, setFormData] = useState({
     email_or_phonenumber: "",
     password: "",
     confirmPassword: "", // Added from snippet 1
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
   // Clear error when component unmounts
@@ -92,6 +95,10 @@ const SignUp = () => {
       errors.confirmPassword = "Passwords do not match";
     }
 
+    if (!policyAccepted) {
+      errors.policy = "Please agree to the Privacy Policy";
+    }
+
     return errors;
   };
 
@@ -101,6 +108,9 @@ const SignUp = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
+      if (errors.policy) {
+        toast.error(errors.policy);
+      }
       return;
     }
 
@@ -108,7 +118,7 @@ const SignUp = () => {
       registerUser({
         email_or_phonenumber: formData.email_or_phonenumber,
         password: formData.password,
-      })
+      }),
     );
   };
 
@@ -116,7 +126,8 @@ const SignUp = () => {
   const getPasswordStrength = (password) => {
     if (!password) return { text: "", color: "" };
     if (password.length < 6) return { text: "Weak", color: "text-red-500" };
-    if (password.length < 10) return { text: "Medium", color: "text-yellow-500" };
+    if (password.length < 10)
+      return { text: "Medium", color: "text-yellow-500" };
     return { text: "Strong", color: "text-green-500" };
   };
 
@@ -186,7 +197,9 @@ const SignUp = () => {
             </button>
           </div>
           {validationErrors.password && (
-            <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {validationErrors.password}
+            </p>
           )}
           {formData.password && !validationErrors.password && (
             <p className={`text-xs mt-1 ${passwordStrength.color}`}>
@@ -215,7 +228,11 @@ const SignUp = () => {
               disabled={loading || registrationSuccess}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ash"
             >
-              {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              {showConfirmPassword ? (
+                <FiEyeOff size={20} />
+              ) : (
+                <FiEye size={20} />
+              )}
             </button>
           </div>
           {validationErrors.confirmPassword && (
@@ -232,6 +249,25 @@ const SignUp = () => {
             )}
         </div>
 
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="policyAccepted"
+            checked={policyAccepted}
+            onChange={(e) => setPolicyAccepted(e.target.checked)}
+            className="size-4 accent-lily cursor-pointer"
+          />
+          <label
+            htmlFor="policyAccepted"
+            className="text-sm font-medium cursor-pointer"
+          >
+            I agree to the{" "}
+            <Link to="/about" className="text-lily underline">
+              Privacy Policy
+            </Link>
+          </label>
+        </div>
+
         {/* Submit */}
         <button
           type="submit"
@@ -242,7 +278,11 @@ const SignUp = () => {
               : "bg-lily hover:bg-darklily"
           }`}
         >
-          {loading ? "REGISTERING..." : registrationSuccess ? "SUCCESS!" : "REGISTER"}
+          {loading
+            ? "REGISTERING..."
+            : registrationSuccess
+              ? "SUCCESS!"
+              : "REGISTER"}
         </button>
       </form>
 
@@ -253,6 +293,19 @@ const SignUp = () => {
           <span className="text-lily font-bold underline">Log In</span>
         </Link>
       </div>
+
+      {/* Localized Footer */}
+      <footer className="mt-auto py-6 border-t border-gray-100">
+        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link to="/about" className="hover:text-lily transition-colors">
+            Terms & Conditions
+          </Link>
+        </div>
+      </footer>
     </section>
   );
 };

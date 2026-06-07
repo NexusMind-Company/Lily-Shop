@@ -252,6 +252,7 @@ function App() {
             path="/password-reset/:token"
             element={<ResetPasswordPage />}
           />
+          <Route path="/about" element={<About />} />
           <Route element={<FeedLayout />}>
             <Route path="/" element={<Feed />} />
             <Route path="/feed" element={<Navigate to="/" replace />} />
@@ -325,7 +326,6 @@ function App() {
               <Route path="/verify" element={<VerificationPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/editProfile" element={<EditProfile />} />
-              <Route path="/about" element={<About />} />
 
               {/* Inbox & Social */}
               <Route path="/inbox" element={<InboxPage />} />
