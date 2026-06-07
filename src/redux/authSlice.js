@@ -10,11 +10,11 @@ export const loginUser = createAsyncThunk(
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
       // FIX: STRICT PAYLOAD.
-      // The backend ONLY accepts 'login' and 'password'.
-      // Any extra fields (like 'email' or 'username') will cause a 400 Bad Request.
+      // The backend ONLY accepts 'login', 'password', and optionally 'remember_me'.
       const payload = {
         login: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
+        remember_me: !!credentials.remember_me,
       };
 
       // console.log("Sending Login Payload:", payload); // Debugging log
@@ -34,9 +34,15 @@ export const loginUser = createAsyncThunk(
         setAuthTokens({ access: data.token, refresh: data.token });
       }
 
-      // ---- Save user info ----
+      // ---- Save user info & remember_me status ----
       if (data.user) {
         localStorage.setItem("user_data", JSON.stringify(data.user));
+      }
+
+      if (payload.remember_me) {
+        localStorage.setItem("remember_login", payload.login);
+      } else {
+        localStorage.removeItem("remember_login");
       }
 
       // Fetch full profile safely

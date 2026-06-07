@@ -440,27 +440,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                 </div>
               </div>
             )}
-            <div className="px-2">
-              <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest mb-4">
-                Trending
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "#AsoEbi",
-                  "Healthy Meal Plans",
-                  "Lagos Vendors",
-                  "Discounted Bags",
-                ].map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => setSearchTerm(tag.replace("#", ""))}
-                    className="px-4 py-2 bg-lily/5 text-lily border border-lily/20 rounded-full text-sm font-bold hover:bg-lily/10 transition-all"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         );
       }
@@ -512,31 +491,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               No meal plans found
             </p>
           )
-        );
-      case "Recent":
-        return (
-          <div className="flex flex-col divide-y divide-gray-50">
-            {recentSearches.map((term) => (
-              <div
-                key={term}
-                className="flex items-center justify-between py-4 px-2 hover:bg-gray-50 transition-all cursor-pointer group"
-                onClick={() => setSearchTerm(term)}
-              >
-                <div className="flex items-center gap-3">
-                  <Search size={16} className="text-gray-300" />
-                  <span className="text-gray-700 font-medium">{term}</span>
-                </div>
-                <X
-                  size={16}
-                  className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeRecent(term);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
         );
       default:
         return null;
@@ -600,27 +554,31 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-white">
               {/* Tabs */}
               <div className="flex space-x-6 px-6 pt-4 border-b border-gray-50 overflow-x-auto no-scrollbar shrink-0">
-                {["Top", "Products", "Contents", "Food Vendors", "Recent"].map(
-                  (tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-3 font-black text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
-                        activeTab === tab
-                          ? "text-lily"
-                          : "text-gray-300 hover:text-gray-600"
-                      }`}
-                    >
-                      {tab}
-                      {activeTab === tab && (
-                        <motion.div
-                          layoutId="activeTab"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
-                        />
-                      )}
-                    </button>
-                  ),
-                )}
+                {[
+                  "Top",
+                  "Products",
+                  "Contents",
+                  "Food Vendors",
+                  "Meal Plans",
+                ].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-3 font-black text-sm transition-colors relative cursor-pointer whitespace-nowrap ${
+                      activeTab === tab
+                        ? "text-lily"
+                        : "text-gray-300 hover:text-gray-600"
+                    }`}
+                  >
+                    {tab}
+                    {activeTab === tab && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-lily"
+                      />
+                    )}
+                  </button>
+                ))}
               </div>
 
               {/* Dynamic Content */}

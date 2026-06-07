@@ -13,9 +13,14 @@ const Login = () => {
     (state) => state.auth,
   );
 
-  const [formData, setFormData] = useState({ login: "", password: "" });
+  const [formData, setFormData] = useState({
+    login: localStorage.getItem("remember_login") || "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [policyAccepted, setPolicyAccepted] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(
+    localStorage.getItem("policy_accepted") === "true",
+  );
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -32,10 +37,10 @@ const Login = () => {
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     if (error) {
@@ -57,10 +62,13 @@ const Login = () => {
       return;
     }
 
-    const resultAction = await dispatch(loginUser(formData));
+    const resultAction = await dispatch(
+      loginUser({ ...formData, remember_me: policyAccepted }),
+    );
 
     if (loginUser.fulfilled.match(resultAction)) {
       toast.success("Login successful!");
+      localStorage.setItem("policy_accepted", "true");
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/");
