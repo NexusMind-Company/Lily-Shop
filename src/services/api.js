@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://lily-shops-8636e768f6f5.herokuapp.com/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://api.lilyshops.com/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
