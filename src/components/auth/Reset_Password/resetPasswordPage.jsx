@@ -99,7 +99,7 @@ const ResetPasswordPage = () => {
   );
 
   const Footer = () => (
-    <footer className="mt-auto py-6 border-t border-gray-100">
+    <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
       <div className="flex justify-center gap-4 text-xs font-medium text-ash">
         <Link to="/about" className="hover:text-lily transition-colors">
           Privacy Policy
@@ -115,7 +115,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 1: VERIFYING TOKEN
   if (isVerifying) {
     return (
-      <section className="mt-15 flex flex-col items-center justify-center min-h-screen px-7 max-w-3xl mx-auto text-center">
+      <section className="min-h-screen flex flex-col items-center justify-center px-7 max-w-3xl mx-auto text-center relative pb-20">
         <Header />
         <div className="w-12 h-12 border-4 border-lily border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-ash font-medium">Verifying your reset link...</p>
@@ -127,7 +127,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 2: INVALID TOKEN / ERROR
   if (status === "failed" && !isTokenValid) {
     return (
-      <section className="mt-15 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+      <section className="min-h-screen flex flex-col gap-7 px-7 max-w-3xl mx-auto relative pb-20">
         <Header />
         <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
           <span className="border-b-2 border-solid pb-0.5 border-lily">
@@ -158,7 +158,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 3: SUCCESS STATE
   if (isSuccess) {
     return (
-      <section className="mt-15 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+      <section className="min-h-screen flex flex-col gap-7 px-7 max-w-3xl mx-auto relative pb-20">
         <Header />
         <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
           <span className="border-b-2 border-solid pb-0.5 border-lily">
@@ -176,7 +176,7 @@ const ResetPasswordPage = () => {
 
   // 🔹 STATE 4: RESET PASSWORD FORM (Default)
   return (
-    <section className="mt-15 flex flex-col gap-7 px-7 min-h-screen max-w-3xl mx-auto">
+    <section className="min-h-screen flex flex-col gap-7 px-7 max-w-3xl mx-auto relative pb-20">
       <Header />
 
       <h2 className="font-poppins font-bold text-black text-xl/[30px] mt-20">
