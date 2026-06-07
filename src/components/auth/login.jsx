@@ -81,7 +81,7 @@ const Login = () => {
   };
 
   return (
-    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
+    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-500">
       {/* Header */}
       <div className="flex items-center bg-white absolute top-0 right-0 h-16 px-3 md:px-6 w-full shadow-ash shadow z-40">
         <div className="max-w-3xl mx-auto w-full">

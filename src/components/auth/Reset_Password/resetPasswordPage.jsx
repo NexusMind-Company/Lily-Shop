@@ -117,7 +117,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 1: VERIFYING TOKEN
   if (isVerifying) {
     return (
-      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px] items-center justify-center text-center">
+      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-500 items-center justify-center text-center">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-7 max-w-3xl mx-auto w-full mt-24">
           <div className="w-12 h-12 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
@@ -131,7 +131,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 2: INVALID TOKEN / ERROR
   if (status === "failed" && !isTokenValid) {
     return (
-      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
+      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-500">
         <Header />
         <div className="flex-1 flex flex-col gap-7 px-7 max-w-3xl mx-auto w-full mt-24">
           <h2 className="font-poppins font-bold text-black text-xl/[30px]">
@@ -164,7 +164,7 @@ const ResetPasswordPage = () => {
   // 🔹 STATE 3: SUCCESS STATE
   if (isSuccess) {
     return (
-      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
+      <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-500">
         <Header />
         <div className="flex-1 flex flex-col gap-7 px-7 max-w-3xl mx-auto w-full mt-24">
           <h2 className="font-poppins font-bold text-black text-xl/[30px]">
@@ -184,7 +184,7 @@ const ResetPasswordPage = () => {
 
   // 🔹 STATE 4: RESET PASSWORD FORM (Default)
   return (
-    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-[2000px]">
+    <section className="min-h-screen mx-auto relative pb-20 flex flex-col max-w-500">
       <Header />
 
       <div className="flex-1 flex flex-col gap-7 px-7 max-w-3xl mx-auto w-full mt-24">

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Search, X, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchAllFeed,
   fetchProducts,
   searchShops,
   searchContents,
@@ -155,13 +154,6 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     enabled:
       !!debouncedSearchTerm &&
       (activeTab === "Top" || activeTab === "Meal Plans"),
-    select: extractArray,
-  });
-
-  const { data: topFeed, isLoading: isLoadingTopFeed } = useQuery({
-    queryKey: ["feed", "forYou"],
-    queryFn: fetchAllFeed,
-    enabled: activeTab === "Top" && !debouncedSearchTerm,
     select: extractArray,
   });
 
@@ -377,7 +369,13 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       foodVendorResults?.length > 0 ||
       mealPlanResults?.length > 0;
 
-    if (!hasAny && !isSearchingProducts && !isSearchingContents) {
+    if (
+      !hasAny &&
+      !isSearchingProducts &&
+      !isSearchingContents &&
+      !isSearchingFoodVendors &&
+      !isSearchingMealPlans
+    ) {
       return (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <Search size={40} className="mb-2 opacity-20" />
@@ -450,7 +448,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       );
     }
 
-    if (isSearchingProducts || isSearchingContents) {
+    if (
+      isSearchingProducts ||
+      isSearchingContents ||
+      isSearchingFoodVendors ||
+      isSearchingMealPlans
+    ) {
       return (
         <div className="space-y-6">
           <SearchSuggestionSkeleton />
@@ -505,7 +508,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-white md:bg-black/40 backdrop-blur-sm flex justify-center items-end md:items-center p-0 md:p-6"
+          className="fixed inset-0 z-9999 bg-white md:bg-black/40 backdrop-blur-sm flex justify-center items-end md:items-center p-0 md:p-6"
           onClick={onClose}
         >
           <motion.div
