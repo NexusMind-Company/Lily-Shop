@@ -477,7 +477,7 @@ const PostDetailOverlay = ({
     return (
       <div
         id={`post-${item.id}`}
-        className="bg-[#fffae7] border-b border-gray-100 last:border-b-0 pb-6"
+        className="bg-white border-b border-gray-100 last:border-b-0 pb-6"
       >
         {/* Post Header */}
         <div className="flex items-center justify-between p-3">
@@ -485,7 +485,7 @@ const PostDetailOverlay = ({
             <img
               src={item.userpic || "/profile-icon.svg"}
               alt={item.username}
-              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+              className="w-8 h-8 rounded-full object-cover border border-gray-100"
             />
             <span className="font-bold text-sm">@{item.username}</span>
           </div>
@@ -501,7 +501,7 @@ const PostDetailOverlay = ({
         </div>
 
         {/* Media */}
-        <div className="w-full bg-[#fffae7] aspect-square flex items-center justify-center overflow-hidden">
+        <div className="w-full bg-white aspect-square flex items-center justify-center overflow-hidden">
           {itemIsVideo ? (
             <video
               src={itemMediaSrc}
@@ -570,7 +570,7 @@ const PostDetailOverlay = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 md:p-4 lg:p-10"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-0 md:p-4 lg:p-10"
       onClick={onClose}
     >
       {/* Close Button - Desktop Only */}
@@ -602,11 +602,11 @@ const PostDetailOverlay = ({
       {/* Main Container */}
       <div
         ref={containerRef}
-        className="flex flex-col md:flex-row w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#fffae7] overflow-y-auto md:overflow-hidden md:rounded-xl shadow-2xl relative"
+        className="flex flex-col md:flex-row w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-white overflow-y-auto md:overflow-hidden md:rounded-2xl shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Title Bar */}
-        <div className="flex md:hidden items-center justify-between p-4 border-b border-gray-200 bg-[#fffae7] sticky top-0 z-30">
+        <div className="flex md:hidden items-center justify-between p-4 border-b border-gray-100 bg-white sticky top-0 z-30">
           <button onClick={onClose} className="p-1 -ml-1">
             <ChevronLeft size={28} className="text-black" />
           </button>
@@ -624,7 +624,7 @@ const PostDetailOverlay = ({
         {/* Desktop View: Side-by-Side (Hidden on Mobile) */}
         <div className="hidden md:flex w-full h-full">
           {/* Left Side: Media */}
-          <div className="w-full md:flex-1 bg-[#fffae7] flex items-center justify-center relative min-h-75 md:min-h-0">
+          <div className="w-full md:flex-1 bg-white flex items-center justify-center relative min-h-75 md:min-h-0">
             {isVideo ? (
               <video
                 src={mediaSrc}
@@ -644,14 +644,14 @@ const PostDetailOverlay = ({
           </div>
 
           {/* Right Side: Info & Comments */}
-          <div className="w-full md:w-112.5 bg-[#fffae7] flex flex-col md:border-l border-black text-black">
+          <div className="w-full md:w-112.5 bg-white flex flex-col md:border-l border-gray-100 text-black">
             {/* Header - Desktop Only */}
-            <div className="hidden md:flex p-4 items-center justify-between border-b border-black">
+            <div className="hidden md:flex p-4 items-center justify-between border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <img
                   src={post.userpic || "/profile-icon.svg"}
                   alt={post.username}
-                  className="w-10 h-10 rounded-full object-cover border border-black"
+                  className="w-10 h-10 rounded-full object-cover border border-gray-100"
                 />
                 <span className="font-bold text-[15px]">@{post.username}</span>
                 {currentUserId !== (post.user_id || post.user?.id) && (
@@ -686,7 +686,7 @@ const PostDetailOverlay = ({
                 <img
                   src={post.userpic || "/profile-icon.svg"}
                   alt={post.username}
-                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-black"
+                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-100"
                 />
                 <div className="text-[15px] leading-snug">
                   <span className="font-bold mr-2">@{post.username}</span>
@@ -727,7 +727,7 @@ const PostDetailOverlay = ({
             </div>
 
             {/* Footer: Actions & Input */}
-            <div className="p-4 border-t border-black space-y-3 bg-[#fffae7] relative">
+            <div className="p-4 border-t border-gray-100 space-y-3 bg-white relative">
               <div className="flex items-center justify-between">
                 <EngagementActions
                   item={post}
@@ -757,9 +757,9 @@ const PostDetailOverlay = ({
               {/* Comment Input */}
               <form
                 onSubmit={handleSubmitComment}
-                className="pt-3 flex items-center gap-3 border-t border-black mt-2"
+                className="pt-3 flex items-center gap-3 border-t border-gray-100 mt-2"
               >
-                <div className="w-8 h-8 rounded-full bg-[#fffae7] overflow-hidden shrink-0 border border-black">
+                <div className="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-gray-100">
                   {currentUser?.profile_pic && (
                     <img
                       src={currentUser.profile_pic}
@@ -807,33 +807,33 @@ const PostDetailOverlay = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#fffae7] rounded-xl overflow-hidden w-full max-w-sm z-10 border border-black"
+              className="bg-white rounded-2xl overflow-hidden w-full max-w-sm z-10 border border-gray-100"
             >
               {currentUserId === post.user_id ? (
                 <>
                   <button
                     onClick={handleDeletePost}
                     disabled={isDeleting}
-                    className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-[#fffae7] transition-colors disabled:opacity-50"
+                    className="w-full py-4 text-red-600 font-bold border-b border-gray-100 hover:bg-white transition-colors disabled:opacity-50"
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="w-full py-4 text-red-600 font-bold border-b border-black hover:bg-[#fffae7] transition-colors">
+                  <button className="w-full py-4 text-red-600 font-bold border-b border-gray-100 hover:bg-white transition-colors">
                     Report
                   </button>
-                  <button className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors">
+                  <button className="w-full py-4 text-black border-b border-gray-100 hover:bg-white transition-colors">
                     Unfollow
                   </button>
                 </>
               )}
-              <button className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors">
+              <button className="w-full py-4 text-black border-b border-gray-100 hover:bg-white transition-colors">
                 Share to...
               </button>
               <button
-                className="w-full py-4 text-black border-b border-black hover:bg-[#fffae7] transition-colors"
+                className="w-full py-4 text-black border-b border-gray-100 hover:bg-white transition-colors"
                 onClick={() => {
                   const postUrl = `${window.location.origin}/product/${post.id}`;
                   navigator.clipboard.writeText(postUrl);
@@ -844,7 +844,7 @@ const PostDetailOverlay = ({
                 Copy link
               </button>
               <button
-                className="w-full py-4 text-black font-bold hover:bg-[#fffae7] transition-colors"
+                className="w-full py-4 text-black font-bold hover:bg-white transition-colors"
                 onClick={() => setShowDropdown(false)}
               >
                 Cancel
