@@ -815,10 +815,10 @@ const appendVendorMedia = (formData, vendorData = {}) => {
 
 export const createFoodVendor = async (vendorData) => {
   const formData = new FormData();
-  formData.append("name", vendorData.shop_name);
+  formData.append("name", vendorData.name || vendorData.shop_name);
   formData.append("description", vendorData.description);
-  formData.append("street_address", vendorData.address);
-  formData.append("cuisine", vendorData.category);
+  formData.append("address", vendorData.address);
+  formData.append("cuisine", vendorData.cuisine || vendorData.category);
 
   if (vendorData.state !== undefined && vendorData.state !== null) {
     formData.append("state", vendorData.state);

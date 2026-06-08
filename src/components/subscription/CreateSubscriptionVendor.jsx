@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createSubscriptionVendor } from "../../redux/createSubscriptionVendorSlice";
+import { fetchStates, fetchLgas } from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
 import { toast } from "react-hot-toast";
 
@@ -12,6 +13,8 @@ const INITIAL_FORM_STATE = {
   contact_email: "",
   contact_phone: "",
   address: "",
+  state: "",
+  lga: "",
 };
 
 const VALIDATION_RULES = {
@@ -23,6 +26,8 @@ const VALIDATION_RULES = {
   cuisine: { required: false, maxLength: 255 },
   description: { required: false },
   address: { required: false },
+  state: { required: false },
+  lga: { required: false },
   contact_email: {
     required: false,
     email: true,
@@ -41,6 +46,11 @@ const CreateSubscriptionVendor = () => {
 
   const { user_data } = useSelector((state) => state.auth);
   const { data: profileData } = useSelector((state) => state.profile);
+
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
 
   // If already a vendor, redirect immediately — don't show the form
   const isAlreadyVendor = Boolean(
@@ -61,11 +71,46 @@ const CreateSubscriptionVendor = () => {
     handleBlur,
     handleSubmit: handleFormSubmit,
     resetForm,
+    setValues,
   } = useFormValidation(INITIAL_FORM_STATE, VALIDATION_RULES);
 
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [profileFile, setProfileFile] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      if (!values.state) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(values.state);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+    loadLgas();
+  }, [values.state]);
 
   useEffect(() => {
     return () => {
@@ -91,6 +136,8 @@ const CreateSubscriptionVendor = () => {
       contact_email: validatedTextValues.contact_email?.trim() || null,
       contact_phone: validatedTextValues.contact_phone?.trim() || null,
       address: validatedTextValues.address?.trim() || "",
+      state: validatedTextValues.state || null,
+      lga: validatedTextValues.lga || null,
       profile_image: profileFile,
     };
 
@@ -101,7 +148,7 @@ const CreateSubscriptionVendor = () => {
       resetForm();
 
       setTimeout(() => {
-        navigate("/profile");
+        navigate("/vendor/dashboard");
       }, 2000);
     } catch (err) {
       let errorMsg = "Failed to create food vendor. ";
@@ -138,11 +185,7 @@ const CreateSubscriptionVendor = () => {
         typeof err.payload === "string"
       ) {
         errorMsg = err.payload;
-      } else if (
-        err &&
-        typeof err === "object" &&
-        err.non_field_errors
-      ) {
+      } else if (err && typeof err === "object" && err.non_field_errors) {
         errorMsg = Array.isArray(err.non_field_errors)
           ? err.non_field_errors.join(". ")
           : err.non_field_errors;
@@ -257,6 +300,69 @@ const CreateSubscriptionVendor = () => {
               {fieldErrors.description}
             </p>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* State Select */}
+          <div>
+            <label
+              htmlFor="state"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              State
+            </label>
+            <select
+              id="state"
+              name="state"
+              value={values.state}
+              onChange={(e) => {
+                handleChange(e);
+                setValues((prev) => ({ ...prev, lga: "" }));
+              }}
+              onBlur={handleBlur}
+              className={inputClass("state")}
+              disabled={statesLoading}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.state && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>
+            )}
+          </div>
+
+          {/* LGA Select */}
+          <div>
+            <label
+              htmlFor="lga"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              LGA
+            </label>
+            <select
+              id="lga"
+              name="lga"
+              value={values.lga}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={inputClass("lga")}
+              disabled={lgasLoading || !values.state}
+            >
+              <option value="">Select LGA</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.lga && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.lga}</p>
+            )}
+          </div>
         </div>
 
         {/* Address */}
