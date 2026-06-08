@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { api } from "../../services/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import LoaderSd from "../loaders/loaderSd";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,14 +22,36 @@ import {
   Bookmark,
   UserSquare,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../redux/authSlice";
 import PostDetailOverlay from "./PostDetailOverlay";
 
 const API_BASE_URL = "//api.lilyshops.com";
 
 const ProfileOwner = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = parseInt(searchParams.get("tab") || "0", 10);
+  const likedFilter = searchParams.get("filter") || "products";
+
+  const setActiveTab = (tab) => {
+    setSearchParams(
+      (prev) => {
+        prev.set("tab", tab);
+        return prev;
+      },
+      { replace: true },
+    );
+  };
+
+  const setLikedFilter = (filter) => {
+    setSearchParams(
+      (prev) => {
+        prev.set("filter", filter);
+        return prev;
+      },
+      { replace: true },
+    );
+  };
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -237,7 +259,7 @@ const ProfileOwner = () => {
         (a, b) => new Date(b.created_at) - new Date(a.created_at),
       );
     },
-    enabled: !!user?.id && auth?.isAuthenticated && activeTab === 1,
+    enabled: !!user?.id && auth?.isAuthenticated && activeTab === 2,
   });
 
   const profileImageUrl = useMemo(() => {
@@ -582,15 +604,50 @@ const ProfileOwner = () => {
       {/* Grid Content */}
       <div className="w-full pt-1">
         {activeTab === 0 && renderGrid(userPosts, postsLoading, "No posts yet")}
-        {activeTab === 1 &&
-          renderGrid(likedPosts, likedLoading, "No saved posts")}
-        {activeTab === 2 && (
+        {activeTab === 1 && (
           <div className="w-full flex flex-col items-center py-20 text-gray-400">
-            <UserSquare size={64} className="mb-4 opacity-20" />
-            <p className="text-xl font-bold">Photos of you</p>
+            <Megaphone size={64} className="mb-4 opacity-20" />
+            <p className="text-xl font-bold">No promotions</p>
             <p className="text-sm">
-              When people tag you in photos, they'll appear here.
+              Your active ads and promotions will appear here.
             </p>
+          </div>
+        )}
+        {activeTab === 2 && (
+          <div className="w-full">
+            <div className="flex justify-center gap-4 py-4">
+              <button
+                onClick={() => setLikedFilter("products")}
+                className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  likedFilter === "products"
+                    ? "bg-lily text-white shadow-md shadow-lily/20"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Products
+              </button>
+              <button
+                onClick={() => setLikedFilter("contents")}
+                className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  likedFilter === "contents"
+                    ? "bg-lily text-white shadow-md shadow-lily/20"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Posts
+              </button>
+            </div>
+            {renderGrid(
+              likedPosts.filter((item) =>
+                likedFilter === "products"
+                  ? item.itemType === "product"
+                  : item.itemType === "content",
+              ),
+              likedLoading,
+              likedFilter === "products"
+                ? "No liked products"
+                : "No liked posts",
+            )}
           </div>
         )}
       </div>
