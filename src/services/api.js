@@ -1,73 +1,163 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://api.lilyshops.com/api";
+  import.meta.env.VITE_API_URL || "https://api.lilyshops.com";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 /* ---------------- AUTH UTILS ---------------- */
 export const setAuthTokens = ({ access, refresh }) => {
+  if (access) {
+    localStorage.setItem("access_token", access);
+    api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
+  }
+  if (refresh) {
+    localStorage.setItem("refresh_token", refresh);
+  }
+  // For compatibility with legacy parts of the app
   localStorage.setItem("auth_tokens", JSON.stringify({ access, refresh }));
-  // For compatibility with some parts of the app still checking for access_token
-  if (access) localStorage.setItem("access_token", access);
 };
 
 export const clearAuthTokens = () => {
-  localStorage.removeItem("auth_tokens");
   localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("auth_tokens");
   localStorage.removeItem("user_data");
+  delete api.defaults.headers.common["Authorization"];
+};
+
+// Global variables for token refresh queuing
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
 };
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const tokens = localStorage.getItem("auth_tokens");
-    if (tokens) {
-      const { access } = JSON.parse(tokens);
-      if (access) {
-        config.headers.Authorization = `Bearer ${access}`;
-      }
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh with queuing
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const tokens = localStorage.getItem("auth_tokens");
-        if (tokens) {
-          const { refresh } = JSON.parse(tokens);
-          const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
-            refresh,
-          });
-          const { access } = response.data;
-          localStorage.setItem(
-            "auth_tokens",
-            JSON.stringify({ access, refresh }),
-          );
-          originalRequest.headers.Authorization = `Bearer ${access}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // Handle refresh failure (e.g., logout user)
-        localStorage.removeItem("auth_tokens");
-        localStorage.removeItem("user_data");
+
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // Don't intercept 401s for password reset endpoints
+    if (originalRequest.url?.includes("/auth/password-reset/")) {
+      return Promise.reject(error);
+    }
+
+    const publicPaths = [
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/forgotPassword",
+      "/verify-email",
+      "/verify-code",
+      "/reset-password",
+      "/password-reset",
+    ];
+
+    const currentPath = window.location.pathname;
+    const isPublicPath =
+      currentPath === "/" ||
+      currentPath === "/feed" ||
+      publicPaths.some((path) => currentPath.includes(path));
+
+    // Handle failed refresh requests to prevent infinite loops
+    if (originalRequest._isRefreshRequest) {
+      isRefreshing = false;
+      processQueue(error, null);
+      clearAuthTokens();
+      if (!isPublicPath) {
         window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+
+    // If it's a 401 and not already retrying
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken) {
+        isRefreshing = false;
+        clearAuthTokens();
+        if (!isPublicPath) {
+          window.location.href = "/login";
+        }
+        return Promise.reject(new Error("No refresh token available"));
+      }
+
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/token/refresh/`,
+          {
+            refresh: refreshToken,
+          },
+          { _isRefreshRequest: true },
+        );
+
+        const { access } = response.data;
+        // Backend might also return a new refresh token (rotation)
+        const newRefresh = response.data.refresh;
+
+        setAuthTokens({ access, refresh: newRefresh || refreshToken });
+
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+
+        processQueue(null, access);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        clearAuthTokens();
+        if (!isPublicPath) {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   },
 );
