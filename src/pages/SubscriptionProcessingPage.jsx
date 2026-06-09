@@ -88,8 +88,10 @@ const SubscriptionProcessingPage = () => {
         saveSubscriptionSuccessState(successState);
         clearSubscriptionFlowState();
 
-        toast.success("Subscription active! Redirecting...");
-        navigate("/subscriptions", {
+        toast.success(
+          "Subscription active! Redirecting to customize your meals...",
+        );
+        navigate(`/meal-selection/${result?.subscription_id || result?.id}`, {
           replace: true,
           state: successState,
         });

@@ -15,6 +15,8 @@ import {
   FileText,
   AlertTriangle,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import VendorLayout from "../../components/vendor/VendorLayout";
 import {
@@ -23,6 +25,7 @@ import {
   getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
 import { fetchVendorSubscriptions } from "../../services/vendorDashboardApi";
+import { fetchSubscriptionCustomizations } from "../../services/api";
 
 const PLAN_TYPE_COLORS = {
   weekly: "bg-blue-100 text-blue-700",
@@ -73,7 +76,7 @@ const DetailRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex items-center gap-1.5 text-xs text-gray-400">
-        <Icon size={12} className="text-[#4eb75e]" />
+        {Icon && <Icon size={12} className="text-[#4eb75e]" />}
         {label}
       </span>
       <span
@@ -99,6 +102,8 @@ const DetailBlock = ({ label, value }) => {
 };
 
 const SubscriptionCard = ({ sub }) => {
+  const [isCustomizationExpanded, setIsCustomizationExpanded] = useState(false);
+
   const totalDays = sub.duration_days || 7;
   const daysLeft =
     sub.status === "active" && sub.end_date
@@ -118,17 +123,23 @@ const SubscriptionCard = ({ sub }) => {
     : "";
   const customerName = sub.customer_name || sub.user?.name || "Customer";
 
+  const { data: customizationsData, isLoading: customizationsLoading } =
+    useQuery({
+      queryKey: ["subscriptionCustomizations", sub.subscription_id || sub.id],
+      queryFn: () =>
+        fetchSubscriptionCustomizations(sub.subscription_id || sub.id),
+      enabled: isCustomizationExpanded,
+    });
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4eb75e]/10 text-sm font-bold text-[#4eb75e]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lily/10 text-sm font-bold text-lily">
             {customerName?.charAt(0) ?? "?"}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#111813] ">
-              {customerName}
-            </p>
+            <p className="text-sm font-bold text-[#111813] ">{customerName}</p>
             <p className="text-xs text-gray-500 ">
               {sub.plan_name || sub.subscription_plan || "Meal Plan"}
             </p>
@@ -192,9 +203,7 @@ const SubscriptionCard = ({ sub }) => {
           icon={UtensilsCrossed}
           label="Plates per Delivery"
           value={
-            sub.plates_per_delivery
-              ? `${sub.plates_per_delivery} plate(s)`
-              : ""
+            sub.plates_per_delivery ? `${sub.plates_per_delivery} plate(s)` : ""
           }
         />
         <DetailRow
@@ -208,7 +217,11 @@ const SubscriptionCard = ({ sub }) => {
           label="Delivery Days"
           value={preferredDays}
         />
-        <DetailRow icon={MapPin} label="Delivery Address" value={sub.customer_address || sub.address} />
+        <DetailRow
+          icon={MapPin}
+          label="Delivery Address"
+          value={sub.customer_address || sub.address}
+        />
       </div>
 
       <div className="mt-3 space-y-2">
@@ -220,28 +233,114 @@ const SubscriptionCard = ({ sub }) => {
           value={sub.special_instructions}
         />
         {sub.payment_reference && (
-          <DetailRow 
-            icon={FileText} 
-            label="Payment Ref" 
+          <DetailRow
+            icon={FileText}
+            label="Payment Ref"
             value={sub.payment_reference}
             valueClassName="font-mono text-xs"
           />
         )}
       </div>
 
+      {/* Customization Section */}
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <button
+          onClick={() => setIsCustomizationExpanded(!isCustomizationExpanded)}
+          className="flex items-center justify-between w-full text-sm font-semibold text-gray-700 hover:text-lily transition-colors"
+        >
+          <span>Customer Preferences</span>
+          {isCustomizationExpanded ? (
+            <ChevronUp size={16} />
+          ) : (
+            <ChevronDown size={16} />
+          )}
+        </button>
+
+        {isCustomizationExpanded && (
+          <div className="mt-3 space-y-3">
+            {customizationsLoading ? (
+              <div className="text-center py-4 text-xs text-gray-400">
+                Loading schedule...
+              </div>
+            ) : customizationsData?.results?.length > 0 ? (
+              customizationsData.results.map((cust) => (
+                <div
+                  key={cust.id}
+                  className="bg-gray-50 rounded-xl p-3 border border-gray-100"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                      {cust.day_of_week}
+                    </span>
+                    {cust.delivery_time && (
+                      <span className="text-[10px] flex items-center gap-1 text-gray-500 font-medium">
+                        <Clock size={10} /> {cust.delivery_time}
+                      </span>
+                    )}
+                  </div>
+
+                  {cust.selected_meals && cust.selected_meals.length > 0 ? (
+                    <ul className="space-y-1 mb-2">
+                      {cust.selected_meals.map((meal) => (
+                        <li
+                          key={meal.id}
+                          className="text-xs text-gray-700 flex items-start gap-1.5"
+                        >
+                          <span className="text-lily mt-0.5">•</span>
+                          {meal.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic mb-2">
+                      No specific meals selected
+                    </p>
+                  )}
+
+                  {(cust.notes || cust.delivery_address) && (
+                    <div className="text-[10px] text-gray-500 border-t border-gray-200 pt-2 mt-2 space-y-1">
+                      {cust.delivery_address && (
+                        <p>
+                          <span className="font-semibold text-gray-600">
+                            Address:
+                          </span>{" "}
+                          {cust.delivery_address}
+                        </p>
+                      )}
+                      {cust.notes && (
+                        <p>
+                          <span className="font-semibold text-gray-600">
+                            Notes:
+                          </span>{" "}
+                          {cust.notes}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                No customized schedule set.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {sub.status === "active" && (
-        <div className="mt-4">
+        <div className="mt-4 border-t border-gray-100 pt-3">
           <div className="mb-1 flex items-center justify-between">
             <span className="text-[10px] text-gray-400">
               Subscription progress
             </span>
-            <span className="text-[10px] font-bold text-[#4eb75e]">
+            <span className="text-[10px] font-bold text-lily">
               {daysLeft} days left
             </span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 ">
             <div
-              className="h-full rounded-full bg-[#4eb75e]"
+              className="h-full rounded-full bg-lily"
               style={{ width: progressWidth }}
             />
           </div>
@@ -289,9 +388,9 @@ const VendorSubscriptionsPage = () => {
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex-shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+            className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === key
-                ? "bg-[#4eb75e] text-white shadow-sm"
+                ? "bg-lily text-white shadow-sm"
                 : "border border-gray-100 bg-white text-gray-500  "
             }`}
           >

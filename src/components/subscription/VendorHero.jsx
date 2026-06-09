@@ -137,7 +137,7 @@ const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {review.review_text}
+                      {review.comment}
                     </p>
                   </div>
                 ))}
@@ -177,7 +177,7 @@ VendorHero.propTypes = {
       id: PropTypes.string.isRequired,
       user_name: PropTypes.string.isRequired,
       rating: PropTypes.number.isRequired,
-      review_text: PropTypes.string.isRequired,
+      comment: PropTypes.string,
       created_at: PropTypes.string.isRequired,
     }),
   ),

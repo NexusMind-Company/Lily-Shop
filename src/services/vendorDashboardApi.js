@@ -690,10 +690,9 @@ export const sendWinbackOffer = async (customerId, offerData) => {
  *             ingredient_insights: [{ ingredient, removal_rate }],
  *             top_performing_plans: [...] }
  */
-export const fetchVendorAnalytics = async (period = "monthly") => {
-  const response = await api.get("/foods/vendor/analytics/", {
-    params: { period },
-  });
+export const fetchVendorAnalytics = async (period) => {
+  const config = period ? { params: { period } } : {};
+  const response = await api.get("/foods/vendor/analytics/", config);
   return response.data;
 };
 

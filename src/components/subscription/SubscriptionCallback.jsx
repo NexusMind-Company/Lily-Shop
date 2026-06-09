@@ -99,11 +99,16 @@ export default function SubscriptionCallback() {
 
         if (!isMounted) return;
 
-        toast.success("Subscription activated successfully.");
-        navigate("/subscriptions", {
-          replace: true,
-          state: successState,
-        });
+        toast.success(
+          "Subscription activated successfully. Please customize your meals.",
+        );
+        navigate(
+          `/meal-selection/${payload.subscription_id || verifiedSubscription?.id}`,
+          {
+            replace: true,
+            state: successState,
+          },
+        );
       } catch (error) {
         console.error("Subscription verification failed:", error);
         const message =

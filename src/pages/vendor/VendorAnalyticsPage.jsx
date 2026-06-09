@@ -12,13 +12,14 @@ import { fetchVendorAnalytics } from "../../services/vendorDashboardApi";
 
 const COLORS = ["#4eb75e", "#3da64d", "#6dd47e", "#9be8a8", "#c6f5ce"];
 const PERIODS = [
+  { key: "", label: "All Time" },
+  { key: "daily", label: "Daily" },
   { key: "weekly", label: "Weekly" },
   { key: "monthly", label: "Monthly" },
-  { key: "quarterly", label: "Quarterly" },
 ];
 
 const VendorAnalyticsPage = () => {
-  const [period, setPeriod] = useState("monthly");
+  const [period, setPeriod] = useState("");
 
   const {
     data: analytics,
@@ -32,37 +33,61 @@ const VendorAnalyticsPage = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  // Log for debugging
+  console.log(`Analytics Response (${period || "all-time"}):`, analytics);
+
   if (isLoading && !analytics)
     return (
       <VendorLayout title="Analytics">
         <VendorPageLoader />
       </VendorLayout>
     );
+
   if (isError && !analytics)
     return (
       <VendorLayout title="Analytics">
         <VendorPageError message={getErrorMessage(error)} onRetry={refetch} />
+        {/* Error Detail Dump */}
+        <div className="mt-4 p-4 bg-red-50 text-red-800 text-[10px] font-mono overflow-auto rounded-xl">
+          <p className="font-bold mb-2">Error Details:</p>
+          <pre>{JSON.stringify(error, null, 2)}</pre>
+        </div>
       </VendorLayout>
     );
 
-  const a = analytics;
+  const a = analytics || {};
 
   return (
     <VendorLayout title="Analytics">
-      <div className="flex gap-1.5 mb-4">
+      {/* Tabs */}
+      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar">
         {PERIODS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setPeriod(key)}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${period === key ? "bg-[#4eb75e] text-white shadow-sm" : "bg-white  border border-gray-100  text-gray-500"}`}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              period === key
+                ? "bg-[#4eb75e] text-white shadow-sm"
+                : "bg-white border border-gray-100 text-gray-500"
+            }`}
           >
             {label}
           </button>
         ))}
       </div>
 
+      {/* Raw Data Dump for Debugging */}
+      <div className="bg-gray-50 rounded-2xl p-4 shadow-sm border border-gray-200 mb-4 overflow-x-auto">
+        <h3 className="text-sm font-bold text-gray-700 mb-2">
+          Raw API Response
+        </h3>
+        <pre className="text-[10px] text-gray-600 font-mono whitespace-pre-wrap">
+          {JSON.stringify(analytics, null, 2)}
+        </pre>
+      </div>
+
       {isError && (
-        <div className="bg-orange-50  border border-orange-100  rounded-xl px-4 py-2 flex items-center justify-between mb-4">
+        <div className="bg-orange-50 border border-orange-100 rounded-xl px-4 py-2 flex items-center justify-between mb-4">
           <p className="text-xs text-orange-600">Showing cached data</p>
           <button
             onClick={refetch}
@@ -92,14 +117,14 @@ const VendorAnalyticsPage = () => {
         ].map(({ label, value, icon: Icon, color, sub }) => (
           <div
             key={label}
-            className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  flex flex-col gap-2"
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-2"
           >
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}
             >
               <Icon size={18} className="text-white" />
             </div>
-            <p className="text-2xl font-bold text-[#111813] ">{value}</p>
+            <p className="text-2xl font-bold text-[#111813]">{value}</p>
             <p className="text-xs text-gray-500 font-medium">{label}</p>
             <p className="text-[10px] text-gray-400">{sub}</p>
           </div>
@@ -107,8 +132,8 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Retention Donut */}
-      <div className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  mb-4">
-        <h3 className="text-sm font-bold text-[#111813]  mb-4">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4">
+        <h3 className="text-sm font-bold text-[#111813] mb-4">
           Retention vs Churn
         </h3>
         <div className="flex items-center gap-4">
@@ -160,8 +185,8 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Meal Popularity */}
-      <div className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  mb-4">
-        <h3 className="text-sm font-bold text-[#111813]  mb-4">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4">
+        <h3 className="text-sm font-bold text-[#111813] mb-4">
           Meal Popularity
         </h3>
         {(a.meal_popularity ?? []).length === 0 ? (
@@ -172,14 +197,14 @@ const VendorAnalyticsPage = () => {
           (a.meal_popularity ?? []).map((meal, i) => (
             <div key={meal.meal_name} className="mb-3">
               <div className="flex justify-between items-center mb-1">
-                <p className="text-xs font-semibold text-[#111813] ">
+                <p className="text-xs font-semibold text-[#111813]">
                   {meal.meal_name}
                 </p>
                 <p className="text-xs font-bold text-[#4eb75e]">
                   {meal.percentage}%
                 </p>
               </div>
-              <div className="w-full h-2 bg-gray-100  rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
@@ -197,10 +222,10 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Ingredient Insights */}
-      <div className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  mb-4">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Lightbulb size={14} className="text-yellow-500" />
-          <h3 className="text-sm font-bold text-[#111813] ">
+          <h3 className="text-sm font-bold text-[#111813]">
             Ingredient Insights
           </h3>
         </div>
@@ -216,10 +241,10 @@ const VendorAnalyticsPage = () => {
                 key={item.ingredient}
                 className="flex items-center gap-3 mb-3"
               >
-                <p className="text-sm font-semibold text-[#111813]  w-20 flex-shrink-0">
+                <p className="text-sm font-semibold text-[#111813] w-20 flex-shrink-0">
                   {item.ingredient}
                 </p>
-                <div className="flex-1 h-2 bg-gray-100  rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-orange-400 rounded-full"
                     style={{ width: `${item.removal_rate ?? 0}%` }}
@@ -231,8 +256,8 @@ const VendorAnalyticsPage = () => {
               </div>
             ))}
             {(a.ingredient_insights ?? [])[0] && (
-              <div className="bg-yellow-50  rounded-xl px-3 py-2 mt-2">
-                <p className="text-xs text-yellow-700 ">
+              <div className="bg-yellow-50 rounded-xl px-3 py-2 mt-2">
+                <p className="text-xs text-yellow-700">
                   💡 {a.ingredient_insights[0].removal_rate}% of customers
                   remove {a.ingredient_insights[0].ingredient?.toLowerCase()}.
                   Consider offering an option without it!
@@ -244,9 +269,9 @@ const VendorAnalyticsPage = () => {
       </div>
 
       {/* Top Plans */}
-      <div className="bg-white  rounded-2xl shadow-sm border border-gray-100  overflow-hidden mb-4">
-        <div className="px-4 py-3 border-b border-gray-50 ">
-          <h3 className="text-sm font-bold text-[#111813] ">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
+        <div className="px-4 py-3 border-b border-gray-50">
+          <h3 className="text-sm font-bold text-[#111813]">
             Top Performing Plans
           </h3>
         </div>
@@ -258,15 +283,21 @@ const VendorAnalyticsPage = () => {
           (a.top_performing_plans ?? []).map((plan, i) => (
             <div
               key={plan.plan_name}
-              className="flex items-center gap-3 px-4 py-3 border-b border-gray-50  last:border-0"
+              className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
             >
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${i === 0 ? "bg-yellow-400" : i === 1 ? "bg-gray-400" : "bg-orange-400"}`}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                  i === 0
+                    ? "bg-yellow-400"
+                    : i === 1
+                      ? "bg-gray-400"
+                      : "bg-orange-400"
+                }`}
               >
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#111813]  truncate">
+                <p className="text-sm font-semibold text-[#111813] truncate">
                   {plan.plan_name}
                 </p>
                 <p className="text-xs text-gray-400">
