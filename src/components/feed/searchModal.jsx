@@ -156,6 +156,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       !!debouncedSearchTerm &&
       (activeTab === "Top" || activeTab === "Meal Plans"),
     select: extractArray,
+    retry: 1, // Reduce retries for this problematic endpoint
   });
 
   const { data: userResults, isLoading: isSearchingUsers } = useQuery({
@@ -535,12 +536,19 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       );
     }
 
-    if (
+    const isSearchingAll =
       isSearchingProducts ||
       isSearchingContents ||
       isSearchingFoodVendors ||
-      isSearchingMealPlans ||
-      isSearchingUsers
+      isSearchingUsers; // We exclude meal plans here to let others show if they finish first
+
+    // Skeleton only if everything is still loading
+    if (
+      isSearchingAll &&
+      !productResults &&
+      !contentResults &&
+      !foodVendorResults &&
+      !userResults
     ) {
       return (
         <div className="space-y-6">
@@ -558,30 +566,35 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       case "Top":
         return renderTopSearchResults();
       case "Users":
+        if (isSearchingUsers) return <SearchSuggestionSkeleton />;
         return (
           renderUserList(userResults, 20, false) || (
             <p className="text-center py-10 text-gray-400">No users found</p>
           )
         );
       case "Products":
+        if (isSearchingProducts) return <SearchSuggestionSkeleton />;
         return (
           renderProductList(productResults, 20, false) || (
             <p className="text-center py-10 text-gray-400">No products found</p>
           )
         );
       case "Contents":
+        if (isSearchingContents) return <SearchGridItemSkeleton />;
         return (
           renderContentList(contentResults, 20, false) || (
             <p className="text-center py-10 text-gray-400">No contents found</p>
           )
         );
       case "Food Vendors":
+        if (isSearchingFoodVendors) return <SearchSuggestionSkeleton />;
         return (
           renderVendorList(foodVendorResults, 20, false) || (
             <p className="text-center py-10 text-gray-400">No vendors found</p>
           )
         );
       case "Meal Plans":
+        if (isSearchingMealPlans) return <SearchSuggestionSkeleton />;
         return (
           renderMealPlanList(mealPlanResults, 20, false) || (
             <p className="text-center py-10 text-gray-400">
