@@ -297,6 +297,11 @@ export const searchContents = async (params = {}) => {
   return response.data;
 };
 
+export const searchUsers = async (params = {}) => {
+  const response = await api.get("/auth/users/search/", { params });
+  return response.data;
+};
+
 export const fetchProductComments = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/comments/`);
   return response.data;

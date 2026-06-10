@@ -12,7 +12,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { api, fetchWallet, createSubscriptionWithPaystack } from "../services/api";
+import {
+  api,
+  fetchWallet,
+  createSubscriptionWithPaystack,
+} from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -136,7 +140,8 @@ const SubscriptionPaymentPage = () => {
         paymentData.portion_size = flowState.portionSize;
       if (flowState?.specialInstructions)
         paymentData.special_instructions = flowState.specialInstructions;
-      if (deliveryType === "pickup") paymentData.collection_code = collectionCode || "";
+      if (deliveryType === "pickup")
+        paymentData.collection_code = collectionCode || "";
 
       console.log("Sending subscription data:", paymentData);
 
@@ -226,7 +231,7 @@ const SubscriptionPaymentPage = () => {
         <h1 className="text-lg font-bold text-[#111813]">Confirm Payment</h1>
       </div>
 
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-32">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-48">
         {/* Vendor + Plan Summary Card */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -265,37 +270,6 @@ const SubscriptionPaymentPage = () => {
               </p>
             </div>
           </div>
-
-          {/* <div className="border-t border-gray-100 pt-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-sm">Plan</span>
-              <span className="font-semibold text-[#111813] text-sm">{plan?.plan_name}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-sm flex items-center gap-1">
-                <Calendar size={14} /> Frequency
-              </span>
-              <span className="font-semibold text-[#111813] text-sm capitalize">
-                {plan?.frequency || "Weekly"}
-              </span>
-            </div>
-            {plan?.meals_per_cycle && (
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">Meals per cycle</span>
-                <span className="font-semibold text-[#111813] text-sm">{plan.meals_per_cycle}</span>
-              </div>
-            )}
-            {plan?.trial_days > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm flex items-center gap-1">
-                  <Zap size={14} className="text-yellow-500" /> Trial period
-                </span>
-                <span className="font-semibold text-green-600 text-sm">
-                  {plan.trial_days} days free
-                </span>
-              </div>
-            )}
-          </div> */}
 
           <div className="border-t border-gray-100 pt-4 space-y-3">
             {/* Plan details */}
@@ -401,22 +375,8 @@ const SubscriptionPaymentPage = () => {
                 ₦{formatPrice(planPrice)}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-xs">Platform fee (10%)</span>
-              <span className="text-gray-400 text-xs">
-                ₦{formatPrice(platformFee)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-xs">
-                Vendor receives (90%)
-              </span>
-              <span className="text-gray-400 text-xs">
-                ₦{formatPrice(vendorReceives)}
-              </span>
-            </div>
             <div className="border-t border-gray-100 pt-2 mt-2 flex items-center justify-between">
-              <span className="font-bold text-[#111813]">You pay</span>
+              <span className="font-bold text-[#111813]">Total Amount</span>
               <span className="font-bold text-[#13ec49] text-lg">
                 ₦{formatPrice(planPrice)}
               </span>
@@ -534,14 +494,14 @@ const SubscriptionPaymentPage = () => {
           {!hasEnoughBalance && (
             <button
               onClick={handleTopUp}
-              className="flex-1 bg-white text-gray-600 border border-gray-100 font-semibold py-3 rounded-2xl text-xs"
+              className="flex-1 bg-white text-black border border-black font-bold py-3 rounded-2xl text-xs hover:bg-gray-50 transition-colors"
             >
               Top Up Only
             </button>
           )}
           <button
             onClick={() => navigate(-1)}
-            className="flex-1 bg-white text-gray-500 font-semibold py-3 rounded-2xl text-xs border border-gray-100"
+            className="flex-1 bg-white text-black font-bold py-3 rounded-2xl text-xs border border-black hover:bg-gray-50 transition-colors"
           >
             Go Back
           </button>

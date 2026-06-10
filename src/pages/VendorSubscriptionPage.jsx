@@ -21,9 +21,9 @@ import {
 } from "lucide-react";
 import { fetchMealPlansByVendor } from "../services/api";
 import {
-    fetchVendorDetails,
-    fetchReviewsForVendor,
-  } from "../services/subscriptionApi";
+  fetchVendorDetails,
+  fetchReviewsForVendor,
+} from "../services/subscriptionApi";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
@@ -221,7 +221,10 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
             <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-amber-400" fill="currentColor" />
+                  <Star
+                    className="w-5 h-5 text-amber-400"
+                    fill="currentColor"
+                  />
                   <span className="font-black text-gray-900 text-lg">
                     {Number(vendor?.avg_rating || 0).toFixed(1)}
                   </span>
@@ -249,8 +252,12 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
               ) : (
                 <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200">
                   <Star size={36} className="mx-auto text-gray-300 mb-3" />
-                  <p className="font-semibold text-gray-500 mb-1">No reviews yet</p>
-                  <p className="text-sm text-gray-400">Be the first to share your experience!</p>
+                  <p className="font-semibold text-gray-500 mb-1">
+                    No reviews yet
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Be the first to share your experience!
+                  </p>
                 </div>
               )}
             </div>
@@ -613,6 +620,10 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         address={address}
         phone={phone}
         collectionCode={collectionCode}
+        dietaryPreferences={dietaryPreferences}
+        allergies={allergies}
+        portionSize={portionSize}
+        specialInstructions={specialInstructions}
         isLoading={false}
       />
 

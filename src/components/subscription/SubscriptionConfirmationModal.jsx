@@ -26,12 +26,19 @@ const SubscriptionConfirmationModal = ({
   address,
   phone,
   collectionCode,
+  dietaryPreferences,
+  allergies,
+  portionSize,
+  specialInstructions,
 }) => {
   if (!isOpen) return null;
 
   const totalPrice =
     selectedPlans?.reduce((sum, plan) => sum + Number(plan?.price || 0), 0) ??
     0;
+
+  const hasPreferences =
+    dietaryPreferences || allergies || portionSize || specialInstructions;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -85,44 +92,6 @@ const SubscriptionConfirmationModal = ({
             </div>
           </div>
 
-          {/* Plan Details */}
-          {/* {selectedPlan && (
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-bold text-slate-900 dark:text-white">
-                  {selectedPlan.plan_name ||
-                    selectedPlan.name ||
-                    "Unnamed Plan"}
-                </h4>
-                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">
-                  {selectedPlan.frequency || selectedPlan.period || "month"}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-3">
-                <span className="text-2xl font-black text-slate-900 dark:text-white">
-                  ₦{selectedPlan.price?.toLocaleString() || "0"}
-                </span>
-                <span className="text-sm font-medium text-slate-500">
-                  /{selectedPlan.frequency || selectedPlan.period || "month"}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {selectedPlan.features?.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
-                  >
-                    <CheckCircle />
-                    {feature}
-                  </div>
-                )) || (
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    No features listed for this plan
-                  </div>
-                )}
-              </div>
-            </div>
-          )} */}
           {selectedPlans?.length ? (
             <div className="bg-lily rounded-xl p-4 space-y-4">
               <h4 className="font-bold text-white">Selected Plans</h4>
@@ -199,21 +168,56 @@ const SubscriptionConfirmationModal = ({
               </div>
             )}
           </div>
-          {/* Billing Info */}
-          <div className="bg-lily/10 rounded-xl p-4 border border-darklily/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Info className="text-lily" size={18} />
-              <span className="text-sm font-bold text-lily">
-                Billing Information
-              </span>
-            </div>
 
-            <p className="text-sm text-lily">
-              You will be charged ₦{Number(totalPrice).toLocaleString()} for the
-              selected subscription plans. Subscription will auto-renew unless
-              cancelled.
-            </p>
-          </div>
+          {/* Meal Preferences */}
+          {hasPreferences && (
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 mb-3">
+                <Info
+                  className="text-slate-600 dark:text-slate-400"
+                  size={18}
+                />
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  Your Meal Preferences
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {dietaryPreferences && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Dietary</span>
+                    <span className="font-semibold text-slate-800 dark:text-white text-right max-w-[60%] truncate">
+                      {dietaryPreferences}
+                    </span>
+                  </div>
+                )}
+                {allergies && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Allergies</span>
+                    <span className="font-semibold text-red-500 text-right max-w-[60%] truncate">
+                      {allergies}
+                    </span>
+                  </div>
+                )}
+                {portionSize && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Portion</span>
+                    <span className="font-semibold text-slate-800 dark:text-white capitalize">
+                      {portionSize}
+                    </span>
+                  </div>
+                )}
+                {specialInstructions && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Instructions</span>
+                    <span className="font-semibold text-slate-800 dark:text-white text-right max-w-[60%] line-clamp-2">
+                      {specialInstructions}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Terms */}
           <div className="text-xs text-black space-y-1">

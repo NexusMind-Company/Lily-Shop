@@ -10,6 +10,7 @@ import {
   searchContents,
   searchFoodVendors,
   searchMealPlans,
+  searchUsers,
 } from "../../services/api";
 import {
   SearchSuggestionSkeleton,
@@ -157,6 +158,14 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     select: extractArray,
   });
 
+  const { data: userResults, isLoading: isSearchingUsers } = useQuery({
+    queryKey: ["searchUsers", debouncedSearchTerm],
+    queryFn: () => searchUsers({ username: debouncedSearchTerm }),
+    enabled:
+      !!debouncedSearchTerm && (activeTab === "Top" || activeTab === "Users"),
+    select: extractArray,
+  });
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -183,6 +192,81 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     const newSearches = recentSearches.filter((term) => term !== termToRemove);
     setRecentSearches(newSearches);
     saveRecentSearches(newSearches);
+  };
+
+  const renderUserList = (users, limit = 5, showHeader = true) => {
+    if (!Array.isArray(users) || users.length === 0) return null;
+    return (
+      <div className="space-y-4">
+        {showHeader && (
+          <h3 className="font-bold text-gray-900 text-xs uppercase tracking-widest px-2">
+            Users
+          </h3>
+        )}
+        <div className="space-y-3">
+          {users.slice(0, limit).map((user) => (
+            <div
+              key={user.id}
+              className="flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm hover:bg-gray-50/50 transition-all cursor-pointer group"
+              onClick={() => {
+                navigate(`/profile/${user.id}`);
+                onClose();
+              }}
+            >
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="relative shrink-0">
+                  <img
+                    src={user.profile_pic || "/user.png"}
+                    alt={user.username}
+                    className="w-12 h-12 rounded-full bg-gray-50 object-cover border border-gray-100 group-hover:border-lily/30 transition-colors"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-900 truncate text-sm">
+                      @{user.username}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-bold text-gray-900">
+                        {user.follower_count || 0}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        Followers
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-bold text-gray-900">
+                        {user.following_count || 0}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        Following
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  user.is_following
+                    ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-lily text-white hover:bg-lily/90 shadow-sm hover:shadow"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/profile/${user.id}`);
+                  onClose();
+                }}
+              >
+                {user.is_following ? "Following" : "Follow"}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderProductList = (products, limit = 5, showHeader = true) => {
@@ -300,7 +384,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               key={vendor.id}
               className="flex items-center space-x-3 p-3 rounded-2xl bg-white border border-gray-100 hover:bg-gray-50 cursor-pointer transition-all"
               onClick={() => {
-                navigate(`/food-vendor/${vendor.id}`);
+                navigate(`/vendor-subscription/${vendor.id}`);
                 onClose();
               }}
             >
@@ -367,14 +451,16 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       productResults?.length > 0 ||
       contentResults?.length > 0 ||
       foodVendorResults?.length > 0 ||
-      mealPlanResults?.length > 0;
+      mealPlanResults?.length > 0 ||
+      userResults?.length > 0;
 
     if (
       !hasAny &&
       !isSearchingProducts &&
       !isSearchingContents &&
       !isSearchingFoodVendors &&
-      !isSearchingMealPlans
+      !isSearchingMealPlans &&
+      !isSearchingUsers
     ) {
       return (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -388,6 +474,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
 
     return (
       <div className="space-y-8">
+        {renderUserList(userResults, 3)}
         {renderProductList(productResults, 3)}
         {renderVendorList(foodVendorResults, 3)}
         {renderContentList(contentResults, 4)}
@@ -452,7 +539,8 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       isSearchingProducts ||
       isSearchingContents ||
       isSearchingFoodVendors ||
-      isSearchingMealPlans
+      isSearchingMealPlans ||
+      isSearchingUsers
     ) {
       return (
         <div className="space-y-6">
@@ -469,6 +557,12 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     switch (activeTab) {
       case "Top":
         return renderTopSearchResults();
+      case "Users":
+        return (
+          renderUserList(userResults, 20, false) || (
+            <p className="text-center py-10 text-gray-400">No users found</p>
+          )
+        );
       case "Products":
         return (
           renderProductList(productResults, 20, false) || (
@@ -559,6 +653,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               <div className="flex space-x-6 px-6 pt-4 border-b border-gray-50 overflow-x-auto no-scrollbar shrink-0">
                 {[
                   "Top",
+                  "Users",
                   "Products",
                   "Contents",
                   "Food Vendors",

@@ -288,9 +288,7 @@ const ProfileVisiting = () => {
         profileResult.is_following === true ||
         String(profileResult.is_following).toLowerCase() === "true" ||
         profileResult.user?.is_following === true ||
-        String(profileResult.user?.is_following).toLowerCase() === "true" ||
-        profileResult.is_followed === true ||
-        String(profileResult.is_followed).toLowerCase() === "true";
+        String(profileResult.user?.is_following).toLowerCase() === "true";
       setIsFollowing(checkIsFollowing);
     }
   }, [profileResult]);
