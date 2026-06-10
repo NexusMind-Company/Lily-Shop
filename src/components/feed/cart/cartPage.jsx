@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
@@ -13,6 +13,7 @@ import {
   Plus,
   AlertCircle,
   X,
+  MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,12 +33,15 @@ import {
 } from "../../../services/api";
 import { usePayment } from "../../../context/paymentContext";
 import { formatPrice, formatDate } from "../../../utils/formatters";
+import { toast } from "react-hot-toast";
 
 const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { paymentData, setPaymentData } = usePayment();
+  const deliverySectionRef = useRef(null);
+  const [showAddressError, setShowAddressError] = useState(false);
 
   const allCartItems = useSelector(selectCartItems);
   const isLoadingCart = useSelector(selectCartIsLoading);
@@ -302,27 +306,41 @@ const CartPage = () => {
   // Fetch authoritative checkout details from the backend
   useEffect(() => {
     const fetchCheckoutDetails = async () => {
-      // Don't fetch if cart is empty or if it's a direct buy
-      if (!itemsToCheckout || itemsToCheckout.length === 0 || isDirectBuy)
-        return;
+      // Don't fetch if items are not ready
+      if (!itemsToCheckout || itemsToCheckout.length === 0) return;
 
-      // Ensure cartId exists before making the request
-      if (!cartId) return;
+      // Ensure we have a valid identifier for each item
+      const hasValidItems = itemsToCheckout.every(
+        (item) => item.product_id || item.product?.id || item.id,
+      );
+      if (!hasValidItems) return;
 
-      // Only fetch if we have the necessary routing IDs
-      if (deliveryType === "delivery" && !selectedDelivery?.id) return;
-      if (deliveryType === "pickup" && !selectedPickup?.id) return;
-
+      // We no longer block on address/pickup IDs to allow subtotal/platform fee calculation for new users
       setIsCalculating(true);
       try {
         const payload = {
-          cart_id: cartId,
           delivery_type: deliveryType,
         };
 
-        if (deliveryType === "delivery") {
-          payload.delivery_address_id = selectedDelivery.id;
+        // For direct buy, we send order_items. For cart buy, we send cart_id.
+        if (isDirectBuy) {
+          payload.order_items = itemsToCheckout.map((item) => ({
+            product_id: item.product_id || item.product?.id || item.id,
+            quantity: parseInt(item.quantity, 10) || 1,
+          }));
         } else {
+          // If we don't have cartId yet for a cart buy, we can't calculate via backend
+          if (!cartId) {
+            setIsCalculating(false);
+            return;
+          }
+          payload.cart_id = cartId;
+        }
+
+        // Only add location IDs if they exist
+        if (deliveryType === "delivery" && selectedDelivery?.id) {
+          payload.delivery_address_id = selectedDelivery.id;
+        } else if (deliveryType === "pickup" && selectedPickup?.id) {
           payload.pickup_location_id = selectedPickup.id;
         }
 
@@ -339,8 +357,8 @@ const CartPage = () => {
   }, [
     cartId,
     deliveryType,
-    selectedDelivery,
-    selectedPickup,
+    selectedDelivery?.id,
+    selectedPickup?.id,
     isDirectBuy,
     itemsToCheckout,
   ]);
@@ -382,14 +400,28 @@ const CartPage = () => {
   const handleProceedToPayment = async () => {
     if (deliveryType === "delivery") {
       if (!selectedDelivery?.id && !userProfile?.deliveryAddress) {
-        alert(
-          "Please add or select a valid delivery address before proceeding.",
-        );
+        setShowAddressError(true);
+        deliverySectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        toast.error("Please add a delivery address to proceed", {
+          icon: "📍",
+          duration: 4000,
+        });
         return;
       }
     } else {
       if (!selectedPickup?.id && !userProfile?.pickupAddress) {
-        alert("Please select a valid pickup location before proceeding.");
+        setShowAddressError(true);
+        deliverySectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        toast.error("Please select a pickup location to proceed", {
+          icon: "🏪",
+          duration: 4000,
+        });
         return;
       }
     }
@@ -635,15 +667,32 @@ const CartPage = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 mb-2 border-y border-gray-100">
-          <h3 className="font-semibold text-md text-gray-900 mb-4">
-            Delivery details
-          </h3>
+        <div
+          ref={deliverySectionRef}
+          className={`bg-white p-4 mb-2 border-y transition-all duration-300 ${
+            showAddressError
+              ? "border-red-200 bg-red-50/30 ring-1 ring-red-100 shadow-sm shadow-red-50"
+              : "border-gray-100"
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-md text-gray-900">
+              Delivery details
+            </h3>
+            {showAddressError && (
+              <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider animate-pulse bg-red-100 px-2 py-0.5 rounded-full">
+                Selection Required
+              </span>
+            )}
+          </div>
 
           <div className="space-y-5">
             <div className="flex items-start">
               <button
-                onClick={() => handleDeliveryTypeSelect("delivery")}
+                onClick={() => {
+                  handleDeliveryTypeSelect("delivery");
+                  setShowAddressError(false);
+                }}
                 className="mt-1 shrink-0 focus:outline-none"
               >
                 {deliveryType === "delivery" ? (
@@ -693,7 +742,10 @@ const CartPage = () => {
 
             <div className="flex items-start">
               <button
-                onClick={() => handleDeliveryTypeSelect("pickup")}
+                onClick={() => {
+                  handleDeliveryTypeSelect("pickup");
+                  setShowAddressError(false);
+                }}
                 className="mt-1 shrink-0 focus:outline-none"
               >
                 {deliveryType === "pickup" ? (
