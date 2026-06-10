@@ -18,8 +18,8 @@ const Login = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [policyAccepted, setPolicyAccepted] = useState(
-    localStorage.getItem("policy_accepted") === "true",
+  const [rememberMe, setRememberMe] = useState(
+    localStorage.getItem("remember_me") === "true",
   );
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -52,23 +52,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!policyAccepted) {
-      toast.error("Please agree to the Privacy Policy to continue.");
-      return;
-    }
-
     // Basic validation to prevent empty space submission
     if (!formData.login.trim() || !formData.password.trim()) {
       return;
     }
 
     const resultAction = await dispatch(
-      loginUser({ ...formData, remember_me: policyAccepted }),
+      loginUser({ ...formData, remember_me: rememberMe }),
     );
 
     if (loginUser.fulfilled.match(resultAction)) {
       toast.success("Login successful!");
-      localStorage.setItem("policy_accepted", "true");
+
+      if (rememberMe) {
+        localStorage.setItem("remember_login", formData.login);
+        localStorage.setItem("remember_me", "true");
+      } else {
+        localStorage.removeItem("remember_login");
+        localStorage.removeItem("remember_me");
+      }
+
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/");
@@ -141,19 +144,16 @@ const Login = () => {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="policyAccepted"
-              checked={policyAccepted}
-              onChange={(e) => setPolicyAccepted(e.target.checked)}
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="size-4 accent-lily cursor-pointer"
             />
             <label
-              htmlFor="policyAccepted"
+              htmlFor="rememberMe"
               className="text-sm font-medium cursor-pointer"
             >
-              I agree to the{" "}
-              <Link to="/about" className="text-lily underline">
-                Privacy Policy
-              </Link>
+              Remember Me
             </label>
           </div>
 
