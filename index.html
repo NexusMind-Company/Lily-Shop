@@ -119,6 +119,35 @@
             Lily Shop - Turn Every Scroll into a Purchase | Social Commerce for
             Nigerian Creators
         </title>
+
+        <script>
+            // Handle Vite chunk loading errors
+            window.addEventListener(
+                "error",
+                (e) => {
+                    const message = e.message || "";
+                    if (
+                        message.includes(
+                            "Failed to fetch dynamically imported module",
+                        ) ||
+                        message.includes("Importing a module script failed")
+                    ) {
+                        // Prevent infinite reload loops
+                        const lastReload =
+                            localStorage.getItem("last-chunk-reload");
+                        const now = Date.now();
+                        if (!lastReload || now - parseInt(lastReload) > 10000) {
+                            localStorage.setItem(
+                                "last-chunk-reload",
+                                now.toString(),
+                            );
+                            window.location.reload();
+                        }
+                    }
+                },
+                true,
+            );
+        </script>
     </head>
 
     <body>

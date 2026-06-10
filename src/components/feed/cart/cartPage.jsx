@@ -93,13 +93,17 @@ const CartPage = () => {
   });
 
   // Auto-select default address if none is selected in paymentData
+  // Also validate that the selected address still exists
   useEffect(() => {
     const addressList = addresses?.results || addresses;
-    if (
-      !paymentData?.selectedAddress &&
-      addressList &&
-      Array.isArray(addressList)
-    ) {
+    if (!addressList || !Array.isArray(addressList)) return;
+
+    const selectedId = paymentData?.selectedAddress?.id;
+    const stillExists = selectedId
+      ? addressList.some((addr) => addr.id === selectedId)
+      : false;
+
+    if (!paymentData?.selectedAddress || !stillExists) {
       const defaultAddr = addressList.find((addr) => addr.is_default);
       if (defaultAddr) {
         setPaymentData((prev) => ({
@@ -111,6 +115,12 @@ const CartPage = () => {
         setPaymentData((prev) => ({
           ...prev,
           selectedAddress: addressList[0],
+        }));
+      } else if (selectedId && !stillExists) {
+        // If it was selected but now it's gone and no replacements found
+        setPaymentData((prev) => ({
+          ...prev,
+          selectedAddress: null,
         }));
       }
     }
@@ -157,7 +167,9 @@ const CartPage = () => {
           subtotal_naira: unitPrice * directQuantity,
           mediaSrc: directProduct.image_url || directProduct.media_url,
           username:
+            directProduct.shop_name ||
             directProduct.shop?.name ||
+            directProduct.username ||
             directProduct.user?.username ||
             "Vendor",
           deliveryCharge: directProduct.deliveryCharge || 0,
@@ -619,10 +631,17 @@ const CartPage = () => {
           <div className="space-y-6">
             {itemsToCheckout.map((item) => {
               const unitPrice = getUnitPrice(item);
+              const vendorName =
+                item.username ||
+                item.product?.shop_name ||
+                item.product?.shop?.name ||
+                item.product?.username ||
+                item.product?.user?.username ||
+                "Vendor";
               return (
                 <div key={item.id} className="flex flex-col">
                   <p className="text-sm font-medium text-gray-600 mb-3">
-                    {item.username || item.product?.shop?.name || "Vendor"}
+                    {vendorName}
                   </p>
                   <div className="flex space-x-4">
                     <img

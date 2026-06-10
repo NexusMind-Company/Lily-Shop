@@ -1,12 +1,25 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { usePayment } from "../../context/paymentContext";
-import { useQuery } from "@tanstack/react-query";
-import { fetchDeliveryAddresses, setDefaultAddress } from "../../services/api";
-import { ChevronLeft, Plus, Check, AlertCircle, RefreshCw } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchDeliveryAddresses,
+  setDefaultAddress,
+  deleteAddress,
+} from "../../services/api";
+import {
+  ChevronLeft,
+  Plus,
+  Check,
+  AlertCircle,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const ChooseAddress = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { paymentData, setPaymentData } = usePayment();
   const { selectedAddressId } = paymentData;
 
@@ -15,6 +28,33 @@ const ChooseAddress = () => {
     queryFn: fetchDeliveryAddresses,
     retry: 1,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAddress,
+    onSuccess: (_, deletedAddressId) => {
+      toast.success("Address deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["deliveryAddresses"] });
+
+      // If the deleted address was the one currently selected, clear it
+      if (selectedAddressId === deletedAddressId) {
+        setPaymentData((prev) => ({
+          ...prev,
+          selectedAddress: null,
+          selectedAddressId: null,
+        }));
+      }
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete address");
+    },
+  });
+
+  const handleDelete = (e, addressId) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this address?")) {
+      deleteMutation.mutate(addressId);
+    }
+  };
 
   const handleSelect = async (address) => {
     try {
@@ -118,6 +158,15 @@ const ChooseAddress = () => {
                     {item.street_address}, {item.city}, {item.state}
                   </p>
                 </div>
+
+                <button
+                  onClick={(e) => handleDelete(e, item.id)}
+                  disabled={deleteMutation.isPending}
+                  className="mt-1 p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                  aria-label="Delete address"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
             ))}
           </div>

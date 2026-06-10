@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { clearCart } from "../redux/cartSlice";
+import { fetchCart } from "../redux/cartSlice";
+import { usePayment } from "../context/paymentContext";
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";
 import {
@@ -19,6 +20,7 @@ const PaystackCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { resetPaymentData } = usePayment();
 
   useEffect(() => {
     const reference =
@@ -102,6 +104,7 @@ const PaystackCallbackPage = () => {
           });
         } else {
           dispatch(clearCart());
+          resetPaymentData();
           localStorage.removeItem("checkout_ids");
           localStorage.removeItem("lily_pending_order");
           toast.success("Payment successful!");

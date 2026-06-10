@@ -3,17 +3,25 @@ import { createContext, useContext, useState } from "react";
 export const PaymentContext = createContext(null);
 
 export const PaymentProvider = ({ children }) => {
-  const [paymentData, setPaymentData] = useState({
+  const initialState = {
     amount: 0,
     vendorName: "",
     orderId: null,
     amountPaid: 0,
     selectedAddress: null,
     selectedPaymentMethod: null,
-  });
+  };
+
+  const [paymentData, setPaymentData] = useState(initialState);
+
+  const resetPaymentData = () => {
+    setPaymentData(initialState);
+  };
 
   return (
-    <PaymentContext.Provider value={{ paymentData, setPaymentData }}>
+    <PaymentContext.Provider
+      value={{ paymentData, setPaymentData, resetPaymentData }}
+    >
       {children}
     </PaymentContext.Provider>
   );

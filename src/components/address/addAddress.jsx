@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { addNewAddress } from "../../services/api";
+import { addNewAddress, fetchStates, fetchLgas } from "../../services/api";
 
 const AddAddressPage = () => {
   const navigate = useNavigate();
@@ -17,14 +17,57 @@ const AddAddressPage = () => {
     description: "",
   });
 
+  const [states, setStates] = useState([]);
+  const [lgas, setLgas] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [lgasLoading, setLgasLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      setStatesLoading(true);
+      try {
+        const data = await fetchStates();
+        setStates(data);
+      } catch (err) {
+        console.error("Failed to load states:", err);
+      } finally {
+        setStatesLoading(false);
+      }
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadLgas = async () => {
+      const selectedState = states.find((s) => s.name === formData.state);
+      if (!selectedState) {
+        setLgas([]);
+        return;
+      }
+      setLgasLoading(true);
+      try {
+        const data = await fetchLgas(selectedState.id);
+        setLgas(data);
+      } catch (err) {
+        console.error("Failed to load LGAs:", err);
+      } finally {
+        setLgasLoading(false);
+      }
+    };
+
+    if (formData.state && states.length > 0) {
+      loadLgas();
+    }
+  }, [formData.state, states]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+      ...(name === "state" ? { city: "" } : {}),
     }));
   };
 
@@ -56,7 +99,7 @@ const AddAddressPage = () => {
         city: formData.city,
         state: formData.state,
         country: "Nigeria",
-        postal_code: formData.zipCode,
+        postal_code: formData.zipCode || null,
         phone_number: formattedPhoneNumber,
         is_default: true,
       };
@@ -185,40 +228,52 @@ const AddAddressPage = () => {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="city" className="text-sm text-gray-700">
-              City*
-            </label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              required
-              placeholder="City"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
-            />
-          </div>
-
-          <div className="space-y-1">
             <label htmlFor="state" className="text-sm text-gray-700">
               State*
             </label>
-            <input
-              type="text"
+            <select
               id="state"
               name="state"
               value={formData.state}
               onChange={handleChange}
               required
-              placeholder="State"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
-            />
+              disabled={statesLoading}
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50"
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="city" className="text-sm text-gray-700">
+              LGA / City*
+            </label>
+            <select
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              required
+              disabled={lgasLoading || !formData.state}
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50"
+            >
+              <option value="">Select LGA / City</option>
+              {lgas.map((l) => (
+                <option key={l.id} value={l.name}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1">
             <label htmlFor="zipCode" className="text-sm text-gray-700">
-              Zip code*
+              Zip code
             </label>
             <input
               type="text"
@@ -226,8 +281,7 @@ const AddAddressPage = () => {
               name="zipCode"
               value={formData.zipCode}
               onChange={handleChange}
-              required
-              placeholder="ZIP code"
+              placeholder="ZIP code (Optional)"
               className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
             />
           </div>

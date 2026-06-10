@@ -475,6 +475,11 @@ export const setDefaultAddress = async (addressId) => {
   return response.data;
 };
 
+export const deleteAddress = async (addressId) => {
+  const response = await api.delete(`/users/me/addresses/${addressId}/`);
+  return response.data;
+};
+
 export const fetchPickupLocations = async () => {
   const response = await api.get("/shops/pickup-locations/");
   return response.data;
