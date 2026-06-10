@@ -25,6 +25,7 @@ import {
   fetchReviewsForVendor,
 } from "../services/subscriptionApi";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
+import { toast } from "react-hot-toast";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
@@ -109,9 +110,9 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const handleSubscribe = () => {
     if (!isValid()) {
       if (selectedPlanIds.length === 0) {
-        alert("Please select a plan to continue");
+        toast.error("Please select a plan to continue");
       } else {
-        alert(
+        toast.error(
           "Please fill in all required fields (Phone and Address if delivery)",
         );
       }

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 const ConfirmPhone = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const ConfirmPhone = () => {
   };
 
   const handleConfirm = () => {
-    alert("Code confirmed: " + code);
+    toast.success(`Code confirmed: ${code}`);
   };
 
   return (

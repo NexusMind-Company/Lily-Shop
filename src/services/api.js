@@ -1292,6 +1292,52 @@ export const fetchFollowing = async (userId, params = {}) => {
   return response.data;
 };
 
+const normalizeFollowList = (data, listKey) => {
+  if (Array.isArray(data)) return data;
+  return data?.[listKey] || data?.results || [];
+};
+
+const enrichUsersWithProfilePics = async (users) => {
+  if (!users.length || users[0].profile_pic) return users;
+
+  return Promise.all(
+    users.map(async (user) => {
+      try {
+        const profile = await fetchPublicProfile(user.id || user.username);
+        return {
+          ...user,
+          profile_pic: profile.profile_pic || profile.user?.profile_pic,
+        };
+      } catch {
+        return user;
+      }
+    }),
+  );
+};
+
+export const fetchFollowingList = async (userId) => {
+  const data = await fetchFollowing(userId);
+  const users = normalizeFollowList(data, "following");
+  return enrichUsersWithProfilePics(users);
+};
+
+export const fetchFollowersList = async (userId) => {
+  const data = await fetchFollowers(userId);
+  const users = normalizeFollowList(data, "followers");
+  return enrichUsersWithProfilePics(users);
+};
+
+export const fetchMentionableUsers = async (userId) => {
+  const [following, followers] = await Promise.all([
+    fetchFollowingList(userId),
+    fetchFollowersList(userId),
+  ]);
+  const combined = [...following, ...followers];
+  return Array.from(
+    new Map(combined.map((user) => [user.id || user.username, user])).values(),
+  );
+};
+
 export const followUser = async (userId) => {
   const response = await api.post(`/auth/follow/${userId}/`, {});
   return response.data;

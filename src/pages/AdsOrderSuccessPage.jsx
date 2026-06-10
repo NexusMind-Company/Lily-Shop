@@ -1,76 +1,55 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
-  FileText,
   Clock,
   MapPin,
   Star,
   MessageCircle,
   ArrowRight,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { fetchShopDetails } from "../services/api";
 
 const AdsOrderSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
   const { state } = location;
 
-  // Extract payment data from state (passed from verifyTransaction)
   const paymentData = state?.paymentData || {};
   const reference = state?.reference || "";
   const shopId = state?.shopId || "";
 
-  // Ads data
-  const [adDetails, setAdDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Review form state
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  useEffect(() => {
-    // Fetch ad details for this shop to show what was purchased
-    if (shopId) {
-      const fetchAdDetails = async () => {
-        try {
-          // First get the shop profile to see if we can find associated ads
-          const shopData = await fetchShopDetails(shopId);
-          // For now, we'll show the shop info as context
-          // In a real implementation, we might have a specific endpoint for user's ads
-          setAdDetails({
-            ...shopData,
-            // Add payment info
-            paymentReference: reference,
-            paymentAmount: paymentData.amount,
-            paymentDate: paymentData.date,
-          });
-        } catch (err) {
-          setError("Could not load ad details");
-          console.error("Error fetching ad details:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
+  const {
+    data: shopData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["shopDetails", shopId],
+    queryFn: () => fetchShopDetails(shopId),
+    enabled: !!shopId,
+  });
 
-      fetchAdDetails();
-    } else {
-      setLoading(false);
-    }
-  }, [shopId, dispatch]);
+  const adDetails = shopData
+    ? {
+        ...shopData,
+        paymentReference: reference,
+        paymentAmount: paymentData.amount,
+        paymentDate: paymentData.date,
+      }
+    : null;
 
   useEffect(() => {
-    // Auto-redirect back to shop dashboard after viewing order slip for a while
-    // This gives user time to see the order slip and leave a review
     const timer = setTimeout(() => {
       navigate("/myShop", { replace: true });
-    }, 15000); // 15 seconds
+    }, 15000);
 
     return () => clearTimeout(timer);
   }, [navigate]);
@@ -82,28 +61,24 @@ const AdsOrderSuccessPage = () => {
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (reviewRating === 0) {
-      alert("Please select a rating");
+      toast.error("Please select a rating");
       return;
     }
 
     setReviewSubmitting(true);
     try {
-      // In a real app, this would call an API to submit the review
-      // For now, we'll simulate success
       setReviewSuccess(true);
 
-      // Show success message for 2 seconds then reset
       setTimeout(() => {
         setReviewSuccess(false);
       }, 2000);
 
-      // Reset form after delay
       setTimeout(() => {
         setReviewComment("");
         setReviewRating(0);
       }, 3000);
     } catch (err) {
-      alert("Failed to submit review. Please try again.");
+      toast.error("Failed to submit review. Please try again.");
       console.error("Review submission error:", err);
     } finally {
       setReviewSubmitting(false);
@@ -116,7 +91,7 @@ const AdsOrderSuccessPage = () => {
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  if (loading) {
+  if (shopId && isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="w-12 h-12 border-4 border-lily border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -157,6 +132,12 @@ const AdsOrderSuccessPage = () => {
             Your ads payment has been processed successfully.
           </p>
         </div>
+
+        {isError && (
+          <p className="text-center text-red-500 text-sm mb-4">
+            Could not load ad details
+          </p>
+        )}
 
         {/* Order Slip / Receipt */}
         <div className="bg-lily-50 rounded-2xl p-6 mb-6">

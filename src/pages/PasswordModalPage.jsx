@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { verifyPaymentPassword } from "../services/api";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const PasswordModalPage = () => {
   const navigate = useNavigate();
@@ -17,14 +18,14 @@ const PasswordModalPage = () => {
     },
     onError: (error) => {
       // Handle wrong password
-      alert(error.message || "Invalid password");
+      toast.error(error.message || "Invalid password");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!password) {
-      alert("Please enter your password.");
+      toast.error("Please enter your password.");
       return;
     }
     mutation.mutate(password);

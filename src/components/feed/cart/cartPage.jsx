@@ -384,10 +384,10 @@ const CartPage = () => {
     const targetSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
     if (voucherCode === "SAVE10") {
       setAppliedDiscount(targetSubtotal * 0.1);
-      alert("Voucher Applied!");
+      toast.success("Voucher Applied!");
     } else {
       setAppliedDiscount(0);
-      alert("Invalid voucher code");
+      toast.error("Invalid voucher code");
     }
   };
 
@@ -465,7 +465,7 @@ const CartPage = () => {
       .filter((item) => item.product_id); // Filter out any items that failed to resolve a product ID
 
     if (orderItems.length === 0) {
-      alert("No valid items found for checkout. Please try again.");
+      toast.error("No valid items found for checkout. Please try again.");
       return;
     }
 
@@ -495,13 +495,29 @@ const CartPage = () => {
     // Guard: only set if the ID is actually resolved — never send undefined to the backend.
     if (deliveryType === "delivery") {
       if (!selectedDelivery?.id) {
-        alert("Please select a valid delivery address before proceeding.");
+        setShowAddressError(true);
+        deliverySectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        toast.error("Please select a valid delivery address before proceeding.", {
+          icon: "📍",
+          duration: 4000,
+        });
         return;
       }
       orderData.delivery_address_id = selectedDelivery.id;
     } else if (deliveryType === "pickup") {
       if (!selectedPickup?.id) {
-        alert("Please select a valid pickup location before proceeding.");
+        setShowAddressError(true);
+        deliverySectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        toast.error("Please select a valid pickup location before proceeding.", {
+          icon: "🏪",
+          duration: 4000,
+        });
         return;
       }
       orderData.pickup_location_id = selectedPickup.id;
@@ -544,7 +560,7 @@ const CartPage = () => {
           window.location.href = authorizationUrl;
         } else {
           console.warn("No authorization URL returned for Paystack payment");
-          alert("Payment initialization failed. Please try again.");
+          toast.error("Payment initialization failed. Please try again.");
         }
       }
     } catch (err) {
@@ -559,11 +575,11 @@ const CartPage = () => {
         setBalanceModalMessage(errorMessage);
         setIsBalanceModalOpen(true);
       } else if (err.response?.status === 500) {
-        alert(
+        toast.error(
           "The server encountered an error (500). The backend rejected the payload. Please ensure you have selected a valid address.",
         );
       } else {
-        alert(errorMessage);
+        toast.error(errorMessage);
       }
     }
   };

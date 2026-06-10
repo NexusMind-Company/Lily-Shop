@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5'
 import { TbLockPassword } from 'react-icons/tb'
 
@@ -13,7 +14,7 @@ const PasswordComfirmation = () => {
       return
     }
     setError('')
-    alert('Password accepted ')
+    toast.success('Password accepted')
   }
 
   return (

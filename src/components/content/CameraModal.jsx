@@ -13,6 +13,7 @@ import {
   Crop,
 } from "lucide-react";
 import Cropper from "react-easy-crop";
+import { toast } from "react-hot-toast";
 
 const createImage = (url) =>
   new Promise((resolve, reject) => {
@@ -61,7 +62,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch (error) {
       console.error("Camera access error:", error);
-      alert("Unable to access camera. Please allow camera permission.");
+      toast.error("Unable to access camera. Please allow camera permission.");
     }
   }, [flipped, mode]);
 
@@ -398,7 +399,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <Crop className="w-6 h-6" />
             <span className="text-xs mt-1">Crop</span>
           </button>
-          <button onClick={() => alert("Filters feature coming soon")}>
+          <button onClick={() => toast("Filters feature coming soon", { icon: "ℹ️" })}>
             <Sparkles className="w-6 h-6" />
             <span className="text-xs mt-1">Filters</span>
           </button>

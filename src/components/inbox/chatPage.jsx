@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   Camera,
@@ -130,7 +131,6 @@ const SharedContentCard = ({ content, isMine }) => {
 const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [fetchedUserProfile, setFetchedUserProfile] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -164,20 +164,11 @@ const ChatPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch target user's profile in the background
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!conversationId) return;
-      try {
-        const profileData = await fetchPublicProfile(conversationId);
-        setFetchedUserProfile(profileData);
-      } catch (error) {
-        console.error("Error fetching user profile for chat:", error);
-      }
-    };
-
-    loadUserProfile();
-  }, [conversationId]);
+  const { data: fetchedUserProfile } = useQuery({
+    queryKey: ["public-profile", conversationId],
+    queryFn: () => fetchPublicProfile(conversationId),
+    enabled: !!conversationId,
+  });
 
   // Helper to format last seen or show online
   const formatUserStatus = (lastSeen) => {

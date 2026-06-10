@@ -8,6 +8,7 @@ import {
   Edit2,
   Flag,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const getInitials = (fullName) => {
   if (!fullName) return "";
@@ -205,7 +206,7 @@ const CommentItem = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowMenu(false);
-                          alert("Edit functionality coming soon!");
+                          toast("Edit functionality coming soon!", { icon: "ℹ️" });
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
@@ -223,7 +224,7 @@ const CommentItem = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowMenu(false);
-                      alert("Report submitted.");
+                      toast.success("Report submitted.");
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                   >

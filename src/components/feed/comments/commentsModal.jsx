@@ -17,6 +17,7 @@ import {
   deleteContentComment,
 } from "../../../services/api";
 import MentionSuggestions from "../../common/MentionSuggestions";
+import { toast } from "react-hot-toast";
 
 const countNodes = (nodes) => {
   if (!Array.isArray(nodes)) return 0;
@@ -176,7 +177,7 @@ const CommentsModal = ({
       dispatch(fetchComments({ postId, itemType }));
     } catch (error) {
       console.error("Failed to delete comment:", error);
-      alert("Failed to delete comment. Please try again.");
+      toast.error("Failed to delete comment. Please try again.");
     }
   };
 

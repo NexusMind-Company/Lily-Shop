@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../../services/api";
 import { useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFollowersList } from "../../services/api";
 
 const Followers = () => {
   const { id, username } = useParams();
@@ -12,61 +12,21 @@ const Followers = () => {
 
   const targetId = id || username || loggedInUserId;
 
-  const [followers, setFollowers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data: followers = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["followers", targetId],
+    queryFn: () => fetchFollowersList(targetId),
+    enabled: !!targetId,
+  });
 
-  useEffect(() => {
-    const fetchFollowersList = async () => {
-      if (!targetId) {
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        const res = await api.get(`/auth/followers/${targetId}/`);
-
-        // Fix: Explicitly check for res.data.followers based on backend JSON structure
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.followers || res.data?.results || [];
-
-        // If the data doesn't have profile pictures, we fetch them
-        if (data.length > 0 && !data[0].profile_pic) {
-          const updatedFollowers = await Promise.all(
-            data.map(async (user) => {
-              try {
-                // Fetch individual profiles to get the pic
-                const profileRes = await api.get(`/auth/profile/${user.id}/`);
-                return {
-                  ...user,
-                  profile_pic:
-                    profileRes.data.profile_pic ||
-                    profileRes.data.user?.profile_pic,
-                };
-              } catch (err) {
-                console.error(
-                  `Failed to fetch profile for user ${user.id}`,
-                  err,
-                );
-                return user;
-              }
-            }),
-          );
-          setFollowers(updatedFollowers);
-        } else {
-          setFollowers(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch followers", err);
-        setError("Failed to load followers.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFollowersList();
-  }, [targetId]);
+  const errorMessage =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Failed to load followers.";
 
   return (
     <div className="bg-white min-h-screen text-gray-800">
@@ -78,18 +38,18 @@ const Followers = () => {
           onClick={() => navigate(-1)}
         />
         <h2 className="font-semibold text-lg flex-1 text-center pr-8">
-          Followers {loading ? "" : `(${followers.length})`}
+          Followers {isLoading ? "" : `(${followers.length})`}
         </h2>
       </div>
 
       {/* List */}
       <div className="mt-3">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center mt-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lily"></div>
           </div>
-        ) : error ? (
-          <p className="text-center text-red-500 mt-10">{error}</p>
+        ) : isError ? (
+          <p className="text-center text-red-500 mt-10">{errorMessage}</p>
         ) : followers.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">No followers found.</p>
         ) : (

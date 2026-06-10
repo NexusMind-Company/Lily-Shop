@@ -1,29 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { fetchPublicProfile } from "../../services/api";
 
 const MentionModal = ({ username, isOpen, onClose }) => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isOpen && username) {
-      const loadProfile = async () => {
-        try {
-          setLoading(true);
-          const data = await fetchPublicProfile(username);
-          setProfile(data);
-        } catch (error) {
-          console.error("Failed to fetch profile:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadProfile();
-    }
-  }, [isOpen, username]);
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["public-profile", username],
+    queryFn: () => fetchPublicProfile(username),
+    enabled: isOpen && !!username,
+  });
 
   if (!isOpen) return null;
 
@@ -61,11 +53,11 @@ const MentionModal = ({ username, isOpen, onClose }) => {
           {/* Pull Tab */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-200 rounded-full" />
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lily" />
             </div>
-          ) : profile ? (
+          ) : profile && !isError ? (
             <div className="flex flex-col gap-5 mt-2">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full border border-black overflow-hidden shrink-0 bg-gray-50">

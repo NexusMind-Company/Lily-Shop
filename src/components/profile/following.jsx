@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../../services/api";
 import { useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFollowingList } from "../../services/api";
 
 const Following = () => {
   const { id, username } = useParams();
@@ -12,61 +12,21 @@ const Following = () => {
 
   const targetId = id || username || loggedInUserId;
 
-  const [following, setFollowing] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data: following = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["following", targetId],
+    queryFn: () => fetchFollowingList(targetId),
+    enabled: !!targetId,
+  });
 
-  useEffect(() => {
-    const fetchFollowingList = async () => {
-      if (!targetId) {
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        const res = await api.get(`/auth/following/${targetId}/`);
-
-        // Fix: Explicitly check for res.data.following
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.following || res.data?.results || [];
-
-        // If the data doesn't have profile pictures, we fetch them
-        if (data.length > 0 && !data[0].profile_pic) {
-          const updatedFollowing = await Promise.all(
-            data.map(async (user) => {
-              try {
-                // Assuming we can fetch individual profiles to get the pic
-                const profileRes = await api.get(`/auth/profile/${user.id}/`);
-                return {
-                  ...user,
-                  profile_pic:
-                    profileRes.data.profile_pic ||
-                    profileRes.data.user?.profile_pic,
-                };
-              } catch (err) {
-                console.error(
-                  `Failed to fetch profile for user ${user.id}`,
-                  err,
-                );
-                return user;
-              }
-            }),
-          );
-          setFollowing(updatedFollowing);
-        } else {
-          setFollowing(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch following", err);
-        setError("Failed to load following users.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFollowingList();
-  }, [targetId]);
+  const errorMessage =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Failed to load following users.";
 
   return (
     <div className="bg-white min-h-screen text-gray-800">
@@ -78,18 +38,18 @@ const Following = () => {
           onClick={() => navigate(-1)}
         />
         <h2 className="font-semibold text-lg flex-1 text-center pr-8">
-          Following {loading ? "" : `(${following.length})`}
+          Following {isLoading ? "" : `(${following.length})`}
         </h2>
       </div>
 
       {/* List */}
       <div className="mt-3">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center mt-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lily"></div>
           </div>
-        ) : error ? (
-          <p className="text-center text-red-500 mt-10">{error}</p>
+        ) : isError ? (
+          <p className="text-center text-red-500 mt-10">{errorMessage}</p>
         ) : following.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">
             Not following anyone yet.

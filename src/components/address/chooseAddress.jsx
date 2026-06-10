@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { AddressListSkeleton } from "../common/skeletons";
 
 const ChooseAddress = () => {
   const navigate = useNavigate();
@@ -73,14 +74,6 @@ const ChooseAddress = () => {
     navigate(-1);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   if (isError) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
@@ -122,7 +115,9 @@ const ChooseAddress = () => {
       </div>
 
       <div className="p-4">
-        {addressList && addressList.length > 0 ? (
+        {isLoading ? (
+          <AddressListSkeleton />
+        ) : addressList && addressList.length > 0 ? (
           <div className="space-y-8">
             {addressList.map((item) => (
               <div

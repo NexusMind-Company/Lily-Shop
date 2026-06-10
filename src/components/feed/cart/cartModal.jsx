@@ -9,6 +9,7 @@ import {
   fetchCart,
 } from "../../../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const EMPTY_ARRAY = [];
 
@@ -60,7 +61,7 @@ const CartModal = ({ isOpen, onClose }) => {
       ).unwrap();
     } catch (error) {
       console.error("Update failed:", error);
-      alert(error?.error || "Failed to update quantity");
+      toast.error(error?.error || "Failed to update quantity");
     } finally {
       setUpdatingItems((prev) => {
         const newSet = new Set(prev);
@@ -84,7 +85,7 @@ const CartModal = ({ isOpen, onClose }) => {
       });
     } catch (error) {
       console.error("Remove failed:", error);
-      alert("Failed to remove item");
+      toast.error("Failed to remove item");
     } finally {
       setUpdatingItems((prev) => {
         const newSet = new Set(prev);
@@ -120,7 +121,7 @@ const CartModal = ({ isOpen, onClose }) => {
 
   const handleCheckoutClick = () => {
     if (selectedItems.size === 0) {
-      alert("Please select one or more items to checkout.");
+      toast.error("Please select one or more items to checkout.");
       return;
     }
     onClose();

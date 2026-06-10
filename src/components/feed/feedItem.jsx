@@ -412,7 +412,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
     if (profileId) {
       navigate(`/chat/${profileId}`);
     } else {
-      alert("Cannot message this user");
+      toast.error("Cannot message this user");
     }
   };
 

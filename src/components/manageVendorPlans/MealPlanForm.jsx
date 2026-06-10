@@ -8,6 +8,7 @@ import {
   createMeal,
 } from "../../services/api";
 import { Plus, X, Save, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 /**
  * MealPlanForm component for creating/editing meal plans with food combinations
@@ -78,7 +79,7 @@ const MealPlanForm = ({
     },
     onError: (error) => {
       console.error("Error creating plan:", error);
-      alert("Failed to create meal plan. Please try again.");
+      toast.error("Failed to create meal plan. Please try again.");
     },
   });
 
@@ -89,7 +90,7 @@ const MealPlanForm = ({
     },
     onError: (error) => {
       console.error("Error updating plan:", error);
-      alert("Failed to update meal plan. Please try again.");
+      toast.error("Failed to update meal plan. Please try again.");
     },
   });
 
@@ -114,7 +115,7 @@ const MealPlanForm = ({
       })
       .catch((error) => {
         console.error("Error creating meals:", error);
-        alert("Plan saved but some meals failed to save.");
+        toast.error("Plan saved but some meals failed to save.");
       });
   };
 
@@ -170,15 +171,15 @@ const MealPlanForm = ({
 
     // Validation
     if (!planData.name.trim()) {
-      alert("Please enter a plan name");
+      toast.error("Please enter a plan name");
       return;
     }
     if (!planData.description.trim()) {
-      alert("Please enter a plan description");
+      toast.error("Please enter a plan description");
       return;
     }
     if (!planData.price || isNaN(planData.price)) {
-      alert("Please enter a valid price");
+      toast.error("Please enter a valid price");
       return;
     }
 

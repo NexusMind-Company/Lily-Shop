@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const getSocialIcon = (type) => {
   switch (type) {
@@ -98,7 +99,7 @@ const ShareModal = ({
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy link: ", err);
-      alert("Failed to copy link.");
+      toast.error("Failed to copy link.");
     }
   };
 

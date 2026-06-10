@@ -6,6 +6,7 @@ import { usePayment } from "../context/paymentContext";
 import { createOrder } from "../services/api";
 import { useMutation } from "@tanstack/react-query";
 import { ChevronLeft, MapPin, CreditCard, Wallet, ShoppingBag, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const OrderSummaryPage = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const OrderSummaryPage = () => {
         if (data.authorization_url) {
           window.location.href = data.authorization_url;
         } else {
-          alert("Error: No payment link received.");
+          toast.error("Error: No payment link received.");
         }
       } else {
         // Wallet payment is instant
@@ -43,13 +44,13 @@ const OrderSummaryPage = () => {
     },
     onError: (error) => {
       console.error("Order creation failed:", error);
-      alert(error.response?.data?.message || "Failed to place order. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
     },
   });
 
   const handlePlaceOrder = () => {
     if (!selectedAddress || !selectedPaymentMethod) {
-      alert("Missing address or payment method.");
+      toast.error("Missing address or payment method.");
       return;
     }
 

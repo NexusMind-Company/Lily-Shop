@@ -343,7 +343,7 @@ const ProductItem = ({ product }) => {
       console.error("Failed to add to cart:", error);
       setIsAddedToCart(false);
       setIsAddingToCart(false);
-      alert(
+      toast.error(
         error?.quantity ||
           error?.message ||
           (typeof error === "string" ? error : "Failed to add to cart."),

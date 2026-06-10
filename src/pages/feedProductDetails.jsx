@@ -5,6 +5,7 @@ import ProductDetails from "../components/feed/product/productDetails";
 import { useFeed } from "../context/feedContext";
 import { addToCart } from "../redux/cartSlice";
 import { api } from "../services/api";
+import { toast } from "react-hot-toast";
 
 const FeedProductDetails = () => {
   const { id } = useParams();
@@ -40,7 +41,7 @@ const FeedProductDetails = () => {
       dispatch(addToCart(response.data));
     } catch (error) {
       console.error("Failed to add to cart:", error);
-      alert("Failed to add to cart. Please try again.");
+      toast.error("Failed to add to cart. Please try again.");
     }
   };
 

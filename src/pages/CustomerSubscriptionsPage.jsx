@@ -24,6 +24,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { getUserSubscriptions, unsubscribeFromPlan } from "../services/api";
+import { SubscriptionCardSkeleton } from "../components/common/skeletons";
 
 const serviceDaysRemaining = (endDateStr, serviceDays) => {
   if (!endDateStr || !serviceDays || serviceDays.length === 0) return 0;
@@ -691,14 +692,10 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
       )}
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center gap-3 pt-20">
-            <Loader2 size={32} className="animate-spin text-[#13ec49]" />
-            <p className="text-sm text-gray-400">
-              Loading your subscriptions...
-            </p>
-          </div>
-        )}
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <SubscriptionCardSkeleton key={i} />
+          ))}
 
         {isError && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20 text-center">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyPayment } from "../../redux/adsSlice";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const VerifyTransaction = () => {
   const location = useLocation();
@@ -60,7 +61,7 @@ const VerifyTransaction = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
+    toast.success("Copied to clipboard!");
   };
 
   return (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { initiatePayment } from "../../redux/adsSlice";
+import { toast } from "react-hot-toast";
 
 const PaymentInitiation = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,7 +15,7 @@ const PaymentInitiation = () => {
 
   useEffect(() => {
     if (!shop_id) {
-      alert("You don't have a shop yet! Please create a shop first.");
+      toast.error("You don't have a shop yet! Please create a shop first.");
       navigate("/myShop");
     }
   }, [shop_id, navigate]);
@@ -23,9 +24,9 @@ const PaymentInitiation = () => {
     if (paymentStatus === "succeeded" && paymentData?.authorization_url) {
       window.location.href = paymentData.authorization_url;
     } else if (paymentStatus === "failed") {
-      alert(
+      toast.error(
         JSON.stringify(paymentError) ||
-          "Failed to initiate payment. Please try later."
+          "Failed to initiate payment. Please try later.",
       );
       setIsProcessing(false);
     }

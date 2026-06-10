@@ -15,6 +15,7 @@ import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
 } from "../utils/subscriptionFlow";
+import { toast } from "react-hot-toast";
 
 const SubscriptionDetailsPage = () => {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ const SubscriptionDetailsPage = () => {
 
   const handleContinue = () => {
     if (!isValid()) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
     setIsModalOpen(true); // open modal instead

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import BottomNav from "./bottomNav";
+import { MessageListSkeleton } from "../common/skeletons";
 import { fetchConversations } from "../../redux/messageConversationSlice";
 import { shareProductToChat, sendMessage } from "../../services/api";
 
@@ -182,11 +183,7 @@ function MessagesList() {
       </section>
 
       <div className="flex-1 overflow-hidden relative">
-        {conversationsLoading && (
-          <div className="flex justify-center items-center h-40">
-            <div className="w-8 h-8 border-4 border-lily border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
+        {conversationsLoading && <MessageListSkeleton />}
 
         {!conversationsLoading && error && (
           <p className="text-red-700 py-3 border border-red-300 bg-red-100 text-center my-5 mx-4 rounded-lg">

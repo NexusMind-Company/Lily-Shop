@@ -124,7 +124,7 @@ const ManageVendorPlansPage = () => {
         });
       } catch (error) {
         console.error("Error deleting meal plan:", error);
-        alert("Failed to delete meal plan. Please try again.");
+        toast.error("Failed to delete meal plan. Please try again.");
       }
     }
   };

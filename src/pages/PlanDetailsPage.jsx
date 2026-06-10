@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import VendorLayout from "../components/vendor/VendorLayout";
 import {
   updateMealPlan,
@@ -20,7 +21,6 @@ const PlanDetailsPage = () => {
   const isEditFromState = location.state?.mode === "edit";
 
   const [plan, setPlan] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(isEditFromState);
   const [formData, setFormData] = useState({
@@ -33,34 +33,29 @@ const PlanDetailsPage = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // ---------------- Load Plan Data ----------------
+  const {
+    data: fetchedPlan,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["mealPlan", planId],
+    queryFn: () => fetchMealPlanDetails(planId),
+    enabled: !!planId,
+  });
+
   useEffect(() => {
-    const loadPlan = async () => {
-      if (!planId) {
-        setLoading(false);
-        return;
-      }
+    if (!fetchedPlan) return;
 
-      try {
-        const data = await fetchMealPlanDetails(planId);
-        setPlan(data);
-        setFormData({
-          plan_name: data.plan_name || "",
-          price: data.price ? data.price.toString() : "",
-          trial_days: data.trial_days || 0,
-          description: data.description || "",
-          meals_per_cycle: data.meals_per_cycle || 0,
-          media: data.all_media_urls || null,
-        });
-      } catch (err) {
-        console.error("Failed to load plan:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlan();
-  }, [planId]);
+    setPlan(fetchedPlan);
+    setFormData({
+      plan_name: fetchedPlan.plan_name || "",
+      price: fetchedPlan.price ? fetchedPlan.price.toString() : "",
+      trial_days: fetchedPlan.trial_days || 0,
+      description: fetchedPlan.description || "",
+      meals_per_cycle: fetchedPlan.meals_per_cycle || 0,
+      media: fetchedPlan.all_media_urls || null,
+    });
+  }, [fetchedPlan]);
 
   // ---------------- Form Handlers ----------------
   const handleInputChange = (e) => {
@@ -165,7 +160,7 @@ const PlanDetailsPage = () => {
   };
 
   // ---------------- Loading State ----------------
-  if (loading) {
+  if (isLoading) {
     return (
       <VendorLayout
         title="Plan Details"
@@ -174,6 +169,20 @@ const PlanDetailsPage = () => {
       >
         <div className="flex-1 flex items-center justify-center">
           <div className="text-black">Loading plan details...</div>
+        </div>
+      </VendorLayout>
+    );
+  }
+
+  if (isError || (!isLoading && !fetchedPlan)) {
+    return (
+      <VendorLayout
+        title="Plan Details"
+        showBack={true}
+        onBack={handleBackClick}
+      >
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-black">Failed to load plan details.</div>
         </div>
       </VendorLayout>
     );

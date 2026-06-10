@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { addNewAddress, fetchStates, fetchLgas } from "../../services/api";
 
 const AddAddressPage = () => {
@@ -17,50 +18,24 @@ const AddAddressPage = () => {
     description: "",
   });
 
-  const [states, setStates] = useState([]);
-  const [lgas, setLgas] = useState([]);
-  const [statesLoading, setStatesLoading] = useState(false);
-  const [lgasLoading, setLgasLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const loadStates = async () => {
-      setStatesLoading(true);
-      try {
-        const data = await fetchStates();
-        setStates(data);
-      } catch (err) {
-        console.error("Failed to load states:", err);
-      } finally {
-        setStatesLoading(false);
-      }
-    };
-    loadStates();
-  }, []);
+  const { data: states = [], isLoading: statesLoading } = useQuery({
+    queryKey: ["states"],
+    queryFn: fetchStates,
+  });
 
-  useEffect(() => {
-    const loadLgas = async () => {
-      const selectedState = states.find((s) => s.name === formData.state);
-      if (!selectedState) {
-        setLgas([]);
-        return;
-      }
-      setLgasLoading(true);
-      try {
-        const data = await fetchLgas(selectedState.id);
-        setLgas(data);
-      } catch (err) {
-        console.error("Failed to load LGAs:", err);
-      } finally {
-        setLgasLoading(false);
-      }
-    };
+  const selectedStateId = useMemo(() => {
+    const selectedState = states.find((s) => s.name === formData.state);
+    return selectedState?.id ?? null;
+  }, [states, formData.state]);
 
-    if (formData.state && states.length > 0) {
-      loadLgas();
-    }
-  }, [formData.state, states]);
+  const { data: lgas = [], isLoading: lgasLoading } = useQuery({
+    queryKey: ["lgas", selectedStateId],
+    queryFn: () => fetchLgas(selectedStateId),
+    enabled: !!selectedStateId,
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;

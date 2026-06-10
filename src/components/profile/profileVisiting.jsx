@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import PostDetailOverlay from "./PostDetailOverlay";
+import { ProfileHeaderSkeleton } from "../common/skeletons";
 
 const ProfileVisiting = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -418,12 +419,7 @@ const ProfileVisiting = () => {
     );
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lily"></div>
-      </div>
-    );
+  if (loading) return <ProfileHeaderSkeleton />;
 
   if (profileError)
     return (
