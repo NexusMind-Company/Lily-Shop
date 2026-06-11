@@ -22,8 +22,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageError,
   VendorPageLoader,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import { fetchVendorSubscriptions } from "../../services/vendorDashboardApi";
 import { fetchSubscriptionCustomizations } from "../../services/api";
 
@@ -76,7 +76,7 @@ const DetailRow = ({ icon: Icon, label, value, valueClassName = "" }) => {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex items-center gap-1.5 text-xs text-gray-400">
-        {Icon && <Icon size={12} className="text-[#4eb75e]" />}
+        {Icon && <Icon size={12} className="text-lily" />}
         {label}
       </span>
       <span

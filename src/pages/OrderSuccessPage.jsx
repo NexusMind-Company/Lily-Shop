@@ -15,7 +15,7 @@ import {
   Home,
 } from "lucide-react";
 import { fetchCart } from "../redux/cartSlice";
-import { usePayment } from "../context/paymentContext";
+import { usePayment } from "../hooks/usePayment";
 import Confetti from "react-confetti";
 
 const OrderSuccessPage = () => {
@@ -48,11 +48,11 @@ const OrderSuccessPage = () => {
       clearTimeout(timer);
       window.removeEventListener("resize", handleResize);
     };
-  }, [dispatch]);
+  }, [dispatch, resetPaymentData]);
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -71,7 +71,7 @@ const OrderSuccessPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/feed")}
-            className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
+            className="bg-linear-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             Continue Shopping
           </motion.button>
@@ -81,7 +81,7 @@ const OrderSuccessPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 py-8 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-pink-50 via-white to-purple-50 py-8 px-4 relative overflow-hidden">
       {/* Confetti */}
       {showConfetti && (
         <Confetti
@@ -109,7 +109,7 @@ const OrderSuccessPage = () => {
           transition={{ type: "spring", duration: 0.8 }}
           className="text-center mb-8"
         >
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full mb-4 shadow-2xl">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-linear-to-br from-green-400 to-emerald-600 rounded-full mb-4 shadow-2xl">
             <CheckCircle2 className="w-14 h-14 text-white" />
           </div>
 
@@ -118,7 +118,7 @@ const OrderSuccessPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Order Confirmed!
             </h1>
             <p className="text-lg text-gray-600">
@@ -135,7 +135,7 @@ const OrderSuccessPage = () => {
           className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6"
         >
           {/* Order Header */}
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 sm:px-8 py-6">
+          <div className="bg-linear-to-r from-pink-500 to-purple-600 px-6 sm:px-8 py-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-pink-100 text-sm font-medium mb-1">
@@ -161,20 +161,20 @@ const OrderSuccessPage = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-4"
+                className="bg-linear-to-br from-pink-50 to-purple-50 rounded-xl p-4"
               >
                 <p className="text-sm text-gray-600 mb-1">Payment Method</p>
                 <div className="flex items-center space-x-2">
                   {paymentMethod === "wallet" ? (
                     <>
-                      <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-linear-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">LW</span>
                       </div>
                       <p className="font-bold text-gray-800">Lily Wallet</p>
                     </>
                   ) : (
                     <>
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">PS</span>
                       </div>
                       <p className="font-bold text-gray-800">Paystack</p>
@@ -187,7 +187,7 @@ const OrderSuccessPage = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 }}
-                className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-4"
+                className="bg-linear-to-br from-pink-50 to-purple-50 rounded-xl p-4"
               >
                 <p className="text-sm text-gray-600 mb-1">Order Date</p>
                 <p className="font-bold text-gray-800">
@@ -209,10 +209,10 @@ const OrderSuccessPage = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 }}
-                className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-4"
+                className="bg-linear-to-br from-pink-50 to-purple-50 rounded-xl p-4"
               >
                 <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                <p className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                <p className="text-2xl font-bold bg-linear-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                   NGN{" "}
                   {order.total_amount_naira?.toLocaleString() ||
                     (order.total_amount_kobo / 100).toLocaleString()}
@@ -226,7 +226,7 @@ const OrderSuccessPage = () => {
                 <Package className="w-5 h-5 mr-2 text-pink-600" />
                 Items Ordered ({order.items?.length})
               </h3>
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+              <div className="space-y-4 max-h-75 overflow-y-auto pr-2">
                 {order.items?.map((item, index) => (
                   <motion.div
                     key={item.id}
@@ -281,7 +281,7 @@ const OrderSuccessPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/orders")}
-            className="bg-gradient-to-r from-pink-600 to-purple-600 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+            className="bg-linear-to-r from-pink-600 to-purple-600 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
           >
             <Package className="w-5 h-5" />
             <span>View My Orders</span>
@@ -304,7 +304,7 @@ const OrderSuccessPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100"
+          className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100"
         >
           <h3 className="font-bold text-blue-900 mb-4 text-lg flex items-center">
             <Sparkles className="w-5 h-5 mr-2" />
@@ -332,7 +332,7 @@ const OrderSuccessPage = () => {
                 transition={{ delay: 1.1 + index * 0.1 }}
                 className="flex items-start space-x-3"
               >
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
                   {step.icon}
                 </div>
                 <p className="text-blue-900 pt-2 leading-relaxed">

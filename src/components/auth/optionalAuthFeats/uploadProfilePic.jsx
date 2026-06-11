@@ -93,9 +93,6 @@ const UploadProfilePic = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
-  // API endpoint
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   // Cleanup function
   const cleanup = useCallback(() => {
     if (previewUrl) {

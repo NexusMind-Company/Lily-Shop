@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { usePayment } from "../../context/paymentContext";
+import { usePayment } from "../../hooks/usePayment";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchDeliveryAddresses,

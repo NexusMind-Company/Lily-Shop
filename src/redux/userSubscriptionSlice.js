@@ -15,10 +15,12 @@ export const initiateUserSubscriptionPayment = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to initiate subscription"
+        error.response?.data ||
+          error.message ||
+          "Failed to initiate subscription",
       );
     }
-  }
+  },
 );
 
 // Async thunk to verify user subscription payment
@@ -30,10 +32,12 @@ export const verifyUserSubscriptionPayment = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to verify subscription"
+        error.response?.data ||
+          error.message ||
+          "Failed to verify subscription",
       );
     }
-  }
+  },
 );
 
 // Async thunk to fetch user subscription status
@@ -45,10 +49,12 @@ export const getUserSubscriptionStatus = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to fetch subscription status"
+        error.response?.data ||
+          error.message ||
+          "Failed to fetch subscription status",
       );
     }
-  }
+  },
 );
 
 // Async thunk to cancel user subscription
@@ -60,10 +66,12 @@ export const cancelUserSubscriptionAction = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to cancel subscription"
+        error.response?.data ||
+          error.message ||
+          "Failed to cancel subscription",
       );
     }
-  }
+  },
 );
 
 const userSubscriptionSlice = createSlice({
@@ -95,7 +103,7 @@ const userSubscriptionSlice = createSlice({
         state.paymentInitiating = true;
         state.error = null;
       })
-      .addCase(initiateUserSubscriptionPayment.fulfilled, (state, action) => {
+      .addCase(initiateUserSubscriptionPayment.fulfilled, (state) => {
         state.paymentInitiating = false;
         // Payment data will be handled by the component
       })

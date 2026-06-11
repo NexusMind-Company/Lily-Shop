@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchCutoffSettings,
   updateCutoffSettings,
@@ -61,7 +61,7 @@ const SelectRow = ({ label, hint, value, options, onChange, renderLabel }) => (
           onClick={() => onChange(opt)}
           className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
             value === opt
-              ? "bg-[#4eb75e] text-white shadow-sm"
+              ? "bg-lily text-white shadow-sm"
               : "bg-gray-50  text-gray-500 border border-gray-100 "
           }`}
         >
@@ -143,7 +143,7 @@ const VendorCutoffPage = () => {
             onClick={() =>
               setForm((f) => ({ ...f, is_enabled: !f.is_enabled }))
             }
-            className={`w-12 h-6 rounded-full transition-all relative flex-shrink-0 ${form.is_enabled ? "bg-[#4eb75e]" : "bg-gray-200 "}`}
+            className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${form.is_enabled ? "bg-lily" : "bg-gray-200 "}`}
           >
             <div
               className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${form.is_enabled ? "right-1" : "left-1"}`}
@@ -154,7 +154,7 @@ const VendorCutoffPage = () => {
         {form.is_enabled && (
           <>
             <div className="flex items-start gap-2 bg-blue-50  border border-blue-100  rounded-2xl px-4 py-3">
-              <Clock size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
+              <Clock size={14} className="text-blue-400 mt-0.5 shrink-0" />
               <p className="text-xs text-blue-600  leading-relaxed">
                 Orders placed after the cut-off time on your cut-off day won't
                 be included in that week's delivery cycle.
@@ -204,7 +204,7 @@ const VendorCutoffPage = () => {
                     onChange={(e) =>
                       set("delivery_window_start")(e.target.value)
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
                   >
                     {TIMES.map((t) => (
                       <option key={t} value={t}>
@@ -220,7 +220,7 @@ const VendorCutoffPage = () => {
                   <select
                     value={form.delivery_window_end}
                     onChange={(e) => set("delivery_window_end")(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
                   >
                     {TIMES.map((t) => (
                       <option key={t} value={t}>
@@ -232,7 +232,7 @@ const VendorCutoffPage = () => {
               </div>
             </div>
 
-            <div className="bg-[#4eb75e]/5 border border-[#4eb75e]/20 rounded-2xl p-4">
+            <div className="bg-lily/5 border border-lily/20 rounded-2xl p-4">
               <p className="text-xs font-semibold text-[#111813]  mb-2">
                 Summary
               </p>
@@ -266,7 +266,7 @@ const VendorCutoffPage = () => {
         <button
           onClick={() => save()}
           disabled={isPending}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-lily text-white font-bold text-sm hover:bg-darklily disabled:opacity-60 transition-colors"
         >
           <Save size={16} />
           {isPending ? "Saving..." : "Save Settings"}

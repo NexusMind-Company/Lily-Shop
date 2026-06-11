@@ -11,12 +11,29 @@ import ContactVendorButton from "../subscription/ContactVendorButton";
 import ShopReviewModal from "./ShopReviewModal";
 import EditReviewModal from "./EditReviewModal";
 import ReviewList from "../common/ReviewList";
-import { fetchShopReviews, updateReview, deleteReview, toggleReviewLike } from "../../services/shopApi";
+import {
+  fetchShopReviews,
+  deleteReview,
+  toggleReviewLike,
+} from "../../services/shopApi";
 import toast from "react-hot-toast";
 import {
-  ChevronLeft, MapPin, Phone, Share2, MessageCircle,
-  Star, Store, Eye, Package, Grid3x3, ShoppingCart,
-  Plus, Minus, Check, Heart, Edit3
+  ChevronLeft,
+  MapPin,
+  Phone,
+  Share2,
+  MessageCircle,
+  Star,
+  Store,
+  Eye,
+  Package,
+  Grid3x3,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Check,
+  Heart,
+  Edit3,
 } from "lucide-react";
 
 const ShopDetails = () => {
@@ -24,7 +41,7 @@ const ShopDetails = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  
+
   const {
     selectedShop: shop,
     status,
@@ -45,16 +62,6 @@ const ShopDetails = () => {
     queryKey: ["shopReviews", id],
     queryFn: () => fetchShopReviews(id),
     enabled: !!id,
-  });
-
-  const updateReviewMutation = useMutation({
-    mutationFn: (data) => updateReview(data.reviewId, data.reviewData),
-    onSuccess: () => {
-      toast.success("Review updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
-      setEditingReview(null);
-    },
-    onError: () => toast.error("Failed to update review"),
   });
 
   const deleteReviewMutation = useMutation({
@@ -88,7 +95,9 @@ const ShopDetails = () => {
   };
 
   const handleConfirmOrder = (productId) => {
-    console.log(`Order confirmed: Product ${productId}, Quantity: ${currentOrderQuantity}`);
+    console.log(
+      `Order confirmed: Product ${productId}, Quantity: ${currentOrderQuantity}`,
+    );
     setOrderingProductId(null);
     navigate(`/checkout?product=${productId}&quantity=${currentOrderQuantity}`);
   };
@@ -98,7 +107,7 @@ const ShopDetails = () => {
       navigator.share({
         title: shop.name,
         text: `Check out ${shop.name} on Lily Shop`,
-        url: window.location.href
+        url: window.location.href,
       });
     } else {
       setShowShareMenu(true);
@@ -147,7 +156,7 @@ const ShopDetails = () => {
       </div>
 
       {/* Shop Cover */}
-      <div className="relative h-64 bg-gradient-to-br from-lily/20 to-lily/5">
+      <div className="relative h-64 bg-linear-to-br from-lily/20 to-lily/5">
         {shop.image_url ? (
           <img
             src={shop.image_url}
@@ -159,8 +168,8 @@ const ShopDetails = () => {
             <Store size={80} className="text-lily/30" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+
         {/* Shop Badge */}
         <div className="absolute bottom-4 left-4 right-4">
           <div className="flex items-end gap-4">
@@ -191,7 +200,9 @@ const ShopDetails = () => {
               <p className="text-gray-600 text-sm">Visitors</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-xl">{Number(shop.avg_rating || 0).toFixed(1)}</p>
+              <p className="font-bold text-xl">
+                {Number(shop.avg_rating || 0).toFixed(1)}
+              </p>
               <p className="text-gray-600 text-sm">Rating</p>
             </div>
           </div>
@@ -200,7 +211,7 @@ const ShopDetails = () => {
           <div className="px-4 mt-4">
             <button
               onClick={() => setIsReviewModalOpen(true)}
-              className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-600 hover:from-amber-100 hover:to-orange-100 transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-3 rounded-xl font-bold text-sm bg-linear-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-600 hover:from-amber-100 hover:to-orange-100 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               <Star size={18} className="fill-amber-400 text-amber-400" />
               Write a Review
@@ -213,9 +224,7 @@ const ShopDetails = () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => setFollowing(!following)}
               className={`flex-1 py-2.5 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${
-                following
-                  ? "bg-gray-100 text-gray-700"
-                  : "bg-lily text-white"
+                following ? "bg-gray-100 text-gray-700" : "bg-lily text-white"
               }`}
             >
               {following ? (
@@ -289,7 +298,7 @@ const ShopDetails = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  
+
                   <div className="p-3">
                     <h4 className="font-semibold text-sm mb-1 truncate">
                       {product.name}
@@ -307,7 +316,7 @@ const ShopDetails = () => {
                           >
                             <Minus size={16} />
                           </button>
-                          <span className="font-semibold min-w-[30px] text-center">
+                          <span className="font-semibold min-w-7.5 text-center">
                             {currentOrderQuantity}
                           </span>
                           <button
@@ -317,7 +326,7 @@ const ShopDetails = () => {
                             <Plus size={16} />
                           </button>
                         </div>
-                        
+
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleConfirmOrder(product.id)}

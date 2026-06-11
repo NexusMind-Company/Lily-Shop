@@ -507,10 +507,6 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
     successState?.subscriptionId && successState?.paymentMethod === "paystack";
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [planToCancel, setPlanToCancel] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   const playSuccessSound = () => {
     try {
@@ -545,15 +541,6 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
       console.log("Audio not supported");
     }
   };
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   // Clear location state after showing success banner to prevent persistence on refresh
   useEffect(() => {
@@ -716,22 +703,18 @@ const CustomerSubscriptionsPage = ({ hideHeader = false, onExplore }) => {
             </div>
             <div>
               <p className="text-lg font-bold text-[#111813]">
-                {searchQuery ? "No results found" : "No subscriptions yet"}
+                No subscriptions yet
               </p>
               <p className="mt-1 text-sm text-gray-400">
-                {searchQuery
-                  ? "Try a different search term"
-                  : "Subscribe to a food vendor to get started!"}
+                Subscribe to a food vendor to get started!
               </p>
             </div>
-            {!searchQuery && (
-              <button
-                onClick={handleExplore}
-                className="rounded-xl bg-[#13ec49] px-6 py-3 text-sm font-bold text-[#111813]"
-              >
-                Explore Vendors
-              </button>
-            )}
+            <button
+              onClick={handleExplore}
+              className="rounded-xl bg-[#13ec49] px-6 py-3 text-sm font-bold text-[#111813]"
+            >
+              Explore Vendors
+            </button>
           </div>
         )}
 

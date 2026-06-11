@@ -95,7 +95,7 @@ const EditProducts = () => {
       setUiSubmissionStatus("failed");
     }
     dispatch(resetAddProductState());
-  }, [initialProductData, resetForm, dispatch]);
+  }, [initialProductData, resetForm, dispatch, setFieldErrors]);
 
   useEffect(() => {
     let objectUrl = null;

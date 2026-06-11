@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchAddons,
   createAddon,
@@ -86,14 +86,14 @@ const AddonForm = ({ addon, onSave, onCancel, isSaving }) => {
                 placeholder={placeholder}
                 value={form[key]}
                 onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
               />
             </div>
           ))}
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="w-full py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+            className="w-full py-3.5 rounded-xl bg-lily text-white font-bold text-sm hover:bg-darklily disabled:opacity-60 transition-colors"
           >
             {isSaving ? "Saving..." : addon ? "Save Changes" : "Add to Menu"}
           </button>
@@ -171,8 +171,8 @@ const VendorAddonsPage = () => {
 
   return (
     <VendorLayout title="Add-ons">
-      <div className="bg-[#4eb75e]/10 border border-[#4eb75e]/20 rounded-2xl px-4 py-3">
-        <p className="text-xs font-bold text-[#4eb75e] mb-0.5">
+      <div className="bg-lily/10 border border-lily/20 rounded-2xl px-4 py-3">
+        <p className="text-xs font-bold text-lily mb-0.5">
           💡 Revenue Booster
         </p>
         <p className="text-xs text-gray-500">
@@ -190,7 +190,7 @@ const VendorAddonsPage = () => {
         ].map((ex) => (
           <span
             key={ex}
-            className="flex-shrink-0 text-[11px] bg-gray-100  text-gray-500 px-2.5 py-1.5 rounded-full font-medium"
+            className="shrink-0 text-[11px] bg-gray-100  text-gray-500 px-2.5 py-1.5 rounded-full font-medium"
           >
             {ex}
           </span>
@@ -199,7 +199,7 @@ const VendorAddonsPage = () => {
 
       <button
         onClick={() => setShowForm(true)}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#4eb75e] text-white text-sm font-bold shadow-sm hover:bg-[#3da64d] transition-colors"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-lily text-white text-sm font-bold shadow-sm hover:bg-darklily transition-colors"
       >
         <Plus size={16} /> Add New Add-on
       </button>
@@ -216,7 +216,7 @@ const VendorAddonsPage = () => {
               className={`bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  transition-opacity ${deletingId === addon.id ? "opacity-40" : ""} ${!addon.is_available ? "opacity-60" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100  flex items-center justify-center text-xl flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-orange-100  flex items-center justify-center text-xl shrink-0">
                   🍹
                 </div>
                 <div className="flex-1 min-w-0">
@@ -225,14 +225,14 @@ const VendorAddonsPage = () => {
                   </p>
                   <p className="text-xs text-gray-400">{addon.description}</p>
                 </div>
-                <p className="text-sm font-bold text-[#4eb75e] flex-shrink-0">
+                <p className="text-sm font-bold text-lily shrink-0">
                   ₦{(addon.price ?? 0).toLocaleString()}
                 </p>
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50 ">
                 <button
                   onClick={() => toggleAvailability(addon)}
-                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${addon.is_available ? "text-[#4eb75e]" : "text-gray-400"}`}
+                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${addon.is_available ? "text-lily" : "text-gray-400"}`}
                 >
                   {addon.is_available ? (
                     <ToggleRight size={18} />
@@ -244,7 +244,7 @@ const VendorAddonsPage = () => {
                 <div className="flex gap-1">
                   <button
                     onClick={() => setEditAddon(addon)}
-                    className="p-2 rounded-xl hover:bg-gray-50  text-gray-400 hover:text-[#4eb75e] transition-colors"
+                    className="p-2 rounded-xl hover:bg-gray-50  text-gray-400 hover:text-lily transition-colors"
                   >
                     <Pencil size={14} />
                   </button>

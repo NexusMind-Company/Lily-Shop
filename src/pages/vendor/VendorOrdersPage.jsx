@@ -13,8 +13,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorOrders,
   updateOrderStatus,
@@ -63,29 +63,29 @@ const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 transition-transform flex-shrink-0 ml-2 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 transition-transform shrink-0 ml-2 ${open ? "rotate-180" : ""}`}
         />
       </div>
 
       {open && (
         <div className="px-4 pb-4 space-y-2.5 border-t border-gray-50  pt-3">
           <div className="flex items-start gap-2 text-xs text-gray-500">
-            <Phone size={13} className="mt-0.5 text-[#4eb75e] flex-shrink-0" />
+            <Phone size={13} className="mt-0.5 text-lily shrink-0" />
             <span>{order.phone}</span>
           </div>
           <div className="flex items-start gap-2 text-xs text-gray-500">
-            <MapPin size={13} className="mt-0.5 text-[#4eb75e] flex-shrink-0" />
+            <MapPin size={13} className="mt-0.5 text-lily shrink-0" />
             <span>{order.delivery_address}</span>
           </div>
           <div className="flex items-start gap-2 text-xs text-gray-500">
-            <Clock size={13} className="mt-0.5 text-[#4eb75e] flex-shrink-0" />
+            <Clock size={13} className="mt-0.5 text-lily shrink-0" />
             <span>Delivery: {order.delivery_time}</span>
           </div>
           {nextStatus && (
             <button
               onClick={() => onStatusUpdate(order.id, nextStatus)}
               disabled={isUpdating}
-              className="w-full py-2.5 rounded-xl bg-[#4eb75e] text-white text-xs font-bold mt-1 hover:bg-[#3da64d] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-2.5 rounded-xl bg-lily text-white text-xs font-bold mt-1 hover:bg-darklily disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {isUpdating
                 ? "Updating..."
@@ -163,7 +163,7 @@ const VendorOrdersPage = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === tab ? "bg-[#4eb75e] text-white shadow-sm" : "bg-white  text-gray-500 border border-gray-100 "}`}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === tab ? "bg-lily text-white shadow-sm" : "bg-white  text-gray-500 border border-gray-100 "}`}
           >
             {tab === "orders" ? "All Orders" : "Prep List"}
           </button>
@@ -182,7 +182,7 @@ const VendorOrdersPage = () => {
               placeholder="Search customer..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-3 rounded-xl bg-white  border border-gray-100  text-sm text-[#111813]  placeholder-gray-400 focus:outline-none focus:border-[#4eb75e]"
+              className="w-full pl-9 pr-4 py-3 rounded-xl bg-white  border border-gray-100  text-sm text-[#111813]  placeholder-gray-400 focus:outline-none focus:border-lily"
             />
           </div>
 
@@ -198,7 +198,7 @@ const VendorOrdersPage = () => {
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterStatus === s ? "bg-[#4eb75e] text-white" : "bg-white  border border-gray-100  text-gray-500"}`}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterStatus === s ? "bg-lily text-white" : "bg-white  border border-gray-100  text-gray-500"}`}
               >
                 {STATUS_LABELS[s] ?? "All"}
               </button>
@@ -244,8 +244,8 @@ const VendorOrdersPage = () => {
             />
           ) : (
             <div className="space-y-3">
-              <div className="bg-[#4eb75e]/10 border border-[#4eb75e]/20 rounded-xl px-4 py-3">
-                <p className="text-sm font-bold text-[#4eb75e]">
+              <div className="bg-lily/10 border border-lily/20 rounded-xl px-4 py-3">
+                <p className="text-sm font-bold text-lily">
                   Today's Preparation List
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -263,7 +263,7 @@ const VendorOrdersPage = () => {
                   key={i}
                   className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  flex items-center gap-4"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
                     <Package size={18} className="text-orange-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -272,8 +272,8 @@ const VendorOrdersPage = () => {
                     </p>
                     <p className="text-xs text-gray-400">{item.meal_plan}</p>
                   </div>
-                  <div className="text-center flex-shrink-0">
-                    <p className="text-xl font-bold text-[#4eb75e]">
+                  <div className="text-center shrink-0">
+                    <p className="text-xl font-bold text-lily">
                       {item.quantity}
                     </p>
                     <p className="text-[10px] text-gray-400">portions</p>

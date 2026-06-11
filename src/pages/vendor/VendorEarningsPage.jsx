@@ -19,10 +19,10 @@ import {
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";
 import {
-  VendorPageError,
   VendorPageLoader,
-  getErrorMessage,
+  VendorPageError,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchEarningsChart,
   fetchEarningsHistory,
@@ -51,9 +51,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs shadow-lg  ">
       <p className="mb-1 text-gray-500">{label}</p>
-      <p className="font-bold text-lily">
-        {formatMoney(payload[0].value)}
-      </p>
+      <p className="font-bold text-lily">{formatMoney(payload[0].value)}</p>
     </div>
   );
 };

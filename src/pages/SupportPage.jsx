@@ -12,7 +12,7 @@ const SUPPORT_EMAIL = "info.lilyshops@gmail.com";
 const SUPPORT_PHONE = "+234 903 332 5971";
 const SUPPORT_WHATSAPP = "+234 903 332 5971";
 
-const ContactCard = ({ icon: Icon, label, value, action, color }) => (
+const ContactCard = ({ icon: Icon, label, value, action, _color }) => (
   <a
     href={action}
     target={action.startsWith("http") ? "_blank" : undefined}

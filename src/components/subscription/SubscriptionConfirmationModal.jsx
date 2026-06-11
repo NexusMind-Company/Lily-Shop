@@ -33,10 +33,6 @@ const SubscriptionConfirmationModal = ({
 }) => {
   if (!isOpen) return null;
 
-  const totalPrice =
-    selectedPlans?.reduce((sum, plan) => sum + Number(plan?.price || 0), 0) ??
-    0;
-
   const hasPreferences =
     dietaryPreferences || allergies || portionSize || specialInstructions;
 

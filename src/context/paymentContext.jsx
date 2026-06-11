@@ -1,6 +1,5 @@
-import { createContext, useContext, useState } from "react";
-
-export const PaymentContext = createContext(null);
+import { useState } from "react";
+import { PaymentContext } from "./PaymentContext";
 
 export const PaymentProvider = ({ children }) => {
   const initialState = {
@@ -25,12 +24,4 @@ export const PaymentProvider = ({ children }) => {
       {children}
     </PaymentContext.Provider>
   );
-};
-
-export const usePayment = () => {
-  const context = useContext(PaymentContext);
-  if (!context) {
-    throw new Error("usePayment must be used within a PaymentProvider");
-  }
-  return context;
 };

@@ -17,8 +17,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorMenu,
   addMeal,
@@ -271,10 +271,7 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
                 key={point}
                 className="flex items-center gap-2 text-sm text-gray-600 "
               >
-                <CheckCircle
-                  size={14}
-                  className="text-lily shrink-0"
-                />
+                <CheckCircle size={14} className="text-lily shrink-0" />
                 {point}
               </div>
             ))}
@@ -608,6 +605,9 @@ const MealForm = ({ meal, onSave, onCancel, isSaving }) => {
           </button>
         </div>
       </div>
+      {showPriceGuide && (
+        <PriceGuide onClose={() => setShowPriceGuide(false)} />
+      )}
     </div>
   );
 };

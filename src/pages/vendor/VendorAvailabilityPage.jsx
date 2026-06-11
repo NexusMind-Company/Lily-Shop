@@ -7,8 +7,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchAvailability,
   updateAvailability,
@@ -125,7 +125,7 @@ const VendorAvailabilityPage = () => {
                 <button
                   key={day}
                   onClick={() => toggleDay(day)}
-                  className={`py-2 rounded-xl text-xs font-semibold capitalize transition-all flex flex-col items-center gap-0.5 ${active ? "bg-[#4eb75e] text-white shadow-sm" : "bg-gray-50  text-gray-400 border border-gray-100 "}`}
+                  className={`py-2 rounded-xl text-xs font-semibold capitalize transition-all flex flex-col items-center gap-0.5 ${active ? "bg-lily text-white shadow-sm" : "bg-gray-50  text-gray-400 border border-gray-100 "}`}
                 >
                   {active && <Check size={10} />}
                   {day.slice(0, 3)}
@@ -146,7 +146,7 @@ const VendorAvailabilityPage = () => {
                 <button
                   key={time}
                   onClick={() => toggleTime(time)}
-                  className={`py-2 rounded-xl text-xs font-semibold transition-all ${active ? "bg-[#4eb75e] text-white shadow-sm" : "bg-gray-50  text-gray-400 border border-gray-100 "}`}
+                  className={`py-2 rounded-xl text-xs font-semibold transition-all ${active ? "bg-lily text-white shadow-sm" : "bg-gray-50  text-gray-400 border border-gray-100 "}`}
                 >
                   {time}
                 </button>
@@ -185,7 +185,7 @@ const VendorAvailabilityPage = () => {
         <button
           onClick={() => save()}
           disabled={isPending}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-lily text-white font-bold text-sm hover:bg-darklily disabled:opacity-60 transition-colors"
         >
           <Save size={16} />
           {isPending ? "Saving..." : "Save Changes"}

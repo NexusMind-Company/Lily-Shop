@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from "react-redux";
 import { ChevronLeft, Star } from "lucide-react";
-import { fetchUserReviews, deleteReview, toggleReviewLike } from "../../services/shopApi";
+import {
+  fetchUserReviews,
+  deleteReview,
+  toggleReviewLike,
+} from "../../services/shopApi";
 import { ReviewCard } from "../../components/common/ReviewList";
 import EditReviewModal from "../../components/shop/EditReviewModal";
 import LoaderSd from "../../components/loaders/loaderSd";
@@ -16,10 +19,11 @@ const UserReviewsPage = () => {
   const queryClient = useQueryClient();
   const [editingReview, setEditingReview] = useState(null);
 
-  const userData = useSelector((state) => state.auth?.user_data);
-  const currentUserId = userData?.id || userData?.user?.id;
-
-  const { data: reviews, isLoading, error } = useQuery({
+  const {
+    data: reviews,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["userReviews"],
     queryFn: () => fetchUserReviews(),
   });
@@ -52,7 +56,10 @@ const UserReviewsPage = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <ErrorDisplay message={error?.message || "Failed to load reviews"} center={true} />
+        <ErrorDisplay
+          message={error?.message || "Failed to load reviews"}
+          center={true}
+        />
       </div>
     );
   }
@@ -97,7 +104,11 @@ const UserReviewsPage = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-4">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Star size={16} className="text-amber-500" fill="currentColor" />
+                <Star
+                  size={16}
+                  className="text-amber-500"
+                  fill="currentColor"
+                />
               </div>
               <h2 className="font-bold text-gray-800 text-lg">All Reviews</h2>
               <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -118,7 +129,9 @@ const UserReviewsPage = () => {
                     isLast={index === reviews.length - 1}
                     canEdit={true}
                     onEdit={() => setEditingReview(review)}
-                    onDelete={(reviewId) => deleteReviewMutation.mutate(reviewId)}
+                    onDelete={(reviewId) =>
+                      deleteReviewMutation.mutate(reviewId)
+                    }
                     onLike={(reviewId) => toggleLikeMutation.mutate(reviewId)}
                     isLiked={review.is_liked}
                     likeCount={review.like_count}

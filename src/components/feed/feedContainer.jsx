@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useFeed } from "../../context/feedContext";
+import { useFeed } from "../../hooks/useFeed";
 import TopNav from "./topNav";
 import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
@@ -332,7 +332,7 @@ const FeedContainer = () => {
 
   return (
     <main className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
-      <div className="relative h-full w-full md:max-w-[420px] lg:max-w-[480px]">
+      <div className="relative h-full w-full md:max-w-105 lg:max-w-120">
         <div className="h-full relative">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
           {renderContent()}

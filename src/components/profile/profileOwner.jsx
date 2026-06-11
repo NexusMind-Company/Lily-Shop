@@ -399,7 +399,7 @@ const ProfileOwner = () => {
           posts={feedOverlay.items}
           initialIndex={feedOverlay.initialIndex}
           onClose={() => setFeedOverlay({ ...feedOverlay, isOpen: false })}
-          onDeleteSuccess={(postId) => {
+          onDeleteSuccess={(_postId) => {
             queryClient.invalidateQueries({
               queryKey: ["user-own-posts", user.id],
             });

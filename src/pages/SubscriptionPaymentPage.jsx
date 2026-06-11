@@ -12,11 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import {
-  api,
-  fetchWallet,
-  createSubscriptionWithPaystack,
-} from "../services/api";
+import { fetchWallet, createSubscriptionWithPaystack } from "../services/api";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -70,9 +66,6 @@ const SubscriptionPaymentPage = () => {
   const planPrice = parseFloat(totalPrice || 0);
   const walletBalance = parseFloat(wallet?.balance_naira || 0);
   const hasEnoughBalance = walletBalance >= planPrice;
-
-  const platformFee = planPrice * 0.1;
-  const vendorReceives = planPrice * 0.9;
 
   const handlePayWithWallet = () => {
     const processingState = {

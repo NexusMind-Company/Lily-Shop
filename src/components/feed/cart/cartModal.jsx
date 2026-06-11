@@ -3,7 +3,6 @@ import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectCartItems,
-  selectCart,
   updateCartItem,
   removeFromCart,
   fetchCart,

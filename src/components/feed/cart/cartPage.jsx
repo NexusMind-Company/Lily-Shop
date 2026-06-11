@@ -31,7 +31,7 @@ import {
   calculateCheckout,
   fetchDeliveryAddresses,
 } from "../../../services/api";
-import { usePayment } from "../../../context/paymentContext";
+import { usePayment } from "../../../hooks/usePayment";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 import { toast } from "react-hot-toast";
 
@@ -500,10 +500,13 @@ const CartPage = () => {
           behavior: "smooth",
           block: "center",
         });
-        toast.error("Please select a valid delivery address before proceeding.", {
-          icon: "📍",
-          duration: 4000,
-        });
+        toast.error(
+          "Please select a valid delivery address before proceeding.",
+          {
+            icon: "📍",
+            duration: 4000,
+          },
+        );
         return;
       }
       orderData.delivery_address_id = selectedDelivery.id;
@@ -514,10 +517,13 @@ const CartPage = () => {
           behavior: "smooth",
           block: "center",
         });
-        toast.error("Please select a valid pickup location before proceeding.", {
-          icon: "🏪",
-          duration: 4000,
-        });
+        toast.error(
+          "Please select a valid pickup location before proceeding.",
+          {
+            icon: "🏪",
+            duration: 4000,
+          },
+        );
         return;
       }
       orderData.pickup_location_id = selectedPickup.id;

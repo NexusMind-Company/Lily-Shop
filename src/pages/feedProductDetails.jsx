@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import ProductDetails from "../components/feed/product/productDetails";
-import { useFeed } from "../context/feedContext";
+import { useFeed } from "../hooks/useFeed";
 import { addToCart } from "../redux/cartSlice";
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";

@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchChurnedCustomers,
   sendWinbackOffer,
@@ -48,7 +48,7 @@ const DiscountModal = ({ customer, onSend, onClose, isSending }) => {
           </button>
         </div>
         <div className="bg-gray-50  rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#4eb75e]/10 flex items-center justify-center text-sm font-bold text-[#4eb75e]">
+          <div className="w-9 h-9 rounded-full bg-lily/10 flex items-center justify-center text-sm font-bold text-lily">
             {customer.customer_name?.charAt(0) ?? "?"}
           </div>
           <div>
@@ -70,7 +70,7 @@ const DiscountModal = ({ customer, onSend, onClose, isSending }) => {
                 <button
                   key={d}
                   onClick={() => setDiscount(d)}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${discount === d ? "bg-[#4eb75e] text-white" : "bg-gray-100  text-gray-500"}`}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${discount === d ? "bg-lily text-white" : "bg-gray-100  text-gray-500"}`}
                 >
                   {d}%
                 </button>
@@ -85,13 +85,13 @@ const DiscountModal = ({ customer, onSend, onClose, isSending }) => {
               rows={3}
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e] resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily resize-none"
             />
           </div>
           <button
             onClick={handleSend}
             disabled={isSending}
-            className="w-full py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+            className="w-full py-3.5 rounded-xl bg-lily text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-darklily disabled:opacity-60 transition-colors"
           >
             <Gift size={15} />
             {isSending ? "Sending..." : `Send ${discount}% Discount Offer`}
@@ -146,7 +146,7 @@ const VendorChurnPage = () => {
     <VendorLayout title="Churn Tracking">
       <div className="space-y-4">
         <div className="bg-red-50  border border-red-100  rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-red-100  flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-red-100  flex items-center justify-center shrink-0">
             <UserMinus size={22} className="text-red-500" />
           </div>
           <div>
@@ -185,7 +185,7 @@ const VendorChurnPage = () => {
                 key={c.id}
                 className="bg-white  rounded-2xl p-4 shadow-sm border border-gray-100  flex items-center gap-3"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-100  flex items-center justify-center text-sm font-bold text-gray-400 flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-100  flex items-center justify-center text-sm font-bold text-gray-400 shrink-0">
                   {c.customer_name?.charAt(0) ?? "?"}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -202,7 +202,7 @@ const VendorChurnPage = () => {
                 </div>
                 <button
                   onClick={() => setOfferTarget(c)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#4eb75e]/10 text-[#4eb75e] text-xs font-bold hover:bg-[#4eb75e]/20 transition-colors flex-shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-lily/10 text-lily text-xs font-bold hover:bg-lily/20 transition-colors shrink-0"
                 >
                   <Gift size={13} /> Offer
                 </button>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Plus, Loader2, AlertCircle } from "lucide-react";
-import { usePayment } from "../context/paymentContext";
+import { usePayment } from "../hooks/usePayment";
 import { api } from "../services/api";
 
 const fetchSavedCards = async () => {
@@ -94,7 +94,7 @@ const ChooseCardPage = () => {
                   onClick={() => handleCardSelection(card)}
                   className="flex items-start space-x-4 cursor-pointer group"
                 >
-                  <div className="flex-shrink-0 mt-0.5">
+                  <div className="shrink-0 mt-0.5">
                     <div className="w-6 h-6 rounded-full border-[1.5px] border-black flex items-center justify-center bg-white transition-all">
                       {(selectedCardId === card.id ||
                         (!selectedCardId && card.is_default)) && (
@@ -114,7 +114,7 @@ const ChooseCardPage = () => {
                       </span>
                       {card.is_default && (
                         <>
-                          <span className="mx-2.5 text-gray-400 text-lg leading-none mt-[-2px]">
+                          <span className="mx-2.5 text-gray-400 text-lg leading-none mt-0.5">
                             •
                           </span>
                           <span className="text-gray-500 text-[15px] tracking-wide">

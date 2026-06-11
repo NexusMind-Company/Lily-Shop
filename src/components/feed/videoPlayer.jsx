@@ -5,7 +5,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { useFeed } from "../../context/feedContext";
+import { useFeed } from "../../hooks/useFeed";
 import { Play, Pause, VolumeX, Volume2 } from "lucide-react";
 
 const formatTime = (time) => {
@@ -107,7 +107,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
       className="relative w-full h-full bg-black"
       onClick={handlePlayerClick}
     >
-<video
+      <video
         ref={videoRef}
         src={src}
         loop
@@ -139,7 +139,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({ src, isActive }, ref) {
       {/* Controls Bar */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 z-20 p-4 bg-linear-to-t from-black/80 to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >

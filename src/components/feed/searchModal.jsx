@@ -77,6 +77,26 @@ const extractContents = (data) => {
   );
 };
 
+const getInitials = (value = "") => {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "MP";
+  return words
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getMealPlanImageUrl = (plan) => {
+  if (Array.isArray(plan?.all_media_urls) && plan.all_media_urls[0]) {
+    return plan.all_media_urls[0];
+  }
+  if (Array.isArray(plan?.media) && plan.media[0]) {
+    return plan.media[0]?.src || plan.media[0];
+  }
+  return plan?.image_url || plan?.image || "";
+};
+
 const SearchModal = ({ isOpen = true, onClose }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -420,28 +440,52 @@ const SearchModal = ({ isOpen = true, onClose }) => {
           </h3>
         )}
         <div className="space-y-2">
-          {plans.slice(0, limit).map((plan) => (
-            <div
-              key={plan.id}
-              className="flex items-center space-x-3 p-3 rounded-2xl bg-white border border-gray-100 hover:bg-gray-50 cursor-pointer transition-all"
-              onClick={() => {
-                navigate(`/meal-plan/${plan.id}`);
-                onClose();
-              }}
-            >
-              <div className="w-12 h-12 rounded-xl bg-lily/10 flex items-center justify-center text-lily font-bold text-xs">
-                MP
+          {plans.slice(0, limit).map((plan) => {
+            const planName = plan.plan_name || "Meal Plan";
+            const imageUrl = getMealPlanImageUrl(plan);
+            const initials = getInitials(planName);
+
+            return (
+              <div
+                key={plan.id}
+                className="flex items-center space-x-3 p-3 rounded-2xl bg-white border border-gray-100 hover:bg-gray-50 cursor-pointer transition-all"
+                onClick={() => {
+                  navigate(`/meal-plan/${plan.id}`);
+                  onClose();
+                }}
+              >
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={planName}
+                    className="w-12 h-12 rounded-xl bg-gray-50 object-cover border border-gray-100"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling?.classList.remove(
+                        "hidden",
+                      );
+                    }}
+                  />
+                ) : null}
+                <div
+                  className={`w-12 h-12 rounded-xl bg-lily/10 flex items-center justify-center text-lily font-bold text-xs border border-lily/10 ${
+                    imageUrl ? "hidden" : ""
+                  }`}
+                  aria-hidden={imageUrl ? "true" : undefined}
+                >
+                  {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold text-gray-900 block truncate text-sm">
+                    {planName}
+                  </span>
+                  <p className="text-xs text-lily font-bold">
+                    {plan.price || "Price N/A"}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="font-bold text-gray-900 block truncate text-sm">
-                  {plan.plan_name}
-                </span>
-                <p className="text-xs text-lily font-bold">
-                  {plan.price || "Price N/A"}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );

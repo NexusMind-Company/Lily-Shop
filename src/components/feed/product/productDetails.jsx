@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useFeed } from "../../../context/feedContext";
+import { useFeed } from "../../../hooks/useFeed";
 import ProductItem from "./productItem";
 import { fetchProductDetails, fetchContentById } from "../../../services/api";
 
@@ -32,7 +32,7 @@ const ProductDetails = () => {
     queryFn: async () => {
       // If we have an itemType hint, try that first
       const preferredType = location.state?.itemType;
-      
+
       if (preferredType === "content") {
         try {
           return await fetchContentById(id);
@@ -40,7 +40,7 @@ const ProductDetails = () => {
           return await fetchProductDetails(id);
         }
       }
-      
+
       try {
         // Default: try product detail first
         return await fetchProductDetails(id);

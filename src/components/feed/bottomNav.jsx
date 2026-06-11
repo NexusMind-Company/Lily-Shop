@@ -1,6 +1,6 @@
 import { UtensilsCrossed, Receipt } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useFeed } from "../../context/feedContext";
+import { useFeed } from "../../hooks/useFeed";
 
 const BottomNav = ({ activePage }) => {
   const location = useLocation();

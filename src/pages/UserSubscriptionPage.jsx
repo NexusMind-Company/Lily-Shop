@@ -22,8 +22,9 @@ const UserSubscriptionPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState("paystack");
 
-  const { subscription, paymentInitiating, error } = useSelector((state) => state.userSubscription);
-  const { user_data } = useSelector((state) => state.auth);
+  const { subscription, paymentInitiating, error } = useSelector(
+    (state) => state.userSubscription,
+  );
 
   useEffect(() => {
     // Fetch current subscription status on mount
@@ -143,10 +144,7 @@ const UserSubscriptionPage = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <Shield
-                  className="text-blue-500 mt-0.5 shrink-0"
-                  size={20}
-                />
+                <Shield className="text-blue-500 mt-0.5 shrink-0" size={20} />
                 <div>
                   <p className="font-medium text-gray-800">Quality Assurance</p>
                   <p className="text-sm text-gray-600">

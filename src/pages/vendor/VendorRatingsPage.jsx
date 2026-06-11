@@ -4,8 +4,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchMealRatings,
   fetchRatingsSummary,
@@ -103,9 +103,9 @@ const VendorRatingsPage = () => {
                   {meal.total_reviews} reviews
                 </p>
               </div>
-              <div className="text-right flex-shrink-0">
+              <div className="text-right shrink-0">
                 <p
-                  className={`text-lg font-bold ${(meal.average_rating ?? 0) >= 4 ? "text-[#4eb75e]" : (meal.average_rating ?? 0) >= 3 ? "text-yellow-500" : "text-red-500"}`}
+                  className={`text-lg font-bold ${(meal.average_rating ?? 0) >= 4 ? "text-lily" : (meal.average_rating ?? 0) >= 3 ? "text-yellow-500" : "text-red-500"}`}
                 >
                   {meal.average_rating?.toFixed(1) ?? "—"}
                 </p>
@@ -116,7 +116,7 @@ const VendorRatingsPage = () => {
               <div className="flex items-center gap-1.5 mt-2 bg-orange-50  rounded-xl px-3 py-2">
                 <AlertCircle
                   size={12}
-                  className="text-orange-500 flex-shrink-0"
+                  className="text-orange-500 shrink-0"
                 />
                 <p className="text-xs text-orange-700 ">
                   Common preference: {meal.common_removal}
@@ -125,7 +125,7 @@ const VendorRatingsPage = () => {
             )}
             {(meal.average_rating ?? 5) < 3.5 && (
               <div className="flex items-center gap-1.5 mt-2 bg-red-50  rounded-xl px-3 py-2">
-                <TrendingUp size={12} className="text-red-500 flex-shrink-0" />
+                <TrendingUp size={12} className="text-red-500 shrink-0" />
                 <p className="text-xs text-red-600 ">
                   This meal needs improvement. Consider reviewing the recipe.
                 </p>
@@ -149,7 +149,10 @@ const VendorRatingsPage = () => {
           </p>
         ) : (
           ratings.map((r, idx) => (
-            <div key={r.id} className="px-4 py-3 border-b border-gray-50 last:border-0">
+            <div
+              key={r.id}
+              className="px-4 py-3 border-b border-gray-50 last:border-0"
+            >
               <ReviewCard
                 review={{
                   id: r.id,

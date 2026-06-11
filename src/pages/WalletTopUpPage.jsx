@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
@@ -24,7 +24,6 @@ const formatPrice = (val) =>
 
 const WalletTopUpPage = () => {
   const navigate = useNavigate();
-  const { state } = useLocation();
 
   const [amount, setAmount] = useState("");
   const [customInput, setCustomInput] = useState(false);

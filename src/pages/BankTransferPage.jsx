@@ -37,7 +37,7 @@ const BankTransferPage = () => {
     if (amount > 0) {
       mutation.mutate();
     }
-  }, []);
+  }, [amount, mutation]);
 
   // Countdown timer
   useEffect(() => {

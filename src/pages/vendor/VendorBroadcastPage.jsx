@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   sendBroadcastMessage,
   fetchBroadcastHistory,
@@ -29,7 +29,6 @@ const VendorBroadcastPage = () => {
     data: history,
     isLoading,
     isError,
-    error,
     refetch,
   } = useQuery({
     queryKey: ["broadcastHistory"],
@@ -69,10 +68,7 @@ const VendorBroadcastPage = () => {
     <VendorLayout title="Broadcast">
       <div className="space-y-4">
         <div className="bg-lily/10 border border-lily/20 rounded-2xl px-4 py-3 flex gap-3">
-          <Megaphone
-            size={16}
-            className="text-lily shrink-0 mt-0.5"
-          />
+          <Megaphone size={16} className="text-lily shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-bold text-lily">Direct Broadcast</p>
             <p className="text-xs text-gray-500 mt-0.5">

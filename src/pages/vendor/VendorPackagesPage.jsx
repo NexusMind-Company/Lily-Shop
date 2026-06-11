@@ -14,8 +14,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import { api } from "../../services/api";
 
 // ── API functions ───────────────────────────────────────────────
@@ -113,8 +113,6 @@ const PackageForm = ({ pkg, onSave, onCancel, isSaving }) => {
     }
     onSave({ ...form, base_price: parseFloat(form.base_price) });
   };
-
-  const selectedTier = TIERS.find((t) => t.key === form.tier);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -503,9 +501,7 @@ const VendorPackagesPage = () => {
   return (
     <VendorLayout title="Packages">
       <div className="bg-lily/10 border border-lily/20 rounded-2xl px-4 py-3">
-        <p className="text-xs font-bold text-lily mb-0.5">
-          💡 Package Pricing
-        </p>
+        <p className="text-xs font-bold text-lily mb-0.5">💡 Package Pricing</p>
         <p className="text-xs text-gray-500">
           Define meal packages like "Student Menu" or "Premium Pack" with base
           prices. Customers can add optional extras and the price updates

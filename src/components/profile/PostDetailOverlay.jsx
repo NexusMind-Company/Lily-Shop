@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   ChevronLeft,
@@ -153,8 +153,6 @@ const PostDetailOverlay = ({
     Number(post?.comment_count || post?.comments_count || post?.comments || 0),
   );
   const [isFollowing, setIsFollowing] = useState(post?.is_following || false);
-  const [showMentions, setShowMentions] = useState(false);
-  const [cursorPos, setCursorPos] = useState(0);
 
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -211,7 +209,7 @@ const PostDetailOverlay = ({
         Number(post.comment_count || post.comments_count || post.comments || 0),
       );
     }
-  }, [post?.id, isProduct, dispatch]);
+  }, [post, isProduct, dispatch]);
 
   const handleNext = (e) => {
     e?.stopPropagation();
@@ -317,25 +315,7 @@ const PostDetailOverlay = ({
   };
 
   const handleCommentChange = (e) => {
-    const text = e.target.value;
-    const pos = e.target.selectionStart;
-    setCursorPos(pos);
-    setCommentText(text);
-
-    // Basic mention trigger logic (simplified from CommentsModal)
-    const textBeforeCursor = text.substring(0, pos);
-    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
-    if (lastAtIndex !== -1) {
-      const charBeforeAt = textBeforeCursor.charAt(lastAtIndex - 1);
-      if (lastAtIndex === 0 || /\s/.test(charBeforeAt)) {
-        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-        if (!textAfterAt.includes(" ")) {
-          setShowMentions(true);
-          return;
-        }
-      }
-    }
-    setShowMentions(false);
+    setCommentText(e.target.value);
   };
 
   const handleSubmitComment = async (e) => {

@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPickupLocations } from "../services/api";
-import { usePayment } from "../context/paymentContext";
+import { usePayment } from "../hooks/usePayment";
 import {
   ChevronLeft,
   MapPin,

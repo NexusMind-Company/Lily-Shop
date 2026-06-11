@@ -13,15 +13,15 @@ export const addProduct = createAsyncThunk(
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "An error occurred"
+        error.response?.data || error.message || "An error occurred",
       );
     }
-  }
+  },
 );
 
 // Async action to fetch products for a shop
@@ -33,10 +33,10 @@ export const fetchProducts = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to fetch products"
+        error.response?.data || error.message || "Failed to fetch products",
       );
     }
-  }
+  },
 );
 
 // Async action to update a product
@@ -51,15 +51,15 @@ export const updateProduct = createAsyncThunk(
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "Failed to update product"
+        error.response?.data || error.message || "Failed to update product",
       );
     }
-  }
+  },
 );
 
 // Async thunk to delete a product
@@ -67,14 +67,16 @@ export const deleteProduct = createAsyncThunk(
   "addProduct/deleteProduct",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/shops/products/${id}/delete/`);
+      await api.delete(`/shops/products/${id}/delete/`);
       return { id };
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || error.message || "An error occurred while deleting product"
+        error.response?.data ||
+          error.message ||
+          "An error occurred while deleting product",
       );
     }
-  }
+  },
 );
 
 const addProductSlice = createSlice({
@@ -117,7 +119,10 @@ const addProductSlice = createSlice({
       })
       .addCase(addProduct.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error?.message || "An unexpected error occurred";
+        state.error =
+          action.payload ||
+          action.error?.message ||
+          "An unexpected error occurred";
         state.success = false;
       })
 
@@ -132,7 +137,8 @@ const addProductSlice = createSlice({
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error?.message || "Failed to fetch products";
+        state.error =
+          action.payload || action.error?.message || "Failed to fetch products";
       })
 
       // Handle update product actions
@@ -144,7 +150,9 @@ const addProductSlice = createSlice({
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.success = true;
-        const index = state.products.findIndex(p => p.id === action.payload.product.id);
+        const index = state.products.findIndex(
+          (p) => p.id === action.payload.product.id,
+        );
         if (index !== -1) {
           state.products[index] = action.payload.product;
         }
@@ -152,7 +160,8 @@ const addProductSlice = createSlice({
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error?.message || "Failed to update product";
+        state.error =
+          action.payload || action.error?.message || "Failed to update product";
         state.success = false;
       })
 
@@ -165,18 +174,22 @@ const addProductSlice = createSlice({
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.deleteStatus = "succeeded";
         state.products = state.products.filter(
-          (product) => product.id !== action.payload.id
+          (product) => product.id !== action.payload.id,
         );
         state.deleteSuccess = true;
         state.deleteError = null;
       })
       .addCase(deleteProduct.rejected, (state, action) => {
         state.deleteStatus = "failed";
-        state.deleteError = action.payload || action.error?.message || "An unexpected error occurred";
+        state.deleteError =
+          action.payload ||
+          action.error?.message ||
+          "An unexpected error occurred";
         state.deleteSuccess = false;
       });
   },
 });
 
-export const { resetAddProductState, resetDeleteProductStatus } = addProductSlice.actions;
+export const { resetAddProductState, resetDeleteProductStatus } =
+  addProductSlice.actions;
 export default addProductSlice.reducer;

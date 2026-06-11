@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import { fetchVendorAnalytics } from "../../services/vendorDashboardApi";
 
 const COLORS = ["#4eb75e", "#3da64d", "#6dd47e", "#9be8a8", "#c6f5ce"];
@@ -65,9 +65,9 @@ const VendorAnalyticsPage = () => {
           <button
             key={key}
             onClick={() => setPeriod(key)}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`shrink-0 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               period === key
-                ? "bg-[#4eb75e] text-white shadow-sm"
+                ? "bg-lily text-white shadow-sm"
                 : "bg-white border border-gray-100 text-gray-500"
             }`}
           >
@@ -91,7 +91,7 @@ const VendorAnalyticsPage = () => {
           <p className="text-xs text-orange-600">Showing cached data</p>
           <button
             onClick={refetch}
-            className="text-xs text-[#4eb75e] font-semibold"
+            className="text-xs text-lily font-semibold"
           >
             Refresh
           </button>
@@ -200,7 +200,7 @@ const VendorAnalyticsPage = () => {
                 <p className="text-xs font-semibold text-[#111813]">
                   {meal.meal_name}
                 </p>
-                <p className="text-xs font-bold text-[#4eb75e]">
+                <p className="text-xs font-bold text-lily">
                   {meal.percentage}%
                 </p>
               </div>
@@ -241,7 +241,7 @@ const VendorAnalyticsPage = () => {
                 key={item.ingredient}
                 className="flex items-center gap-3 mb-3"
               >
-                <p className="text-sm font-semibold text-[#111813] w-20 flex-shrink-0">
+                <p className="text-sm font-semibold text-[#111813] w-20 shrink-0">
                   {item.ingredient}
                 </p>
                 <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -286,7 +286,7 @@ const VendorAnalyticsPage = () => {
               className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
             >
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
                   i === 0
                     ? "bg-yellow-400"
                     : i === 1
@@ -304,7 +304,7 @@ const VendorAnalyticsPage = () => {
                   {plan.subscribers} subscribers
                 </p>
               </div>
-              <p className="text-sm font-bold text-[#4eb75e] flex-shrink-0">
+              <p className="text-sm font-bold text-lily shrink-0">
                 ₦{(plan.revenue ?? 0).toLocaleString()}
               </p>
             </div>

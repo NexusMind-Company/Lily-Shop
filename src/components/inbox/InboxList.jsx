@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import BottomNav from "./bottomNav";
 
 const InboxList = () => {
-  const [activePage, setActivePage] = useState("inbox");
+  const activePage = "inbox";
   const navigate = useNavigate();
 
   useEffect(() => {

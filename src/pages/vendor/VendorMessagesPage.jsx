@@ -6,8 +6,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorConversations,
   fetchConversationMessages,
@@ -50,10 +50,7 @@ const ChatView = ({ conversation, onBack }) => {
   return (
     <div className="flex flex-col h-full min-h-[70vh]">
       <div className="flex items-center gap-3 py-3 border-b border-gray-100 ">
-        <button
-          onClick={onBack}
-          className="text-lily text-sm font-semibold"
-        >
+        <button onClick={onBack} className="text-lily text-sm font-semibold">
           ← Back
         </button>
         <div className="w-8 h-8 rounded-full bg-lily/10 flex items-center justify-center text-sm font-bold text-lily">
@@ -73,10 +70,7 @@ const ChatView = ({ conversation, onBack }) => {
       ) : isError && !messages ? (
         <div className="flex-1 flex items-center justify-center flex-col gap-2">
           <p className="text-xs text-gray-400">Could not load messages</p>
-          <button
-            onClick={refetch}
-            className="text-xs text-lily font-semibold"
-          >
+          <button onClick={refetch} className="text-xs text-lily font-semibold">
             Retry
           </button>
         </div>
@@ -136,7 +130,6 @@ const VendorMessagesPage = () => {
     data: conversations,
     isLoading,
     isError,
-    error,
     refetch,
   } = useQuery({
     queryKey: ["vendorConversations"],
@@ -173,10 +166,7 @@ const VendorMessagesPage = () => {
           <p className="text-xs text-orange-700 ">
             ⚠️ Couldn't refresh conversations
           </p>
-          <button
-            onClick={refetch}
-            className="text-xs text-lily font-semibold"
-          >
+          <button onClick={refetch} className="text-xs text-lily font-semibold">
             Retry
           </button>
         </div>

@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { fetchCart } from "../redux/cartSlice";
-import { usePayment } from "../context/paymentContext";
+import { clearCart } from "../redux/cartSlice";
+import { usePayment } from "../hooks/usePayment";
 import { api } from "../services/api";
 import { toast } from "react-hot-toast";
 import {
@@ -135,7 +135,7 @@ const PaystackCallbackPage = () => {
     };
 
     run();
-  }, [searchParams, navigate, dispatch]);
+  }, [searchParams, navigate, dispatch, resetPaymentData]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -5,13 +5,9 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { useFeed } from "../../context/feedContext";
+import { useFeed } from "../../hooks/useFeed";
 import { Swiper, SwiperSlide } from "swiper/react";
-import {
-  Play,
-  VolumeX,
-  Volume2,
-} from "lucide-react";
+import { Play, VolumeX, Volume2 } from "lucide-react";
 
 import "swiper/css";
 
@@ -185,8 +181,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
                 index === activeIndex
                   ? "w-3 h-3 bg-white"
                   : "w-2 h-2 bg-white/50"
-              }`
-              }
+              }`}
             />
           ))}
         </div>

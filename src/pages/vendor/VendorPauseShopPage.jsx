@@ -14,8 +14,8 @@ import VendorLayout from "../../components/vendor/VendorLayout";
 import {
   VendorPageLoader,
   VendorPageError,
-  getErrorMessage,
 } from "../../components/vendor/VendorErrorStates";
+import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchShopStatus,
   pauseShop,
@@ -96,19 +96,19 @@ const VendorPauseShopPage = () => {
     <VendorLayout title="Pause Shop">
       <div className="space-y-4">
         <div
-          className={`rounded-2xl p-5 text-center ${isPaused ? "bg-red-50  border border-red-100 " : "bg-[#4eb75e]/10 border border-[#4eb75e]/20"}`}
+          className={`rounded-2xl p-5 text-center ${isPaused ? "bg-red-50  border border-red-100 " : "bg-lily/10 border border-lily/20"}`}
         >
           <div
-            className={`w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${isPaused ? "bg-red-100 " : "bg-[#4eb75e]/20"}`}
+            className={`w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${isPaused ? "bg-red-100 " : "bg-lily/20"}`}
           >
             {isPaused ? (
               <PauseCircle size={28} className="text-red-500" />
             ) : (
-              <PlayCircle size={28} className="text-[#4eb75e]" />
+              <PlayCircle size={28} className="text-lily" />
             )}
           </div>
           <p
-            className={`text-lg font-bold ${isPaused ? "text-red-600 " : "text-[#4eb75e]"}`}
+            className={`text-lg font-bold ${isPaused ? "text-red-600 " : "text-lily"}`}
           >
             {isPaused ? "Shop Paused" : "Shop is Live"}
           </p>
@@ -137,7 +137,7 @@ const VendorPauseShopPage = () => {
             <button
               onClick={() => resume()}
               disabled={resuming}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#4eb75e] text-white font-bold text-sm hover:bg-[#3da64d] disabled:opacity-60 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-lily text-white font-bold text-sm hover:bg-darklily disabled:opacity-60 transition-colors"
             >
               <PlayCircle size={16} />
               {resuming ? "Resuming..." : "Resume Shop"}
@@ -154,7 +154,7 @@ const VendorPauseShopPage = () => {
                   <button
                     key={key}
                     onClick={() => setSelectedReason(key)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${selectedReason === key ? "border-[#4eb75e] bg-[#4eb75e]/10 text-[#4eb75e]" : "border-gray-100  text-gray-600 "}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${selectedReason === key ? "border-lily bg-lily/10 text-lily" : "border-gray-100  text-gray-600 "}`}
                   >
                     <Icon size={16} />
                     {label}
@@ -175,7 +175,7 @@ const VendorPauseShopPage = () => {
                 </div>
                 <button
                   onClick={() => setPauseExisting(!pauseExisting)}
-                  className={`w-12 h-6 rounded-full transition-all relative flex-shrink-0 ${pauseExisting ? "bg-[#4eb75e]" : "bg-gray-200 "}`}
+                  className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${pauseExisting ? "bg-lily" : "bg-gray-200 "}`}
                 >
                   <div
                     className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${pauseExisting ? "right-1" : "left-1"}`}
@@ -191,7 +191,7 @@ const VendorPauseShopPage = () => {
                   value={resumeDate}
                   onChange={(e) => setResumeDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-[#4eb75e]"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-100  bg-gray-50  text-sm text-[#111813]  focus:outline-none focus:border-lily"
                 />
               </div>
             </div>
@@ -199,7 +199,7 @@ const VendorPauseShopPage = () => {
             <div className="flex gap-3 bg-orange-50  border border-orange-100  rounded-2xl px-4 py-3">
               <AlertTriangle
                 size={15}
-                className="text-orange-500 flex-shrink-0 mt-0.5"
+                className="text-orange-500 shrink-0 mt-0.5"
               />
               <p className="text-xs text-orange-700 ">
                 Pausing stops new subscriptions immediately. Customers will see

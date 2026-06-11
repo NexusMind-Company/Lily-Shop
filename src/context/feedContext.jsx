@@ -1,15 +1,7 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
-
-const FeedContext = createContext(null);
+import { FeedContext } from "./FeedContext";
 
 const FEED_PAGE_SIZE = 20;
 
@@ -48,7 +40,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
     hasMore = data.length === FEED_PAGE_SIZE;
   }
 
-return {
+  return {
     items,
     nextPage: hasMore ? pageParam + 1 : null,
     hasMore,
@@ -136,17 +128,22 @@ export const FeedProvider = ({ children }) => {
       scrollPositionRef,
     }),
     [
-      posts, isLoading, isError, isFetching, error, loadMore,
-      hasNextPage, isFetchingNextPage, refreshFeed, toggleMute,
-      saveCurrentPost, getRestoreIndex, isMuted, activeTab,
+      posts,
+      isLoading,
+      isError,
+      isFetching,
+      error,
+      loadMore,
+      hasNextPage,
+      isFetchingNextPage,
+      refreshFeed,
+      toggleMute,
+      saveCurrentPost,
+      getRestoreIndex,
+      isMuted,
+      activeTab,
     ],
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
-};
-
-export const useFeed = () => {
-  const context = useContext(FeedContext);
-  if (!context) throw new Error("useFeed must be used within a FeedProvider");
-  return context;
 };

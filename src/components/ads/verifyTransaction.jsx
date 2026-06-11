@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyPayment } from "../../redux/adsSlice";
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import { CheckCircle } from "lucide-react";
 
 const VerifyTransaction = () => {
   const location = useLocation();
@@ -30,12 +30,12 @@ const VerifyTransaction = () => {
     // Show success popup and start redirect timer when verification succeeds
     if (verificationStatus === "succeeded") {
       setShowSuccessPopup(true);
-      
+
       // Clear any existing timer
       if (redirectTimer !== null) {
         clearTimeout(redirectTimer);
       }
-      
+
       // Set timer to redirect after 3 seconds
       const timer = setTimeout(() => {
         // Pass payment data and reference to the success page
@@ -43,26 +43,27 @@ const VerifyTransaction = () => {
           state: {
             paymentData: verificationData,
             reference: reference,
-            shopId: verificationData?.shop || verificationData?.shop_id || ""
-          }
+            shopId: verificationData?.shop || verificationData?.shop_id || "",
+          },
         });
       }, 3000);
-      
+
       setRedirectTimer(timer);
     }
-    
+
     // Cleanup timer on unmount or if verification status changes
     return () => {
       if (redirectTimer !== null) {
         clearTimeout(redirectTimer);
       }
     };
-  }, [verificationStatus, verificationData, reference, navigate, redirectTimer]);
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
-  };
+  }, [
+    verificationStatus,
+    verificationData,
+    reference,
+    navigate,
+    redirectTimer,
+  ]);
 
   return (
     <div className="max-w-sm mx-auto mt-28 mb-10 p-10 py-10 border-black min-h-screen rounded-lg shadow-md">
@@ -103,26 +104,27 @@ const VerifyTransaction = () => {
                 <div className="w-24 h-24 rounded-full bg-lily-100 flex items-center justify-center mb-6">
                   <CheckCircle className="w-14 h-14 text-lily-600" />
                 </div>
-                
+
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">
                   Payment Successful!
                 </h2>
                 <p className="text-gray-500 mb-4">
                   Your ads payment has been processed successfully.
                 </p>
-                
+
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500 font-medium">
                       Amount Paid
                     </span>
                     <span className="text-xl font-bold text-lily-700">
-                      ₦{Number(verificationData?.amount || 0)
+                      ₦
+                      {Number(verificationData?.amount || 0)
                         .toFixed(0)
                         .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500 font-medium">
                       Reference ID
@@ -132,7 +134,7 @@ const VerifyTransaction = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-gray-500">
                   You'll be redirected to view your order slip shortly...
                 </p>

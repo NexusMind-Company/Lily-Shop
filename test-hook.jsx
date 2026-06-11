@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* global global */
 import { useState } from "react";
 import useFormValidation from "./src/hooks/useFormValidation";

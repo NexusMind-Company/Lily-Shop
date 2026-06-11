@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Shield, X } from "lucide-react";
-import { usePayment } from "../context/paymentContext";
+import { usePayment } from "../hooks/usePayment";
 import { checkPaymentStatus } from "../services/api";
 
 const PaymentLoadingPage = () => {
@@ -63,7 +63,7 @@ const PaymentLoadingPage = () => {
     return (
       <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
         {/* Header */}
-        <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
+        <div className="relative p-4 border-b border-gray-200 flex items-center justify-center shrink-0">
           {/* No back button here usually, maybe a home/cancel button */}
           <h2 className="font-bold text-lg text-gray-800">Payment Status</h2>
         </div>
@@ -86,7 +86,7 @@ const PaymentLoadingPage = () => {
   return (
     <div className="flex flex-col min-h-screen w-full max-w-5xl mx-auto bg-white">
       {/* Header (optional, maybe no back button?) */}
-      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center flex-shrink-0">
+      <div className="relative p-4 border-b border-gray-200 flex items-center justify-center shrink-0">
         <h2 className="font-bold text-lg text-gray-800">Checking Payment</h2>
       </div>
 

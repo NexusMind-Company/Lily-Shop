@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { X, Send, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from "react-redux";
 import { createVendorReview } from "../../services/api";
 import toast from "react-hot-toast";
 
@@ -20,11 +19,6 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
-  const userData = useSelector((state) => state.auth?.user_data);
-  const localUser = (() => { try { return JSON.parse(localStorage.getItem("user_data")); } catch {} })();
-  const userId = userData?.id || userData?.user?.id || localUser?.id || localUser?.user?.id;
-  const profileId = useSelector((state) => state.profile?.data?.user?.id);
-  const resolvedUserId = userId || profileId;
 
   const title = vendorName || "this vendor";
 
@@ -46,8 +40,15 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
       onClose();
     },
     onError: (error) => {
-      console.error("Review submission failed:", error?.response?.status, error?.response?.data);
-      console.error("FULL ERROR:", JSON.stringify(error?.response?.data, null, 2));
+      console.error(
+        "Review submission failed:",
+        error?.response?.status,
+        error?.response?.data,
+      );
+      console.error(
+        "FULL ERROR:",
+        JSON.stringify(error?.response?.data, null, 2),
+      );
       const msg =
         error?.response?.data?.message ||
         (typeof error?.response?.data === "object"
@@ -76,7 +77,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-99999 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       <motion.div
@@ -96,13 +97,13 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 shadow-inner">
+            <div className="w-16 h-16 rounded-full bg-linear-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 shadow-inner">
               <Star size={32} className="text-amber-500" strokeWidth={0} />
             </div>
-            <h2 className="text-xl font-black text-gray-900">
-              Rate {title}
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">Your review helps others</p>
+            <h2 className="text-xl font-black text-gray-900">Rate {title}</h2>
+            <p className="text-sm text-gray-400 mt-1">
+              Your review helps others
+            </p>
           </div>
         </div>
 
@@ -135,10 +136,10 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
                     rating === 0
                       ? "text-gray-400"
                       : rating <= 2
-                      ? "text-red-500"
-                      : rating === 3
-                      ? "text-yellow-500"
-                      : "text-green-500"
+                        ? "text-red-500"
+                        : rating === 3
+                          ? "text-yellow-500"
+                          : "text-green-500"
                   }`}
                 >
                   {RATING_LABELS[rating]}
@@ -149,7 +150,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700">
-              Your review <span className="text-gray-300 font-normal">(optional)</span>
+              Your review{" "}
+              <span className="text-gray-300 font-normal">(optional)</span>
             </label>
             <textarea
               value={comment}
