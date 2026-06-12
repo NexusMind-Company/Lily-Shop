@@ -570,7 +570,7 @@ const ProfileVisiting = () => {
         <button
           onClick={handleFollow}
           disabled={followLoading}
-          className={`flex-1 min-w-[120px] py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
+          className={`flex-1 min-w-30 py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
             isFollowing
               ? "bg-gray-100 border-gray-100 text-gray-700 hover:bg-gray-200"
               : "border-lily text-lily hover:bg-lily/5"
@@ -581,7 +581,7 @@ const ProfileVisiting = () => {
 
         <Link
           to={`/messages/new?user=${user.id}`}
-          className="flex-1 min-w-[120px]"
+          className="flex-1 min-w-30"
         >
           <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
             Message
@@ -591,7 +591,7 @@ const ProfileVisiting = () => {
         {user.vendor_id && (
           <Link
             to={`/vendor-subscription/${user.vendor_id}`}
-            className="flex-1 min-w-[120px]"
+            className="flex-1 min-w-30"
           >
             <button className="w-full py-3 border-2 border-[#FF9800] text-[#FF9800] hover:bg-orange-50 rounded-lg text-base font-extrabold transition-colors">
               Visit Vendor
