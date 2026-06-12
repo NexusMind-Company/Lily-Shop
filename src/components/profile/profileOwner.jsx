@@ -555,7 +555,7 @@ const ProfileOwner = () => {
 
         {user?.vendor_id ? (
           <Link to="/vendor-dashboard" className="flex-1 order-2">
-            <button className="w-full h-full py-2 md:py-3 border-2 md:border-[3px] border-[#FF9800] md:border-lily text-[#FF9800] md:text-lily rounded-2xl text-[17px] md:text-xl font-bold md:font-black leading-tight flex items-center justify-center text-center transition-all hover:bg-lily/5">
+            <button className="w-full h-full py-2 md:py-3 border-2 md:border-[3px] border-[#FF9800] text-[#FF9800] rounded-2xl text-[17px] md:text-xl font-bold md:font-black leading-tight flex items-center justify-center text-center transition-all hover:bg-orange-50">
               Vendor Dashboard
             </button>
           </Link>

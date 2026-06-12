@@ -521,9 +521,16 @@ const ProfileVisiting = () => {
 
           {/* Name and Bio */}
           <div>
-            <h3 className="font-semibold text-sm md:text-base">
-              {user.full_name || user.username || "User"}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-sm md:text-base">
+                {user.full_name || user.username || "User"}
+              </h3>
+              {user.vendor_id && (
+                <span className="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap">
+                  Food Vendor
+                </span>
+              )}
+            </div>
             <div
               className="flex items-center gap-1 text-gray-500 text-sm mb-1 cursor-pointer hover:text-lily transition-colors w-fit"
               onClick={() => {
@@ -559,11 +566,11 @@ const ProfileVisiting = () => {
       </div>
 
       {/* Action Buttons - Repositioned */}
-      <div className="flex flex-row gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100 mb-4">
+      <div className="flex flex-wrap md:flex-nowrap gap-2.5 w-full py-4 border-t md:border-t-0 border-gray-100 mb-4">
         <button
           onClick={handleFollow}
           disabled={followLoading}
-          className={`flex-1 py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
+          className={`flex-1 min-w-[120px] py-3 border-2 rounded-lg text-base font-extrabold transition-colors ${
             isFollowing
               ? "bg-gray-100 border-gray-100 text-gray-700 hover:bg-gray-200"
               : "border-lily text-lily hover:bg-lily/5"
@@ -572,15 +579,25 @@ const ProfileVisiting = () => {
           {isFollowing ? "Following" : "Follow"}
         </button>
 
-        <Link to={`/messages/new?user=${user.id}`} className="flex-1">
+        <Link
+          to={`/messages/new?user=${user.id}`}
+          className="flex-1 min-w-[120px]"
+        >
           <button className="w-full py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
             Message
           </button>
         </Link>
 
-        <button className="px-4 py-3 border-2 border-lily text-lily hover:bg-lily/5 rounded-lg text-base font-extrabold transition-colors">
-          <Share2 size={18} className="mx-auto" />
-        </button>
+        {user.vendor_id && (
+          <Link
+            to={`/vendor-subscription/${user.vendor_id}`}
+            className="flex-1 min-w-[120px]"
+          >
+            <button className="w-full py-3 border-2 border-[#FF9800] text-[#FF9800] hover:bg-orange-50 rounded-lg text-base font-extrabold transition-colors">
+              Visit Vendor
+            </button>
+          </Link>
+        )}
       </div>
       {/* Tabs */}
       <div className="flex md:justify-center border-t border-gray-200">

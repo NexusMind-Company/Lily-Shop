@@ -1,7 +1,18 @@
 import React from "react";
-import { MapPin, Layout, Maximize2, Minimize2, PlusCircle } from "lucide-react";
+import {
+  MapPin,
+  Layout,
+  Maximize2,
+  Minimize2,
+  PlusCircle,
+  Link as IconLink,
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
+  const vendorId = useSelector((state) => state.profile.data?.user?.vendor_id);
+
   if (!profile) return null;
 
   const hasBanner = !!profile.banner_image;
@@ -60,6 +71,19 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
                 </p>
               </div>
               <h2 className="text-xl font-bold text-black">{name}</h2>
+              {vendorId && (
+                <div
+                  className="flex items-center gap-1 text-gray-400 text-[10px] cursor-pointer hover:text-lily transition-colors w-fit"
+                  onClick={() => {
+                    const profileUrl = `${window.location.origin}/vendor-subscription/${vendorId}`;
+                    navigator.clipboard.writeText(profileUrl);
+                    toast.success("Subscription link copied!");
+                  }}
+                >
+                  <span className="font-medium">Copy subscription link</span>
+                  <IconLink size={10} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -149,6 +173,19 @@ const VendorDashboardHeader = ({ profile, style, onToggle, onEdit }) => {
             <h1 className="text-3xl md:text-4xl font-black text-black tracking-tight">
               {name}
             </h1>
+            {vendorId && (
+              <div
+                className="flex items-center gap-1 text-gray-400 text-sm mt-1 cursor-pointer hover:text-lily transition-colors w-fit"
+                onClick={() => {
+                  const profileUrl = `${window.location.origin}/vendor-subscription/${vendorId}`;
+                  navigator.clipboard.writeText(profileUrl);
+                  toast.success("Subscription link copied!");
+                }}
+              >
+                <span className="font-medium">Copy subscription link</span>
+                <IconLink size={14} />
+              </div>
+            )}
           </div>
         </div>
       </div>
