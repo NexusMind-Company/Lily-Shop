@@ -14,6 +14,7 @@ import {
   AlertCircle,
   X,
   MapPin,
+  Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -699,6 +700,23 @@ const CartPage = () => {
                         <p className="text-sm text-gray-600">
                           Size: {item.size}
                         </p>
+                      )}
+
+                      {item.product?.delivery_info && (
+                        <div className="mt-2 p-2.5 bg-pink/5 rounded-lg border border-pink/10 flex items-start gap-2">
+                          <Info
+                            size={14}
+                            className="text-pink shrink-0 mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <span className="block text-[10px] font-bold text-pink uppercase tracking-widest mb-0.5">
+                              Delivery Info
+                            </span>
+                            <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {item.product.delivery_info}
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>

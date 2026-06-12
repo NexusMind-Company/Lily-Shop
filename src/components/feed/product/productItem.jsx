@@ -34,7 +34,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
-import { Star } from "lucide-react";
+import { Star, Info } from "lucide-react";
 import MentionText from "../../common/MentionText";
 import ReviewModal from "../../common/ReviewModal";
 import toast from "react-hot-toast";
@@ -565,6 +565,20 @@ const ProductItem = ({ product }) => {
               <span className="font-semibold">Delivery locations:</span>{" "}
               {product.deliveryLocation}
             </p>
+          )}
+
+          {product.delivery_info && (
+            <div className="mt-3 p-3 bg-pink/5 rounded-xl border border-pink/10 flex items-start gap-2.5">
+              <Info size={18} className="text-pink shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <span className="block text-xs font-bold text-pink uppercase tracking-wider mb-1">
+                  Vendor Delivery Info
+                </span>
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {product.delivery_info}
+                </p>
+              </div>
+            </div>
           )}
         </div>
 

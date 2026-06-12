@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { X, Minus, Plus, Trash2 } from "lucide-react";
+import { X, Minus, Plus, Trash2, Info } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectCartItems,
@@ -328,6 +328,20 @@ const CartModal = ({ isOpen, onClose }) => {
                     <p className="text-sm font-semibold text-gray-800 mt-1">
                       Subtotal: ₦{formatPrice(derivedSubtotal)}
                     </p>
+
+                    {item.product?.delivery_info && (
+                      <div className="mt-2 p-2 bg-pink/5 rounded-lg border border-pink/10 flex items-start gap-1.5 max-w-full overflow-hidden">
+                        <Info size={12} className="text-pink shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-[8px] font-bold text-pink uppercase tracking-widest mb-0.5">
+                            Delivery Info
+                          </span>
+                          <p className="text-[10px] text-gray-700 leading-tight line-clamp-2">
+                            {item.product.delivery_info}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center justify-between h-35">
                     <input
