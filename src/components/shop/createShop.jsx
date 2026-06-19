@@ -198,7 +198,7 @@ const CreateShop = () => {
     submitData.append("address", formData.address.trim());
     submitData.append("category", formData.category.trim());
     submitData.append("description", formData.description.trim());
-    submitData.append("phone", formData.phone.trim());
+    submitData.append("owner_phone", formData.phone.trim());
     submitData.append("image", imageFile);
 
     await dispatch(createShop(submitData));
