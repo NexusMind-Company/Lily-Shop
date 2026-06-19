@@ -74,47 +74,7 @@ export const verifyPaystackCallback = createAsyncThunk(
   },
 );
 
-/**
- * Release promotion earnings
- */
-export const releasePromotionEarnings = createAsyncThunk(
-  "wallet/releasePromotionEarnings",
-  async (_, { rejectWithValue }) => {
-    try {
-      setAuthHeader();
-      const response = await api.post("/wallet/release-promotion-earnings/");
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Promotion earnings release failed:",
-        error.response?.data || error.message,
-      );
-      return rejectWithValue(
-        error.response?.data || { detail: "Unable to release earnings." },
-      );
-    }
-  },
-);
 
-/**
- * Create virtual account
- */
-export const createVirtualAccount = createAsyncThunk(
-  "wallet/createVirtualAccount",
-  async (_, { rejectWithValue }) => {
-    try {
-      setAuthHeader();
-      const response = await api.post("/wallet/create-virtual-account/");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          detail: "Failed to generate virtual account.",
-        },
-      );
-    }
-  },
-);
 
 /**
  * Withdraw funds to bank account
@@ -165,8 +125,6 @@ const walletSlice = createSlice({
     topup_error: null,
     authorization_url: null,
     verifying: false,
-    promotion_releasing: false,
-    virtual_account: null,
     withdrawal_loading: false,
     withdrawal_error: null,
     withdrawal_success: false,
@@ -179,7 +137,6 @@ const walletSlice = createSlice({
       state.balance_naira = 0;
       state.recent_transactions = [];
       state.authorization_url = null;
-      state.virtual_account = null;
     },
     resetWithdrawalState: (state) => {
       state.withdrawal_loading = false;
@@ -234,33 +191,7 @@ const walletSlice = createSlice({
         state.error = action.payload?.detail || "Paystack verification failed.";
       })
 
-      // Release promotion earnings
-      .addCase(releasePromotionEarnings.pending, (state) => {
-        state.promotion_releasing = true;
-      })
-      .addCase(releasePromotionEarnings.fulfilled, (state) => {
-        state.promotion_releasing = false;
-      })
-      .addCase(releasePromotionEarnings.rejected, (state, action) => {
-        state.promotion_releasing = false;
-        state.error =
-          action.payload?.detail || "Failed to release promotion earnings.";
-      })
 
-      //  Create virtual account
-      .addCase(createVirtualAccount.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createVirtualAccount.fulfilled, (state, action) => {
-        state.loading = false;
-        state.virtual_account = action.payload;
-      })
-      .addCase(createVirtualAccount.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          action.payload?.detail || "Failed to create virtual account.";
-      })
 
       // Withdraw funds
       .addCase(withdrawFunds.pending, (state) => {

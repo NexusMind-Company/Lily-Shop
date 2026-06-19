@@ -6,6 +6,7 @@
  */
 
 import { api } from "./api";
+import * as apiService from "./api";
 
 // ─────────────────────────────────────────────
 // 1. DASHBOARD OVERVIEW
@@ -18,10 +19,7 @@ import { api } from "./api";
  *             total_earnings, weekly_revenue, new_subscribers_this_week,
  *             cancelled_subscriptions, net_growth }
  */
-export const fetchVendorDashboardOverview = async () => {
-  const response = await api.get("/foods/vendor/dashboard/overview/");
-  return response.data;
-};
+export const fetchVendorDashboardOverview = apiService.fetchVendorDashboardOverview;
 
 /**
  * GET /vendor/dashboard/subscriber-growth/?period=weekly
@@ -58,10 +56,7 @@ export const fetchRecentActivity = async () => {
  * Order shape: { id, customer_name, phone, delivery_address, delivery_time,
  *                meal_plan, status, created_at }
  */
-export const fetchVendorOrders = async (params = {}) => {
-  const response = await api.get("/foods/vendor/orders/", { params });
-  return response.data;
-};
+export const fetchVendorOrders = apiService.fetchVendorOrders;
 
 /**
  * PATCH /vendor/orders/{orderId}/status/
@@ -102,10 +97,8 @@ export const fetchDailyPrepList = async (date = null) => {
  * Subscription shape: { id, customer_name, meal_preferences, plan_type,
  *                       start_date, end_date, status, duration_days }
  */
-export const fetchVendorSubscriptions = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/", { params });
-  return response.data;
-};
+export const fetchVendorSubscriptions = (params = {}) =>
+  apiService.api.get("/foods/subscriptions/vendor/", { params }).then((r) => r.data);
 
 // ─────────────────────────────────────────────
 // SUBSCRIPTION REQUESTS - Backend endpoints not implemented
@@ -408,10 +401,7 @@ export const resumeShop = async () => {
  * Response: { total_earnings, platform_fee, net_payout,
  *             daily_earnings, weekly_earnings, monthly_earnings }
  */
-export const fetchEarningsSummary = async () => {
-  const response = await api.get("/foods/vendor/earnings/summary/");
-  return response.data;
-};
+export const fetchEarningsSummary = apiService.fetchEarningsSummary;
 
 /**
  * GET /vendor/earnings/history/
@@ -420,10 +410,7 @@ export const fetchEarningsSummary = async () => {
  * Response: { count, next, previous, results: [{ id, customer_name, amount,
  *             platform_fee, net, payment_date, subscription_plan, status }] }
  */
-export const fetchEarningsHistory = async (params = {}) => {
-  const response = await api.get("/foods/vendor/earnings/history/", { params });
-  return response.data;
-};
+export const fetchEarningsHistory = apiService.fetchEarningsHistory;
 
 /**
  * GET /vendor/earnings/chart/
@@ -431,12 +418,7 @@ export const fetchEarningsHistory = async (params = {}) => {
  * Query params: period (daily|weekly|monthly)
  * Response: { labels: [...], earnings: [...] }
  */
-export const fetchEarningsChart = async (period = "weekly") => {
-  const response = await api.get("/foods/vendor/earnings/chart/", {
-    params: { period },
-  });
-  return response.data;
-};
+export const fetchEarningsChart = apiService.fetchEarningsChart;
 
 // ─────────────────────────────────────────────
 // 12. VENDOR WALLET
@@ -447,10 +429,7 @@ export const fetchEarningsChart = async (period = "weekly") => {
  * Returns vendor wallet balance.
  * Response: { id, vendor, balance_kobo, balance_naira, updated_at }
  */
-export const fetchVendorWallet = async () => {
-  const response = await api.get("/foods/vendor/wallet/");
-  return response.data;
-};
+export const fetchVendorWallet = apiService.fetchVendorWallet;
 
 /**
  * GET /vendor/withdrawals/
@@ -458,10 +437,7 @@ export const fetchVendorWallet = async () => {
  * Query params: page, page_size, status
  * Response: { count, next, previous, results: [withdrawal...] }
  */
-export const fetchVendorWithdrawals = async (params = {}) => {
-  const response = await api.get("/foods/vendor/withdrawals/", { params });
-  return response.data;
-};
+export const fetchVendorWithdrawals = apiService.fetchVendorWithdrawals;
 
 /**
  * POST /vendor/withdrawals/
@@ -469,10 +445,7 @@ export const fetchVendorWithdrawals = async (params = {}) => {
  * Body: { amount_kobo, bank_name, account_number, account_name }
  * Response: created withdrawal object
  */
-export const createVendorWithdrawal = async (withdrawalData) => {
-  const response = await api.post("/wallet/withdraw/", withdrawalData);
-  return response.data;
-};
+export const createVendorWithdrawal = apiService.createVendorWithdrawal;
 
 /**
  * Alias for createVendorWithdrawal - used by VendorEarningsPage
@@ -485,10 +458,8 @@ export const initiateEarningsPayout = createVendorWithdrawal;
  * Returns withdrawal details.
  * Response: withdrawal object
  */
-export const fetchWithdrawalDetails = async (withdrawalId) => {
-  const response = await api.get(`/foods/vendor/withdrawals/${withdrawalId}/`);
-  return response.data;
-};
+export const fetchWithdrawalDetails = (withdrawalId) =>
+  apiService.api.get(`/foods/vendor/withdrawals/${withdrawalId}/`).then((r) => r.data);
 
 // ─────────────────────────────────────────────
 // 10. ADD-ON UPSELL
@@ -557,10 +528,7 @@ export const deleteAddon = async (addonId) => {
  * Response: [{ id, customer_name, customer_avatar, last_message,
  *             last_message_time, unread_count }]
  */
-export const fetchVendorConversations = async () => {
-  const response = await api.get("/foods/vendor/conversations/");
-  return response.data;
-};
+export const fetchVendorConversations = apiService.fetchVendorConversations;
 
 /**
  * GET /vendor/conversations/{conversationId}/messages/
@@ -691,11 +659,7 @@ export const sendWinbackOffer = async (customerId, offerData) => {
  *             ingredient_insights: [{ ingredient, removal_rate }],
  *             top_performing_plans: [...] }
  */
-export const fetchVendorAnalytics = async (period) => {
-  const config = period ? { params: { period } } : {};
-  const response = await api.get("/foods/vendor/analytics/", config);
-  return response.data;
-};
+export const fetchVendorAnalytics = apiService.fetchVendorAnalytics;
 
 // ─────────────────────────────────────────────
 // 16. PACKAGE PRICING
@@ -707,10 +671,7 @@ export const fetchVendorAnalytics = async (period) => {
  * Response: [{ id, name, tier, base_price, description, meals_per_cycle,
  *             includes_delivery, extras: [{ name, price }] }]
  */
-export const fetchVendorPackages = async () => {
-  const response = await api.get("/foods/vendor/packages/");
-  return response.data;
-};
+export const fetchVendorPackages = apiService.fetchVendorPackages;
 
 /**
  * POST /vendor/packages/
@@ -718,27 +679,15 @@ export const fetchVendorPackages = async () => {
  * Body: { name, tier, base_price, description?, meals_per_cycle,
  *         includes_delivery, extras: [{ name, price }] }
  */
-export const createVendorPackage = async (data) => {
-  const response = await api.post("/foods/vendor/packages/", data);
-  return response.data;
-};
+export const createVendorPackage = apiService.createVendorPackage;
 
 /**
  * PATCH /vendor/packages/{packageId}/
  * Updates an existing package.
  */
-export const updateVendorPackage = async (packageId, data) => {
-  const response = await api.patch(
-    `/foods/vendor/packages/${packageId}/`,
-    data,
-  );
-  return response.data;
-};
+export const updateVendorPackage = apiService.partialUpdateVendorPackage;
 
 /**
  * DELETE /vendor/packages/{packageId}/
  */
-export const deleteVendorPackage = async (packageId) => {
-  const response = await api.delete(`/foods/vendor/packages/${packageId}/`);
-  return response.data;
-};
+export const deleteVendorPackage = apiService.deleteVendorPackage;

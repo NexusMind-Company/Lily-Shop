@@ -1,4 +1,5 @@
 import { api } from "./api";
+import * as apiService from "./api";
 
 // ==================== SHOP ENDPOINTS ====================
 
@@ -52,10 +53,7 @@ export const deleteShop = async (shopId) => {
  * Toggle follow/unfollow a shop
  * @param {string} shopId - Shop UUID
  */
-export const toggleFollowShop = async (shopId) => {
-  const response = await api.post(`/shops/${shopId}/toggle-follow/`, {});
-  return response.data;
-};
+export const toggleFollowShop = apiService.toggleFollowShop;
 
 // ==================== PRODUCT ENDPOINTS ====================
 
@@ -63,10 +61,7 @@ export const toggleFollowShop = async (shopId) => {
  * Fetch all products for a shop
  * @param {string} shopId - Shop UUID
  */
-export const fetchShopProducts = async (shopId) => {
-  const response = await api.get(`/shops/${shopId}/products/`);
-  return response.data;
-};
+export const fetchShopProducts = apiService.fetchShopProducts;
 
 /**
  * Fetch a single product
@@ -133,10 +128,7 @@ export const toggleProductLike = async (productId) => {
 /**
  * Fetch user's liked products
  */
-export const fetchLikedProducts = async () => {
-  const response = await api.get("/shops/my-liked-products/");
-  return response.data;
-};
+export const fetchLikedProducts = apiService.fetchLikedProducts;
 
 /**
  * Fetch nearby products
@@ -154,12 +146,7 @@ export const fetchNearbyProducts = async (params = {}) => {
  * @param {string} productId - Product UUID
  * @param {Object} params - Pagination params
  */
-export const fetchProductComments = async (productId, params = {}) => {
-  const response = await api.get(`/shops/products/${productId}/comments/`, {
-    params,
-  });
-  return response.data;
-};
+export const fetchProductComments = apiService.fetchProductComments;
 
 /**
  * Create a comment on a product
@@ -178,12 +165,7 @@ export const createProductComment = async (productId, data) => {
  * Delete a product comment
  * @param {string} commentId - Comment UUID
  */
-export const deleteProductComment = async (commentId) => {
-  const response = await api.delete(
-    `/shops/products/comments/${commentId}/delete/`,
-  );
-  return response.data;
-};
+export const deleteProductComment = apiService.deleteProductComment;
 
 /**
  * Toggle like on a product comment
@@ -212,10 +194,7 @@ export const fetchContents = async (params = {}) => {
  * Fetch a single content post
  * @param {string} contentId - Content UUID
  */
-export const fetchContentById = async (contentId) => {
-  const response = await api.get(`/shops/contents/${contentId}/`);
-  return response.data;
-};
+export const fetchContentById = apiService.fetchContentById;
 
 /**
  * Create a new content post
@@ -270,12 +249,7 @@ export const fetchLikedContents = async () => {
  * @param {string} contentId - Content UUID
  * @param {Object} params - Pagination params
  */
-export const fetchContentComments = async (contentId, params = {}) => {
-  const response = await api.get(`/shops/contents/${contentId}/comments/`, {
-    params,
-  });
-  return response.data;
-};
+export const fetchContentComments = apiService.fetchContentComments;
 
 /**
  * Create a comment on a content post
@@ -294,12 +268,7 @@ export const createContentComment = async (contentId, data) => {
  * Delete a content comment
  * @param {string} commentId - Comment UUID
  */
-export const deleteContentComment = async (commentId) => {
-  const response = await api.delete(
-    `/shops/contents/comments/${commentId}/delete/`,
-  );
-  return response.data;
-};
+export const deleteContentComment = apiService.deleteContentComment;
 
 /**
  * Toggle like on a content comment
@@ -328,10 +297,7 @@ export const fetchHomeFeed = async (params = {}) => {
  * Fetch all feed (products + content)
  * @param {Object} params - { search }
  */
-export const fetchAllFeed = async (params = {}) => {
-  const response = await api.get("/shops/feed/", { params });
-  return response.data;
-};
+export const fetchAllFeed = apiService.fetchAllFeed;
 
 // ==================== REVIEW ENDPOINTS ====================
 
@@ -368,29 +334,20 @@ export const fetchReviewById = async (reviewId) => {
  * @param {string} reviewId - Review UUID
  * @param {Object} data - { rating, comment }
  */
-export const updateReview = async (reviewId, data) => {
-  const response = await api.put(`/shops/reviews/${reviewId}/update/`, data);
-  return response.data;
-};
+export const updateReview = apiService.updateReview;
 
 /**
  * Partially update a review
  * @param {string} reviewId - Review UUID
  * @param {Object} data - { rating?, comment? }
  */
-export const partialUpdateReview = async (reviewId, data) => {
-  const response = await api.patch(`/shops/reviews/${reviewId}/update/`, data);
-  return response.data;
-};
+export const partialUpdateReview = apiService.partialUpdateReview;
 
 /**
  * Delete a review
  * @param {string} reviewId - Review UUID
  */
-export const deleteReview = async (reviewId) => {
-  const response = await api.delete(`/shops/reviews/${reviewId}/delete/`);
-  return response.data;
-};
+export const deleteReview = apiService.deleteReview;
 
 /**
  * Toggle like on a review
