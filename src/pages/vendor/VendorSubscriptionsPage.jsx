@@ -225,9 +225,9 @@ const SubscriptionCard = ({ sub }) => {
       </div>
 
       <div className="mt-3 space-y-2">
-        <DetailBlock label="Meal Preferences" value={sub.meal_preferences} />
-        <DetailBlock label="Dietary Notes" value={sub.dietary_notes} />
-        <DetailBlock label="Allergies" value={sub.allergies_summary} />
+        <DetailBlock label="Meal Preferences" value={sub.meal_preferences || sub.dietary_preferences} />
+        <DetailBlock label="Dietary Notes" value={sub.dietary_notes || sub.dietary_preferences || sub.meal_preferences} />
+        <DetailBlock label="Allergies" value={sub.allergies_summary || sub.allergies} />
         <DetailBlock
           label="Special Instructions"
           value={sub.special_instructions}
