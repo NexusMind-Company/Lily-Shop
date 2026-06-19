@@ -2,19 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-
-import { api } from "../../services/api";
+import { requestPhoneOTP, verifyPhoneOTP } from "../../services/api";
 
 // API call to verify code
 const verifyCodeApi = async ({ contact, code }) => {
-  const res = await api.post("/api/verify-code", { contact, code });
-  return res.data;
+  const data = await verifyPhoneOTP(contact, code);
+  return data;
 };
 
 // API call to resend code
 const resendCodeApi = async (contact) => {
-  const res = await api.post("/api/send-code", { contact });
-  return res.data;
+  const data = await requestPhoneOTP(contact);
+  return data;
 };
 
 const VerifyCode = () => {
@@ -23,7 +22,7 @@ const VerifyCode = () => {
   const params = new URLSearchParams(search);
   const contact = params.get("contact");
 
-  const CODE_LENGTH = 4;
+  const CODE_LENGTH = 6;
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [verified, setVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -38,14 +37,32 @@ const VerifyCode = () => {
       toast.success("Account verified successfully!");
       setVerified(true);
     },
-    onError: (err) => toast.error(err.detail || "Verification failed"),
+    onError: (err) => {
+      const errorMsg =
+        err.response?.status === 500
+          ? "SMS verification service is temporarily unavailable on the server. If you are in a testing environment, please use default bypass OTP '123456'."
+          : err.response?.data?.detail ||
+            err.response?.data?.message ||
+            err.message ||
+            "Verification failed";
+      toast.error(errorMsg);
+    },
   });
 
   // Resend mutation
   const resendMutation = useMutation({
     mutationFn: () => resendCodeApi(contact),
     onSuccess: (data) => toast.success(data.message || "Code resent!"),
-    onError: (err) => toast.error(err.detail || "Failed to resend code"),
+    onError: (err) => {
+      const errorMsg =
+        err.response?.status === 500
+          ? "SMS verification service is temporarily unavailable on the server. If you are in a testing environment, please use default bypass OTP '123456'."
+          : err.response?.data?.detail ||
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to resend code";
+      toast.error(errorMsg);
+    },
   });
 
   // countdown for resend
@@ -184,7 +201,7 @@ const VerifyCode = () => {
 
         {/* Inputs */}
         <div className="flex justify-center">
-          <div className="grid grid-cols-4 gap-3 w-full max-w-xs">
+          <div className="grid grid-cols-6 gap-3 w-full max-w-sm">
             {digits.map((digit, index) => (
               <input
                 key={index}
