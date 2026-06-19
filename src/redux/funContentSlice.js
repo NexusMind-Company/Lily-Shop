@@ -39,9 +39,7 @@ export const createFunContent = createAsyncThunk(
         }
       }
 
-      const response = await api.post("/shops/contents/create/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.post("/shops/contents/create/", formData);
       return response.data;
     } catch (error) {
       console.error("Fun content failed:", error.response || error);

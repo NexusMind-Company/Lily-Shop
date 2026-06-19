@@ -82,11 +82,7 @@ export const fetchProductById = async (productId) => {
  * @param {FormData} formData - Product data with media
  */
 export const createProduct = async (formData) => {
-  const response = await api.post("/shops/products/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/shops/products/create/", formData);
   return response.data;
 };
 
@@ -99,11 +95,6 @@ export const batchCreateProducts = async (shopId, formData) => {
   const response = await api.post(
     `/shops/${shopId}/products/batch-create/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };
@@ -117,11 +108,6 @@ export const updateProduct = async (productId, formData) => {
   const response = await api.put(
     `/shops/products/${productId}/update/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };
@@ -236,11 +222,7 @@ export const fetchContentById = async (contentId) => {
  * @param {FormData} formData - Content data with media
  */
 export const createContent = async (formData) => {
-  const response = await api.post("/shops/contents/create/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/shops/contents/create/", formData);
   return response.data;
 };
 
@@ -253,11 +235,6 @@ export const updateContent = async (contentId, formData) => {
   const response = await api.put(
     `/shops/contents/${contentId}/update/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };

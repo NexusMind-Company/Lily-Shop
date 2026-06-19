@@ -113,9 +113,6 @@ const UploadProfilePic = () => {
   const uploadMutation = useMutation({
     mutationFn: async (formData) => {
       const response = await api.patch("/auth/profile/update-profile-pic/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total,

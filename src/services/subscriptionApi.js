@@ -253,9 +253,7 @@ export const createMealPlan = async (payload) => {
         }
       });
       // The endpoint must accept multipart/form-data
-      response = await api.post("/foods/subscriptions/create/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      response = await api.post("/foods/subscriptions/create/", formData);
     } else {
       // Fallback JSON if no media
       response = await api.post("/foods/subscriptions/create/", normalized);
@@ -602,11 +600,6 @@ export const updateMealPlan = async (id, payload) => {
   const response = await api.patch(
     `/foods/subscriptions/${id}/update/`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
 
   return response.data;

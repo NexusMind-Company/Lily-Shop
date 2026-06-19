@@ -9,11 +9,6 @@ export const addProduct = createAsyncThunk(
       const response = await api.post(
         `/shops/${shop_id}/products/batch-create/`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
       );
       return response.data;
     } catch (error) {
@@ -47,11 +42,6 @@ export const updateProduct = createAsyncThunk(
       const response = await api.put(
         `/shops/products/${id}/update/`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
       );
       return response.data;
     } catch (error) {

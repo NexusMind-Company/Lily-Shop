@@ -30,11 +30,7 @@ const CreateSubscriptionPlanPage = () => {
       formData.append("plan_name", "Weekly Meal Plan");
       formData.append("price", "0.00"); // Required field, will be updated later
 
-      await api.post("/foods/subscriptions/create/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.post("/foods/subscriptions/create/", formData);
 
       // Invalidate queries to trigger refresh
       queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
@@ -58,11 +54,7 @@ const CreateSubscriptionPlanPage = () => {
       formData.append("plan_name", "Monthly Meal Plan");
       formData.append("price", "0.00"); // Required field, will be updated later
 
-      await api.post("/foods/subscriptions/create/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.post("/foods/subscriptions/create/", formData);
 
       // Invalidate queries to trigger refresh
       queryClient.invalidateQueries({ queryKey: ["vendorPlans"] });
