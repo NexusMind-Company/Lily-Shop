@@ -112,7 +112,7 @@ const UploadProfilePic = () => {
 
   const uploadMutation = useMutation({
     mutationFn: async (formData) => {
-      const response = await api.post("/api/upload-profile-picture", formData, {
+      const response = await api.patch("/auth/profile/update-profile-pic/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -132,7 +132,7 @@ const UploadProfilePic = () => {
       // Update Redux store
       dispatch({
         type: "auth/updateProfilePicture",
-        payload: data.profilePictureUrl,
+        payload: data.profile_pic,
       });
 
       // Cache the image
@@ -254,7 +254,7 @@ const UploadProfilePic = () => {
   const handleConfirm = async () => {
     if (selectedImage) {
       const formData = new FormData();
-      formData.append("profilePicture", selectedImage);
+      formData.append("profile_pic", selectedImage);
       formData.append("userId", user?.id);
       formData.append("timestamp", Date.now().toString());
 

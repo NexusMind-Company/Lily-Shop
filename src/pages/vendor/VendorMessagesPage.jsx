@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
@@ -17,6 +18,8 @@ import {
 const ChatView = ({ conversation, onBack }) => {
   const [text, setText] = useState("");
   const queryClient = useQueryClient();
+  const { user_data } = useSelector((state) => state.auth);
+  const currentUserId = user_data?.id || user_data?.user?.id;
 
   const {
     data: messages,
@@ -81,23 +84,26 @@ const ChatView = ({ conversation, onBack }) => {
               No messages yet. Say hello! 👋
             </p>
           ) : (
-            msgs.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender === "vendor" ? "justify-end" : "justify-start"}`}
-              >
+            msgs.map((msg) => {
+              const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (msg.sender === "vendor" || (currentUserId && String(msg.sender_id) === String(currentUserId)));
+              return (
                 <div
-                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${msg.sender === "vendor" ? "bg-lily text-white rounded-br-sm" : "bg-white  text-[#111813]  border border-gray-100  rounded-bl-sm"}`}
+                  key={msg.id}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                 >
-                  {msg.text}
-                  <p
-                    className={`text-[10px] mt-1 ${msg.sender === "vendor" ? "text-green-100" : "text-gray-400"}`}
+                  <div
+                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${isMine ? "bg-lily text-white rounded-br-sm" : "bg-pink-100 text-gray-800 rounded-bl-sm"}`}
                   >
-                    {msg.timestamp}
-                  </p>
+                    {msg.text}
+                    <p
+                      className={`text-[10px] mt-1 ${isMine ? "text-green-100" : "text-gray-400"}`}
+                    >
+                      {msg.timestamp}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

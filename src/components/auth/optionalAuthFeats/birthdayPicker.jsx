@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { api } from "../../../services/api";
+import { updateProfile } from "../../../services/api";
 
 const BirthdayPicker = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -37,20 +37,14 @@ const BirthdayPicker = () => {
     try {
       setIsLoading(true);
 
-      // Format date for backend
-      const isoDate = date.toISOString().split("T")[0]; // YYYY-MM-DD format
-      const displayDate = date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
+      // Format date for backend (YYYY-MM-DD format)
+      const isoDate = date.toISOString().split("T")[0];
+
+      const response = await updateProfile({
+        birthdate: isoDate,
       });
 
-      const response = await api.post("/api/user/birthday", {
-        birthday: isoDate,
-        formatted_birthday: displayDate,
-      });
-
-      console.log("Birthday saved successfully:", response.data);
+      console.log("Birthday saved successfully:", response);
     } catch (error) {
       console.error("Error saving birthday:", error);
     } finally {

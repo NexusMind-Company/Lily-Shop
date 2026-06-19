@@ -3,15 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Plus, Loader2, AlertCircle } from "lucide-react";
 import { usePayment } from "../hooks/usePayment";
-import { api } from "../services/api";
-
-const fetchSavedCards = async () => {
-  // Anticipated endpoint to be created by the backend developer
-  const response = await api.get("/wallet/cards/");
-
-  // Assumes the backend returns an array of cards directly or inside a 'data'/'results' property
-  return response.data?.results || response.data || [];
-};
+import { fetchSavedCards } from "../services/api";
 
 const ChooseCardPage = () => {
   const navigate = useNavigate();
@@ -19,7 +11,7 @@ const ChooseCardPage = () => {
   const [selectedCardId, setSelectedCardId] = useState(null);
 
   const {
-    data: savedCards,
+    data: savedCardsData,
     isLoading,
     isError,
     error,
@@ -28,6 +20,10 @@ const ChooseCardPage = () => {
     queryFn: fetchSavedCards,
     retry: 1, // Only retry once to avoid long waits on a missing endpoint
   });
+
+  const savedCards = React.useMemo(() => {
+    return savedCardsData?.results || savedCardsData || [];
+  }, [savedCardsData]);
 
   useEffect(() => {
     const defaultCard = savedCards?.find((card) => card.is_default);

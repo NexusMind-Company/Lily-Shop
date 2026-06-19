@@ -451,7 +451,7 @@ const ChatPage = () => {
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
           displayMessages.map((msg) => {
-            const isMine = String(msg.sender_id) === String(currentUserId);
+            const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
 
             // Check for shared product from backend
             if (msg.product) {
@@ -497,7 +497,7 @@ const ChatPage = () => {
                 <div
                   className={`max-w-[75%] p-3 rounded-2xl text-sm ${
                     isMine
-                      ? "bg-green-100 text-gray-800 rounded-br-none"
+                      ? "bg-lily text-white rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >

@@ -2,12 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
-import { api } from "../../services/api";
+import { updateUsername } from "../../services/api";
 
 // API call
-const createUsernameApi = async ({ contact, username }) => {
-  const res = await api.post("/auth/username/set/", { contact, username });
-  return res.data;
+const createUsernameApi = async ({ username }) => {
+  return await updateUsername(username);
 };
 
 const CreateUsername = () => {

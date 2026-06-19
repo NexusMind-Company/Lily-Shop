@@ -173,7 +173,10 @@ const CartPage = () => {
             directProduct.username ||
             directProduct.user?.username ||
             "Vendor",
-          deliveryCharge: directProduct.deliveryCharge || 0,
+          deliveryCharge:
+            directProduct.delivery_fee_naira !== undefined
+              ? Number(directProduct.delivery_fee_naira)
+              : (directProduct.deliveryCharge || 0),
         },
       ];
     }
@@ -194,10 +197,19 @@ const CartPage = () => {
   // Fallback Local Calculations
   const localDeliveryCharge = useMemo(() => {
     if (!Array.isArray(itemsToCheckout)) return 0;
-    return itemsToCheckout.reduce(
-      (sum, item) => sum + (item.deliveryCharge || 0),
-      0,
-    );
+    return itemsToCheckout.reduce((sum, item) => {
+      const fee =
+        item.product?.delivery_fee_naira !== undefined
+          ? Number(item.product.delivery_fee_naira)
+          : item.delivery_fee_naira !== undefined
+          ? Number(item.delivery_fee_naira)
+          : item.product?.deliveryCharge !== undefined
+          ? Number(item.product.deliveryCharge)
+          : item.deliveryCharge !== undefined
+          ? Number(item.deliveryCharge)
+          : 0;
+      return sum + fee;
+    }, 0);
   }, [itemsToCheckout]);
 
   const itemCount = useMemo(() => {
@@ -957,15 +969,34 @@ const CartPage = () => {
                 <span>NGN {formatPrice(finalDeliveryFee)}</span>
               )}
             </div>
-            {finalPlatformFee > 0 && (
-              <div className="flex justify-between text-gray-800">
-                <span>Platform fee</span>
-                {isCalculating ? (
-                  <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
-                ) : (
-                  <span>NGN {formatPrice(finalPlatformFee)}</span>
+            {checkoutDetails?.has_feed_items ? (
+              <div className="space-y-1">
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Platform fee</span>
+                  {isCalculating ? (
+                    <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
+                  ) : (
+                    <span>Free</span>
+                  )}
+                </div>
+                {!isCalculating && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100/50 mt-1">
+                    <CheckCircle2 size={12} className="text-green-600 shrink-0" />
+                    <span>₦0 platform fee applied for feed purchase!</span>
+                  </div>
                 )}
               </div>
+            ) : (
+              finalPlatformFee > 0 && (
+                <div className="flex justify-between text-gray-800">
+                  <span>Platform fee</span>
+                  {isCalculating ? (
+                    <span className="animate-pulse bg-gray-200 h-4 w-12 rounded"></span>
+                  ) : (
+                    <span>NGN {formatPrice(finalPlatformFee)}</span>
+                  )}
+                </div>
+              )
             )}
             <div className="flex justify-between text-gray-900 font-bold border-t border-gray-100 pt-3 mt-1">
               <span>Total</span>

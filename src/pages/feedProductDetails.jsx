@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import ProductDetails from "../components/feed/product/productDetails";
 import { useFeed } from "../hooks/useFeed";
 import { addToCart } from "../redux/cartSlice";
-import { api } from "../services/api";
 import { toast } from "react-hot-toast";
 
 const FeedProductDetails = () => {
@@ -32,13 +31,7 @@ const FeedProductDetails = () => {
 
   const handleAddToCart = async (product, quantity) => {
     try {
-      const response = await api.post("/orders/cart/add/", {
-        product_id: product.id,
-        quantity: quantity,
-      });
-
-      // Update Redux cart
-      dispatch(addToCart(response.data));
+      await dispatch(addToCart({ product_id: product.id, quantity })).unwrap();
     } catch (error) {
       console.error("Failed to add to cart:", error);
       toast.error("Failed to add to cart. Please try again.");
