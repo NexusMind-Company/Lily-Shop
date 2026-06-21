@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "../../redux/authSlice";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { FiEye, FiEyeOff, FiMail, FiAlertCircle } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import api from "../../services/api";
@@ -24,7 +24,10 @@ const Login = () => {
   );
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const [verificationError, setVerificationError] = useState(false);
+  const location = useLocation();
+  const [verificationError, setVerificationError] = useState(
+    location.state?.verificationRequired ?? false,
+  );
 
   useEffect(() => {
     return () => {
@@ -37,6 +40,16 @@ const Login = () => {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (location.state?.verificationRequired) {
+      toast.success(
+        "Account created! Please check your email to verify before logging in.",
+        { duration: 6000 },
+      );
+      window.history.replaceState({}, document.title);
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
