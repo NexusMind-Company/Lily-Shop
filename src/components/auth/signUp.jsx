@@ -32,13 +32,16 @@ const SignUp = () => {
     };
   }, [dispatch]);
 
-  // Redirect to login on successful registration
+  // Redirect to login on successful registration with verification info
   useEffect(() => {
     if (registrationSuccess) {
-      toast.success("Registration successful! Redirecting to login...");
+      toast.success(
+        "Account created! Please check your email to verify your account before logging in.",
+        { duration: 6000 },
+      );
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 3000);
     }
   }, [registrationSuccess, navigate]);
 
@@ -116,7 +119,7 @@ const SignUp = () => {
 
     dispatch(
       registerUser({
-        email_or_phonenumber: formData.email_or_phonenumber,
+        email: formData.email_or_phonenumber,
         password: formData.password,
       }),
     );

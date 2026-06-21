@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "../../redux/authSlice";
 import { useNavigate, Link } from "react-router-dom";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiMail, FiAlertCircle } from "react-icons/fi";
 import { toast } from "react-hot-toast";
+import api from "../../services/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Login = () => {
   );
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -48,15 +50,26 @@ const Login = () => {
     }
   };
 
-  // 7. Robust handleSubmit with validation
+  const isVerificationError = (msg) => {
+    if (!msg) return false;
+    const lower = msg.toLowerCase();
+    return (
+      lower.includes("verify") ||
+      lower.includes("verified") ||
+      lower.includes("inactive") ||
+      lower.includes("confirm your email") ||
+      lower.includes("account not activated")
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation to prevent empty space submission
     if (!formData.login.trim() || !formData.password.trim()) {
       return;
     }
 
+    setVerificationError(false);
     const resultAction = await dispatch(
       loginUser({ ...formData, remember_me: rememberMe }),
     );
@@ -77,8 +90,29 @@ const Login = () => {
         navigate("/");
       }, 1500);
     } else if (loginUser.rejected.match(resultAction)) {
+      const errMsg =
+        resultAction.payload || "Login failed. Please check your credentials.";
+      if (isVerificationError(errMsg)) {
+        setVerificationError(true);
+        toast.error(
+          "Please verify your email before logging in. Check your inbox for the verification link.",
+          { duration: 5000 },
+        );
+      } else {
+        toast.error(errMsg);
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await api.post("/auth/resend-verification-email/", {
+        email: formData.login,
+      });
+      toast.success("Verification email resent! Check your inbox.");
+    } catch {
       toast.error(
-        resultAction.payload || "Login failed. Please check your credentials.",
+        "Could not resend verification email. Please try again later.",
       );
     }
   };
@@ -181,30 +215,54 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Sign Up Prompt */}
-          <div className="self-start">
-            <Link to="/signUp">
-              <p className="text-sm font-semibold">
-                Not a member yet?{" "}
-                <span className="text-lily underline">Create an Account</span>
-              </p>
-            </Link>
+        {/* Verification Error Notice */}
+        {verificationError && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle className="text-yellow-600 mt-0.5 shrink-0" size={16} />
+              <div>
+                <p className="font-semibold text-yellow-800">
+                  Email not verified
+                </p>
+                <p className="text-yellow-700 mt-1">
+                  Please verify your email address before logging in. Check your
+                  inbox for the verification link.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  className="mt-2 flex items-center gap-1 text-lily font-semibold hover:underline"
+                >
+                  <FiMail size={14} /> Resend verification email
+                </button>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
+        )}
 
-      {/* Localized Footer */}
-      <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
-        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
-          <Link to="/about" className="hover:text-lily transition-colors">
-            Privacy Policy
-          </Link>
-          <span>•</span>
-          <Link to="/about" className="hover:text-lily transition-colors">
-            Terms & Conditions
+        {/* Sign Up Prompt */}
+        <div className="self-start">
+          <Link to="/signUp">
+            <p className="text-sm font-semibold">
+              Not a member yet?{" "}
+              <span className="text-lily underline">Create an Account</span>
+            </p>
           </Link>
         </div>
-      </footer>
+      </form>
+    </div>
+
+    {/* Localized Footer */}
+    <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
+      <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Privacy Policy
+        </Link>
+        <span>•</span>
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Terms & Conditions
+        </Link>
+      </div>
     </section>
   );
 };

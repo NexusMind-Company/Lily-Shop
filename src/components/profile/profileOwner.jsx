@@ -21,6 +21,7 @@ import {
   Calendar,
   Bookmark,
   UserSquare,
+  CheckCircle2,
 } from "lucide-react";
 import { handleLogout } from "../../redux/authSlice";
 import PostDetailOverlay from "./PostDetailOverlay";
@@ -434,6 +435,11 @@ const ProfileOwner = () => {
                 e.target.src = "/profile-icon.svg";
               }}
             />
+            {user.is_verified && (
+              <div className="absolute bottom-1 right-1 bg-blue-500 text-white p-1 rounded-full border-2 border-white">
+                <CheckCircle2 size={12} className="md:w-4 md:h-4" />
+              </div>
+            )}
           </div>
         </div>
 
