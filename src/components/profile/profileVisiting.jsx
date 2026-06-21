@@ -277,6 +277,7 @@ const ProfileVisiting = () => {
           secondaryData?.following_count || profileResult.following_count || 0,
         is_verified:
           profileResult.is_verified ?? profileResult.verified ?? false,
+        total_views: profileResult.total_views || 0,
       },
       posts: secondaryData?.posts || [],
       products: secondaryData?.products || [],
@@ -518,6 +519,10 @@ const ProfileVisiting = () => {
                 following
               </div>
             </Link>
+            <div className="flex items-center gap-1">
+              <Eye size={16} />
+              <span className="font-semibold">{user.total_views || 0}</span>
+            </div>
           </div>
 
           {/* Name and Bio */}
@@ -564,6 +569,13 @@ const ProfileVisiting = () => {
           <span className="font-bold">{user.following_count || 0}</span>
           <span className="text-gray-400 text-xs">following</span>
         </Link>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-1">
+            <Eye size={14} />
+            <span className="font-bold">{user.total_views || 0}</span>
+          </div>
+          <span className="text-gray-400 text-xs">views</span>
+        </div>
       </div>
 
       {/* Action Buttons - Repositioned */}
