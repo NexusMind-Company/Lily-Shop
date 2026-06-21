@@ -286,6 +286,7 @@ const Login = () => {
         </Link>
       </div>
     </footer>
+    </section>
   );
 };
 
