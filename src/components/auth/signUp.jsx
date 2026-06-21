@@ -40,7 +40,9 @@ const SignUp = () => {
         { duration: 6000 },
       );
       setTimeout(() => {
-        navigate("/login");
+        navigate("/login", {
+          state: { verificationRequired: true },
+        });
       }, 3000);
     }
   }, [registrationSuccess, navigate]);

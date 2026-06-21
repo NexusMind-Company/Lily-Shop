@@ -473,6 +473,10 @@ const ProfileOwner = () => {
                 following
               </div>
             </Link>
+            <div className="flex items-center gap-1">
+              <Eye size={16} />
+              <span className="font-semibold">{user.total_views || 0}</span>
+            </div>
           </div>
 
           {/* Name and Bio */}
@@ -545,6 +549,13 @@ const ProfileOwner = () => {
           <span className="font-bold text-2xl">{followingCount}</span>
           <span className="text-gray-400 text-sm">Following</span>
         </Link>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-1">
+            <Eye size={20} />
+            <span className="font-bold text-2xl">{user.total_views || 0}</span>
+          </div>
+          <span className="text-gray-400 text-sm">Views</span>
+        </div>
       </div>
 
       {/* Action Buttons */}
