@@ -119,7 +119,7 @@ const Login = () => {
   const handleResendVerification = async () => {
     try {
       await api.post("/auth/resend-verification-email/", {
-        email_or_phonenumber: formData.login,
+        email: formData.login,
       });
       toast.success("Verification email resent! Check your inbox.");
     } catch {
