@@ -10,7 +10,7 @@ export const loginUser = createAsyncThunk(
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
       const payload = {
-        email: credentials.login || credentials.email || credentials.username,
+        login: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
         remember_me: !!credentials.remember_me,
       };

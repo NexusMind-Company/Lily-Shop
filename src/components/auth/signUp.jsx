@@ -119,7 +119,7 @@ const SignUp = () => {
 
     dispatch(
       registerUser({
-        email: formData.email_or_phonenumber,
+        email_or_phonenumber: formData.email_or_phonenumber,
         password: formData.password,
       }),
     );

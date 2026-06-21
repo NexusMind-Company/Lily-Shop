@@ -22,12 +22,11 @@ components:
     UserRegister:
       type: object
       required:
-        - email
+        - email_or_phonenumber
         - password
       properties:
-        email:
+        email_or_phonenumber:
           type: string
-          format: email
         password:
           type: string
           writeOnly: true
@@ -39,15 +38,15 @@ components:
     MultiFieldLoginTokenObtainPair:
       type: object
       required:
+        - login
         - password
       properties:
-        email:
+        login:
           type: string
-          format: email
-        username:
-          type: string
-        phone_number:
-          type: string
+          writeOnly: true
+        remember_me:
+          type: boolean
+          writeOnly: true
         password:
           type: string
           writeOnly: true
