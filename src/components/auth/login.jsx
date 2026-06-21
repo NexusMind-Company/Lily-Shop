@@ -285,7 +285,7 @@ const Login = () => {
           Terms & Conditions
         </Link>
       </div>
-    </section>
+    </footer>
   );
 };
 
