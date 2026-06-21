@@ -28,6 +28,7 @@ const Login = () => {
   const [verificationError, setVerificationError] = useState(
     location.state?.verificationRequired ?? false,
   );
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     return () => {
@@ -83,6 +84,7 @@ const Login = () => {
     }
 
     setVerificationError(false);
+    setErrorMessage("");
     const resultAction = await dispatch(
       loginUser({ ...formData, remember_me: rememberMe }),
     );
@@ -107,10 +109,7 @@ const Login = () => {
         resultAction.payload || "Login failed. Please check your credentials.";
       if (isVerificationError(errMsg)) {
         setVerificationError(true);
-        toast.error(
-          "Please verify your email before logging in. Check your inbox for the verification link.",
-          { duration: 5000 },
-        );
+        setErrorMessage(errMsg);
       } else {
         toast.error(errMsg);
       }
@@ -120,7 +119,7 @@ const Login = () => {
   const handleResendVerification = async () => {
     try {
       await api.post("/auth/resend-verification-email/", {
-        email: formData.login,
+        email_or_phonenumber: formData.login,
       });
       toast.success("Verification email resent! Check your inbox.");
     } catch {
@@ -238,16 +237,26 @@ const Login = () => {
                   Email not verified
                 </p>
                 <p className="text-yellow-700 mt-1">
-                  Please verify your email address before logging in. Check your
-                  inbox for the verification link.
+                  {errorMessage || "User account is inactive. Please verify your email before logging in."}
                 </p>
-                <button
-                  type="button"
-                  onClick={handleResendVerification}
-                  className="mt-2 flex items-center gap-1 text-lily font-semibold hover:underline"
-                >
-                  <FiMail size={14} /> Resend verification email
-                </button>
+                <p className="text-yellow-700 mt-2">
+                  Check your inbox for the verification link, or{" "}
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    className="text-lily font-semibold hover:underline"
+                  >
+                    click here to resend
+                  </button>
+                  . If you still don&apos;t receive it,{" "}
+                  <a
+                    href="mailto:support@lilyshops.com"
+                    className="text-lily font-semibold hover:underline"
+                  >
+                    contact support
+                  </a>
+                  .
+                </p>
               </div>
             </div>
           </div>
