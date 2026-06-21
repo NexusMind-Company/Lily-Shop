@@ -9,15 +9,11 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
-      // FIX: STRICT PAYLOAD.
-      // The backend ONLY accepts 'login', 'password', and optionally 'remember_me'.
       const payload = {
-        login: credentials.login || credentials.email || credentials.username,
+        email: credentials.login || credentials.email || credentials.username,
         password: credentials.password,
         remember_me: !!credentials.remember_me,
       };
-
-      // console.log("Sending Login Payload:", payload); // Debugging log
 
       const response = await api.post("/auth/login/", payload);
       const data = response.data;
@@ -40,7 +36,7 @@ export const loginUser = createAsyncThunk(
       }
 
       if (payload.remember_me) {
-        localStorage.setItem("remember_login", payload.login);
+        localStorage.setItem("remember_login", payload.email);
       } else {
         localStorage.removeItem("remember_login");
       }
@@ -64,6 +60,7 @@ export const loginUser = createAsyncThunk(
         error.response?.data?.message ||
         // Capture 'non_field_errors' which is common for "Invalid credentials"
         error.response?.data?.non_field_errors?.[0] ||
+        error.response?.data?.email?.[0] ||
         error.response?.data?.login?.[0] ||
         error.response?.data?.password?.[0] ||
         "Login failed. Please check your credentials.";
