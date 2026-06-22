@@ -10,7 +10,7 @@ import ScrollToTop from "./components/common/scrollToTop";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
-import { FeedProvider } from "./context/feedContext";
+import { FeedProvider } from "./context/feedContext.jsx";
 
 /* ---------------- AUTH ---------------- */
 import Login from "./components/auth/login";
