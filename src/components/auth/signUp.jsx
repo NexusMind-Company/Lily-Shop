@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser, clearError } from "../../redux/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
 import { toast } from "react-hot-toast";
+import api from "../../services/api";
 
 const SignUp = () => {
   const dispatch = useDispatch();
@@ -24,6 +25,7 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const registeredEmailRef = useRef("");
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -34,7 +36,12 @@ const SignUp = () => {
 
   // Redirect to login on successful registration with verification info
   useEffect(() => {
-    if (registrationSuccess) {
+    if (registrationSuccess && registeredEmailRef.current) {
+      api
+        .post("/auth/resend-verification-email/", {
+          email: registeredEmailRef.current,
+        })
+        .catch(() => {});
       toast.success(
         "Account created! A verification link has been sent to your email. Please check your inbox (or spam folder) to activate your account.",
         { duration: 10000 },
@@ -119,6 +126,7 @@ const SignUp = () => {
       return;
     }
 
+    registeredEmailRef.current = formData.email_or_phonenumber;
     dispatch(
       registerUser({
         email_or_phonenumber: formData.email_or_phonenumber,
