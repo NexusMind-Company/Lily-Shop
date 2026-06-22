@@ -119,14 +119,20 @@ const Login = () => {
 
   const handleResendVerification = async () => {
     try {
-      await api.post("/auth/resend-verification-email/", {
+      const response = await api.post("/auth/resend-verification-email/", {
         email: formData.login,
       });
-      toast.success("Verification email resent! Check your inbox.");
-    } catch {
-      toast.error(
-        "Could not resend verification email. Please try again later.",
+      toast.success(
+        response.data?.message ||
+          "Verification email resent! Check your inbox.",
       );
+    } catch (err) {
+      const backendMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.email?.[0] ||
+        err.response?.data?.message ||
+        "Could not resend verification email. Please try again later.";
+      toast.error(backendMsg);
     }
   };
 
