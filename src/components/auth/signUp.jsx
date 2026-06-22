@@ -36,8 +36,8 @@ const SignUp = () => {
   useEffect(() => {
     if (registrationSuccess) {
       toast.success(
-        "Account created! Please check your email to verify your account before logging in.",
-        { duration: 6000 },
+        "Account created! A verification link has been sent to your email. Please check your inbox (or spam folder) to activate your account.",
+        { duration: 10000 },
       );
       setTimeout(() => {
         navigate("/login", {
