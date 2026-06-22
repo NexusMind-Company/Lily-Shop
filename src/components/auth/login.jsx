@@ -110,6 +110,7 @@ const Login = () => {
       if (isVerificationError(errMsg)) {
         setVerificationError(true);
         setErrorMessage(errMsg);
+        toast.error("User account is inactive — please verify your email before logging in.", { duration: 8000 });
       } else {
         toast.error(errMsg);
       }
@@ -234,28 +235,30 @@ const Login = () => {
               <FiAlertCircle className="text-yellow-600 mt-0.5 shrink-0" size={16} />
               <div>
                 <p className="font-semibold text-yellow-800">
-                  Email not verified
+                  Account not activated
                 </p>
                 <p className="text-yellow-700 mt-1">
-                  {errorMessage || "User account is inactive. Please verify your email before logging in."}
+                  {errorMessage || "Your account is not yet active. Please check your email to verify your account before logging in."}
                 </p>
-                <p className="text-yellow-700 mt-2">
-                  Check your inbox for the verification link, or{" "}
+                <p className="text-yellow-700 mt-3 font-medium">
+                  <FiMail size={14} className="inline mr-1" />
+                  Didn&apos;t get the email?{" "}
                   <button
                     type="button"
                     onClick={handleResendVerification}
                     className="text-lily font-semibold hover:underline"
                   >
-                    click here to resend
+                    Resend verification
                   </button>
-                  . If you still don&apos;t receive it,{" "}
+                </p>
+                <p className="text-yellow-600 mt-1 text-xs">
+                  Still having trouble?{" "}
                   <a
                     href="mailto:support@lilyshops.com"
                     className="text-lily font-semibold hover:underline"
                   >
-                    contact support
+                    Contact support
                   </a>
-                  .
                 </p>
               </div>
             </div>
