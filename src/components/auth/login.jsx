@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "../../redux/authSlice";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { FiEye, FiEyeOff, FiMail, FiAlertCircle } from "react-icons/fi";
+import { useNavigate, Link } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { toast } from "react-hot-toast";
-import api from "../../services/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -24,11 +23,6 @@ const Login = () => {
   );
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const location = useLocation();
-  const [verificationError, setVerificationError] = useState(
-    location.state?.verificationRequired ?? false,
-  );
-  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     return () => {
@@ -42,16 +36,6 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  useEffect(() => {
-    if (location.state?.verificationRequired) {
-      toast.success(
-        "Account created! Please check your email to verify before logging in.",
-        { duration: 6000 },
-      );
-      window.history.replaceState({}, document.title);
-    }
-  }, []);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -64,18 +48,6 @@ const Login = () => {
     }
   };
 
-  const isVerificationError = (msg) => {
-    if (!msg) return false;
-    const lower = msg.toLowerCase();
-    return (
-      lower.includes("verify") ||
-      lower.includes("verified") ||
-      lower.includes("inactive") ||
-      lower.includes("confirm your email") ||
-      lower.includes("account not activated")
-    );
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -83,8 +55,6 @@ const Login = () => {
       return;
     }
 
-    setVerificationError(false);
-    setErrorMessage("");
     const resultAction = await dispatch(
       loginUser({ ...formData, remember_me: rememberMe }),
     );
@@ -107,32 +77,7 @@ const Login = () => {
     } else if (loginUser.rejected.match(resultAction)) {
       const errMsg =
         resultAction.payload || "Login failed. Please check your credentials.";
-      if (isVerificationError(errMsg)) {
-        setVerificationError(true);
-        setErrorMessage(errMsg);
-        toast.error("User account is inactive — please verify your email before logging in.", { duration: 8000 });
-      } else {
-        toast.error(errMsg);
-      }
-    }
-  };
-
-  const handleResendVerification = async () => {
-    try {
-      const response = await api.post("/auth/resend-verification-email/", {
-        email: formData.login,
-      });
-      toast.success(
-        response.data?.message ||
-          "Verification email resent! Check your inbox.",
-      );
-    } catch (err) {
-      const backendMsg =
-        err.response?.data?.detail ||
-        err.response?.data?.email?.[0] ||
-        err.response?.data?.message ||
-        "Could not resend verification email. Please try again later.";
-      toast.error(backendMsg);
+      toast.error(errMsg);
     }
   };
 
@@ -233,43 +178,6 @@ const Login = () => {
               Forgot Password?
             </Link>
           </div>
-
-        {/* Verification Error Notice */}
-        {verificationError && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-            <div className="flex items-start gap-2">
-              <FiAlertCircle className="text-yellow-600 mt-0.5 shrink-0" size={16} />
-              <div>
-                <p className="font-semibold text-yellow-800">
-                  Account not activated
-                </p>
-                <p className="text-yellow-700 mt-1">
-                  {errorMessage || "Your account is not yet active. Please check your email to verify your account before logging in."}
-                </p>
-                <p className="text-yellow-700 mt-3 font-medium">
-                  <FiMail size={14} className="inline mr-1" />
-                  Didn&apos;t get the email?{" "}
-                  <button
-                    type="button"
-                    onClick={handleResendVerification}
-                    className="text-lily font-semibold hover:underline"
-                  >
-                    Resend verification
-                  </button>
-                </p>
-                <p className="text-yellow-600 mt-1 text-xs">
-                  Still having trouble?{" "}
-                  <a
-                    href="mailto:support@lilyshops.com"
-                    className="text-lily font-semibold hover:underline"
-                  >
-                    Contact support
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Sign Up Prompt */}
         <div className="self-start">

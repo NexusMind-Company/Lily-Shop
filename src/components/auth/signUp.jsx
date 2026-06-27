@@ -4,13 +4,11 @@ import { registerUser, clearError } from "../../redux/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
 import { toast } from "react-hot-toast";
-import api from "../../services/api";
 
 const SignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Using authSlice state for consistency with Login
   const { loading, error, registrationSuccess } = useSelector(
     (state) => state.auth,
   );
@@ -18,7 +16,7 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     email_or_phonenumber: "",
     password: "",
-    confirmPassword: "", // Added from snippet 1
+    confirmPassword: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -27,30 +25,16 @@ const SignUp = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const registeredEmailRef = useRef("");
 
-  // Clear error when component unmounts
   useEffect(() => {
     return () => {
       dispatch(clearError());
     };
   }, [dispatch]);
 
-  // Redirect to login on successful registration with verification info
   useEffect(() => {
     if (registrationSuccess && registeredEmailRef.current) {
-      api
-        .post("/auth/resend-verification-email/", {
-          email: registeredEmailRef.current,
-        })
-        .catch(() => {});
-      toast.success(
-        "Account created! A verification link has been sent to your email. Please check your inbox (or spam folder) to activate your account.",
-        { duration: 10000 },
-      );
-      setTimeout(() => {
-        navigate("/login", {
-          state: { verificationRequired: true },
-        });
-      }, 3000);
+      const email = registeredEmailRef.current;
+      navigate(`/verify-email-sent?email=${encodeURIComponent(email)}`);
     }
   }, [registrationSuccess, navigate]);
 
