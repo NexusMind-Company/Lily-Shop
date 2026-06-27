@@ -8,7 +8,6 @@ import deleteShopReducer from "./deleteShopSlice";
 import adsReducer from "./adsSlice";
 import passwordResetReducer from "./passwordResetSlice";
 import cartReducer from "./cartSlice";
-import createUserReducer from "./createUserSlice";
 import verifyEmailReducer from "./verifyEmailSlice";
 import walletReducer from "./walletSlice";
 import messageReducer from "./messageConversationSlice";
@@ -39,7 +38,6 @@ export const store = configureStore({
     cart: cartReducer,
     productContent: productContentReducer, // <-- FIXED
     funContent: funContentReducer, // <-- FIXED
-    createUser: createUserReducer,
     verifyEmail: verifyEmailReducer,
     wallet: walletReducer,
     orders: orderReducer,
