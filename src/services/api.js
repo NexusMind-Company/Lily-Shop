@@ -77,6 +77,7 @@ api.interceptors.response.use(
       "/forgot-password",
       "/forgotPassword",
       "/verify-email",
+      "/verify-email-sent",
       "/verify-code",
       "/reset-password",
       "/password-reset",
