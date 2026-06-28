@@ -68,7 +68,6 @@ export const fetchProfile = () => async (dispatch) => {
       product_count: data.product_count || (data.products?.length ?? 0),
       shop_count: data.shop_count || 0,
       last_seen: data.last_seen,
-      total_views: data.total_views || 0,
     };
 
     dispatch(fetchProfileSuccess(normalized));
