@@ -77,7 +77,20 @@ const Login = () => {
     } else if (loginUser.rejected.match(resultAction)) {
       const errMsg =
         resultAction.payload || "Login failed. Please check your credentials.";
-      toast.error(errMsg);
+      const lower = errMsg.toLowerCase();
+      const isInactive =
+        lower.includes("inactive") ||
+        lower.includes("verify") ||
+        lower.includes("verified") ||
+        lower.includes("confirm your email") ||
+        lower.includes("account not activated");
+      if (isInactive) {
+        const email = formData.login;
+        navigate(`/verify-email-sent?email=${encodeURIComponent(email)}`);
+        toast.error("Account not activated — check your email for the verification link.", { duration: 6000 });
+      } else {
+        toast.error(errMsg);
+      }
     }
   };
 
