@@ -17,11 +17,14 @@ const VerificationSentPage = () => {
       await api.post("/auth/resend-verification-email/", { email });
       toast.success("Verification email resent! Check your inbox.");
     } catch (err) {
+      const status = err.response?.status;
       const msg =
         err.response?.data?.detail ||
         err.response?.data?.email?.[0] ||
         err.response?.data?.message ||
-        "Could not resend verification email.";
+        (status === 500
+          ? "The verification service is unavailable. Please try again later or contact support."
+          : "Could not resend verification email.");
       toast.error(msg);
     } finally {
       setResending(false);
