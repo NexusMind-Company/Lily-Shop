@@ -53,7 +53,7 @@ export const loginUser = createAsyncThunk(
         user: data.user,
       };
     } catch (error) {
-      console.error("Login Error Detail:", error.response?.data);
+      console.error("Login Error Detail:", JSON.stringify(error.response?.data));
 
       const errMsg =
         error.response?.data?.detail ||
