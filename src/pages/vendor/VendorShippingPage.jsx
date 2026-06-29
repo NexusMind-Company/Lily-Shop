@@ -192,7 +192,7 @@ const VendorShippingPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this shipping template?")) {
+    if (window.confirm("Are you sure you want to delete this shipping template? Any product posts currently linked to this template will automatically fall back to standard/flat delivery rates.")) {
       deleteMutation.mutate(id);
     }
   };
