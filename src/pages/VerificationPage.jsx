@@ -96,7 +96,12 @@ const VerificationPage = () => {
         setSuccess("New OTP sent to your phone!");
       }
     } catch (err) {
-      setError("Failed to resend code. Please try again.");
+      const backendMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.email?.[0] ||
+        err.response?.data?.message ||
+        "Failed to resend code. Please try again.";
+      setError(backendMsg);
     } finally {
       setResending(false);
     }

@@ -62,6 +62,7 @@ export const fetchProfile = () => async (dispatch) => {
         vendor_id: data.vendor_id || null,
         is_staff: data.is_staff || false,
         is_superuser: data.is_superuser || false,
+        is_verified: data.is_verified || false,
       },
       products: data.products || [],
       product_count: data.product_count || (data.products?.length ?? 0),
