@@ -48,11 +48,9 @@ const Login = () => {
     }
   };
 
-  // 7. Robust handleSubmit with validation
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation to prevent empty space submission
     if (!formData.login.trim() || !formData.password.trim()) {
       return;
     }
@@ -77,9 +75,22 @@ const Login = () => {
         navigate("/");
       }, 1500);
     } else if (loginUser.rejected.match(resultAction)) {
-      toast.error(
-        resultAction.payload || "Login failed. Please check your credentials.",
-      );
+      const errMsg =
+        resultAction.payload || "Login failed. Please check your credentials.";
+      const lower = errMsg.toLowerCase();
+      const isInactive =
+        lower.includes("inactive") ||
+        lower.includes("verify") ||
+        lower.includes("verified") ||
+        lower.includes("confirm your email") ||
+        lower.includes("account not activated");
+      if (isInactive) {
+        const email = formData.login;
+        navigate(`/verify-email-sent?email=${encodeURIComponent(email)}`);
+        toast.error("Account not activated — check your email for the verification link.", { duration: 6000 });
+      } else {
+        toast.error(errMsg);
+      }
     }
   };
 
@@ -181,30 +192,30 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Sign Up Prompt */}
-          <div className="self-start">
-            <Link to="/signUp">
-              <p className="text-sm font-semibold">
-                Not a member yet?{" "}
-                <span className="text-lily underline">Create an Account</span>
-              </p>
-            </Link>
-          </div>
-        </form>
-      </div>
-
-      {/* Localized Footer */}
-      <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
-        <div className="flex justify-center gap-4 text-xs font-medium text-ash">
-          <Link to="/about" className="hover:text-lily transition-colors">
-            Privacy Policy
-          </Link>
-          <span>•</span>
-          <Link to="/about" className="hover:text-lily transition-colors">
-            Terms & Conditions
+        {/* Sign Up Prompt */}
+        <div className="self-start">
+          <Link to="/signUp">
+            <p className="text-sm font-semibold">
+              Not a member yet?{" "}
+              <span className="text-lily underline">Create an Account</span>
+            </p>
           </Link>
         </div>
-      </footer>
+      </form>
+    </div>
+
+    {/* Localized Footer */}
+    <footer className="absolute bottom-0 left-0 w-full py-6 border-t border-gray-100 bg-white">
+      <div className="flex justify-center gap-4 text-xs font-medium text-ash">
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Privacy Policy
+        </Link>
+        <span>•</span>
+        <Link to="/about" className="hover:text-lily transition-colors">
+          Terms & Conditions
+        </Link>
+      </div>
+    </footer>
     </section>
   );
 };

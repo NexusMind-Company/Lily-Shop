@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser, clearError } from "../../redux/authSlice";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ const SignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Using authSlice state for consistency with Login
   const { loading, error, registrationSuccess } = useSelector(
     (state) => state.auth,
   );
@@ -17,28 +16,25 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     email_or_phonenumber: "",
     password: "",
-    confirmPassword: "", // Added from snippet 1
+    confirmPassword: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const registeredEmailRef = useRef("");
 
-  // Clear error when component unmounts
   useEffect(() => {
     return () => {
       dispatch(clearError());
     };
   }, [dispatch]);
 
-  // Redirect to login on successful registration
   useEffect(() => {
-    if (registrationSuccess) {
-      toast.success("Registration successful! Redirecting to login...");
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+    if (registrationSuccess && registeredEmailRef.current) {
+      const email = registeredEmailRef.current;
+      navigate(`/verify-email-sent?email=${encodeURIComponent(email)}`);
     }
   }, [registrationSuccess, navigate]);
 
@@ -114,6 +110,7 @@ const SignUp = () => {
       return;
     }
 
+    registeredEmailRef.current = formData.email_or_phonenumber;
     dispatch(
       registerUser({
         email_or_phonenumber: formData.email_or_phonenumber,

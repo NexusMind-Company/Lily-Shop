@@ -275,7 +275,8 @@ const ProfileVisiting = () => {
           profileResult.follower_count || profileResult.followers_count || 0,
         following_count:
           secondaryData?.following_count || profileResult.following_count || 0,
-        verified: profileResult.verified || false,
+        is_verified:
+          profileResult.is_verified ?? profileResult.verified ?? false,
       },
       posts: secondaryData?.posts || [],
       products: secondaryData?.products || [],
@@ -473,7 +474,7 @@ const ProfileVisiting = () => {
               alt="Profile"
               className="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border border-gray-200 p-1"
             />
-            {user.verified && (
+            {user.is_verified && (
               <div className="absolute bottom-1 right-1 bg-blue-500 text-white p-1 rounded-full border-2 border-white">
                 <CheckCircle2 size={12} className="md:w-4 md:h-4" />
               </div>
