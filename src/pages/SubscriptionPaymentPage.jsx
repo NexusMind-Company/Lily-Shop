@@ -126,9 +126,15 @@ const SubscriptionPaymentPage = () => {
       if (selectedDays && selectedDays.length > 0)
         paymentData.selected_days = selectedDays;
       if (quantity) paymentData.quantity = quantity;
-      if (flowState?.dietaryPreferences)
+      if (flowState?.dietaryPreferences) {
         paymentData.dietary_preferences = flowState.dietaryPreferences;
-      if (flowState?.allergies) paymentData.allergies = flowState.allergies;
+        paymentData.dietary_notes = flowState.dietaryPreferences;
+        paymentData.meal_preferences = flowState.dietaryPreferences;
+      }
+      if (flowState?.allergies) {
+        paymentData.allergies = flowState.allergies;
+        paymentData.allergies_summary = flowState.allergies;
+      }
       if (flowState?.portionSize)
         paymentData.portion_size = flowState.portionSize;
       if (flowState?.specialInstructions)
@@ -167,6 +173,10 @@ const SubscriptionPaymentPage = () => {
           phone,
           collectionCode,
           reference: response.reference,
+          dietaryPreferences: flowState?.dietaryPreferences,
+          allergies: flowState?.allergies,
+          portionSize: flowState?.portionSize,
+          specialInstructions: flowState?.specialInstructions,
         };
 
         saveSubscriptionFlowState(processingState);

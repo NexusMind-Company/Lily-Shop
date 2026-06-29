@@ -181,6 +181,9 @@ const VendorPackagesPage = lazy(
 const VendorEditProfilePage = lazy(
   () => import("./pages/vendor/VendorEditProfilePage"),
 );
+const VendorShippingPage = lazy(
+  () => import("./pages/vendor/VendorShippingPage"),
+);
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const StaffOperationsPage = lazy(() => import("./pages/StaffOperationsPage"));
@@ -443,6 +446,8 @@ function App() {
                 <Route path="/choose-card" element={<ChooseCardPage />} />
                 <Route path="/choose-address" element={<ChooseAddressPage />} />
               </Route>
+
+              <Route path="/shipping-profiles" element={<VendorShippingPage />} />
 
               <Route path="/payment-loading" element={<PaymentLoadingPage />} />
               <Route path="/payment-failed" element={<PaymentFailedPage />} />

@@ -35,6 +35,7 @@ import {
 import { usePayment } from "../../../hooks/usePayment";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 import { toast } from "react-hot-toast";
+import { getDeliveryQuote } from "../../../services/shopApi";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -274,6 +275,85 @@ const CartPage = () => {
   const selectedDelivery = paymentData?.selectedAddress;
   const selectedPickup = paymentData?.selectedPickup;
 
+  // Shipping profiles delivery quote state
+  const [deliveryQuotes, setDeliveryQuotes] = useState({});
+
+  useEffect(() => {
+    const fetchQuotes = async () => {
+      if (
+        deliveryType !== "delivery" ||
+        !selectedDelivery ||
+        !itemsToCheckout ||
+        itemsToCheckout.length === 0
+      ) {
+        setDeliveryQuotes({});
+        return;
+      }
+
+      const quotes = {};
+      try {
+        await Promise.all(
+          itemsToCheckout.map(async (item) => {
+            const productId = item.product?.id || item.product_id;
+            if (!productId) return;
+
+            try {
+               const quote = await getDeliveryQuote({
+                product_id: productId,
+                buyer_country: selectedDelivery.country || "Nigeria",
+                buyer_state: selectedDelivery.state,
+              });
+              quotes[item.id] = quote;
+            } catch (err) {
+              console.error(`Failed to get delivery quote for product ${productId}:`, err);
+            }
+          })
+        );
+        setDeliveryQuotes(quotes);
+      } catch (err) {
+        console.error("Error fetching delivery quotes:", err);
+      }
+    };
+
+    fetchQuotes();
+  }, [selectedDelivery, itemsToCheckout, deliveryType]);
+
+  const quoteDeliveryCharge = useMemo(() => {
+    let total = 0;
+    let hasQuotes = false;
+    Object.keys(deliveryQuotes).forEach((itemId) => {
+      const q = deliveryQuotes[itemId];
+      if (q) {
+        const fee = q.fee_naira ?? q.fee ?? 0;
+        total += fee;
+        hasQuotes = true;
+      }
+    });
+    return { total, hasQuotes };
+  }, [deliveryQuotes]);
+
+  const quoteEstimatedTime = useMemo(() => {
+    const validMins = [];
+    const validMaxs = [];
+    Object.keys(deliveryQuotes).forEach((itemId) => {
+      const q = deliveryQuotes[itemId];
+      if (q) {
+        const minDays = q.est_days_min ?? q.est_days;
+        const maxDays = q.est_days_max ?? q.est_days;
+        if (minDays !== undefined && minDays !== null) validMins.push(Number(minDays));
+        if (maxDays !== undefined && maxDays !== null) validMaxs.push(Number(maxDays));
+      }
+    });
+
+    if (validMins.length === 0 || validMaxs.length === 0) return null;
+    const minVal = Math.min(...validMins);
+    const maxVal = Math.max(...validMaxs);
+    if (minVal === maxVal) {
+      return `Arrives in ${minVal} day${minVal !== 1 ? "s" : ""}`;
+    }
+    return `Arrives in ${minVal}-${maxVal} days`;
+  }, [deliveryQuotes]);
+
   useEffect(() => {
     if (selectedDelivery) {
       setDeliveryAddress(
@@ -407,17 +487,20 @@ const CartPage = () => {
   // Resolve final values (Prefer Backend -> Fallback to Local)
   const finalSubtotal = checkoutDetails?.subtotal_naira || localSubtotal;
   const finalDeliveryFee =
-    checkoutDetails?.delivery_fee_naira !== undefined
+    deliveryType === "delivery" && quoteDeliveryCharge.hasQuotes
+      ? quoteDeliveryCharge.total
+      : checkoutDetails?.delivery_fee_naira !== undefined
       ? checkoutDetails.delivery_fee_naira
       : localDeliveryCharge;
   const finalPlatformFee = checkoutDetails?.platform_fee_naira || 0;
   const finalEstimatedTime =
-    checkoutDetails?.estimated_delivery_time || localEstimatedDeliveryTime;
+    deliveryType === "delivery" && quoteEstimatedTime
+      ? quoteEstimatedTime
+      : checkoutDetails?.estimated_delivery_time || localEstimatedDeliveryTime;
 
   // Calculate Grand Total
-  const estimatedTotal = checkoutDetails?.total_naira
-    ? checkoutDetails.total_naira - appliedDiscount
-    : finalSubtotal + finalDeliveryFee + finalPlatformFee - appliedDiscount;
+  const estimatedTotal =
+    finalSubtotal + finalDeliveryFee + finalPlatformFee - appliedDiscount;
 
   // EXACT value passed directly
   const backendTotal = estimatedTotal;
@@ -700,7 +783,7 @@ const CartPage = () => {
                       <p className="text-sm font-semibold text-pink">
                         NGN {formatPrice(unitPrice)}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-black">
                         Qty: {item.quantity}
                       </p>
                       {item.color && (
@@ -714,22 +797,24 @@ const CartPage = () => {
                         </p>
                       )}
 
-                      {item.product?.delivery_info && (
-                        <div className="mt-2 p-2.5 bg-pink/5 rounded-lg border border-pink/10 flex items-start gap-2">
-                          <Info
-                            size={14}
-                            className="text-pink shrink-0 mt-0.5"
-                          />
-                          <div className="flex-1">
-                            <span className="block text-[10px] font-bold text-pink uppercase tracking-widest mb-0.5">
-                              Delivery Info
-                            </span>
-                            <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {item.product.delivery_info}
+                      {deliveryQuotes[item.id] ? (
+                        <div className="mt-1 space-y-0.5">
+                          <p className="text-sm text-black">
+                            Delivery Price: NGN {formatPrice(deliveryQuotes[item.id].fee_naira ?? deliveryQuotes[item.id].fee ?? 0)}
+                          </p>
+                          {(deliveryQuotes[item.id].est_days_min !== null || deliveryQuotes[item.id].est_days_max !== null) && (
+                            <p className="text-sm text-black">
+                              Arrives in: {deliveryQuotes[item.id].est_days_min}-{deliveryQuotes[item.id].est_days_max} days
                             </p>
-                          </div>
+                          )}
                         </div>
-                      )}
+                      ) : item.product?.delivery_info ? (
+                        <div className="mt-1">
+                          <p className="text-sm text-black">
+                            Delivery Info: {item.product.delivery_info}
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>

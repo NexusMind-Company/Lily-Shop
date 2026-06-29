@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   addToCart,
   selectCartItems,
@@ -27,14 +27,16 @@ import {
   followUser,
   recordProductView,
   deleteProductPost,
+  fetchUserProfile,
 } from "../../../services/api";
+import { getDeliveryQuote } from "../../../services/shopApi";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
-import { Star, Info } from "lucide-react";
+import { Star, Info, Truck } from "lucide-react";
 import MentionText from "../../common/MentionText";
 import ReviewModal from "../../common/ReviewModal";
 import toast from "react-hot-toast";
@@ -131,6 +133,42 @@ const ProductItem = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
+
+  // Shipping & Delivery Calculator states
+  const [deliveryQuote, setDeliveryQuote] = useState(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: fetchUserProfile,
+    staleTime: 1000 * 60 * 10,
+  });
+
+  // Recalculate quote automatically using userProfile's state
+  useEffect(() => {
+    const calculateQuote = async () => {
+      const stateToQuery = userProfile?.state;
+      if (!stateToQuery) {
+        setDeliveryQuote(null);
+        return;
+      }
+      setLoadingQuote(true);
+      try {
+        const quote = await getDeliveryQuote({
+          product_id: product.id,
+          buyer_country: userProfile.country || "Nigeria",
+          buyer_state: stateToQuery,
+        });
+        setDeliveryQuote(quote);
+      } catch (err) {
+        console.error("Failed to fetch product details quote:", err);
+      } finally {
+        setLoadingQuote(false);
+      }
+    };
+
+    calculateQuote();
+  }, [userProfile, product.id]);
 
   // UI interaction states
   const [isExpanded, setIsExpanded] = useState(false);
@@ -567,17 +605,43 @@ const ProductItem = ({ product }) => {
             </p>
           )}
 
-          {product.delivery_info && (
-            <div className="mt-3 p-3 bg-pink/5 rounded-xl border border-pink/10 flex items-start gap-2.5">
-              <Info size={18} className="text-pink shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span className="block text-xs font-bold text-pink uppercase tracking-wider mb-1">
-                  Vendor Delivery Info
-                </span>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {product.delivery_info}
-                </p>
+          {/* Automatic Resolved Delivery Cost card */}
+          {userProfile ? (
+            loadingQuote ? (
+              <div className="mt-3 p-3 bg-gray-50 border border-gray-200/50 rounded-xl flex items-center justify-center gap-2 text-xs text-gray-400">
+                <div className="w-4 h-4 border-2 border-lily border-t-transparent rounded-full animate-spin"></div>
+                <span>Resolving delivery cost...</span>
               </div>
+            ) : deliveryQuote ? (
+              <div className="mt-3 p-3.5 bg-lily/5 border border-lily/15 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Truck className="text-lily w-5 h-5 shrink-0" />
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900 uppercase tracking-wide">
+                      {deliveryQuote.zone_name || (deliveryQuote.zone_type === "LOCAL" ? "Local Delivery" : deliveryQuote.zone_type === "NATIONAL" ? "National Delivery" : deliveryQuote.zone_type === "WORLDWIDE" ? "Worldwide Delivery" : "Standard Delivery")}
+                    </span>
+                    {(deliveryQuote.est_days_min !== null || deliveryQuote.est_days_max !== null) && (
+                      <span className="block text-[11px] text-gray-500 mt-0.5">
+                        Est. arrival: {deliveryQuote.est_days_min && deliveryQuote.est_days_max 
+                          ? `${deliveryQuote.est_days_min}-${deliveryQuote.est_days_max} days` 
+                          : "Standard timeframe"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="block font-extrabold text-sm text-lily">
+                    ₦{(deliveryQuote.fee_naira ?? deliveryQuote.fee ?? 0).toLocaleString()}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">Delivery Fee</span>
+                </div>
+              </div>
+            ) : null
+          ) : (
+            <div className="mt-3 p-3 bg-gray-50 border border-gray-150 rounded-xl text-center">
+              <p className="text-xs text-gray-500">
+                <span className="font-semibold text-lily cursor-pointer hover:underline" onClick={() => navigate("/login")}>Log in</span> to see delivery fees for your address.
+              </p>
             </div>
           )}
         </div>
