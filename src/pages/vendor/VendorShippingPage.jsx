@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit3, Trash2, Save, X, Truck, Check, ChevronLeft } from "lucide-react";
 import toast from "react-hot-toast";
@@ -31,6 +32,50 @@ const ShippingLayout = ({ children }) => {
   );
 };
 
+const ConfirmModal = ({ isOpen, title, message, confirmText = "Confirm", cancelText = "Cancel", onConfirm, onCancel, isDanger = false }) => {
+  if (!isOpen) return null;
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-white rounded-2xl max-w-md w-full border border-gray-150 p-6 shadow-xl space-y-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl shrink-0 ${isDanger ? 'bg-red-50 text-red-600' : 'bg-lily/10 text-lily'}`}>
+              <Truck size={22} />
+            </div>
+            <h3 className="text-md font-bold text-gray-900">{title}</h3>
+          </div>
+          
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {message}
+          </p>
+          
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-250 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition"
+            >
+              {cancelText}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              className={`px-4 py-2 rounded-xl text-xs font-bold text-white transition ${isDanger ? 'bg-red-600 hover:bg-red-700 shadow-md shadow-red-100' : 'bg-lily hover:bg-darklily shadow-md shadow-lily/15'}`}
+            >
+              {confirmText}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
 const DEFAULT_ZONES = [
   { zone_type: "LOCAL", name: "Local (Same City)", fee: 1500, est_days_min: 1, est_days_max: 2 },
   { zone_type: "NATIONAL", name: "National (Nigeria)", fee: 4500, est_days_min: 3, est_days_max: 5 },
@@ -41,6 +86,8 @@ const VendorShippingPage = () => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState(null);
 
   // Form states
   const [name, setName] = useState("");
@@ -191,10 +238,17 @@ const VendorShippingPage = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this shipping template? Any product posts currently linked to this template will automatically fall back to standard/flat delivery rates.")) {
-      deleteMutation.mutate(id);
+  const handleStartDelete = (id) => {
+    setProfileToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (profileToDelete) {
+      deleteMutation.mutate(profileToDelete);
     }
+    setDeleteModalOpen(false);
+    setProfileToDelete(null);
   };
 
   const handleSetDefault = (profile) => {
@@ -439,7 +493,7 @@ const VendorShippingPage = () => {
                 <Truck size={40} className="text-gray-300 mx-auto mb-3" />
                 <h4 className="font-bold text-lg text-black">No shipping templates yet</h4>
                 <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
-                  Create templates to easily define shipping options for your products rather than typing shipping info every time.
+                  Create shipping templates to allow automatic price calculations at checkout. Without a template, delivery costs cannot be calculated or included in the buyer's escrow payment automatically.
                 </p>
                 <button
                   onClick={handleStartCreate}
@@ -498,7 +552,7 @@ const VendorShippingPage = () => {
                           <Edit3 size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(profile.id)}
+                          onClick={() => handleStartDelete(profile.id)}
                           className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
                           title="Delete Template"
                         >
@@ -525,9 +579,29 @@ const VendorShippingPage = () => {
                 ))}
               </div>
             )}
+            
+            {profilesList.length > 0 && (
+              <p className="text-[11px] text-gray-500 italic mt-4 text-center">
+                * Note: Reusable shipping templates are required to enable automatic checkout calculations. Custom delivery notes (no template) cannot be calculated or included in the buyer's escrow total automatically.
+              </p>
+            )}
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Shipping Template"
+        message="Are you sure you want to delete this shipping template? Any product posts currently linked to this template will automatically fall back to standard/flat delivery rates."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setProfileToDelete(null);
+        }}
+        isDanger={true}
+      />
     </ShippingLayout>
   );
 };
