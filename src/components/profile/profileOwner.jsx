@@ -21,6 +21,7 @@ import {
   Calendar,
   Bookmark,
   UserSquare,
+  Truck,
 } from "lucide-react";
 import { handleLogout } from "../../redux/authSlice";
 import PostDetailOverlay from "./PostDetailOverlay";
@@ -411,7 +412,10 @@ const ProfileOwner = () => {
         <button onClick={() => navigate(-1)}>
           <ChevronLeft size={28} />
         </button>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          <Link to="/shipping-profiles" title="Shipping Settings">
+            <Truck size={28} />
+          </Link>
           <Link to="/settings">
             <Settings size={28} />
           </Link>
@@ -444,6 +448,9 @@ const ProfileOwner = () => {
             <h2 className="text-xl font-normal">
               @{user.username || "unknown"}
             </h2>
+            <Link to="/shipping-profiles" title="Shipping Settings">
+              <Truck className="cursor-pointer" size={24} />
+            </Link>
             <Link to="/settings">
               <Settings className="cursor-pointer" size={24} />
             </Link>

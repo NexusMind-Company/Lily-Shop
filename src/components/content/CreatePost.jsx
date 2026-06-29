@@ -301,6 +301,9 @@ const CreatePost = () => {
           "delivery_info",
           formData.delivery_info?.trim() || "",
         );
+        if (formData.shipping_profile_id) {
+          submitFormData.append("shipping_profile_id", formData.shipping_profile_id);
+        }
         submitFormData.append("promotable", formData.promotable);
         submitFormData.append("hashtags", formData.hashtags?.trim() || "");
 

@@ -297,6 +297,41 @@ const ShopDetails = () => {
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
+                    
+                    {/* Shipping Badges */}
+                    {product.shipping_profile && (
+                      <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 max-w-[90%] pointer-events-none">
+                        {(() => {
+                          const badges = [];
+                          const profile = product.shipping_profile;
+                          const localZone = profile.zones?.find(z => z.zone_type === "LOCAL");
+                          const worldwideZone = profile.zones?.find(z => z.zone_type === "WORLDWIDE");
+
+                          if (localZone) {
+                            const maxDays = localZone.est_days_max;
+                            if (maxDays && maxDays <= 2) {
+                              badges.push(`Fast Delivery: ${maxDays} Day${maxDays > 1 ? "s" : ""}`);
+                            }
+                          }
+                          if (worldwideZone) {
+                            badges.push("Ships Worldwide");
+                          }
+                          // Fallback to name if no badge and name is present
+                          if (badges.length === 0 && profile.name) {
+                            badges.push(profile.name);
+                          }
+                          
+                          return badges.map((badgeText, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide shadow-sm"
+                            >
+                              {badgeText}
+                            </span>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-3">
