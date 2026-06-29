@@ -447,12 +447,12 @@ const SubscriptionCard = ({ sub, onUnsubscribe }) => {
                 <InfoBlock
                   icon={ChefHat}
                   label="Dietary Notes"
-                  value={sub?.dietary_notes}
+                  value={sub?.dietary_notes || sub?.dietary_preferences || sub?.meal_preferences}
                 />
                 <InfoBlock
                   icon={AlertCircle}
                   label="Allergies"
-                  value={sub?.allergies_summary}
+                  value={sub?.allergies_summary || sub?.allergies}
                 />
                 <InfoBlock
                   icon={Receipt}

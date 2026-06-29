@@ -369,7 +369,61 @@ export const fetchUserReviews = async () => {
   return response.data;
 };
 
+// ==================== SHIPPING PROFILE ENDPOINTS ====================
+
+/**
+ * Fetch all shipping profiles for the vendor
+ */
+export const fetchShippingProfiles = async () => {
+  const response = await api.get("/shops/shipping-profiles/");
+  return response.data;
+};
+
+/**
+ * Create a new shipping profile template
+ * @param {Object} data - Shipping profile data
+ */
+export const createShippingProfile = async (data) => {
+  const response = await api.post("/shops/shipping-profiles/", data);
+  return response.data;
+};
+
+/**
+ * Update an existing shipping profile template
+ * @param {string} id - Profile UUID
+ * @param {Object} data - Updated shipping profile data
+ */
+export const updateShippingProfile = async (id, data) => {
+  const response = await api.put(`/shops/shipping-profiles/${id}/`, data);
+  return response.data;
+};
+
+/**
+ * Delete a shipping profile template
+ * @param {string} id - Profile UUID
+ */
+export const deleteShippingProfile = async (id) => {
+  const response = await api.delete(`/shops/shipping-profiles/${id}/`);
+  return response.data;
+};
+
+/**
+ * Resolve the correct delivery zone + fee for a product given a buyer's address
+ * @param {Object} data - { product_id, buyer_country, buyer_state }
+ */
+export const getDeliveryQuote = async (data) => {
+  const response = await api.post("/shops/delivery-quote/", data);
+  return response.data;
+};
+
 export default {
+  // Shipping Profiles
+  fetchShippingProfiles,
+  createShippingProfile,
+  updateShippingProfile,
+  deleteShippingProfile,
+  getDeliveryQuote,
+
   // Shops
   fetchShops,
   fetchShopById,

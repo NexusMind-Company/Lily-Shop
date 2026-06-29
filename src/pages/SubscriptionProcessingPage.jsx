@@ -49,9 +49,15 @@ const SubscriptionProcessingPage = () => {
         if (flowState?.selectedDays?.length)
           deliveryMeta.selected_days = flowState.selectedDays;
         if (flowState?.quantity) deliveryMeta.quantity = flowState.quantity;
-        if (flowState?.dietaryPreferences)
+        if (flowState?.dietaryPreferences) {
           deliveryMeta.dietary_preferences = flowState.dietaryPreferences;
-        if (flowState?.allergies) deliveryMeta.allergies = flowState.allergies;
+          deliveryMeta.dietary_notes = flowState.dietaryPreferences;
+          deliveryMeta.meal_preferences = flowState.dietaryPreferences;
+        }
+        if (flowState?.allergies) {
+          deliveryMeta.allergies = flowState.allergies;
+          deliveryMeta.allergies_summary = flowState.allergies;
+        }
         if (flowState?.portionSize)
           deliveryMeta.portion_size = flowState.portionSize;
         if (flowState?.collectionCode)
