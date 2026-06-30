@@ -31,9 +31,11 @@ const VerifyEmail = () => {
     calledRef.current = true;
 
     if (token) {
+      // Clear any stale state from a previous visit before dispatching.
+      // This runs before the async call so it cannot race with the response.
+      dispatch(resetVerifyEmailState());
       dispatch(verifyEmail(token));
     }
-    return () => dispatch(resetVerifyEmailState());
   }, [token, dispatch]);
 
   useEffect(() => {
