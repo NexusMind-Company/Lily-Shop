@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
@@ -11,6 +11,7 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const calledRef = useRef(false);
 
   // Extract token from query or path
   const params = new URLSearchParams(location.search);
@@ -26,6 +27,9 @@ const VerifyEmail = () => {
   );
 
   useEffect(() => {
+    if (calledRef.current) return;
+    calledRef.current = true;
+
     if (token) {
       dispatch(verifyEmail(token));
     }
