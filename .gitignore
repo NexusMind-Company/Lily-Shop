@@ -44,3 +44,9 @@ DELIVERY_PROPOSAL.txt
 tell_backend.txt
 .antigravityignore
 api-docs/
+p2p-marketplace-build-plan.md.txt
+chat-design/
+Lily Shop API (1).yaml
+test-edit-chatpage.sh
+endpoints.txt
+src/components/feed/mockData.js

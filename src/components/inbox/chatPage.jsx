@@ -24,6 +24,202 @@ import {
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
 
+import { api } from "../../services/api";
+
+const OrderMessageCard = ({ payload, isMine }) => {
+  const firstItem = payload.items?.[0] || {};
+  const product = firstItem.product || {};
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  
+  // Try to find image
+  const imageUrl = product.image_url || product.media?.[0]?.file || "/placeholder.png";
+
+  const address = payload.delivery_address || {};
+
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState("");
+  
+  const orderIdKey = payload.order_id || payload.reference;
+  const [hasDispatched, setHasDispatched] = useState(() => localStorage.getItem(`dispatched_${orderIdKey}`) === 'true');
+  const [hasDelivered, setHasDelivered] = useState(() => localStorage.getItem(`delivered_${orderIdKey}`) === 'true');
+
+  const handleDeliveredClick = () => {
+    setShowStatusMenu(false);
+    setShowPinModal(true);
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!pin) {
+      toast.error("Please enter the PIN provided by the buyer");
+      return;
+    }
+    const idToUpdate = payload.order_id || payload.reference;
+    try {
+      if (idToUpdate) {
+        await api.post(`/orders/orders/${idToUpdate}/confirm-delivery/`, { pin, gps_lat: 0, gps_lng: 0 });
+      }
+      toast.success("Delivery confirmed securely!");
+      localStorage.setItem(`delivered_${idToUpdate}`, 'true');
+      setHasDelivered(true);
+      setShowPinModal(false);
+      setPin("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to confirm delivery");
+    }
+  };
+
+  const handleDispatchUpdate = async (statusLabel) => {
+    setShowStatusMenu(false);
+    const idToUpdate = payload.order_id || payload.reference;
+    try {
+      if (idToUpdate) {
+        await api.post(`/orders/orders/${idToUpdate}/dispatch/`);
+      }
+      toast.success(`Order marked as ${statusLabel}`);
+      localStorage.setItem(`dispatched_${idToUpdate}`, 'true');
+      setHasDispatched(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || `Failed to mark as ${statusLabel}`);
+    }
+  };
+
+  const handleStatusUpdate = async (status) => {
+    setShowStatusMenu(false);
+    toast.error(`Action '${status}' is not supported in P2P flow yet.`);
+  };
+  
+  return (
+    <div className={`flex flex-col rounded-3xl overflow-hidden w-[300px] shadow-sm mb-2 ${isMine ? "bg-[#E8F5E9]" : "bg-[#FCE4EC]"}`}>
+      <div className="w-full h-64 relative bg-gray-100 p-2">
+        <img src={imageUrl} alt={product.name} className="w-full h-full object-cover rounded-2xl" />
+      </div>
+
+      <div className="p-4 flex flex-col gap-1.5 text-sm text-gray-800">
+        <p>Order no: {payload.reference}</p>
+        <p className="font-bold text-base mt-1">{product.name || firstItem.product_name || "Product"}</p>
+        <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
+        <p>Qty: {firstItem.quantity || 1}</p>
+        {(firstItem.color || firstItem.variant) && <p>Color: {firstItem.color || firstItem.variant}</p>}
+        <p>Delivery fee: ₦{Number(payload.delivery_fee || 0).toLocaleString()}</p>
+        {payload.estimated_time && (
+          <p className="text-pink-600 font-medium">ETA: {payload.estimated_time}</p>
+        )}
+        
+        {payload.delivery_type === "pickup" ? (
+           <>
+             <p className="font-bold mt-2 text-[13px]">Pickup location</p>
+             <p className="font-bold">{payload.pickup_location?.name || "Pickup center"}</p>
+             <p>{payload.pickup_location?.address}</p>
+           </>
+        ) : (
+          <>
+            <p className="font-bold mt-2 text-[13px]">Delivery address</p>
+            {typeof address === 'string' ? (
+              <p>{address}</p>
+            ) : (
+              <>
+                <p className="font-bold">{address.name || payload.buyer_name || "Customer"} {address.phone || ""}</p>
+                <p>{address.street || address.address || "No address provided"}</p>
+                
+                {address.landmark && (
+                  <>
+                    <p className="font-bold mt-2 text-[13px]">Nearest landmark</p>
+                    <p>{address.landmark}</p>
+                  </>
+                )}
+                
+                {address.description && (
+                  <>
+                    <p className="font-bold mt-2 text-[13px]">Location description</p>
+                    <p>{address.description}</p>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        <div className="mt-4 relative">
+          {isMine ? (
+             <button className="w-full py-2.5 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
+               Pending
+             </button>
+          ) : (
+             <>
+               <button 
+                 onClick={() => setShowStatusMenu(!showStatusMenu)}
+                 className="w-full py-2.5 rounded-full border-2 border-pink-400 text-pink-500 font-bold bg-transparent"
+               >
+                 Change order status
+               </button>
+
+               {showStatusMenu && (
+                 <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
+                   {!hasDelivered && (
+                     <button onClick={handleDeliveredClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                       <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                       <span className="font-medium text-gray-700">Delivered</span>
+                     </button>
+                   )}
+                   {!hasDispatched && !hasDelivered && (
+                     <button onClick={() => handleDispatchUpdate('Dispatched')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                       <ShoppingCart className="w-5 h-5 text-gray-700" />
+                       <span className="font-medium text-gray-700">Available for pickup</span>
+                     </button>
+                   )}
+                   <button onClick={() => handleStatusUpdate('cancelled')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                     <span className="font-medium text-gray-700">Canceled</span>
+                   </button>
+                   <button onClick={() => handleStatusUpdate('refunded')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left">
+                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                     <span className="font-medium text-gray-700">Refunded</span>
+                   </button>
+                 </div>
+               )}
+               
+               {/* PIN Modal */}
+               {showPinModal && (
+                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+                   <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+                     <h3 className="text-xl font-bold text-gray-800 mb-2">Confirm Delivery</h3>
+                     <p className="text-sm text-gray-600 mb-4">
+                       Please enter the 4-digit PIN provided by the buyer to securely confirm this delivery.
+                     </p>
+                     <input
+                       type="text"
+                       maxLength={4}
+                       value={pin}
+                       onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ""))}
+                       placeholder="Enter 4-digit PIN"
+                       className="w-full border-2 border-gray-200 rounded-xl p-3 text-center text-2xl font-bold tracking-widest mb-4 focus:border-pink-500 focus:ring-0 outline-none"
+                     />
+                     <div className="flex gap-3">
+                       <button 
+                         onClick={() => setShowPinModal(false)}
+                         className="flex-1 py-3 font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
+                       >
+                         Cancel
+                       </button>
+                       <button 
+                         onClick={handleConfirmDelivery}
+                         disabled={pin.length < 4}
+                         className="flex-1 py-3 font-bold text-white bg-pink-600 rounded-xl hover:bg-pink-700 disabled:opacity-50"
+                       >
+                         Confirm
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SharedProductCard = ({ product, isMine }) => {
   const dispatch = useDispatch();
   const handleAddToCart = (e) => {
@@ -164,10 +360,17 @@ const ChatPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Find the actual conversation from Redux to extract the other user's ID
+  const targetConversation = conversations.find((c) => String(c.id) === String(conversationId));
+  const otherUserId = targetConversation?.other_user?.id || 
+                      (String(targetConversation?.buyer?.id) === String(currentUserId) 
+                        ? targetConversation?.seller?.id 
+                        : targetConversation?.buyer?.id);
+
   const { data: fetchedUserProfile } = useQuery({
-    queryKey: ["public-profile", conversationId],
-    queryFn: () => fetchPublicProfile(conversationId),
-    enabled: !!conversationId,
+    queryKey: ["public-profile", otherUserId],
+    queryFn: () => fetchPublicProfile(otherUserId),
+    enabled: !!otherUserId,
   });
 
   // Helper to format last seen or show online
@@ -302,7 +505,7 @@ const ChatPage = () => {
         } catch (error) {
           console.error("Error fetching conversation messages:", error);
         }
-      }, 5000);
+      }, 25000);
 
       return () => clearInterval(interval);
     }
@@ -501,7 +704,33 @@ const ChatPage = () => {
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
-                  {msg.content}
+                  {msg.is_system_message && (
+                    <p className="text-xs text-gray-400 font-medium mb-1">
+                      System Message
+                    </p>
+                  )}
+                  
+                  {typeof msg.content === "string" && msg.content.startsWith("[ORDER_PAYLOAD]:") ? (
+                    <OrderMessageCard 
+                      payload={JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""))} 
+                      isMine={isMine} 
+                    />
+                  ) : msg.product ? (
+                    <SharedProductCard
+                      product={msg.product}
+                      isMine={isMine}
+                    />
+                  ) : msg.shared_content ? (
+                    <SharedContentCard
+                      content={msg.shared_content}
+                      isMine={isMine}
+                    />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
+                  )}
+                  
                   <p className="text-[10px] mt-1 opacity-70 text-right">
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
