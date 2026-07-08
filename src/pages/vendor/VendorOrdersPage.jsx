@@ -19,6 +19,7 @@ import {
   fetchVendorOrders,
   updateOrderStatus,
   fetchDailyPrepList,
+  confirmDelivery
 } from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
@@ -37,8 +38,9 @@ const STATUS_LABELS = {
 };
 const STATUS_FLOW = ["preparing", "ready", "out_for_delivery", "delivered"];
 
-const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
+const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => {
   const [open, setOpen] = useState(false);
+  const [pin, setPin] = useState("");
   const currentIndex = STATUS_FLOW.indexOf(order.status);
   const nextStatus = STATUS_FLOW[currentIndex + 1];
 
@@ -81,7 +83,26 @@ const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
             <Clock size={13} className="mt-0.5 text-lily shrink-0" />
             <span>Delivery: {order.delivery_time}</span>
           </div>
-          {nextStatus && (
+          {nextStatus === "delivered" ? (
+            <div className="mt-2 space-y-2 border border-gray-100 p-3 rounded-xl bg-gray-50">
+              <p className="text-xs text-gray-600 font-medium mb-1">Enter buyer's delivery PIN to confirm:</p>
+              <input 
+                type="text" 
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="4-digit PIN"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tracking-widest text-center"
+              />
+              <button
+                onClick={() => onConfirmDelivery(order.id, pin)}
+                disabled={isUpdating || pin.length < 4}
+                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                {isUpdating ? "Confirming..." : "Confirm Delivery"}
+              </button>
+            </div>
+          ) : nextStatus && (
             <button
               onClick={() => onStatusUpdate(order.id, nextStatus)}
               disabled={isUpdating}
@@ -139,6 +160,19 @@ const VendorOrdersPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
       toast.success("Order status updated!");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+    onSettled: () => setUpdatingId(null),
+  });
+
+  const { mutate: confirmDel } = useMutation({
+    mutationFn: ({ orderId, pin }) => confirmDelivery(orderId, { pin, gps_lat: 0, gps_lng: 0 }),
+    onMutate: ({ orderId }) => setUpdatingId(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
+      toast.success("Delivery confirmed securely!");
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -226,6 +260,7 @@ const VendorOrdersPage = () => {
                   onStatusUpdate={(id, status) =>
                     updateStatus({ orderId: id, status })
                   }
+                  onConfirmDelivery={(id, pin) => confirmDel({ orderId: id, pin })}
                 />
               ))}
             </div>

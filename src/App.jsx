@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { FeedProvider } from "./context/feedContext.jsx";
+import NotificationPoller from "./components/common/NotificationPoller";
 
 /* ---------------- AUTH ---------------- */
 import Login from "./components/auth/login";
@@ -244,6 +245,7 @@ function App() {
       />
 
       <ErrorBoundary>
+        <NotificationPoller />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* ================= PUBLIC ROUTES ================= */}

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import { addNewAddress, fetchStates, fetchLgas } from "../../services/api";
 
 const AddAddressPage = () => {
@@ -20,6 +21,12 @@ const AddAddressPage = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
+  const stateRef = useRef(null);
+  const cityRef = useRef(null);
 
   const { data: states = [], isLoading: statesLoading } = useQuery({
     queryKey: ["states"],
@@ -44,12 +51,45 @@ const AddAddressPage = () => {
       [name]: value,
       ...(name === "state" ? { city: "" } : {}),
     }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: false }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Custom Validation
+    const newErrors = {};
+    let firstErrorRef = null;
+
+    if (!formData.phone) {
+      newErrors.phone = true;
+      if (!firstErrorRef) firstErrorRef = phoneRef;
+    }
+    if (!formData.address) {
+      newErrors.address = true;
+      if (!firstErrorRef) firstErrorRef = addressRef;
+    }
+    if (!formData.state) {
+      newErrors.state = true;
+      if (!firstErrorRef) firstErrorRef = stateRef;
+    }
+    if (!formData.city) {
+      newErrors.city = true;
+      if (!firstErrorRef) firstErrorRef = cityRef;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      toast.error("Please fill in all required fields", { icon: "📍" });
+      firstErrorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setFieldErrors({});
 
     try {
       // 1. Format the description into the street address
@@ -153,12 +193,15 @@ const AddAddressPage = () => {
             <label htmlFor="phone" className="text-sm text-gray-700">
               Phone no*
             </label>
-            <div className="flex space-x-2">
+            <div 
+              ref={phoneRef} 
+              className={`flex space-x-2 transition-all duration-300 rounded-full ${fieldErrors.phone ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
+            >
               <select
                 name="countryCode"
                 value={formData.countryCode}
                 onChange={handleChange}
-                className="w-1/3 bg-gray-50 border border-transparent rounded-full px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+                className={`w-1/3 bg-gray-50 border border-transparent rounded-full px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
               >
                 <option value="+234">NG (+234)</option>
                 <option value="+1">US (+1)</option>
@@ -173,11 +216,11 @@ const AddAddressPage = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                required
                 placeholder="80X XXX XXXX"
-                className="w-2/3 bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+                className={`w-2/3 bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
               />
             </div>
+            {fieldErrors.phone && <span className="text-red-500 text-xs mt-1 block px-2">Phone number is required</span>}
           </div>
         </section>
 
@@ -186,7 +229,7 @@ const AddAddressPage = () => {
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">Delivery address</h2>
 
-          <div className="space-y-1">
+          <div className="space-y-1" ref={addressRef}>
             <label htmlFor="address" className="text-sm text-gray-700">
               Address*
             </label>
@@ -196,13 +239,13 @@ const AddAddressPage = () => {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              required
               placeholder="Address"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.address ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
             />
+            {fieldErrors.address && <span className="text-red-500 text-xs mt-1 block px-2">Address is required</span>}
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1" ref={stateRef}>
             <label htmlFor="state" className="text-sm text-gray-700">
               State*
             </label>
@@ -211,9 +254,8 @@ const AddAddressPage = () => {
               name="state"
               value={formData.state}
               onChange={handleChange}
-              required
               disabled={statesLoading}
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50"
+              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50 ${fieldErrors.state ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
             >
               <option value="">Select State</option>
               {states.map((s) => (
@@ -222,9 +264,10 @@ const AddAddressPage = () => {
                 </option>
               ))}
             </select>
+            {fieldErrors.state && <span className="text-red-500 text-xs mt-1 block px-2">State is required</span>}
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1" ref={cityRef}>
             <label htmlFor="city" className="text-sm text-gray-700">
               LGA / City*
             </label>
@@ -233,9 +276,8 @@ const AddAddressPage = () => {
               name="city"
               value={formData.city}
               onChange={handleChange}
-              required
               disabled={lgasLoading || !formData.state}
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50"
+              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50 ${fieldErrors.city ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
             >
               <option value="">Select LGA / City</option>
               {lgas.map((l) => (
@@ -244,6 +286,7 @@ const AddAddressPage = () => {
                 </option>
               ))}
             </select>
+            {fieldErrors.city && <span className="text-red-500 text-xs mt-1 block px-2">City is required</span>}
           </div>
 
           <div className="space-y-1">
