@@ -80,7 +80,8 @@ const OrderSummaryPage = () => {
       })),
       total_amount_kobo: TOTAL_PAYABLE * 100, // API expects kobo
       payment_method: selectedPaymentMethod,
-      address_id: selectedAddress.id, // Or pass the full address string if API requires
+      address_id: selectedAddress.id,
+      delivery_address: selectedAddress,
     };
 
     mutation.mutate(orderPayload);

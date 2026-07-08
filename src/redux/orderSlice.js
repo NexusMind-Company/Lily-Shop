@@ -46,6 +46,21 @@ export const fetchOrderDetail = createAsyncThunk(
   }
 );
 
+// Fetch Order PIN
+export const fetchOrderPin = createAsyncThunk(
+  "orders/fetchOrderPin",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/orders/orders/${orderId}/pin/`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch order PIN."
+      );
+    }
+  }
+);
+
 // ==================== SLICE ====================
 
 const orderSlice = createSlice({
@@ -53,6 +68,7 @@ const orderSlice = createSlice({
   initialState: {
     orders: [],
     currentOrder: null,
+    orderPin: null,
     loading: false, // general loading for fetching lists/details
     createOrderLoading: false, // specific for order creation
     error: null,
@@ -65,6 +81,7 @@ const orderSlice = createSlice({
     },
     resetCurrentOrder: (state) => {
       state.currentOrder = null;
+      state.orderPin = null;
     },
   },
   extraReducers: (builder) => {
@@ -113,6 +130,12 @@ const orderSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+
+    // Fetch Order PIN
+    builder
+      .addCase(fetchOrderPin.fulfilled, (state, action) => {
+        state.orderPin = action.payload.pin;
+      });
   },
 });
 
@@ -124,6 +147,7 @@ export const { clearOrderError, resetCurrentOrder } = orderSlice.actions;
 // Selectors
 export const selectOrders = (state) => state.orders.orders;
 export const selectCurrentOrder = (state) => state.orders.currentOrder;
+export const selectOrderPin = (state) => state.orders.orderPin;
 export const selectOrderLoading = (state) => state.orders.loading;
 export const selectOrderError = (state) => state.orders.error;
 
