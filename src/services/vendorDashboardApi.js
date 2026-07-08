@@ -72,6 +72,16 @@ export const updateOrderStatus = async (orderId, status) => {
 };
 
 /**
+ * POST /orders/orders/{orderId}/confirm-delivery/
+ * Confirm delivery with PIN from buyer.
+ */
+export const confirmDelivery = async (orderId, data) => {
+  // data should contain { pin, gps_lat, gps_lng }
+  const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
+  return response.data;
+};
+
+/**
  * GET /vendor/orders/daily-prep-list/
  * Returns today's meal preparation list (all meals to cook today).
  * Query params: date (YYYY-MM-DD, defaults to today)
