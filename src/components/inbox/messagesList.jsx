@@ -161,7 +161,7 @@ function MessagesList() {
   }
 
   return (
-    <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto flex flex-col">
+    <div className="bg-white relative w-full h-full overflow-hidden flex flex-col">
       <header className="relative p-4 bg-white shadow-sm flex items-center shrink-0">
         <button onClick={() => navigate(-1)} className="mr-4">
           <ChevronLeft className="w-8 h-8" />

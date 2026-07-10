@@ -26,6 +26,7 @@ import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
 
 import { api } from "../../services/api";
+import MessagesList from "./messagesList";
 
 const OrderMessageCard = ({ payload, isMine }) => {
   const dispatch = useDispatch();
@@ -717,8 +718,15 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 md:left-64 flex flex-col bg-gray-50">
-      {/* Header */}
+    <div className="fixed inset-0 md:left-64 flex bg-gray-50 z-20">
+      {/* Desktop Messages List Sidebar */}
+      <div className="hidden md:flex w-[350px] border-r border-gray-200 bg-white h-full flex-col shrink-0">
+        <MessagesList />
+      </div>
+
+      {/* Chat View */}
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+        {/* Header */}
       <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate(-1)}>
