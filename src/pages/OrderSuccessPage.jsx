@@ -35,12 +35,16 @@ const OrderSuccessPage = () => {
           vendorGroups[shopId].push(item);
         });
 
-        let firstConversationId = null;
+        let firstVendorId = null;
 
         for (const [shopId, items] of Object.entries(vendorGroups)) {
           // 1. Start conversation using the first product
           const firstProduct = items[0].product;
           if (!firstProduct?.id) continue;
+          
+          if (!firstVendorId) {
+            firstVendorId = firstProduct.user_id || firstProduct.vendor_id || shopId;
+          }
           
           try {
             const conversation = await startConversation({ product_id: firstProduct.id });
@@ -61,10 +65,6 @@ const OrderSuccessPage = () => {
 
             // 3. Send message to the new or existing conversation
             if (conversation?.id) {
-              if (!firstConversationId) {
-                firstConversationId = conversation.id;
-              }
-              
               if (!localStorage.getItem(sentKey)) {
                 await sendConversationMessage(conversation.id, { 
                   content: `[ORDER_PAYLOAD]:${orderPayload}`,
@@ -78,8 +78,8 @@ const OrderSuccessPage = () => {
         
         localStorage.setItem(sentKey, "true");
         
-        if (firstConversationId) {
-          navigate(`/chat/${firstConversationId}`, { replace: true });
+        if (firstVendorId) {
+          navigate(`/chat/${firstVendorId}`, { replace: true });
         } else {
           navigate("/inbox", { replace: true });
         }

@@ -193,13 +193,6 @@ const Activity = () => {
         {selectedNotification && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-              <button 
-                onClick={() => setSelectedNotification(null)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-              >
-                ✕
-              </button>
-              
               <div className="flex items-center gap-4 mb-5">
                 <div className="w-14 h-14 flex items-center justify-center rounded-full bg-lily/10">
                   {iconMap[selectedNotification.type] || <Bell className="text-gray-400 w-7 h-7" />}
