@@ -729,7 +729,7 @@ const ChatPage = () => {
         {/* Header */}
       <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
-          <button onClick={() => navigate(-1)}>
+          <button className="md:hidden" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
           </button>
 
@@ -967,7 +967,8 @@ const ChatPage = () => {
         </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ChatPage;
