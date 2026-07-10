@@ -513,11 +513,16 @@ const ChatPage = () => {
   }, []);
 
   // Find the actual conversation from Redux to extract the other user's ID
-  const targetConversation = conversations.find((c) => String(c.id) === String(conversationId));
+  const targetConversation = conversations.find((c) => {
+    const otherUser = c.other_user || (String(c.buyer?.id) === String(currentUserId) ? c.seller : c.buyer);
+    return String(c.id) === String(conversationId) || String(otherUser?.id) === String(conversationId);
+  });
+
   const otherUserId = targetConversation?.other_user?.id || 
                       (String(targetConversation?.buyer?.id) === String(currentUserId) 
                         ? targetConversation?.seller?.id 
-                        : targetConversation?.buyer?.id);
+                        : targetConversation?.buyer?.id) || 
+                      conversationId;
 
   const { data: fetchedUserProfile } = useQuery({
     queryKey: ["public-profile", otherUserId],
@@ -712,7 +717,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50">
+    <div className="fixed inset-0 md:left-64 flex flex-col bg-gray-50">
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
