@@ -813,6 +813,26 @@ const ChatPage = () => {
           displayMessages.map((msg) => {
             const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
 
+            // Check for order payload first
+            if (
+              typeof msg.content === "string" &&
+              msg.content.startsWith("[ORDER_PAYLOAD]:")
+            ) {
+              try {
+                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <OrderMessageCard payload={payload} isMine={isMine} />
+                  </div>
+                );
+              } catch (e) {
+                console.error("Failed to parse order payload", e);
+              }
+            }
+
             // Check for shared product from backend
             if (msg.product) {
               return (
@@ -861,25 +881,7 @@ const ChatPage = () => {
               }
             }
 
-            // Check for order payload
-            if (
-              typeof msg.content === "string" &&
-              msg.content.startsWith("[ORDER_PAYLOAD]:")
-            ) {
-              try {
-                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                  >
-                    <OrderMessageCard payload={payload} isMine={isMine} />
-                  </div>
-                );
-              } catch (e) {
-                console.error("Failed to parse order payload", e);
-              }
-            }
+            // Code for order payload was moved above
 
             return (
               <div
