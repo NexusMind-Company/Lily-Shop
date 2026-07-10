@@ -26,6 +26,7 @@ import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
 
 import { api } from "../../services/api";
+import MessagesList from "./messagesList";
 
 const OrderMessageCard = ({ payload, isMine }) => {
   const dispatch = useDispatch();
@@ -513,11 +514,16 @@ const ChatPage = () => {
   }, []);
 
   // Find the actual conversation from Redux to extract the other user's ID
-  const targetConversation = conversations.find((c) => String(c.id) === String(conversationId));
+  const targetConversation = conversations.find((c) => {
+    const otherUser = c.other_user || (String(c.buyer?.id) === String(currentUserId) ? c.seller : c.buyer);
+    return String(c.id) === String(conversationId) || String(otherUser?.id) === String(conversationId);
+  });
+
   const otherUserId = targetConversation?.other_user?.id || 
                       (String(targetConversation?.buyer?.id) === String(currentUserId) 
                         ? targetConversation?.seller?.id 
-                        : targetConversation?.buyer?.id);
+                        : targetConversation?.buyer?.id) || 
+                      conversationId;
 
   const { data: fetchedUserProfile } = useQuery({
     queryKey: ["public-profile", otherUserId],
@@ -712,11 +718,18 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50">
-      {/* Header */}
+    <div className="fixed inset-0 md:left-64 flex bg-gray-50 z-20">
+      {/* Desktop Messages List Sidebar */}
+      <div className="hidden md:flex w-[350px] border-r border-gray-200 bg-white h-full flex-col shrink-0">
+        <MessagesList />
+      </div>
+
+      {/* Chat View */}
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+        {/* Header */}
       <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
-          <button onClick={() => navigate(-1)}>
+          <button className="md:hidden" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
           </button>
 
@@ -813,6 +826,26 @@ const ChatPage = () => {
           displayMessages.map((msg) => {
             const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
 
+            // Check for order payload first
+            if (
+              typeof msg.content === "string" &&
+              msg.content.startsWith("[ORDER_PAYLOAD]:")
+            ) {
+              try {
+                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <OrderMessageCard payload={payload} isMine={isMine} />
+                  </div>
+                );
+              } catch (e) {
+                console.error("Failed to parse order payload", e);
+              }
+            }
+
             // Check for shared product from backend
             if (msg.product) {
               return (
@@ -861,25 +894,7 @@ const ChatPage = () => {
               }
             }
 
-            // Check for order payload
-            if (
-              typeof msg.content === "string" &&
-              msg.content.startsWith("[ORDER_PAYLOAD]:")
-            ) {
-              try {
-                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                  >
-                    <OrderMessageCard payload={payload} isMine={isMine} />
-                  </div>
-                );
-              } catch (e) {
-                console.error("Failed to parse order payload", e);
-              }
-            }
+            // Code for order payload was moved above
 
             return (
               <div
@@ -952,7 +967,8 @@ const ChatPage = () => {
         </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ChatPage;

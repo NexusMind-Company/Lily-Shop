@@ -90,41 +90,67 @@ function MessagesList() {
     }
   };
 
-  // Format conversations into a displayable list
+  // Format conversations into a displayable list, merging duplicates by user
   const formattedConversations = Array.isArray(conversations)
-    ? conversations.map((conv) => {
-        // Determine the other user (not the current user)
-        const otherUser =
-          conv.other_user || (conv.is_buyer ? conv.seller : conv.buyer);
+    ? Object.values(
+        conversations.reduce((acc, conv) => {
+          const otherUser =
+            conv.other_user || (conv.is_buyer ? conv.seller : conv.buyer);
 
-        // Roles
-        const otherRole = conv.is_buyer ? "Vendor" : "Customer";
+          if (!otherUser) return acc;
 
-        // Get the last message
-        const lastMsgObj = conv.last_message;
-        const lastMessageText =
-          typeof lastMsgObj === "object"
-            ? lastMsgObj?.content || "No messages yet"
-            : lastMsgObj || "No messages yet";
+          const otherUserId = otherUser.id;
+          const otherRole = conv.is_buyer ? "Vendor" : "Customer";
 
-        return {
-          id: conv.id,
-          otherUserId: otherUser?.id,
-          displayName:
-            otherUser?.name ||
-            otherUser?.full_name ||
-            otherUser?.username ||
-            "Unknown User",
-          username: otherUser?.username || "",
-          profilePic: otherUser?.profile_pic || null,
-          lastMessage: lastMessageText,
-          time: conv.last_message_at ? getTimeAgo(conv.last_message_at) : "",
-          unread: conv.unread_count > 0,
-          productName: conv.product?.name || null,
-          otherRole,
-          isFollowing: otherUser?.is_following_back,
-        };
-      })
+          const lastMsgObj = conv.last_message;
+          const lastMessageText =
+            typeof lastMsgObj === "object"
+              ? lastMsgObj?.content || "No messages yet"
+              : lastMsgObj || "No messages yet";
+
+          const time = conv.last_message_at ? getTimeAgo(conv.last_message_at) : "";
+          const isUnread = conv.unread_count > 0;
+
+          if (!acc[otherUserId]) {
+            acc[otherUserId] = {
+              id: conv.id,
+              otherUserId: otherUser.id,
+              displayName:
+                otherUser.name ||
+                otherUser.full_name ||
+                otherUser.username ||
+                "Unknown User",
+              username: otherUser.username || "",
+              profilePic: otherUser.profile_pic || null,
+              lastMessage: lastMessageText,
+              time,
+              last_message_at: conv.last_message_at,
+              unread: isUnread,
+              productName: conv.product?.name || null,
+              otherRole,
+              isFollowing: otherUser.is_following_back,
+            };
+          } else {
+            const existing = acc[otherUserId];
+            const existingDate = new Date(existing.last_message_at || 0);
+            const newDate = new Date(conv.last_message_at || 0);
+
+            if (newDate > existingDate) {
+              existing.lastMessage = lastMessageText;
+              existing.time = time;
+              existing.last_message_at = conv.last_message_at;
+              existing.id = conv.id;
+              if (conv.product?.name) {
+                existing.productName = conv.product.name;
+              }
+            }
+            if (isUnread) {
+              existing.unread = true;
+            }
+          }
+          return acc;
+        }, {})
+      ).sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0))
     : [];
 
   const filteredConversations = formattedConversations.filter(
@@ -161,7 +187,7 @@ function MessagesList() {
   }
 
   return (
-    <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto flex flex-col">
+    <div className="bg-white relative w-full h-full overflow-hidden flex flex-col">
       <header className="relative p-4 bg-white shadow-sm flex items-center shrink-0">
         <button onClick={() => navigate(-1)} className="mr-4">
           <ChevronLeft className="w-8 h-8" />

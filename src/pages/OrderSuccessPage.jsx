@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchCart } from "../redux/cartSlice";
 import { usePayment } from "../hooks/usePayment";
-import { startConversation, sendConversationMessage } from "../services/api";
+import { api } from "../services/api";
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
@@ -24,6 +24,19 @@ const OrderSuccessPage = () => {
     
     // Check local storage to prevent duplicate sending on refresh
     const sentKey = `order_notified_${order.id}`;
+    if (localStorage.getItem(sentKey)) {
+      // If already sent, just navigate
+      const firstProduct = order.items[0]?.product;
+      const vendorId = firstProduct?.user_id || firstProduct?.vendor_id || firstProduct?.shop_id || firstProduct?.id;
+      if (vendorId) {
+        navigate(`/chat/${vendorId}`, { replace: true });
+      } else {
+        navigate("/inbox", { replace: true });
+      }
+      return;
+    }
+
+    localStorage.setItem(sentKey, "true");
 
     const notifySellers = async () => {
       try {
@@ -47,8 +60,6 @@ const OrderSuccessPage = () => {
           }
           
           try {
-            const conversation = await startConversation({ product_id: firstProduct.id });
-            
             // 2. Prepare payload
             const orderPayload = JSON.stringify({
               order_id: order.id,
@@ -63,20 +74,17 @@ const OrderSuccessPage = () => {
               delivery_type: order.delivery_type || "delivery",
             });
 
-            // 3. Send message to the new or existing conversation
-            if (conversation?.id) {
-              if (!localStorage.getItem(sentKey)) {
-                await sendConversationMessage(conversation.id, { 
-                  content: `[ORDER_PAYLOAD]:${orderPayload}`,
-                });
-              }
-            }
+            // 3. Send message using the messaging endpoint which handles conversation creation/routing
+            const vendorId = firstProduct.user_id || firstProduct.vendor_id || shopId;
+            await api.post(`/messages/`, { 
+              recipient: vendorId,
+              content: `[ORDER_PAYLOAD]:${orderPayload}`,
+              product_id: firstProduct.id
+            });
           } catch (err) {
             console.error("Failed to notify vendor", shopId, err);
           }
         }
-        
-        localStorage.setItem(sentKey, "true");
         
         if (firstVendorId) {
           navigate(`/chat/${firstVendorId}`, { replace: true });
