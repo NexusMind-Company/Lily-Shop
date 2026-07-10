@@ -89,7 +89,7 @@ const OrderMessageCard = ({ payload, isMine }) => {
   };
   
   return (
-    <div className={`flex flex-col rounded-3xl overflow-hidden w-[300px] shadow-sm mb-2 ${isMine ? "bg-[#E8F5E9]" : "bg-[#FCE4EC]"}`}>
+    <div className={`flex flex-col rounded-3xl overflow-hidden w-[280px] sm:w-[300px] shadow-sm mb-2 ${isMine ? "bg-[#E8F5E9]" : "bg-[#FCE4EC]"}`}>
       <div className="w-full h-64 relative bg-gray-100 p-2">
         <img src={imageUrl} alt={product.name} className="w-full h-full object-cover rounded-2xl" />
       </div>
@@ -668,6 +668,18 @@ const ChatPage = () => {
               );
             }
 
+            // Check for shared content object
+            if (msg.shared_content) {
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                >
+                  <SharedContentCard content={msg.shared_content} isMine={isMine} />
+                </div>
+              );
+            }
+
             // Check for shared content (custom prefix)
             if (
               typeof msg.content === "string" &&
@@ -692,13 +704,33 @@ const ChatPage = () => {
               }
             }
 
+            // Check for order payload
+            if (
+              typeof msg.content === "string" &&
+              msg.content.startsWith("[ORDER_PAYLOAD]:")
+            ) {
+              try {
+                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <OrderMessageCard payload={payload} isMine={isMine} />
+                  </div>
+                );
+              } catch (e) {
+                console.error("Failed to parse order payload", e);
+              }
+            }
+
             return (
               <div
                 key={msg.id}
                 className={`flex ${isMine ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                  className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words ${
                     isMine
                       ? "bg-lily text-white rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
@@ -710,26 +742,9 @@ const ChatPage = () => {
                     </p>
                   )}
                   
-                  {typeof msg.content === "string" && msg.content.startsWith("[ORDER_PAYLOAD]:") ? (
-                    <OrderMessageCard 
-                      payload={JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""))} 
-                      isMine={isMine} 
-                    />
-                  ) : msg.product ? (
-                    <SharedProductCard
-                      product={msg.product}
-                      isMine={isMine}
-                    />
-                  ) : msg.shared_content ? (
-                    <SharedContentCard
-                      content={msg.shared_content}
-                      isMine={isMine}
-                    />
-                  ) : (
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {msg.content}
-                    </p>
-                  )}
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {msg.content}
+                  </p>
                   
                   <p className="text-[10px] mt-1 opacity-70 text-right">
                     {new Date(msg.timestamp).toLocaleTimeString([], {

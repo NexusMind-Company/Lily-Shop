@@ -7,7 +7,6 @@ export const fetchConversationMessages = createAsyncThunk(
   async ({ userId, page = 1 }, { rejectWithValue }) => {
     try {
       const res = await api.get(`/messages/user/${userId}/?page=${page}`);
-      console.log(`API response for /chat/${userId} (API: /messages/user/${userId}/?page=${page}):`, res.data);
 
       return {
         messages: res.data.results || res.data, // Handle paginated or non-paginated response
