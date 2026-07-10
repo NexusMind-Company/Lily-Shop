@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
-import { PaymentContext } from "./PaymentContext";
+import { useState, useCallback, createContext } from "react";
+
+export const PaymentContext = createContext(null);
 
 const initialState = {
   amount: 0,
