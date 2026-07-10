@@ -48,6 +48,9 @@ const Orders = () => {
       order.product?.image ||
       order.product_image ||
       order.product?.thumbnail ||
+      order.items?.[0]?.product?.image_url ||
+      order.items?.[0]?.product?.media ||
+      order.items?.[0]?.product?.all_media_urls?.[0] ||
       null
     );
   };
@@ -98,10 +101,10 @@ const Orders = () => {
 
                   <div>
                     <h3 className="font-medium text-gray-800">
-                      {order.name || order.product_name || order.product?.name || "Unnamed Product"}
+                      {order.name || order.product_name || order.product?.name || order.items?.[0]?.product?.name || "Unnamed Product"}
                     </h3>
                     <p className="text-xs text-gray-500">
-                      Order no: {order.orderNo || order.order_number || order.id}
+                      Order no: {order.reference || order.orderNo || order.order_number || order.id}
                     </p>
                     <div className="flex items-center space-x-2 mt-1">
                       <span
