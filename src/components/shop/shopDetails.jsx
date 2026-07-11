@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
-import LoaderSd from "../loaders/loaderSd";
+import { ShopSkeleton } from "../loaders/TailoredSkeletons";
 import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
 import ShopReviewModal from "./ShopReviewModal";
@@ -115,11 +115,7 @@ const ShopDetails = () => {
   };
 
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoaderSd />
-      </div>
-    );
+    return <ShopSkeleton />;
   }
 
   if (error) {

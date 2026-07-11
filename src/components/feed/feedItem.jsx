@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -727,4 +727,4 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
   );
 };
 
-export default FeedItem;
+export default memo(FeedItem);

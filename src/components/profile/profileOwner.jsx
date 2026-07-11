@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { api } from "../../services/api";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import LoaderSd from "../loaders/loaderSd";
+import { ProfileSkeleton } from "../loaders/TailoredSkeletons";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -77,10 +77,10 @@ const ProfileOwner = () => {
     const token = localStorage.getItem("access_token");
     if (!auth?.isAuthenticated || !token) {
       navigate("/login", { replace: true });
-    } else if (!profileData && !profileLoading) {
+    } else if (!profileData && !profileLoading && !profileError) {
       dispatch(fetchProfile());
     }
-  }, [auth?.isAuthenticated, navigate, profileData, profileLoading, dispatch]);
+  }, [auth?.isAuthenticated, navigate, profileData, profileLoading, profileError, dispatch]);
 
   // 2. Following Count Query
   const { data: followingCount = 0 } = useQuery({
@@ -286,12 +286,8 @@ const ProfileOwner = () => {
 
   if (!auth?.isAuthenticated) return null;
 
-  if (profileLoading && !profileData)
-    return (
-      <div className="flex items-center justify-center min-h-screen w-full">
-        <LoaderSd />
-      </div>
-    );
+  if (profileLoading && !profileData && !profileError)
+    return <ProfileSkeleton />;
 
   if (profileError)
     return (
@@ -303,8 +299,8 @@ const ProfileOwner = () => {
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
       return (
-        <div className="w-full flex justify-center my-8">
-          <LoaderSd />
+        <div className="w-full flex justify-center my-8 animate-pulse">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-lily rounded-full animate-spin"></div>
         </div>
       );
     }
