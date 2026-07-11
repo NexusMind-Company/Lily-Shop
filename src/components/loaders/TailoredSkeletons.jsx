@@ -59,7 +59,15 @@ export const PageSkeleton = () => (
       <div className="h-12 bg-gray-200 rounded-lg w-full"></div>
       <div className="h-12 bg-gray-200 rounded-lg w-full"></div>
       <div className="h-32 bg-gray-200 rounded-lg w-full"></div>
-      <div className="h-12 bg-gray-200 rounded-lg w-full mt-8"></div>
+      <div className="h-32 bg-gray-200 rounded-lg w-full"></div>
     </div>
+  </div>
+);
+
+export const GridSkeleton = () => (
+  <div className="grid grid-cols-3 gap-1 md:gap-0 mt-2">
+    {[...Array(9)].map((_, i) => (
+      <div key={i} className="aspect-square bg-gray-200 animate-pulse"></div>
+    ))}
   </div>
 );
