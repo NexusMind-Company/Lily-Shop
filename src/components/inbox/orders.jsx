@@ -56,7 +56,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen relative w-full h-screen overflow-hidden md:w-4xl md:mx-auto">
+    <div className="bg-white relative w-full h-[100dvh] overflow-y-auto md:w-4xl md:mx-auto pb-24">
       {/* Header */}
       <header className="relative p-4">
         <Link to="/inbox">

@@ -18,6 +18,7 @@ import {
   markAllNotificationsRead,
 } from "../../redux/notificationSlice";
 import BottomNav from "./bottomNav";
+import { ListSkeleton } from "../loaders/TailoredSkeletons";
 
 // Map notification types to icons
 const iconMap = {
@@ -115,10 +116,7 @@ const Activity = () => {
       {/* Loading State */}
       <section className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
         {loading && notifications.length === 0 && (
-          <div className="flex flex-col items-center justify-center mt-20">
-            <div className="w-8 h-8 border-2 border-lily border-t-transparent rounded-full animate-spin mb-3"></div>
-            <p className="text-gray-500">Loading activity...</p>
-          </div>
+          <ListSkeleton />
         )}
 
         {/* Error State */}

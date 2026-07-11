@@ -46,7 +46,7 @@ const MyShop = () => {
       return;
     }
 
-    if (fetchShopsStatus === "idle" || fetchShopsStatus === "failed") {
+    if (fetchShopsStatus === "idle") {
       dispatch(fetchProfile());
     }
   }, [dispatch, fetchShopsStatus, isAuthenticated, navigate]);

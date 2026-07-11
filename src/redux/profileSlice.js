@@ -22,6 +22,11 @@ const profileSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+    updateProfileData: (state, action) => {
+      if (state.data && state.data.user) {
+        state.data.user = { ...state.data.user, ...action.payload };
+      }
+    },
     clearProfile: (state) => {
       state.data = null;
       state.loading = false;
@@ -34,6 +39,7 @@ export const {
   fetchProfileStart,
   fetchProfileSuccess,
   fetchProfileFailure,
+  updateProfileData,
   clearProfile,
 } = profileSlice.actions;
 
