@@ -51,3 +51,4 @@ test-edit-chatpage.sh
 endpoints.txt
 src/components/feed/mockData.js
 docs/
+.agents/

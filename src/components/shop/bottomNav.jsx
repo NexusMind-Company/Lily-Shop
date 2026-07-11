@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const BottomNav = ({ activePage, setActivePage }) => {
   return (
-    <div className="flex justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50 md:flex-col md:w-24 md:h-screen md:top-0 md:pt-0 md:justify-center md:gap-10 md:border-r">
+    <div className="flex justify-around items-center bg-white h-15 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-inner fixed bottom-0 left-0 w-full z-50 md:flex-col md:w-24 md:h-screen md:top-0 md:pt-0 md:pb-0 md:justify-center md:gap-10 md:border-r">
       {/* Home  */}
       <Link
         to="/"

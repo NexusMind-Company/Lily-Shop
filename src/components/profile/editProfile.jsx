@@ -15,7 +15,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { fetchProfile } from "../../redux/profileSlice";
+import { fetchProfile, updateProfileData } from "../../redux/profileSlice";
 import {
   fetchUserProfileFormData,
   updateUsername,
@@ -141,6 +141,25 @@ const EditProfile = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(["userProfileFormData"]);
       queryClient.invalidateQueries(["userProfile"]);
+
+      let apiGender = null;
+      if (form.gender === "Female") apiGender = "F";
+      else if (form.gender === "Male") apiGender = "M";
+      else if (form.gender === "Other") apiGender = "NA";
+
+      // Optimistically update Redux state
+      const optimisticUpdate = {
+        name: form.name,
+        username: form.username,
+        bio: form.bio,
+        phone_number: form.phone_number,
+        birthdate: form.birthday,
+      };
+      if (apiGender) optimisticUpdate.gender = apiGender;
+      if (profileImageFile) optimisticUpdate.profile_pic = profileImagePreview;
+
+      dispatch(updateProfileData(optimisticUpdate));
+
       dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
       navigate(-1);

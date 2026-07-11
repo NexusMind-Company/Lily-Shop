@@ -10,7 +10,7 @@ import {
 } from "../../services/shopApi";
 import { ReviewCard } from "../../components/common/ReviewList";
 import EditReviewModal from "../../components/shop/EditReviewModal";
-import LoaderSd from "../../components/loaders/loaderSd";
+import { ListSkeleton } from "../../components/loaders/TailoredSkeletons";
 import ErrorDisplay from "../../components/common/ErrorDisplay";
 import toast from "react-hot-toast";
 
@@ -46,11 +46,7 @@ const UserReviewsPage = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoaderSd />
-      </div>
-    );
+    return <ListSkeleton />;
   }
 
   if (error) {
