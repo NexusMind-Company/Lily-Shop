@@ -19,7 +19,7 @@ const BottomNav = ({ activePage }) => {
   };
 
   return (
-    <div className="flex md:hidden justify-around items-center bg-white h-15 pt-2 shadow-inner fixed bottom-0 left-0 w-full z-50">
+    <div className="flex md:hidden justify-around items-center bg-white h-15 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-inner fixed bottom-0 left-0 w-full z-50">
       {/* Home  */}
       <Link
         to="/"

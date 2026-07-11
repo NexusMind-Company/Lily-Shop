@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import { motion } from "framer-motion";
@@ -38,7 +38,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 import { Star, Info, Truck } from "lucide-react";
 import MentionText from "../../common/MentionText";
-import ReviewModal from "../../common/ReviewModal";
+const ReviewModal = lazy(() => import("../../common/ReviewModal"));
 import toast from "react-hot-toast";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
@@ -910,19 +910,23 @@ const ProductItem = ({ product }) => {
         </div>
       </div>
 
-      <ReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        vendorId={product.vendor_id || product.shop}
-        vendorName={
-          product.vendor_name ||
-          product.shop_name ||
-          product.name ||
-          product.title
-        }
-      />
+      <Suspense fallback={null}>
+        {showReviewModal && (
+          <ReviewModal
+            isOpen={showReviewModal}
+            onClose={() => setShowReviewModal(false)}
+            vendorId={product.vendor_id || product.shop}
+            vendorName={
+              product.vendor_name ||
+              product.shop_name ||
+              product.name ||
+              product.title
+            }
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
 
-export default ProductItem;
+export default React.memo(ProductItem);

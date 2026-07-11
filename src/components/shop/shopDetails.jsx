@@ -1,15 +1,15 @@
 // src/components/shop/shopDetails.jsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchShopById } from "../../redux/shopSlice";
-import LoaderSd from "../loaders/loaderSd";
+import { ShopSkeleton } from "../loaders/TailoredSkeletons";
 import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
-import ShopReviewModal from "./ShopReviewModal";
-import EditReviewModal from "./EditReviewModal";
+const ShopReviewModal = lazy(() => import("./ShopReviewModal"));
+const EditReviewModal = lazy(() => import("./EditReviewModal"));
 import ReviewList from "../common/ReviewList";
 import {
   fetchShopReviews,
@@ -115,11 +115,7 @@ const ShopDetails = () => {
   };
 
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoaderSd />
-      </div>
-    );
+    return <ShopSkeleton />;
   }
 
   if (error) {
@@ -447,19 +443,38 @@ const ShopDetails = () => {
         )}
       </AnimatePresence>
 
-      <ShopReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        shopId={id}
-        shopName={shop?.name}
-      />
+      {shop?.owner_id === currentUserId && (
+        <ContactVendorButton vendorId={shop.owner_id} />
+      )}
 
-      <EditReviewModal
-        isOpen={!!editingReview}
-        onClose={() => setEditingReview(null)}
-        review={editingReview}
-        shopId={id}
-      />
+      <AnimatePresence>
+        <Suspense fallback={null}>
+          {isReviewModalOpen && (
+            <ShopReviewModal
+              isOpen={isReviewModalOpen}
+              onClose={() => setIsReviewModalOpen(false)}
+              shopId={id}
+              shopName={shop?.name}
+              onReviewSubmitted={() => {
+                queryClient.invalidateQueries(["shopReviews", id]);
+                dispatch(fetchShopById(id));
+              }}
+            />
+          )}
+
+          {editingReview && (
+            <EditReviewModal
+              isOpen={true}
+              onClose={() => setEditingReview(null)}
+              review={editingReview}
+              onReviewUpdated={() => {
+                queryClient.invalidateQueries(["shopReviews", id]);
+                dispatch(fetchShopById(id));
+              }}
+            />
+          )}
+        </Suspense>
+      </AnimatePresence>
     </div>
   );
 };

@@ -31,12 +31,12 @@ const FeedLayout = () => {
   const isFeedRoute = path === "/";
 
   return (
-    <div className="flex min-h-screen w-full bg-white md:bg-gray-50">
+    <div className="flex min-h-[100dvh] w-full bg-white md:bg-gray-50">
       <SideNav activePage={activePage} />
 
       <main
         ref={mainContainerRef}
-        className={`flex-1 w-full md:ml-64 relative h-screen md:pb-0 ${
+        className={`flex-1 w-full md:ml-64 relative h-[100dvh] md:pb-0 ${
           isFeedRoute ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"
         } ${shouldShowBottomNav ? "pb-20" : "pb-0"}`}
       >
