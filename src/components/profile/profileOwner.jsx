@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { api } from "../../services/api";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ProfileSkeleton } from "../loaders/TailoredSkeletons";
+import { ProfileSkeleton, GridSkeleton } from "../loaders/TailoredSkeletons";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -298,11 +298,7 @@ const ProfileOwner = () => {
 
   const renderGrid = (items, isLoading, emptyMessage) => {
     if (isLoading) {
-      return (
-        <div className="w-full flex justify-center my-8 animate-pulse">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-lily rounded-full animate-spin"></div>
-        </div>
-      );
+      return <GridSkeleton />;
     }
 
     if (!items || items.length === 0) {

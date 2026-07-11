@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, memo } from "react";
+import React, { useState, useRef, useEffect, memo, Suspense } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,10 +7,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/profileSlice";
 import { addToCart } from "../../redux/cartSlice";
 import toast from "react-hot-toast";
+import { lazy } from "react";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
-import CommentsModal from "./comments/commentsModal";
-import ShareModal from "./share/shareModal";
+
+const CommentsModal = lazy(() => import("./comments/commentsModal"));
+const ShareModal = lazy(() => import("./share/shareModal"));
 import MentionText from "../common/MentionText";
 import {
   likeProduct,
@@ -701,27 +703,29 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       </div>
 
       <AnimatePresence>
-        {showCommentsModal && (
-          <CommentsModal
-            isOpen={showCommentsModal}
-            onClose={() => setShowCommentsModal(false)}
-            postId={post.id}
-            itemType={isProduct ? "product" : "content"}
-            totalComments={commentCount}
-            onCommentCountUpdate={(newCount) => setCommentCount(newCount)}
-          />
-        )}
+        <Suspense fallback={null}>
+          {showCommentsModal && (
+            <CommentsModal
+              isOpen={showCommentsModal}
+              onClose={() => setShowCommentsModal(false)}
+              postId={post.id}
+              itemType={isProduct ? "product" : "content"}
+              totalComments={commentCount}
+              onCommentCountUpdate={(newCount) => setCommentCount(newCount)}
+            />
+          )}
 
-        {showShareModal && (
-          <ShareModal
-            isOpen={showShareModal}
-            onClose={() => setShowShareModal(false)}
-            postUrl={shareUrl}
-            postCaption={post.caption || post.name}
-            post={post}
-            isProduct={isProduct}
-          />
-        )}
+          {showShareModal && (
+            <ShareModal
+              isOpen={showShareModal}
+              onClose={() => setShowShareModal(false)}
+              postUrl={shareUrl}
+              postCaption={post.caption || post.name}
+              post={post}
+              isProduct={isProduct}
+            />
+          )}
+        </Suspense>
       </AnimatePresence>
     </div>
   );
