@@ -1,20 +1,26 @@
 // src/pages/OrderDetailPage.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Package, MessageCircle, Printer, MapPin,
-  Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight
+  Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
-import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import { fetchOrderDetail, fetchOrderPin, selectCurrentOrder, selectOrderPin, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import UnboxingModal from '../components/orders/UnboxingModal';
+import DisputeModal from '../components/orders/DisputeModal';
 
 const OrderDetailPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
+  const [isUnboxingModalOpen, setIsUnboxingModalOpen] = useState(false);
+  const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
+
   const order = useSelector(selectCurrentOrder);
+  const orderPin = useSelector(selectOrderPin);
   const loading = useSelector(selectOrderLoading);
   const error = useSelector(selectOrderError);
 
@@ -23,6 +29,15 @@ const OrderDetailPage = () => {
       dispatch(fetchOrderDetail(orderId));
     }
   }, [dispatch, orderId]);
+
+  useEffect(() => {
+    if (order?.id) {
+      // Fetch PIN for delivery verification
+      if (order.status !== 'cancelled' && order.status !== 'failed') {
+        dispatch(fetchOrderPin(order.id));
+      }
+    }
+  }, [dispatch, order]);
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -160,6 +175,36 @@ const OrderDetailPage = () => {
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Delivery PIN Section */}
+            {orderPin && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-sm border-2 border-pink-100 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100">
+                  <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2 text-pink-600" />
+                    Delivery Security PIN
+                  </h3>
+                </div>
+                <div className="p-6 text-center">
+                  <p className="text-gray-600 mb-4">
+                    Provide this PIN to the delivery rider <b>only</b> when you have received and inspected your order.
+                  </p>
+                  <div className="inline-block bg-gray-50 border border-gray-200 rounded-xl px-8 py-4 mb-2">
+                    <span className="text-4xl font-mono font-bold tracking-widest text-gray-900">
+                      {orderPin}
+                    </span>
+                  </div>
+                  <p className="text-sm text-pink-600 font-medium">
+                    Do not share this PIN before delivery.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             {/* Order Items */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -390,34 +435,73 @@ const OrderDetailPage = () => {
                 </div>
 
                 {/* Action Buttons */}
-                {order.status === 'paid' && (
-                  <div className="space-y-3 pt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate('/inbox')}
-                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Contact Seller</span>
-                    </motion.button>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => window.print()}
-                      className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <Printer className="w-5 h-5" />
-                      <span>Print Receipt</span>
-                    </motion.button>
-                  </div>
-                )}
+                <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
+                  {order.status === 'paid' && (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate('/inbox')}
+                        className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span>Contact Seller</span>
+                      </motion.button>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => window.print()}
+                        className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <Printer className="w-5 h-5" />
+                        <span>Print Receipt</span>
+                      </motion.button>
+                    </>
+                  )}
+
+                  {/* Escrow / Dispute Buttons (Available once out_for_delivery or delivered) */}
+                  {(order.status === 'out_for_delivery' || order.status === 'delivered') && (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsUnboxingModalOpen(true)}
+                        className="w-full border-2 border-purple-200 bg-purple-50 text-purple-700 py-3 rounded-xl font-semibold hover:bg-purple-100 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <Video className="w-5 h-5" />
+                        <span>Upload Unboxing Video</span>
+                      </motion.button>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsDisputeModalOpen(true)}
+                        className="w-full border-2 border-red-200 bg-red-50 text-red-700 py-3 rounded-xl font-semibold hover:bg-red-100 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <ShieldAlert className="w-5 h-5" />
+                        <span>Open Dispute</span>
+                      </motion.button>
+                    </>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </div>
+      
+      <UnboxingModal 
+        isOpen={isUnboxingModalOpen} 
+        onClose={() => setIsUnboxingModalOpen(false)} 
+        orderId={orderId} 
+      />
+      
+      <DisputeModal 
+        isOpen={isDisputeModalOpen} 
+        onClose={() => setIsDisputeModalOpen(false)} 
+        orderId={orderId} 
+      />
     </div>
   );
 };

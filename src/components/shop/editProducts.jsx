@@ -8,7 +8,7 @@ import {
 } from "../../redux/addProductSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import ErrorDisplay from "../common/ErrorDisplay";
-import LoaderSd from "../loaders/loaderSd";
+
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];

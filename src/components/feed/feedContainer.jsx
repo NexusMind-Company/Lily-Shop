@@ -306,7 +306,7 @@ const FeedContainer = () => {
 
         {/* Feed Items */}
         {posts.map((post, index) => (
-          <div key={post.id} className="h-full w-full snap-start shrink-0">
+          <div key={post.id} className="h-full w-full snap-start snap-always shrink-0">
             <FeedItem
               post={post}
               onVideoInit={handleVideoInit}

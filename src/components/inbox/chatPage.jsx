@@ -23,6 +23,355 @@ import {
 } from "../../redux/messageConversationSlice";
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
+import { fetchOrders, selectOrders } from "../../redux/orderSlice";
+
+import { api } from "../../services/api";
+import MessagesList from "./messagesList";
+
+const OrderMessageCard = ({ payload, isMine }) => {
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+
+  const firstItem = payload.items?.[0] || {};
+  const product = firstItem.product || {};
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  
+  // Try to find image
+  const imageUrl = product.image_url || product.media?.[0]?.file || "/placeholder.png";
+
+  const address = payload.delivery_address || {};
+
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState("");
+  
+  const orderIdKey = payload.order_id || payload.reference;
+  const [hasDispatched, setHasDispatched] = useState(() => localStorage.getItem(`dispatched_${orderIdKey}`) === 'true');
+  const [hasDelivered, setHasDelivered] = useState(() => localStorage.getItem(`delivered_${orderIdKey}`) === 'true');
+
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
+
+  const handleOpenDispute = async () => {
+    if (!disputeReason) {
+      toast.error("Please select a reason for the dispute.");
+      return;
+    }
+    setIsSubmittingDispute(true);
+    try {
+      await api.post(`/api/orders/${orderIdKey}/dispute/`, { reason: disputeReason });
+      toast.success("Dispute opened successfully. An admin will review.");
+      setShowDisputeModal(false);
+      setDisputeReason("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || "Failed to open dispute.");
+    } finally {
+      setIsSubmittingDispute(false);
+    }
+  };
+
+  const rawStatus = orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending";
+  const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !orderIdKey) return;
+
+    setIsUploadingVideo(true);
+    try {
+      const { data } = await api.get(`/api/orders/${orderIdKey}/unboxing-upload-url/`);
+      const uploadUrl = data?.upload_url || data?.url || (typeof data === 'string' ? data : null);
+      
+      if (!uploadUrl) {
+          throw new Error("Invalid upload URL received from server");
+      }
+
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+
+      await api.post(`/api/orders/${orderIdKey}/unboxing-video/confirm/`);
+      toast.success("Unboxing video uploaded successfully!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to upload video");
+    } finally {
+      setIsUploadingVideo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeliveredClick = () => {
+    setShowStatusMenu(false);
+    setShowPinModal(true);
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!pin) {
+      toast.error("Please enter the PIN provided by the buyer");
+      return;
+    }
+    const idToUpdate = payload.order_id || payload.reference;
+    try {
+      if (idToUpdate) {
+        await api.post(`/orders/orders/${idToUpdate}/confirm-delivery/`, { pin, gps_lat: 0, gps_lng: 0 });
+      }
+      toast.success("Delivery confirmed securely!");
+      localStorage.setItem(`delivered_${idToUpdate}`, 'true');
+      setHasDelivered(true);
+      setShowPinModal(false);
+      setPin("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to confirm delivery");
+    }
+  };
+
+  const handleDispatchUpdate = async (statusLabel) => {
+    setShowStatusMenu(false);
+    const idToUpdate = payload.order_id || payload.reference;
+    try {
+      if (idToUpdate) {
+        await api.post(`/orders/orders/${idToUpdate}/dispatch/`);
+      }
+      toast.success(`Order marked as ${statusLabel}`);
+      localStorage.setItem(`dispatched_${idToUpdate}`, 'true');
+      setHasDispatched(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || `Failed to mark as ${statusLabel}`);
+    }
+  };
+
+  const handleStatusUpdate = async (status) => {
+    setShowStatusMenu(false);
+    toast.error(`Action '${status}' is not supported in P2P flow yet.`);
+  };
+  
+  return (
+    <div className={`flex flex-col rounded-3xl overflow-hidden w-[280px] sm:w-[300px] shadow-sm mb-2 ${isMine ? "bg-[#E8F5E9]" : "bg-[#FCE4EC]"}`}>
+      <div className="w-full h-64 relative bg-gray-100 p-2">
+        <img src={imageUrl} alt={product.name} className="w-full h-full object-cover rounded-2xl" />
+      </div>
+
+      <div className="p-4 flex flex-col gap-1.5 text-sm text-gray-800">
+        <p>Order no: {payload.reference}</p>
+        <p className="font-bold text-base mt-1">{product.name || firstItem.product_name || "Product"}</p>
+        {product.caption && <p className="text-gray-500 text-xs line-clamp-2">{product.caption}</p>}
+        <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
+        <p>Qty: {firstItem.quantity || 1}</p>
+        {(firstItem.color || firstItem.variant) && <p>Color: {firstItem.color || firstItem.variant}</p>}
+        <p>Delivery fee: ₦{Number(payload.delivery_fee || 0).toLocaleString()}</p>
+        {payload.estimated_time && (
+          <p className="text-pink-600 font-medium">ETA: {payload.estimated_time}</p>
+        )}
+        
+        {payload.delivery_type === "pickup" ? (
+           <>
+             <p className="font-bold mt-2 text-[13px]">Pickup location</p>
+             <p className="font-bold">{payload.pickup_location?.name || "Pickup center"}</p>
+             <p>{payload.pickup_location?.address}</p>
+           </>
+        ) : (
+          <>
+            <p className="font-bold mt-2 text-[13px]">Delivery address</p>
+            {typeof address === 'string' ? (
+              <p>{address}</p>
+            ) : (
+              <>
+                <p className="font-bold">{address.name || payload.buyer_name || payload.customer_name || "Customer"} {address.phone || payload.phone || ""}</p>
+                <p>{address.street || address.address || "No address provided"}</p>
+                
+                {address.landmark && (
+                  <>
+                    <p className="font-bold mt-2 text-[13px]">Nearest landmark</p>
+                    <p>{address.landmark}</p>
+                  </>
+                )}
+                
+                {address.description && (
+                  <>
+                    <p className="font-bold mt-2 text-[13px]">Location description</p>
+                    <p>{address.description}</p>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        <div className="mt-4 relative">
+          {isMine ? (
+             <>
+               <button className="w-full py-2.5 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
+                 {buyerStatus}
+               </button>
+               {buyerStatus === "Delivered" && (
+                 <div className="mt-2 space-y-2">
+                   <input 
+                     type="file" 
+                     accept="video/*" 
+                     className="hidden" 
+                     ref={fileInputRef} 
+                     onChange={handleVideoUpload} 
+                   />
+                   <button 
+                     onClick={() => fileInputRef.current?.click()}
+                     disabled={isUploadingVideo}
+                     className="w-full py-2.5 rounded-full bg-pink-500 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-70"
+                   >
+                     {isUploadingVideo ? (
+                        <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                     ) : (
+                        <Camera className="w-5 h-5" />
+                     )}
+                     {isUploadingVideo ? "Uploading..." : "Upload Unboxing Video"}
+                   </button>
+                   
+                   <button
+                     onClick={() => setShowDisputeModal(true)}
+                     className="w-full py-2.5 rounded-full bg-lily text-white font-bold hover:bg-lily/90 transition-colors"
+                   >
+                     Report Issue
+                   </button>
+                 </div>
+               )}
+             </>
+          ) : (
+             <>
+               <button 
+                 className="w-full py-2.5 mb-2 rounded-full border-2 border-gray-400 text-gray-500 font-bold bg-transparent"
+                 disabled
+               >
+                 Current Status: {hasDelivered ? "Delivered" : (hasDispatched ? (payload.delivery_type === "pickup" ? "Available for pickup" : "Dispatched") : "Pending")}
+               </button>
+               {!hasDelivered && (
+                 <button 
+                   onClick={() => setShowStatusMenu(!showStatusMenu)}
+                   className="w-full py-2.5 rounded-full border-2 border-pink-400 text-pink-500 font-bold bg-transparent"
+                 >
+                   Change order status
+                 </button>
+               )}
+
+               {showStatusMenu && (
+                 <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
+                   {!hasDelivered && (
+                     <button onClick={handleDeliveredClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                       <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                       <span className="font-medium text-gray-700">Delivered</span>
+                     </button>
+                   )}
+                   {!hasDispatched && !hasDelivered && (
+                     <button onClick={() => handleDispatchUpdate('Dispatched')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                       <ShoppingCart className="w-5 h-5 text-gray-700" />
+                       <span className="font-medium text-gray-700">Available for pickup</span>
+                     </button>
+                   )}
+                   <button onClick={() => handleStatusUpdate('cancelled')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                     <span className="font-medium text-gray-700">Canceled</span>
+                   </button>
+                   <button onClick={() => handleStatusUpdate('refunded')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left">
+                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                     <span className="font-medium text-gray-700">Refunded</span>
+                   </button>
+                 </div>
+               )}
+             </>
+          )}
+        </div>
+
+        {/* Dispute Modal */}
+        {showDisputeModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Report an Issue</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Please select the reason for opening this dispute.
+              </p>
+              
+              <select
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+                className="w-full border-2 border-gray-200 rounded-xl p-3 mb-6 focus:border-lily focus:ring-0 outline-none font-medium text-gray-700"
+              >
+                <option value="" disabled>Select a reason...</option>
+                <option value="item_not_received">Item not received</option>
+                <option value="item_damaged">Item damaged</option>
+                <option value="item_not_as_described">Item not as described</option>
+                <option value="wrong_item_sent">Wrong item sent</option>
+                <option value="seller_fraud">Seller fraud</option>
+              </select>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowDisputeModal(false)}
+                  className="flex-1 py-3 font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleOpenDispute}
+                  disabled={isSubmittingDispute || !disputeReason}
+                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90 disabled:opacity-50"
+                >
+                  {isSubmittingDispute ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PIN Modal */}
+        {showPinModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Enter Delivery PIN</h3>
+              <p className="text-sm text-gray-500 text-center mb-6">
+                Ask the buyer for their 4-digit PIN to confirm delivery.
+              </p>
+              
+              <div className="flex justify-center mb-2">
+                <ShoppingCart className="w-12 h-12 text-lily/20" />
+              </div>
+              
+              <input
+                type="text"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="0000"
+                className="w-full border-2 border-gray-200 rounded-xl p-3 text-center text-2xl font-bold tracking-widest mb-4 focus:border-lily focus:ring-0 outline-none"
+              />
+              
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    setShowPinModal(false);
+                    setPin("");
+                  }}
+                  className="flex-1 py-3 font-bold text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleConfirmDelivery}
+                  disabled={pin.length < 4}
+                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90 disabled:opacity-50"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const SharedProductCard = ({ product, isMine }) => {
   const dispatch = useDispatch();
@@ -164,10 +513,22 @@ const ChatPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Find the actual conversation from Redux to extract the other user's ID
+  const targetConversation = conversations.find((c) => {
+    const otherUser = c.other_user || (String(c.buyer?.id) === String(currentUserId) ? c.seller : c.buyer);
+    return String(c.id) === String(conversationId) || String(otherUser?.id) === String(conversationId);
+  });
+
+  const otherUserId = targetConversation?.other_user?.id || 
+                      (String(targetConversation?.buyer?.id) === String(currentUserId) 
+                        ? targetConversation?.seller?.id 
+                        : targetConversation?.buyer?.id) || 
+                      conversationId;
+
   const { data: fetchedUserProfile } = useQuery({
-    queryKey: ["public-profile", conversationId],
-    queryFn: () => fetchPublicProfile(conversationId),
-    enabled: !!conversationId,
+    queryKey: ["public-profile", otherUserId],
+    queryFn: () => fetchPublicProfile(otherUserId),
+    enabled: !!otherUserId,
   });
 
   // Helper to format last seen or show online
@@ -282,6 +643,11 @@ const ChatPage = () => {
     }
   }, [conversations.length, dispatch]);
 
+  // Fetch orders once when entering chat to satisfy any OrderMessageCard requirements
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, [dispatch]);
+
   // Handle message fetching and polling
   useEffect(() => {
     dispatch(clearConversation());
@@ -302,7 +668,7 @@ const ChatPage = () => {
         } catch (error) {
           console.error("Error fetching conversation messages:", error);
         }
-      }, 5000);
+      }, 25000);
 
       return () => clearInterval(interval);
     }
@@ -352,11 +718,18 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
-      {/* Header */}
+    <div className="fixed inset-0 md:left-64 flex bg-gray-50 z-20">
+      {/* Desktop Messages List Sidebar */}
+      <div className="hidden md:flex w-[350px] border-r border-gray-200 bg-white h-full flex-col shrink-0">
+        <MessagesList />
+      </div>
+
+      {/* Chat View */}
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+        {/* Header */}
       <div className="shrink-0 flex items-center justify-between p-4 bg-white shadow-sm z-20 relative">
         <div className="flex items-center space-x-2">
-          <button onClick={() => navigate(-1)}>
+          <button className="md:hidden" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-8 h-8" />
           </button>
 
@@ -453,6 +826,26 @@ const ChatPage = () => {
           displayMessages.map((msg) => {
             const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
 
+            // Check for order payload first
+            if (
+              typeof msg.content === "string" &&
+              msg.content.startsWith("[ORDER_PAYLOAD]:")
+            ) {
+              try {
+                const payload = JSON.parse(msg.content.replace("[ORDER_PAYLOAD]:", ""));
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <OrderMessageCard payload={payload} isMine={isMine} />
+                  </div>
+                );
+              } catch (e) {
+                console.error("Failed to parse order payload", e);
+              }
+            }
+
             // Check for shared product from backend
             if (msg.product) {
               return (
@@ -461,6 +854,18 @@ const ChatPage = () => {
                   className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                 >
                   <SharedProductCard product={msg.product} isMine={isMine} />
+                </div>
+              );
+            }
+
+            // Check for shared content object
+            if (msg.shared_content) {
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                >
+                  <SharedContentCard content={msg.shared_content} isMine={isMine} />
                 </div>
               );
             }
@@ -489,19 +894,30 @@ const ChatPage = () => {
               }
             }
 
+            // Code for order payload was moved above
+
             return (
               <div
                 key={msg.id}
                 className={`flex ${isMine ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                  className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words ${
                     isMine
                       ? "bg-lily text-white rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
-                  {msg.content}
+                  {msg.is_system_message && (
+                    <p className="text-xs text-gray-400 font-medium mb-1">
+                      System Message
+                    </p>
+                  )}
+                  
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {msg.content}
+                  </p>
+                  
                   <p className="text-[10px] mt-1 opacity-70 text-right">
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -551,7 +967,8 @@ const ChatPage = () => {
         </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ChatPage;

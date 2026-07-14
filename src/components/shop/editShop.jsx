@@ -6,7 +6,7 @@ import { updateShop } from "../../redux/deleteShopSlice";
 import { fetchShopById, clearSelectedShopState } from "../../redux/shopSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import ErrorDisplay from "../common/ErrorDisplay";
-import LoaderSd from "../loaders/loaderSd";
+import { PageSkeleton } from "../loaders/TailoredSkeletons";
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
@@ -216,11 +216,7 @@ const EditShop = () => {
   };
 
   if (fetchStatus === "loading") {
-    return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
-        <LoaderSd />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (fetchStatus === "failed") {

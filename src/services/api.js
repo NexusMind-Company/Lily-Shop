@@ -1918,4 +1918,36 @@ export const deleteVendorAsStaff = async (vendorId, hard = false) => {
   return response.data;
 };
 
+// --- Unboxing System ---
+export const getUnboxingUrl = async (orderId) => {
+  const response = await api.get(`/api/orders/${orderId}/unboxing-upload-url/`);
+  return response.data;
+};
+export const confirmUnboxing = async (orderId, data) => {
+  const response = await api.post(`/api/orders/${orderId}/unboxing-video/confirm/`, data);
+  return response.data;
+};
+
+// --- Disputes System ---
+export const createDispute = async (orderId, data) => {
+  const response = await api.post(`/api/orders/${orderId}/dispute/`, data);
+  return response.data;
+};
+export const uploadEvidence = async (disputeId, data) => {
+  const response = await api.post(`/api/disputes/${disputeId}/evidence/`, data);
+  return response.data;
+};
+
+// --- Messaging System ---
+export const startConversation = async (data) => {
+  // data can be { product_id } or { user_id } depending on API
+  const response = await api.post(`/messages/conversations/start/`, data);
+  return response.data;
+};
+
+export const sendConversationMessage = async (conversationId, data) => {
+  const response = await api.post(`/messages/conversations/${conversationId}/send/`, data);
+  return response.data;
+};
+
 export default api;

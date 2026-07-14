@@ -1,21 +1,22 @@
-import { useState } from "react";
-import { PaymentContext } from "./PaymentContext";
+import { useState, useCallback, createContext } from "react";
+
+export const PaymentContext = createContext(null);
+
+const initialState = {
+  amount: 0,
+  vendorName: "",
+  orderId: null,
+  amountPaid: 0,
+  selectedAddress: null,
+  selectedPaymentMethod: null,
+};
 
 export const PaymentProvider = ({ children }) => {
-  const initialState = {
-    amount: 0,
-    vendorName: "",
-    orderId: null,
-    amountPaid: 0,
-    selectedAddress: null,
-    selectedPaymentMethod: null,
-  };
-
   const [paymentData, setPaymentData] = useState(initialState);
 
-  const resetPaymentData = () => {
+  const resetPaymentData = useCallback(() => {
     setPaymentData(initialState);
-  };
+  }, []);
 
   return (
     <PaymentContext.Provider
