@@ -1,5 +1,5 @@
 // src/pages/OrderSuccessPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchCart } from "../redux/cartSlice";
@@ -11,7 +11,7 @@ const OrderSuccessPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { resetPaymentData } = usePayment();
-  const { order, paymentMethod } = location.state || {};
+  const { order } = location.state || {};
 
   useEffect(() => {
     dispatch(fetchCart());
