@@ -269,7 +269,7 @@ const ProfileOwner = () => {
     const picPath = user.profile_pic;
 
     if (!picPath) return defaultIcon;
-    if (picPath.startsWith("http")) return picPath;
+    if (picPath.startsWith("http") || picPath.startsWith("blob:")) return picPath;
 
     const cleanBase = API_BASE_URL.endsWith("/")
       ? API_BASE_URL.slice(0, -1)
