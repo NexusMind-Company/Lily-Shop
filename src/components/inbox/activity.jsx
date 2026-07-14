@@ -18,6 +18,7 @@ import {
   markAllNotificationsRead,
 } from "../../redux/notificationSlice";
 import BottomNav from "./bottomNav";
+import { ListSkeleton } from "../loaders/TailoredSkeletons";
 
 // Map notification types to icons
 const iconMap = {
@@ -57,6 +58,7 @@ const Activity = () => {
   const [activePage, setActivePage] = useState("inbox");
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     dispatch(fetchNotifications({ page: 1 }));
@@ -114,10 +116,7 @@ const Activity = () => {
       {/* Loading State */}
       <section className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
         {loading && notifications.length === 0 && (
-          <div className="flex flex-col items-center justify-center mt-20">
-            <div className="w-8 h-8 border-2 border-lily border-t-transparent rounded-full animate-spin mb-3"></div>
-            <p className="text-gray-500">Loading activity...</p>
-          </div>
+          <ListSkeleton />
         )}
 
         {/* Error State */}
@@ -148,7 +147,10 @@ const Activity = () => {
         {notifications.map((item) => (
           <div
             key={item.id}
-            onClick={() => handleNotificationClick(item)}
+            onClick={() => {
+              handleNotificationClick(item);
+              setSelectedNotification(item);
+            }}
             className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
               item.read
                 ? "bg-white hover:bg-gray-50"
@@ -171,7 +173,7 @@ const Activity = () => {
                   item.read ? "text-gray-600" : "text-gray-800 font-medium"
                 }`}
               >
-                {item.message}
+                {item.message || item.title || "New notification"}
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 {formatTimeAgo(item.created_at)}
@@ -184,6 +186,40 @@ const Activity = () => {
             )}
           </div>
         ))}
+        
+        {/* Activity Detail Modal */}
+        {selectedNotification && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+              <div className="flex items-center gap-4 mb-5">
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-lily/10">
+                  {iconMap[selectedNotification.type] || <Bell className="text-gray-400 w-7 h-7" />}
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 tracking-tight">
+                    Activity Detail
+                  </h3>
+                  <p className="text-sm text-lily font-semibold">
+                    {formatTimeAgo(selectedNotification.created_at)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <p className="text-lg font-bold text-gray-800 leading-relaxed">
+                  {selectedNotification.message || selectedNotification.title || "New notification"}
+                </p>
+              </div>
+              
+              <button 
+                onClick={() => setSelectedNotification(null)}
+                className="w-full mt-6 py-3.5 font-bold text-white bg-lily hover:bg-lily/90 rounded-xl transition-colors shadow-sm shadow-lily/20"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Load More Button */}
         {next && !loading && (
