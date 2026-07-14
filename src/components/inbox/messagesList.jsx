@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import BottomNav from "./bottomNav";
 import { MessageListSkeleton } from "../common/skeletons";
-import { fetchConversations } from "../../redux/messageConversationSlice";
+import { fetchConversations, searchGlobalMessages } from "../../redux/messageConversationSlice";
 import { shareProductToChat, sendMessage } from "../../services/api";
 
 function MessagesList() {
@@ -22,7 +22,7 @@ function MessagesList() {
   const isProductShare = location.state?.isProduct;
   const isShareMode = !!shareData;
 
-  const { conversations, conversationsLoading, error } = useSelector(
+  const { conversations, conversationsLoading, error, searchResults, searchLoading } = useSelector(
     (state) => state.messages,
   );
 
@@ -36,6 +36,17 @@ function MessagesList() {
 
     return () => clearInterval(interval);
   }, [dispatch]);
+
+  // Debounced global search
+  useEffect(() => {
+    if (!search || search.trim() === "") return;
+    
+    const timeoutId = setTimeout(() => {
+      dispatch(searchGlobalMessages(search));
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [search, dispatch]);
 
   const handleUserSelect = (userId) => {
     if (selectedUsers.includes(userId)) {
@@ -208,7 +219,7 @@ function MessagesList() {
         />
       </section>
 
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-y-auto relative flex flex-col">
         {conversationsLoading && <MessageListSkeleton />}
 
         {!conversationsLoading && error && (
@@ -229,15 +240,21 @@ function MessagesList() {
           </div>
         )}
 
+        {!conversationsLoading && search && (
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 sticky top-0 z-10 flex items-center justify-between shrink-0">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Chats</span>
+          </div>
+        )}
+
         {!conversationsLoading && !error && noSearchResults && (
-          <p className="text-center text-ash mt-8">No results found</p>
+          <p className="text-center text-ash mt-4 mb-4 shrink-0">No matching chats</p>
         )}
 
         {!conversationsLoading &&
           !error &&
           filteredConversations.length > 0 && (
-            <section className="px-4 pb-24 overflow-y-auto h-full">
-              <div className="space-y-3 pb-20">
+            <section className="px-4 pb-24 shrink-0">
+              <div className="space-y-3 pb-4">
                 {filteredConversations.map((chat) => (
                   <div
                     key={chat.id}
@@ -322,6 +339,67 @@ function MessagesList() {
               </div>
             </section>
           )}
+
+        {/* Global Message Search Results */}
+        {search && !isShareMode && (
+          <>
+            <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 sticky top-0 z-10 flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Messages</span>
+              {searchLoading && <span className="text-xs text-lily animate-pulse">Searching...</span>}
+            </div>
+            
+            <section className="px-4 pb-24 shrink-0">
+              {!searchLoading && (!searchResults || searchResults.length === 0) && (
+                <p className="text-center text-ash mt-4">No matching messages</p>
+              )}
+              
+              <div className="space-y-3 pb-4 mt-3">
+                {searchResults && searchResults.map((msg) => {
+                  let displayContent = msg.content;
+                  if (typeof displayContent === "string" && displayContent.startsWith("[ORDER_PAYLOAD]:")) {
+                    try {
+                      const payload = JSON.parse(displayContent.replace("[ORDER_PAYLOAD]:", ""));
+                      const productName = payload.items?.[0]?.product?.name || "Product";
+                      displayContent = `Order for ${productName}`;
+                    } catch (e) {
+                      displayContent = "Order Message";
+                    }
+                  }
+                  
+                  return (
+                  <div
+                    key={msg.id}
+                    className="flex items-center justify-between cursor-pointer w-full p-3 rounded-xl transition-colors bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100 shadow-sm"
+                    onClick={() => navigate(`/chat/${msg.other_user_id}?target_message_id=${msg.id}`)}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-full bg-lily flex items-center justify-center overflow-hidden shrink-0">
+                        {msg.other_user_pic ? (
+                          <img src={msg.other_user_pic} alt={msg.other_user_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white font-bold text-lg">
+                            {msg.other_user_name?.charAt(0).toUpperCase() || "?"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold truncate text-gray-700">{msg.other_user_name}</h3>
+                        </div>
+                        <p className="text-sm truncate max-w-50 text-gray-500">
+                          {displayContent}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <p className="text-xs text-gray-400">{getTimeAgo(msg.timestamp || msg.created_at)}</p>
+                    </div>
+                  </div>
+                )})}
+              </div>
+            </section>
+          </>
+        )}
       </div>
 
       {isShareMode && selectedUsers.length > 0 && (

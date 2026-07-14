@@ -498,9 +498,9 @@ const CartPage = () => {
       ? quoteEstimatedTime
       : checkoutDetails?.estimated_delivery_time || localEstimatedDeliveryTime;
 
-  // Calculate Grand Total
+  // Calculate Grand Total (Platform fee excluded per backend requirement)
   const estimatedTotal =
-    finalSubtotal + finalDeliveryFee + finalPlatformFee - appliedDiscount;
+    finalSubtotal + finalDeliveryFee - appliedDiscount;
 
   // EXACT value passed directly
   const backendTotal = estimatedTotal;
