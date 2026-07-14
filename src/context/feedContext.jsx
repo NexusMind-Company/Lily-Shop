@@ -1,13 +1,15 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { api } from "../services/api";
+import { useSelector } from "react-redux";
+import {
+  fetchPersonalizedFeed,
+  fetchTrendingFeed,
+  fetchNearbyFeedV2,
+} from "../services/api";
 import { FeedContext } from "./FeedContext";
 
 const FEED_PAGE_SIZE = 20;
 
-// const fetchFeedPage = async ({ pageParam, activeTab }) => {
-//   // ✅ FIX: default here instead of in the destructure signature
-//   const page = pageParam ?? 1;
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -17,28 +19,40 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
-  const endpoint =
-    activeTab === "nearby" ? "/shops/products/nearby/" : "/shops/feed/";
+const mergeFeedItems = (data) => {
+  if (!data) return [];
 
-  const response = await api.get(endpoint, {
-    params: { page: pageParam, page_size: FEED_PAGE_SIZE },
-  });
+  const content = Array.isArray(data.content) ? data.content : [];
+  const products = Array.isArray(data.products) ? data.products : [];
 
-  const data = response.data;
-  let items = [];
-  let hasMore = false;
+  const allItems = [...content, ...products];
+  return allItems.length > 0 ? shuffleArray(allItems) : [];
+};
 
-  if (data && Array.isArray(data.results) && data.results.length > 0) {
-    items = shuffleArray(data.results);
-    hasMore = !!data.next;
-  } else if (data && Array.isArray(data.feed) && data.feed.length > 0) {
-    items = shuffleArray(data.feed);
-    hasMore = !!data.next;
-  } else if (Array.isArray(data) && data.length > 0) {
-    items = shuffleArray(data);
-    hasMore = data.length === FEED_PAGE_SIZE;
+const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location }) => {
+  const params = { page: pageParam, page_size: FEED_PAGE_SIZE };
+
+  let data;
+
+  if (activeTab === "nearby") {
+    if (location) {
+      data = await fetchNearbyFeedV2({
+        lat: location.lat,
+        lon: location.lon,
+        params,
+      });
+    } else {
+      data = await fetchTrendingFeed(params);
+    }
+  } else {
+    data = isAuthenticated
+      ? await fetchPersonalizedFeed(params)
+      : await fetchTrendingFeed(params);
   }
+
+  const items = mergeFeedItems(data);
+
+  const hasMore = items.length === FEED_PAGE_SIZE;
 
   return {
     items,
@@ -50,8 +64,28 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab }) => {
 export const FeedProvider = ({ children }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [activeTab, setActiveTab] = useState("forYou");
+  const [location, setLocation] = useState(null);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
   const scrollPositionRef = useRef(0);
   const lastViewedPostRef = useRef(null);
+
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+      },
+      () => {
+        setLocationPermissionDenied(true);
+      },
+    );
+  }, []);
 
   const {
     data,
@@ -64,19 +98,15 @@ export const FeedProvider = ({ children }) => {
     error,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["feed", activeTab],
-    queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, activeTab }),
-    // ✅ FIX: removed initialPageParam (v4 doesn't support it).
-    // pageParam defaults to undefined → fetchFeedPage handles it with ?? 1
+    queryKey: ["feed", activeTab, isAuthenticated, !!location],
+    queryFn: ({ pageParam }) =>
+      fetchFeedPage({ pageParam, activeTab, isAuthenticated, location }),
     getNextPageParam: (lastPage) => {
-      // ✅ FIX: guard against undefined lastPage (crash source)
       if (!lastPage) return undefined;
       return lastPage.hasMore ? lastPage.nextPage : undefined;
     },
     staleTime: 0,
     gcTime: 1000 * 60 * 10,
-    // ✅ If on v4, gcTime is called cacheTime instead:
-    // cacheTime: 1000 * 60 * 10,
   });
 
   const posts = useMemo(() => {
@@ -126,6 +156,8 @@ export const FeedProvider = ({ children }) => {
       activeTab,
       setActiveTab,
       scrollPositionRef,
+      location,
+      locationPermissionDenied,
     }),
     [
       posts,
@@ -142,6 +174,8 @@ export const FeedProvider = ({ children }) => {
       getRestoreIndex,
       isMuted,
       activeTab,
+      location,
+      locationPermissionDenied,
     ],
   );
 

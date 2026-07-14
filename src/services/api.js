@@ -261,6 +261,23 @@ export const fetchNearbyFeed = async (params = {}) => {
   return response.data;
 };
 
+export const fetchPersonalizedFeed = async (params = {}) => {
+  const response = await api.get("/api/feed/", { params });
+  return response.data;
+};
+
+export const fetchTrendingFeed = async (params = {}) => {
+  const response = await api.get("/api/feed/trending/", { params });
+  return response.data;
+};
+
+export const fetchNearbyFeedV2 = async ({ lat, lon, radius = 50, params = {} }) => {
+  const response = await api.get("/api/feed/nearby/", {
+    params: { lat, lon, radius, ...params },
+  });
+  return response.data;
+};
+
 export const fetchProductDetails = async (productId) => {
   const response = await api.get(`/shops/products/${productId}/`);
   return response.data;
