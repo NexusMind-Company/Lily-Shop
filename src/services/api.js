@@ -529,6 +529,11 @@ export const createOrder = async (orderData) => {
   }
 };
 
+export const getOrderById = async (orderId) => {
+  const response = await api.get(`/orders/${orderId}/`);
+  return response.data;
+};
+
 export const initiateBankTransfer = async ({ amount, vendorName }) => {
   const response = await api.post("/payment/initiate-bank-transfer", {
     amount,

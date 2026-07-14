@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import {
   Camera,
   SendHorizontal,
@@ -20,6 +20,7 @@ import {
   sendMessageToUser,
   clearConversation,
   fetchConversations,
+  markMessageAsRead,
 } from "../../redux/messageConversationSlice";
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
@@ -28,18 +29,19 @@ import { fetchOrders, selectOrders } from "../../redux/orderSlice";
 import { api } from "../../services/api";
 import MessagesList from "./messagesList";
 
-const OrderMessageCard = ({ payload, isMine }) => {
-  const dispatch = useDispatch();
+const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const orders = useSelector(selectOrders);
 
   const firstItem = payload.items?.[0] || {};
   const product = firstItem.product || {};
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [liveOrderData, setLiveOrderData] = useState(null);
   
   // Try to find image
   const imageUrl = product.image_url || product.media?.[0]?.file || "/placeholder.png";
 
-  const address = payload.delivery_address || {};
+  const activePayload = liveOrderData || payload;
+  const address = activePayload.delivery_address || {};
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState("");
@@ -73,7 +75,21 @@ const OrderMessageCard = ({ payload, isMine }) => {
     }
   };
 
-  const rawStatus = orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending";
+  useEffect(() => {
+    // Only fetch if it looks like a UUID to avoid 404s on legacy string references
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderIdKey);
+    if (orderIdKey && isUUID) {
+      api.get(`/orders/${orderIdKey}/`)
+        .then(res => {
+          if (res.data) {
+            setLiveOrderData(res.data);
+          }
+        })
+        .catch(err => console.error("Failed to fetch live order details", err));
+    }
+  }, [orderIdKey]);
+
+  const rawStatus = liveOrderData?.status || orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending";
   const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
 
   const handleVideoUpload = async (e) => {
@@ -163,26 +179,27 @@ const OrderMessageCard = ({ payload, isMine }) => {
         <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
         <p>Qty: {firstItem.quantity || 1}</p>
         {(firstItem.color || firstItem.variant) && <p>Color: {firstItem.color || firstItem.variant}</p>}
-        <p>Delivery fee: ₦{Number(payload.delivery_fee || 0).toLocaleString()}</p>
-        {payload.estimated_time && (
-          <p className="text-pink-600 font-medium">ETA: {payload.estimated_time}</p>
+        <p>Delivery fee: ₦{Number(activePayload.delivery_fee || 0).toLocaleString()}</p>
+        {(activePayload.estimated_delivery_time || activePayload.estimated_time) && (
+          <p className="text-pink-600 font-medium">ETA: {activePayload.estimated_delivery_time || activePayload.estimated_time}</p>
         )}
         
-        {payload.delivery_type === "pickup" ? (
+        {activePayload.delivery_type === "pickup" ? (
            <>
              <p className="font-bold mt-2 text-[13px]">Pickup location</p>
-             <p className="font-bold">{payload.pickup_location?.name || "Pickup center"}</p>
-             <p>{payload.pickup_location?.address}</p>
+             <p className="font-bold">{activePayload.pickup_location?.name || "Pickup center"}</p>
+             <p>{activePayload.pickup_location?.address}</p>
            </>
         ) : (
           <>
-            <p className="font-bold mt-2 text-[13px]">Delivery address</p>
+            <p className="font-bold mt-2 text-[13px] border-t border-gray-200 pt-2">Delivery Details</p>
             {typeof address === 'string' ? (
               <p>{address}</p>
             ) : (
-              <>
-                <p className="font-bold">{address.name || payload.buyer_name || payload.customer_name || "Customer"} {address.phone || payload.phone || ""}</p>
-                <p>{address.street || address.address || "No address provided"}</p>
+              <div className="flex flex-col gap-0.5 mt-1 text-[13px]">
+                <p><span className="text-gray-500 font-medium mr-1">Name:</span>{address.name || (activePayload.buyer_name && activePayload.buyer_name !== "Customer" ? activePayload.buyer_name : null) || activePayload.customer_name || otherUserName || "Customer"}</p>
+                <p><span className="text-gray-500 font-medium mr-1">Phone:</span>{address.phone_number || address.phone || activePayload.buyer_phone || activePayload.phone || "Not provided"}</p>
+                <p><span className="text-gray-500 font-medium mr-1">Address:</span>{address.street_address || address.street || address.address || "Not provided"}</p>
                 
                 {address.landmark && (
                   <>
@@ -197,7 +214,7 @@ const OrderMessageCard = ({ payload, isMine }) => {
                     <p>{address.description}</p>
                   </>
                 )}
-              </>
+              </div>
             )}
           </>
         )}
@@ -490,6 +507,9 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { conversationId } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const targetMessageId = searchParams.get("target_message_id");
 
   const {
     messages: conversation,
@@ -654,30 +674,53 @@ const ChatPage = () => {
 
     if (conversationId) {
       dispatch(
-        fetchConversationMessages({ userId: conversationId, page: 1 }),
-      ).catch((error) => {
+        fetchConversationMessages({ userId: conversationId, page: 1, target_message_id: targetMessageId }),
+      ).then(() => {
+        // If jumping to a message, wait for render then scroll to it
+        if (targetMessageId) {
+          setTimeout(() => {
+            const targetElement = document.getElementById(`msg-${targetMessageId}`);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 300);
+        }
+      }).catch((error) => {
         console.error("Error fetching conversation messages:", error);
       });
 
-      // Polling for new messages every 5 seconds
-      const interval = setInterval(() => {
-        try {
-          dispatch(
-            fetchConversationMessages({ userId: conversationId, page: 1 }),
-          );
-        } catch (error) {
-          console.error("Error fetching conversation messages:", error);
-        }
-      }, 25000);
-
-      return () => clearInterval(interval);
+      // Polling for new messages every 25 seconds (disable if viewing targeted history to prevent jump)
+      if (!targetMessageId) {
+        const interval = setInterval(() => {
+          try {
+            dispatch(
+              fetchConversationMessages({ userId: conversationId, page: 1 }),
+            );
+          } catch (error) {
+            console.error("Error fetching conversation messages:", error);
+          }
+        }, 25000);
+        return () => clearInterval(interval);
+      }
     }
-  }, [conversationId, dispatch]);
+  }, [conversationId, targetMessageId, dispatch]);
 
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages]);
+
+  // Mark incoming unread messages as read
+  useEffect(() => {
+    const unreadMessages = displayMessages.filter((msg) => {
+      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+      return !isMine && msg.read === false;
+    });
+
+    unreadMessages.forEach((msg) => {
+      dispatch(markMessageAsRead(msg.id));
+    });
+  }, [displayMessages, currentUserId, dispatch]);
 
   //  Load more messages on scroll top
   const handleScroll = () => {
@@ -838,7 +881,7 @@ const ChatPage = () => {
                     key={msg.id}
                     className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                   >
-                    <OrderMessageCard payload={payload} isMine={isMine} />
+                    <OrderMessageCard payload={payload} isMine={isMine} otherUserName={recipientData?.name} />
                   </div>
                 );
               } catch (e) {
@@ -899,10 +942,15 @@ const ChatPage = () => {
             return (
               <div
                 key={msg.id}
-                className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                id={`msg-${msg.id}`}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} ${String(msg.id) === targetMessageId ? "animate-pulse" : ""}`}
               >
                 <div
-                  className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words ${
+                  className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words transition-colors duration-1000 ${
+                    String(msg.id) === targetMessageId
+                      ? "ring-4 ring-yellow-400 ring-opacity-50"
+                      : ""
+                  } ${
                     isMine
                       ? "bg-lily text-white rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"

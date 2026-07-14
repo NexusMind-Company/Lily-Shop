@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useCallback, createContext } from "react";
 
 export const PaymentContext = createContext(null);

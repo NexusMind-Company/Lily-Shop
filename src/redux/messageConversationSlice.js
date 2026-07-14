@@ -4,15 +4,20 @@ import { api } from "../services/api";
 // Fetch paginated messages but flatten into one list
 export const fetchConversationMessages = createAsyncThunk(
   "messages/fetchConversationMessages",
-  async ({ userId, page = 1 }, { rejectWithValue }) => {
+  async ({ userId, page = 1, target_message_id = null }, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/messages/user/${userId}/?page=${page}`);
+      let url = `/messages/user/${userId}/?page=${page}`;
+      if (target_message_id) {
+        url += `&target_message_id=${target_message_id}`;
+      }
+      const res = await api.get(url);
 
       return {
         messages: res.data.results || res.data, // Handle paginated or non-paginated response
         nextPage: res.data.next,
         page,
-        userId
+        userId,
+        target_message_id
       };
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to fetch messages");
@@ -35,6 +40,19 @@ export const fetchConversations = createAsyncThunk(
   }
 );
 
+// Global search messages
+export const searchGlobalMessages = createAsyncThunk(
+  "messages/searchGlobalMessages",
+  async (query, { rejectWithValue }) => {
+    try {
+      const res = await api.get(`/messages/search/?q=${query}`);
+      return res.data.results || res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to search messages");
+    }
+  }
+);
+
 // Send Message API
 export const sendMessageToUser = createAsyncThunk(
   "messages/sendMessageToUser",
@@ -47,6 +65,19 @@ export const sendMessageToUser = createAsyncThunk(
       return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to send message");
+    }
+  }
+);
+
+// Mark Message as Read
+export const markMessageAsRead = createAsyncThunk(
+  "messages/markMessageAsRead",
+  async (messageId, { rejectWithValue }) => {
+    try {
+      const res = await api.post(`/messages/${messageId}/read/`);
+      return { messageId, data: res.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to mark as read");
     }
   }
 );
@@ -79,6 +110,8 @@ const messageConversationSlice = createSlice({
     nextPage: null,
     currentPage: 1,
     activeChatUser: null,
+    searchResults: [],
+    searchLoading: false,
   },
   reducers: {
     clearConversation: (state) => {
@@ -117,8 +150,8 @@ const messageConversationSlice = createSlice({
           state.activeChatUser = action.payload.userId;
         }
 
-        // First page loads normally
-        if (action.payload.page === 1) {
+        // First page loads normally, or if we are jumping to a specific target message ID
+        if (action.payload.page === 1 || action.payload.target_message_id) {
           state.messages = action.payload.messages;
         }
         // Next pages prepend older messages (infinite scroll UX)
@@ -161,6 +194,27 @@ const messageConversationSlice = createSlice({
       })
       .addCase(sendMessageToUser.rejected, (state, action) => {
         state.sending = false;
+        state.error = action.payload;
+      })
+      
+      // Mark message as read
+      .addCase(markMessageAsRead.fulfilled, (state, action) => {
+        const msg = state.messages.find((m) => String(m.id) === String(action.payload.messageId));
+        if (msg) {
+          msg.read = true;
+        }
+      })
+      
+      // Global message search
+      .addCase(searchGlobalMessages.pending, (state) => {
+        state.searchLoading = true;
+      })
+      .addCase(searchGlobalMessages.fulfilled, (state, action) => {
+        state.searchLoading = false;
+        state.searchResults = action.payload;
+      })
+      .addCase(searchGlobalMessages.rejected, (state, action) => {
+        state.searchLoading = false;
         state.error = action.payload;
       });
   },
