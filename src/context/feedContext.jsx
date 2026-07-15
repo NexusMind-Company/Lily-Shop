@@ -8,7 +8,7 @@ import {
 } from "../services/api";
 import { FeedContext } from "./FeedContext";
 
-const FEED_PAGE_SIZE = 20;
+const FEED_PAGE_SIZE = 30;
 
 const shuffleArray = (array) => {
   const shuffled = [...array];
@@ -59,7 +59,8 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
 
   const items = mergeFeedItems(data);
 
-  const hasMore = items.length >= FEED_PAGE_SIZE;
+  // Only stop when backend returns nothing — keep loading otherwise
+  const hasMore = items.length > 0;
 
   return {
     items,
@@ -125,7 +126,12 @@ export const FeedProvider = ({ children }) => {
 
   const posts = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap((page) => page?.items ?? []);
+    const seen = new Set();
+    return data.pages.flatMap((page) => (page?.items ?? []).filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    }));
   }, [data]);
 
   const loadMore = useCallback(() => {
