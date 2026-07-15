@@ -22,6 +22,10 @@ const shuffleArray = (array) => {
 const mergeFeedItems = (data) => {
   if (!data) return [];
 
+  // Handle multiple possible API response structures
+  if (Array.isArray(data)) return shuffleArray(data);
+  if (Array.isArray(data.results)) return shuffleArray(data.results);
+
   const content = Array.isArray(data.content) ? data.content : [];
   const products = Array.isArray(data.products) ? data.products : [];
 
@@ -29,7 +33,7 @@ const mergeFeedItems = (data) => {
   return allItems.length > 0 ? shuffleArray(allItems) : [];
 };
 
-const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location }) => {
+const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location, isLocating }) => {
   const params = { page: pageParam, page_size: FEED_PAGE_SIZE };
 
   let data;
@@ -41,6 +45,9 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
         lon: location.lon,
         params,
       });
+    } else if (isLocating) {
+      // Location still loading - return empty, don't fall back to trending
+      return { items: [], nextPage: null, hasMore: false };
     } else {
       data = await fetchTrendingFeed(params);
     }
@@ -52,7 +59,7 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
 
   const items = mergeFeedItems(data);
 
-  const hasMore = items.length === FEED_PAGE_SIZE;
+  const hasMore = items.length >= FEED_PAGE_SIZE;
 
   return {
     items,
@@ -66,13 +73,18 @@ export const FeedProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState("forYou");
   const [location, setLocation] = useState(null);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+  const [isLocating, setIsLocating] = useState(true);
   const scrollPositionRef = useRef(0);
   const lastViewedPostRef = useRef(null);
 
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setIsLocating(false);
+      setLocationPermissionDenied(true);
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -80,9 +92,11 @@ export const FeedProvider = ({ children }) => {
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         });
+        setIsLocating(false);
       },
       () => {
         setLocationPermissionDenied(true);
+        setIsLocating(false);
       },
     );
   }, []);
@@ -98,9 +112,9 @@ export const FeedProvider = ({ children }) => {
     error,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["feed", activeTab, isAuthenticated, !!location],
+    queryKey: ["feed", activeTab, isAuthenticated, !!location, isLocating],
     queryFn: ({ pageParam }) =>
-      fetchFeedPage({ pageParam, activeTab, isAuthenticated, location }),
+      fetchFeedPage({ pageParam, activeTab, isAuthenticated, location, isLocating }),
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       return lastPage.hasMore ? lastPage.nextPage : undefined;
@@ -158,6 +172,7 @@ export const FeedProvider = ({ children }) => {
       scrollPositionRef,
       location,
       locationPermissionDenied,
+      isLocating,
     }),
     [
       posts,
@@ -176,6 +191,7 @@ export const FeedProvider = ({ children }) => {
       activeTab,
       location,
       locationPermissionDenied,
+      isLocating,
     ],
   );
 

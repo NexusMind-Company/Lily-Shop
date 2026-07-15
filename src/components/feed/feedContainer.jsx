@@ -22,6 +22,7 @@ const FeedContainer = () => {
     activeTab,
     setActiveTab,
     saveCurrentPost,
+    isLocating,
   } = useFeed();
 
   const [searchParams] = useSearchParams();
@@ -236,6 +237,37 @@ const FeedContainer = () => {
     }
 
     if (!posts || posts.length === 0) {
+      // Show locating state for nearby tab while geolocation is loading
+      if (activeTab === "nearby" && isLocating) {
+        return (
+          <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
+            <svg
+              className="w-16 h-16 mb-4 opacity-50 animate-pulse"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <h2 className="text-xl font-bold mb-2">Getting your location...</h2>
+            <p className="text-sm opacity-70">
+              Finding posts and sellers near you.
+            </p>
+          </div>
+        );
+      }
+
       return (
         <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
           <svg
