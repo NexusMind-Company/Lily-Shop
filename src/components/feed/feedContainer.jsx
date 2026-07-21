@@ -31,7 +31,6 @@ const FeedContainer = () => {
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
   const observerRef = useRef(null);
-  const loadMoreTriggerRef = useRef(null);
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -71,60 +70,39 @@ const FeedContainer = () => {
   // ========================================
   // VIDEO INTERSECTION OBSERVER
   // ========================================
-  useEffect(() => {
-    // The individual FeedItem components now handle their own play/pause
-    // logic using the `isActive` prop. This observer is no longer
-    // responsible for triggering playback to avoid race conditions.
-    const observer = new IntersectionObserver(
-      () => {
-        // No-op: Playback is now driven by `isActive` prop in FeedItem
-      },
-      { threshold: 0.8 },
-    );
-
-    observerRef.current = observer;
-
-    const currentMediaRefs = mediaRefs.current;
-    return () => {
-      observer.disconnect();
-      currentMediaRefs.clear();
-    };
-  }, []);
-
-  // ========================================
-  // VIDEO REGISTRATION
+  // VIDEO REGISTRATION (no-op observer removed — playback driven by isActive)
   // ========================================
   const handleVideoInit = useCallback((mediaObject) => {
     if (mediaObject) {
       mediaRefs.current.add(mediaObject);
-      const domNode = mediaObject.getDOMNode
-        ? mediaObject.getDOMNode()
-        : mediaObject;
-      if (domNode && observerRef.current) {
-        observerRef.current.observe(domNode);
-      }
     }
   }, []);
 
   // ========================================
-  // INFINITE SCROLL TRIGGER
+  // INFINITE SCROLL TRIGGER (callback ref)
   // ========================================
-  useEffect(() => {
-    if (!loadMoreTriggerRef.current) return;
+  const sentinelRef = useCallback(
+    (node) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1 },
-    );
+      if (!node) return;
 
-    observer.observe(loadMoreTriggerRef.current);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+            loadMore();
+          }
+        },
+        { threshold: 0.1 },
+      );
 
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, loadMore]);
+      observer.observe(node);
+      observerRef.current = observer;
+    },
+    [hasNextPage, isFetchingNextPage, loadMore],
+  );
 
   // ========================================
   // TRACK CURRENT POST
@@ -350,14 +328,12 @@ const FeedContainer = () => {
         {/* Loading More Indicator */}
         {isFetchingNextPage && <PostCardSkeleton />}
 
-        {/* Infinite Scroll Trigger */}
-        {hasNextPage && !isFetchingNextPage && (
-          <div
-            ref={loadMoreTriggerRef}
-            className="h-4 w-full"
-            style={{ scrollSnapAlign: "none" }}
-          />
-        )}
+        {/* Infinite Scroll Trigger — always render so observer stays attached */}
+        <div
+          ref={hasNextPage ? sentinelRef : undefined}
+          className={`w-full ${hasNextPage ? "h-4" : "h-0"}`}
+          style={{ scrollSnapAlign: "none" }}
+        />
       </div>
     );
   };

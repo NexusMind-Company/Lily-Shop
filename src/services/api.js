@@ -248,7 +248,7 @@ export const fetchAllFeed = async (params = {}) => {
 };
 
 export const fetchProducts = async (params = {}) => {
-  const response = await api.get("/shops/feed/", { params });
+  const response = await api.get("/shops/products/", { params });
   return response.data;
 };
 
@@ -307,7 +307,7 @@ export const searchMealPlans = async (params = {}) => {
 };
 
 export const searchProducts = async (params = {}) => {
-  const response = await api.get("/shops/products/search/", { params });
+  const response = await api.get("/shops/products/", { params });
   return response.data;
 };
 
