@@ -57,7 +57,11 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
   const items = mergeFeedItems(data);
 
   // Check if backend says there are more pages
-  const hasMore = data?.next != null && data?.next !== undefined && data?.next !== "";
+  // Check backend's `next` field first, fall back to item count
+  const hasMore =
+    data?.next != null && data?.next !== undefined && data?.next !== ""
+      ? true
+      : items.length >= FEED_PAGE_SIZE;
 
   return {
     items,
