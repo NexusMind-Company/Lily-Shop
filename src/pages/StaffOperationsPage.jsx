@@ -109,7 +109,7 @@ const StaffOperationsPage = () => {
     mutationFn: markWithdrawalSuccessful,
     onSuccess: () => {
       toast.success("Withdrawal marked as successful");
-      queryClient.invalidateQueries(["staffWithdrawals"]);
+      queryClient.invalidateQueries({ queryKey: ["staffWithdrawals"] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to update status");
@@ -120,7 +120,7 @@ const StaffOperationsPage = () => {
     mutationFn: markWithdrawalUnsuccessful,
     onSuccess: () => {
       toast.success("Withdrawal marked as failed");
-      queryClient.invalidateQueries(["staffWithdrawals"]);
+      queryClient.invalidateQueries({ queryKey: ["staffWithdrawals"] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to update status");
@@ -131,7 +131,7 @@ const StaffOperationsPage = () => {
     mutationFn: ({ vendorId, hard }) => deleteVendorAsStaff(vendorId, hard),
     onSuccess: (_, { hard }) => {
       toast.success(`Vendor ${hard ? "permanently" : "soft"} deleted`);
-      queryClient.invalidateQueries(["staffVendors"]);
+      queryClient.invalidateQueries({ queryKey: ["staffVendors"] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to delete vendor");

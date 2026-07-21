@@ -456,7 +456,7 @@ const ShopDetails = () => {
               shopId={id}
               shopName={shop?.name}
               onReviewSubmitted={() => {
-                queryClient.invalidateQueries(["shopReviews", id]);
+                queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
                 dispatch(fetchShopById(id));
               }}
             />
@@ -468,7 +468,7 @@ const ShopDetails = () => {
               onClose={() => setEditingReview(null)}
               review={editingReview}
               onReviewUpdated={() => {
-                queryClient.invalidateQueries(["shopReviews", id]);
+                queryClient.invalidateQueries({ queryKey: ["shopReviews", id] });
                 dispatch(fetchShopById(id));
               }}
             />

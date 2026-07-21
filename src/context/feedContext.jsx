@@ -41,7 +41,19 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
   const items = mergeFeedItems(data);
   const hasMore = data?.next != null && data?.next !== undefined && data?.next !== "";
 
-  return { items, nextPage: hasMore ? pageParam + 1 : null, hasMore };
+  // Collect IDs so we can detect duplicate pages from the backend
+  const itemIds = new Set(items.map((item) => item.id));
+
+  const contentCount = Array.isArray(data?.content) ? data.content.length : 0;
+  const productCount = Array.isArray(data?.products) ? data.products.length : 0;
+  const hasMore = contentCount > 0 || productCount > 0;
+
+  return {
+    items,
+    itemIds: [...itemIds],
+    nextPage: hasMore ? pageParam + 1 : null,
+    hasMore,
+  };
 };
 
 export const FeedProvider = ({ children }) => {
@@ -87,8 +99,23 @@ export const FeedProvider = ({ children }) => {
     queryKey: ["feed", activeTab, isAuthenticated, !!location, isLocating],
     queryFn: ({ pageParam }) =>
       fetchFeedPage({ pageParam, activeTab, isAuthenticated, location, isLocating }),
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || !lastPage.hasMore) return undefined;
+
+      // Detect duplicate responses: if every ID in the latest page
+      // already appeared in previous pages, the backend isn't actually
+      // paginating — stop fetching to prevent infinite loops.
+      if (allPages.length > 1) {
+        const previousIds = new Set(
+          allPages
+            .slice(0, -1)
+            .flatMap((page) => page?.itemIds ?? []),
+        );
+        const newIds = lastPage.itemIds ?? [];
+        const allDuplicates =
+          newIds.length > 0 && newIds.every((id) => previousIds.has(id));
+        if (allDuplicates) return undefined;
+      }
       return lastPage.nextPage;
     },
     initialPageParam: 1,
@@ -98,14 +125,15 @@ export const FeedProvider = ({ children }) => {
 
   const posts = useMemo(() => {
     if (!data?.pages) return [];
+    // Deduplicate by ID to prevent repeated items in the feed
     const seen = new Set();
-    return data.pages.flatMap((page) =>
-      (page?.items ?? []).filter((item) => {
+    return data.pages
+      .flatMap((page) => page?.items ?? [])
+      .filter((item) => {
         if (seen.has(item.id)) return false;
         seen.add(item.id);
         return true;
-      }),
-    );
+      });
   }, [data]);
 
   const loadMore = useCallback(() => {
