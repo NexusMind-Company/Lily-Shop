@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import {
   fetchPersonalizedFeed,
@@ -7,17 +7,6 @@ import {
   fetchNearbyFeedV2,
 } from "../services/api";
 import { FeedContext } from "./FeedContext";
-
-const FEED_PAGE_SIZE = 20;
-
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
 
 const mergeFeedItems = (data) => {
   if (!data) return [];
@@ -31,43 +20,24 @@ const mergeFeedItems = (data) => {
   return [...content, ...products];
 };
 
-const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location, isLocating }) => {
-  const params = { page: pageParam, page_size: FEED_PAGE_SIZE };
-
-  let data;
-
+const fetchFeedData = async ({ activeTab, isAuthenticated, location, isLocating }) => {
   if (activeTab === "nearby") {
     if (location) {
-      data = await fetchNearbyFeedV2({
+      return fetchNearbyFeedV2({
         lat: location.lat,
         lon: location.lon,
-        params,
+        params: {},
       });
     } else if (isLocating) {
-      return { items: [], nextPage: null, hasMore: false };
+      return [];
     } else {
-      data = await fetchTrendingFeed(params);
+      return fetchTrendingFeed({});
     }
   } else {
-    data = isAuthenticated
-      ? await fetchPersonalizedFeed(params)
-      : await fetchTrendingFeed(params);
+    return isAuthenticated
+      ? fetchPersonalizedFeed({})
+      : fetchTrendingFeed({});
   }
-
-  const items = mergeFeedItems(data);
-
-  // Check if backend says there are more pages
-  // Check backend's `next` field first, fall back to item count
-  const hasMore =
-    data?.next != null && data?.next !== undefined && data?.next !== ""
-      ? true
-      : items.length >= FEED_PAGE_SIZE;
-
-  return {
-    items,
-    nextPage: hasMore ? pageParam + 1 : null,
-    hasMore,
-  };
 };
 
 export const FeedProvider = ({ children }) => {
@@ -105,44 +75,21 @@ export const FeedProvider = ({ children }) => {
 
   const {
     data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
     isLoading,
     isError,
     isFetching,
     error,
     refetch,
-  } = useInfiniteQuery({
+  } = useQuery({
     queryKey: ["feed", activeTab, isAuthenticated, !!location, isLocating],
-    queryFn: ({ pageParam }) =>
-      fetchFeedPage({ pageParam, activeTab, isAuthenticated, location, isLocating }),
-    getNextPageParam: (lastPage) => {
-      if (!lastPage) return undefined;
-      return lastPage.hasMore ? lastPage.nextPage : undefined;
-    },
-    initialPageParam: 1,
+    queryFn: () => fetchFeedData({ activeTab, isAuthenticated, location, isLocating }),
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 10,
   });
 
   const posts = useMemo(() => {
-    if (!data?.pages) return [];
-    const seen = new Set();
-    return data.pages.flatMap((page) =>
-      (page?.items ?? []).filter((item) => {
-        if (seen.has(item.id)) return false;
-        seen.add(item.id);
-        return true;
-      }),
-    );
+    return mergeFeedItems(data);
   }, [data]);
-
-  const loadMore = useCallback(() => {
-    if (!isFetchingNextPage && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const refreshFeed = useCallback(async () => {
     await refetch();
@@ -169,9 +116,6 @@ export const FeedProvider = ({ children }) => {
       isError,
       isFetching,
       error: error?.message,
-      loadMore,
-      hasNextPage,
-      isFetchingNextPage,
       refreshFeed,
       toggleMute,
       saveCurrentPost,
@@ -190,9 +134,6 @@ export const FeedProvider = ({ children }) => {
       isError,
       isFetching,
       error,
-      loadMore,
-      hasNextPage,
-      isFetchingNextPage,
       refreshFeed,
       toggleMute,
       saveCurrentPost,

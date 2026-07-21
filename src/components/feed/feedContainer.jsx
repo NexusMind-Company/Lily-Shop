@@ -6,6 +6,7 @@ import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 import { FiRefreshCw, FiWifiOff } from "react-icons/fi";
 import { motion } from "framer-motion";
+
 const FeedContainer = () => {
   const {
     posts,
@@ -13,9 +14,6 @@ const FeedContainer = () => {
     isFetching,
     isError,
     error,
-    loadMore,
-    hasNextPage,
-    isFetchingNextPage,
     refreshFeed,
     scrollPositionRef,
     activeTab,
@@ -35,9 +33,6 @@ const FeedContainer = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const [hasScrolledToShared, setHasScrolledToShared] = useState(false);
 
-  // ========================================
-  // SCROLL TO SHARED POST
-  // ========================================
   useEffect(() => {
     if (
       sharedPostId &&
@@ -65,18 +60,12 @@ const FeedContainer = () => {
     }
   }, [posts, sharedPostId, hasScrolledToShared]);
 
-  // ========================================
-  // VIDEO REGISTRATION
-  // ========================================
   const handleVideoInit = useCallback((mediaObject) => {
     if (mediaObject) {
       mediaRefs.current.add(mediaObject);
     }
   }, []);
 
-  // ========================================
-  // TRACK CURRENT POST + LOAD MORE
-  // ========================================
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || posts.length === 0) return;
@@ -100,25 +89,8 @@ const FeedContainer = () => {
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [
-    posts,
-    scrollPositionRef,
-    saveCurrentPost,
-    currentPostIndex,
-    isRefreshing,
-  ]);
+  }, [posts, scrollPositionRef, saveCurrentPost, currentPostIndex, isRefreshing]);
 
-  // Load more when user reaches second-to-last post
-  useEffect(() => {
-    if (posts.length === 0) return;
-    if (currentPostIndex >= posts.length - 2 && hasNextPage && !isFetchingNextPage) {
-      loadMore();
-    }
-  }, [currentPostIndex, posts.length, hasNextPage, isFetchingNextPage, loadMore]);
-
-  // ========================================
-  // PULL TO REFRESH
-  // ========================================
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
 
@@ -158,9 +130,6 @@ const FeedContainer = () => {
     isPulling.current = false;
   }, [pullDistance, refreshFeed]);
 
-  // ========================================
-  // RENDER CONTENT
-  // ========================================
   const renderContent = () => {
     if (isLoading && posts.length === 0) {
       return (
@@ -193,7 +162,6 @@ const FeedContainer = () => {
     }
 
     if (!posts || posts.length === 0) {
-      // Show locating state for nearby tab while geolocation is loading
       if (activeTab === "nearby" && isLocating) {
         return (
           <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
@@ -259,7 +227,6 @@ const FeedContainer = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Pull to Refresh Indicator */}
         {pullDistance > 0 && (
           <div
             className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30"
@@ -273,8 +240,7 @@ const FeedContainer = () => {
           </div>
         )}
 
-        {/* Background Refresh Indicator */}
-        {isFetching && !isLoading && !isFetchingNextPage && !isRefreshing && (
+        {isFetching && !isLoading && !isRefreshing && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-40">
             <motion.div
               initial={{ y: -20, opacity: 0 }}
@@ -292,7 +258,6 @@ const FeedContainer = () => {
           </div>
         )}
 
-        {/* Feed Items */}
         {posts.map((post, index) => (
           <div key={post.id} className="h-full w-full snap-start snap-always shrink-0">
             <FeedItem
@@ -302,9 +267,6 @@ const FeedContainer = () => {
             />
           </div>
         ))}
-
-        {/* Loading More Indicator */}
-        {isFetchingNextPage && <PostCardSkeleton />}
       </div>
     );
   };
