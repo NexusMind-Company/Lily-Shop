@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import {
   fetchPersonalizedFeed,
@@ -8,36 +8,40 @@ import {
 } from "../services/api";
 import { FeedContext } from "./FeedContext";
 
+const LARGE_PAGE_SIZE = 100;
+
 const mergeFeedItems = (data) => {
   if (!data) return [];
-
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.results)) return data.results;
-
   const content = Array.isArray(data.content) ? data.content : [];
   const products = Array.isArray(data.products) ? data.products : [];
-
   return [...content, ...products];
 };
 
-const fetchFeedData = async ({ activeTab, isAuthenticated, location, isLocating }) => {
+const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location, isLocating }) => {
+  const params = { page: pageParam, page_size: LARGE_PAGE_SIZE };
+
+  let data;
+
   if (activeTab === "nearby") {
     if (location) {
-      return fetchNearbyFeedV2({
-        lat: location.lat,
-        lon: location.lon,
-        params: {},
-      });
+      data = await fetchNearbyFeedV2({ lat: location.lat, lon: location.lon, params });
     } else if (isLocating) {
-      return [];
+      return { items: [], nextPage: null, hasMore: false };
     } else {
-      return fetchTrendingFeed({});
+      data = await fetchTrendingFeed(params);
     }
   } else {
-    return isAuthenticated
-      ? fetchPersonalizedFeed({})
-      : fetchTrendingFeed({});
+    data = isAuthenticated
+      ? await fetchPersonalizedFeed(params)
+      : await fetchTrendingFeed(params);
   }
+
+  const items = mergeFeedItems(data);
+  const hasMore = data?.next != null && data?.next !== undefined && data?.next !== "";
+
+  return { items, nextPage: hasMore ? pageParam + 1 : null, hasMore };
 };
 
 export const FeedProvider = ({ children }) => {
@@ -57,13 +61,9 @@ export const FeedProvider = ({ children }) => {
       setLocationPermissionDenied(true);
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
+        setLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
         setIsLocating(false);
       },
       () => {
@@ -75,21 +75,44 @@ export const FeedProvider = ({ children }) => {
 
   const {
     data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     isError,
     isFetching,
     error,
     refetch,
-  } = useQuery({
+  } = useInfiniteQuery({
     queryKey: ["feed", activeTab, isAuthenticated, !!location, isLocating],
-    queryFn: () => fetchFeedData({ activeTab, isAuthenticated, location, isLocating }),
+    queryFn: ({ pageParam }) =>
+      fetchFeedPage({ pageParam, activeTab, isAuthenticated, location, isLocating }),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || !lastPage.hasMore) return undefined;
+      return lastPage.nextPage;
+    },
+    initialPageParam: 1,
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 10,
   });
 
   const posts = useMemo(() => {
-    return mergeFeedItems(data);
+    if (!data?.pages) return [];
+    const seen = new Set();
+    return data.pages.flatMap((page) =>
+      (page?.items ?? []).filter((item) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      }),
+    );
   }, [data]);
+
+  const loadMore = useCallback(() => {
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const refreshFeed = useCallback(async () => {
     await refetch();
@@ -116,6 +139,9 @@ export const FeedProvider = ({ children }) => {
       isError,
       isFetching,
       error: error?.message,
+      loadMore,
+      hasNextPage,
+      isFetchingNextPage,
       refreshFeed,
       toggleMute,
       saveCurrentPost,
@@ -134,6 +160,9 @@ export const FeedProvider = ({ children }) => {
       isError,
       isFetching,
       error,
+      loadMore,
+      hasNextPage,
+      isFetchingNextPage,
       refreshFeed,
       toggleMute,
       saveCurrentPost,

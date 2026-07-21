@@ -14,6 +14,9 @@ const FeedContainer = () => {
     isFetching,
     isError,
     error,
+    loadMore,
+    hasNextPage,
+    isFetchingNextPage,
     refreshFeed,
     scrollPositionRef,
     activeTab,
@@ -90,6 +93,13 @@ const FeedContainer = () => {
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, [posts, scrollPositionRef, saveCurrentPost, currentPostIndex, isRefreshing]);
+
+  useEffect(() => {
+    if (posts.length === 0) return;
+    if (currentPostIndex >= posts.length - 2 && hasNextPage && !isFetchingNextPage) {
+      loadMore();
+    }
+  }, [currentPostIndex, posts.length, hasNextPage, isFetchingNextPage, loadMore]);
 
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
@@ -267,6 +277,24 @@ const FeedContainer = () => {
             />
           </div>
         ))}
+
+        {isFetchingNextPage && (
+          <div className="h-full w-full snap-start snap-always shrink-0 flex items-center justify-center bg-black">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-lily border-t-transparent rounded-full animate-spin" />
+              <span className="text-white/60 text-sm font-medium">Loading more...</span>
+            </div>
+          </div>
+        )}
+
+        {!hasNextPage && posts.length > 0 && (
+          <div className="h-full w-full snap-start snap-always shrink-0 flex items-center justify-center bg-black">
+            <div className="text-center text-white/40">
+              <p className="text-lg font-bold mb-1">You're all caught up</p>
+              <p className="text-sm">Pull down to refresh</p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
