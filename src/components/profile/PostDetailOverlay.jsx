@@ -290,7 +290,7 @@ const PostDetailOverlay = ({
       toast.error("Failed to update follow status");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["profile"]);
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 
