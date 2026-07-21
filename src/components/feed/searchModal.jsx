@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchProducts,
   searchShops,
-  searchContents,
   searchFoodVendors,
   searchMealPlans,
   searchUsers,
@@ -60,23 +59,6 @@ const extractArray = (data) => {
   return [];
 };
 
-const extractContents = (data) => {
-  const arr = extractArray(data);
-  return arr.filter(
-    (item) =>
-      item.post_type === "FUN" ||
-      (!(
-        item.post_type === "PRODUCT" ||
-        item.type?.toLowerCase() === "product" ||
-        item.price_in_naira !== undefined ||
-        item.price !== undefined ||
-        item.name !== undefined ||
-        item.productName !== undefined
-      ) &&
-        item.feed_item_category !== "product"),
-  );
-};
-
 const getInitials = (value = "") => {
   const words = value.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "MP";
@@ -122,46 +104,45 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const buildParams = () => {
     const term = debouncedSearchTerm.trim();
     if (!term) return null;
-    const params = { search: term };
-    if (userLocation) {
-      params.lat = userLocation.lat;
-      params.lon = userLocation.lon;
-    }
-    return params;
+    return { search: term };
+  };
+
+  const buildUserParams = () => {
+    const term = debouncedSearchTerm.trim();
+    if (!term) return null;
+    return { username: term };
+  };
+
+  const buildMealPlanParams = () => {
+    const term = debouncedSearchTerm.trim();
+    if (!term) return null;
+    return { vendor__name: term };
   };
 
   // Immediate reactive queries for each category
   const { data: productResults, isLoading: isSearchingProducts } = useQuery({
-    queryKey: ["searchProducts", debouncedSearchTerm, userLocation],
+    queryKey: ["searchProducts", debouncedSearchTerm],
     queryFn: () => fetchProducts(buildParams()),
     enabled:
       !!debouncedSearchTerm &&
       (activeTab === "Top" || activeTab === "Products"),
-    select: (data) =>
-      extractArray(data).filter(
-        (item) =>
-          item.post_type === "PRODUCT" || item.feed_item_category === "product",
-      ),
+    select: extractArray,
   });
 
   const { data: contentResults, isLoading: isSearchingContents } = useQuery({
-    queryKey: ["searchContents", debouncedSearchTerm, userLocation],
+    queryKey: ["searchContents", debouncedSearchTerm],
     queryFn: async () => {
-      const contentRaw = await searchContents(buildParams());
       const shopRaw = await searchShops(buildParams());
-      return [
-        ...extractArray(shopRaw),
-        ...extractContents({ results: extractArray(contentRaw) }),
-      ];
+      return extractArray(shopRaw);
     },
     enabled:
       !!debouncedSearchTerm &&
-      (activeTab === "Top" || activeTab === "Contents"),
+      (activeTab === "Top" || activeTab === "Shops"),
   });
 
   const { data: foodVendorResults, isLoading: isSearchingFoodVendors } =
     useQuery({
-      queryKey: ["searchFoodVendors", debouncedSearchTerm, userLocation],
+      queryKey: ["searchFoodVendors", debouncedSearchTerm],
       queryFn: () => searchFoodVendors(buildParams()),
       enabled:
         !!debouncedSearchTerm &&
@@ -170,18 +151,18 @@ const SearchModal = ({ isOpen = true, onClose }) => {
     });
 
   const { data: mealPlanResults, isLoading: isSearchingMealPlans } = useQuery({
-    queryKey: ["searchMealPlans", debouncedSearchTerm, userLocation],
-    queryFn: () => searchMealPlans(buildParams()),
+    queryKey: ["searchMealPlans", debouncedSearchTerm],
+    queryFn: () => searchMealPlans(buildMealPlanParams()),
     enabled:
       !!debouncedSearchTerm &&
       (activeTab === "Top" || activeTab === "Meal Plans"),
     select: extractArray,
-    retry: 1, // Reduce retries for this problematic endpoint
+    retry: 1,
   });
 
   const { data: userResults, isLoading: isSearchingUsers } = useQuery({
     queryKey: ["searchUsers", debouncedSearchTerm],
-    queryFn: () => searchUsers({ username: debouncedSearchTerm }),
+    queryFn: () => searchUsers(buildUserParams()),
     enabled:
       !!debouncedSearchTerm && (activeTab === "Top" || activeTab === "Users"),
     select: extractArray,
@@ -340,7 +321,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
       <div className="space-y-4">
         {showHeader && (
           <h3 className="font-bold text-gray-900 text-xs uppercase tracking-widest px-2">
-            Contents
+            Shops
           </h3>
         )}
         <div className="grid grid-cols-2 gap-4">
@@ -349,38 +330,25 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               key={content.id}
               className="cursor-pointer group flex flex-col"
               onClick={() => {
-                navigate(
-                  content.owner
-                    ? `/shop/${content.id}`
-                    : `/contents/${content.id}`,
-                );
+                navigate(`/shop/${content.id}`);
                 onClose();
               }}
             >
               <div className="relative overflow-hidden rounded-2xl bg-gray-50 aspect-square border border-gray-100 shadow-sm">
                 <img
-                  src={
-                    content.image_url ||
-                    content.image ||
-                    (Array.isArray(content.media)
-                      ? content.media[0]
-                      : content.media) ||
-                    "/shop.png"
-                  }
-                  alt={content.name || "Content"}
+                  src={content.image_url || "/shop.png"}
+                  alt={content.name || "Shop"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="mt-2 px-1 space-y-0.5">
                 <p className="text-xs font-bold truncate text-gray-900">
-                  {content.caption || content.name || "Untitled"}
+                  {content.name || "Untitled"}
                 </p>
                 <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium truncate">
-                  <span>{content.user || "User"}</span>
+                  <span>{content.category || "Shop"}</span>
                   <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
-                  <span>{content.post_type}</span>
-                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
-                  <span>{content.like_count || 0} Likes</span>
+                  <span>{content.avg_rating || 0} Rating</span>
                 </div>
               </div>
             </div>
@@ -623,11 +591,11 @@ const SearchModal = ({ isOpen = true, onClose }) => {
             <p className="text-center py-10 text-gray-400">No products found</p>
           )
         );
-      case "Contents":
+      case "Shops":
         if (isSearchingContents) return <SearchGridItemSkeleton />;
         return (
           renderContentList(contentResults, 20, false) || (
-            <p className="text-center py-10 text-gray-400">No contents found</p>
+            <p className="text-center py-10 text-gray-400">No shops found</p>
           )
         );
       case "Food Vendors":
@@ -712,7 +680,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
                   "Top",
                   "Users",
                   "Products",
-                  "Contents",
+                  "Shops",
                   "Food Vendors",
                   "Meal Plans",
                 ].map((tab) => (
