@@ -8,41 +8,25 @@ import {
 } from "../services/api";
 import { FeedContext } from "./FeedContext";
 
-const FEED_PAGE_SIZE = 20;
-
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
+const LARGE_PAGE_SIZE = 100;
 
 const mergeFeedItems = (data) => {
   if (!data) return [];
-
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.results)) return data.results;
-
   const content = Array.isArray(data.content) ? data.content : [];
   const products = Array.isArray(data.products) ? data.products : [];
-
   return [...content, ...products];
 };
 
 const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, location, isLocating }) => {
-  const params = { page: pageParam, page_size: FEED_PAGE_SIZE };
+  const params = { page: pageParam, page_size: LARGE_PAGE_SIZE };
 
   let data;
 
   if (activeTab === "nearby") {
     if (location) {
-      data = await fetchNearbyFeedV2({
-        lat: location.lat,
-        lon: location.lon,
-        params,
-      });
+      data = await fetchNearbyFeedV2({ lat: location.lat, lon: location.lon, params });
     } else if (isLocating) {
       return { items: [], nextPage: null, hasMore: false };
     } else {
@@ -55,19 +39,9 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
   }
 
   const items = mergeFeedItems(data);
+  const hasMore = data?.next != null && data?.next !== undefined && data?.next !== "";
 
-  // Check if backend says there are more pages
-  // Check backend's `next` field first, fall back to item count
-  const hasMore =
-    data?.next != null && data?.next !== undefined && data?.next !== ""
-      ? true
-      : items.length >= FEED_PAGE_SIZE;
-
-  return {
-    items,
-    nextPage: hasMore ? pageParam + 1 : null,
-    hasMore,
-  };
+  return { items, nextPage: hasMore ? pageParam + 1 : null, hasMore };
 };
 
 export const FeedProvider = ({ children }) => {
@@ -87,13 +61,9 @@ export const FeedProvider = ({ children }) => {
       setLocationPermissionDenied(true);
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
+        setLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
         setIsLocating(false);
       },
       () => {
@@ -118,8 +88,8 @@ export const FeedProvider = ({ children }) => {
     queryFn: ({ pageParam }) =>
       fetchFeedPage({ pageParam, activeTab, isAuthenticated, location, isLocating }),
     getNextPageParam: (lastPage) => {
-      if (!lastPage) return undefined;
-      return lastPage.hasMore ? lastPage.nextPage : undefined;
+      if (!lastPage || !lastPage.hasMore) return undefined;
+      return lastPage.nextPage;
     },
     initialPageParam: 1,
     staleTime: 1000 * 60 * 2,
