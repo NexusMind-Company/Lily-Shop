@@ -138,9 +138,10 @@ const EditProfile = () => {
 
       return true;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["userProfileFormData"]);
-      queryClient.invalidateQueries(["userProfile"]);
+    onSuccess: async () => {
+      // React Query v5 requires object syntax for invalidateQueries
+      queryClient.invalidateQueries({ queryKey: ["userProfileFormData"] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
 
       let apiGender = null;
       if (form.gender === "Female") apiGender = "F";
@@ -160,7 +161,9 @@ const EditProfile = () => {
 
       dispatch(updateProfileData(optimisticUpdate));
 
-      dispatch(fetchProfile());
+      // Await fresh profile data from the server before navigating back,
+      // so the profile page has updated Redux state on mount.
+      await dispatch(fetchProfile());
       toast.success("Profile updated successfully!");
       navigate(-1);
     },
