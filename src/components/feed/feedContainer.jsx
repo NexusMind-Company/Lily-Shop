@@ -30,16 +30,12 @@ const FeedContainer = () => {
 
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
-  const observerRef = useRef(null);
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [hasScrolledToShared, setHasScrolledToShared] = useState(false);
 
-  // ========================================
-  // SCROLL TO SHARED POST
-  // ========================================
   useEffect(() => {
     if (
       sharedPostId &&
@@ -67,46 +63,12 @@ const FeedContainer = () => {
     }
   }, [posts, sharedPostId, hasScrolledToShared]);
 
-  // ========================================
-  // VIDEO INTERSECTION OBSERVER
-  // ========================================
-  // VIDEO REGISTRATION (no-op observer removed — playback driven by isActive)
-  // ========================================
   const handleVideoInit = useCallback((mediaObject) => {
     if (mediaObject) {
       mediaRefs.current.add(mediaObject);
     }
   }, []);
 
-  // ========================================
-  // INFINITE SCROLL TRIGGER (callback ref)
-  // ========================================
-  const sentinelRef = useCallback(
-    (node) => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-
-      if (!node) return;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-            loadMore();
-          }
-        },
-        { threshold: 0.1 },
-      );
-
-      observer.observe(node);
-      observerRef.current = observer;
-    },
-    [hasNextPage, isFetchingNextPage, loadMore],
-  );
-
-  // ========================================
-  // TRACK CURRENT POST
-  // ========================================
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || posts.length === 0) return;
@@ -126,31 +88,19 @@ const FeedContainer = () => {
           saveCurrentPost(posts[index].id);
         }
       }
-
-      // snap-mandatory prevents sentinel from entering viewport,
-      // so use scroll position to detect proximity to bottom
-      const nearBottom = scrolled + viewportHeight >= container.scrollHeight - viewportHeight * 1.5;
-      if (nearBottom && hasNextPage && !isFetchingNextPage) {
-        loadMore();
-      }
     };
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [
-    posts,
-    scrollPositionRef,
-    saveCurrentPost,
-    currentPostIndex,
-    isRefreshing,
-    loadMore,
-    hasNextPage,
-    isFetchingNextPage,
-  ]);
+  }, [posts, scrollPositionRef, saveCurrentPost, currentPostIndex, isRefreshing]);
 
-  // ========================================
-  // PULL TO REFRESH
-  // ========================================
+  useEffect(() => {
+    if (posts.length === 0) return;
+    if (currentPostIndex >= posts.length - 2 && hasNextPage && !isFetchingNextPage) {
+      loadMore();
+    }
+  }, [currentPostIndex, posts.length, hasNextPage, isFetchingNextPage, loadMore]);
+
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
 
@@ -190,9 +140,6 @@ const FeedContainer = () => {
     isPulling.current = false;
   }, [pullDistance, refreshFeed]);
 
-  // ========================================
-  // RENDER CONTENT
-  // ========================================
   const renderContent = () => {
     if (isLoading && posts.length === 0) {
       return (
@@ -225,7 +172,6 @@ const FeedContainer = () => {
     }
 
     if (!posts || posts.length === 0) {
-      // Show locating state for nearby tab while geolocation is loading
       if (activeTab === "nearby" && isLocating) {
         return (
           <div className="h-full flex bg-black flex-col items-center justify-center p-4 text-center text-white">
@@ -291,7 +237,6 @@ const FeedContainer = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Pull to Refresh Indicator */}
         {pullDistance > 0 && (
           <div
             className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30"
@@ -305,8 +250,7 @@ const FeedContainer = () => {
           </div>
         )}
 
-        {/* Background Refresh Indicator */}
-        {isFetching && !isLoading && !isFetchingNextPage && !isRefreshing && (
+        {isFetching && !isLoading && !isRefreshing && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-40">
             <motion.div
               initial={{ y: -20, opacity: 0 }}
@@ -324,7 +268,6 @@ const FeedContainer = () => {
           </div>
         )}
 
-        {/* Feed Items */}
         {posts.map((post, index) => (
           <div key={post.id} className="h-full w-full snap-start snap-always shrink-0">
             <FeedItem
@@ -335,15 +278,23 @@ const FeedContainer = () => {
           </div>
         ))}
 
-        {/* Loading More Indicator */}
-        {isFetchingNextPage && <PostCardSkeleton />}
+        {isFetchingNextPage && (
+          <div className="h-full w-full snap-start snap-always shrink-0 flex items-center justify-center bg-black">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-lily border-t-transparent rounded-full animate-spin" />
+              <span className="text-white/60 text-sm font-medium">Loading more...</span>
+            </div>
+          </div>
+        )}
 
-        {/* Infinite Scroll Trigger — always render so observer stays attached */}
-        <div
-          ref={hasNextPage ? sentinelRef : undefined}
-          className={`w-full ${hasNextPage ? "h-4" : "h-0"}`}
-          style={{ scrollSnapAlign: "none" }}
-        />
+        {!hasNextPage && posts.length > 0 && (
+          <div className="h-full w-full snap-start snap-always shrink-0 flex items-center justify-center bg-black">
+            <div className="text-center text-white/40">
+              <p className="text-lg font-bold mb-1">You're all caught up</p>
+              <p className="text-sm">Pull down to refresh</p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
