@@ -112,7 +112,7 @@ const FeedContainer = () => {
     if (!container || posts.length === 0) return;
 
     const handleScroll = () => {
-      if (isRefreshing) return; // Prevent scroll calculation conflicts during pull-to-refresh
+      if (isRefreshing) return;
 
       scrollPositionRef.current = container.scrollTop;
 
@@ -126,6 +126,13 @@ const FeedContainer = () => {
           saveCurrentPost(posts[index].id);
         }
       }
+
+      // snap-mandatory prevents sentinel from entering viewport,
+      // so use scroll position to detect proximity to bottom
+      const nearBottom = scrolled + viewportHeight >= container.scrollHeight - viewportHeight * 1.5;
+      if (nearBottom && hasNextPage && !isFetchingNextPage) {
+        loadMore();
+      }
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -136,6 +143,9 @@ const FeedContainer = () => {
     saveCurrentPost,
     currentPostIndex,
     isRefreshing,
+    loadMore,
+    hasNextPage,
+    isFetchingNextPage,
   ]);
 
   // ========================================
