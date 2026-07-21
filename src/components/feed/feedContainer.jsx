@@ -6,7 +6,6 @@ import FeedItem from "./feedItem";
 import { PostCardSkeleton } from "../common/skeletons";
 import { FiRefreshCw, FiWifiOff } from "react-icons/fi";
 import { motion } from "framer-motion";
-
 const FeedContainer = () => {
   const {
     posts,
@@ -30,7 +29,6 @@ const FeedContainer = () => {
 
   const scrollContainerRef = useRef(null);
   const mediaRefs = useRef(new Set());
-  const observerRef = useRef(null);
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,9 +66,7 @@ const FeedContainer = () => {
   }, [posts, sharedPostId, hasScrolledToShared]);
 
   // ========================================
-  // VIDEO INTERSECTION OBSERVER
-  // ========================================
-  // VIDEO REGISTRATION (no-op observer removed — playback driven by isActive)
+  // VIDEO REGISTRATION
   // ========================================
   const handleVideoInit = useCallback((mediaObject) => {
     if (mediaObject) {
@@ -79,33 +75,7 @@ const FeedContainer = () => {
   }, []);
 
   // ========================================
-  // INFINITE SCROLL TRIGGER (callback ref)
-  // ========================================
-  const sentinelRef = useCallback(
-    (node) => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-
-      if (!node) return;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-            loadMore();
-          }
-        },
-        { threshold: 0.1 },
-      );
-
-      observer.observe(node);
-      observerRef.current = observer;
-    },
-    [hasNextPage, isFetchingNextPage, loadMore],
-  );
-
-  // ========================================
-  // TRACK CURRENT POST
+  // TRACK CURRENT POST + LOAD MORE
   // ========================================
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -126,13 +96,6 @@ const FeedContainer = () => {
           saveCurrentPost(posts[index].id);
         }
       }
-
-      // snap-mandatory prevents sentinel from entering viewport,
-      // so use scroll position to detect proximity to bottom
-      const nearBottom = scrolled + viewportHeight >= container.scrollHeight - viewportHeight * 1.5;
-      if (nearBottom && hasNextPage && !isFetchingNextPage) {
-        loadMore();
-      }
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -143,10 +106,15 @@ const FeedContainer = () => {
     saveCurrentPost,
     currentPostIndex,
     isRefreshing,
-    loadMore,
-    hasNextPage,
-    isFetchingNextPage,
   ]);
+
+  // Load more when user reaches second-to-last post
+  useEffect(() => {
+    if (posts.length === 0) return;
+    if (currentPostIndex >= posts.length - 2 && hasNextPage && !isFetchingNextPage) {
+      loadMore();
+    }
+  }, [currentPostIndex, posts.length, hasNextPage, isFetchingNextPage, loadMore]);
 
   // ========================================
   // PULL TO REFRESH
@@ -337,13 +305,6 @@ const FeedContainer = () => {
 
         {/* Loading More Indicator */}
         {isFetchingNextPage && <PostCardSkeleton />}
-
-        {/* Infinite Scroll Trigger — always render so observer stays attached */}
-        <div
-          ref={hasNextPage ? sentinelRef : undefined}
-          className={`w-full ${hasNextPage ? "h-4" : "h-0"}`}
-          style={{ scrollSnapAlign: "none" }}
-        />
       </div>
     );
   };
