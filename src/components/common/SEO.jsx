@@ -84,9 +84,6 @@ const SEO = ({
       <link rel="icon" type="image/png" href="/favicon.png" />
       <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-      {/* Preload */}
-      <link rel="preload" href="/lily-logo.jpg" as="image" />
-
       {/* Structured Data */}
       <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
     </Helmet>
