@@ -1,5 +1,5 @@
 import { ArrowLeft, Search, X, MapPin } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
@@ -89,12 +89,18 @@ const VendorsList = () => {
 
   const [activeTab, setActiveTab] = useState("food");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["vendors", searchQuery],
+    queryKey: ["vendors", debouncedSearch],
     queryFn: async () => {
-      const params = {};
-      if (searchQuery) params.search = searchQuery;
+      const params = { page_size: 100 };
+      if (debouncedSearch) params.search = debouncedSearch;
       const response = await api.get("/foods/vendors/", { params });
       return response.data;
     },
