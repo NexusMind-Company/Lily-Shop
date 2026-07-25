@@ -1956,4 +1956,44 @@ export const sendConversationMessage = async (conversationId, data) => {
   return response.data;
 };
 
+// --- Informal Market Edition: Chop-PIN & Delivery Verification ---
+export const fetchOrderPin = async (orderId) => {
+  try {
+    const response = await api.get(`/orders/orders/${orderId}/pin/`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      const fallbackResponse = await api.get(`/api/orders/${orderId}/pin/`);
+      return fallbackResponse.data;
+    }
+    throw error;
+  }
+};
+
+export const confirmOrderDelivery = async (orderId, data) => {
+  try {
+    const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      const fallbackResponse = await api.post(`/api/orders/${orderId}/confirm-delivery/`, data);
+      return fallbackResponse.data;
+    }
+    throw error;
+  }
+};
+
+// --- Advanced Messaging & Global Search ---
+export const searchGlobalMessages = async (query, params = {}) => {
+  const response = await api.get(`/messages/search/`, {
+    params: { q: query, ...params },
+  });
+  return response.data;
+};
+
+export const fetchTargetedUserMessages = async (userId, params = {}) => {
+  const response = await api.get(`/messages/user/${userId}/`, { params });
+  return response.data;
+};
+
 export default api;

@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Utensils,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -34,6 +35,12 @@ const Settings = () => {
       text: "Wallet",
       sub: "Manage your wallet and payments",
       to: "/wallet",
+    },
+    {
+      icon: <Sparkles size={30} className="text-black" />,
+      text: "Content Interests",
+      sub: "Personalize your For You TikTok-style feed topics",
+      to: "/settings/interests",
     },
     {
       icon: <Bell size={30} />,

@@ -366,9 +366,37 @@ const EditProfile = () => {
           />
         </div>
 
+        <div className="w-full mt-3">
+          <label className="block text-sm font-medium text-gray-600 mb-2">
+            Content Preferences
+          </label>
+          <button
+            type="button"
+            onClick={() => navigate("/settings/interests")}
+            className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 border border-pink-200 rounded-2xl hover:border-pink-400 transition-all group shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center text-white shadow">
+                <span className="text-lg">✨</span>
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-pink-600 transition-colors">
+                  Customize Feed Interests
+                </p>
+                <p className="text-xs text-gray-500">
+                  Select categories & algorithm preferences for your For You Page
+                </p>
+              </div>
+            </div>
+            <span className="text-pink-600 font-bold text-sm sm:text-base group-hover:translate-x-1 transition-transform">
+              Edit →
+            </span>
+          </button>
+        </div>
+
         <button
           onClick={handleSave}
-          className="w-full bg-lily text-white font-bold text-xl py-4 rounded-2xl mt-10 mb-6 flex items-center justify-center disabled:opacity-50 transition-colors shadow-lg shadow-lily/20"
+          className="w-full bg-lily text-white font-bold text-xl py-4 rounded-2xl mt-8 mb-6 flex items-center justify-center disabled:opacity-50 transition-colors shadow-lg shadow-lily/20"
           disabled={isSaving}
         >
           {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : "Save"}
