@@ -72,7 +72,15 @@ const Login = () => {
 
       setShowSuccess(true);
       setTimeout(() => {
-        navigate("/");
+        const userId = resultAction.payload?.user?.id || formData.login;
+        const hasOnboarded =
+          localStorage.getItem(`onboarded_interests_${userId}`) ||
+          localStorage.getItem("onboarded_interests");
+        if (!hasOnboarded) {
+          navigate("/welcome/interests");
+        } else {
+          navigate("/");
+        }
       }, 1500);
     } else if (loginUser.rejected.match(resultAction)) {
       const errMsg =
