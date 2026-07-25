@@ -47,6 +47,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const [pin, setPin] = useState("");
   
   const orderIdKey = payload.order_id || payload.reference;
+  const [hasAccepted, setHasAccepted] = useState(() => localStorage.getItem(`accepted_${orderIdKey}`) === 'true');
   const [hasDispatched, setHasDispatched] = useState(() => localStorage.getItem(`dispatched_${orderIdKey}`) === 'true');
   const [hasDelivered, setHasDelivered] = useState(() => localStorage.getItem(`delivered_${orderIdKey}`) === 'true');
 
@@ -161,6 +162,20 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     }
   };
 
+  const handleAcceptOrder = async () => {
+    const idToUpdate = payload.order_id || payload.reference;
+    try {
+      if (idToUpdate && idToUpdate !== "N/A" && !idToUpdate.toString().startsWith("ORD")) {
+        await api.put(`/foods/vendor/orders/${idToUpdate}/status/`, { status: "accepted" }).catch(() => {});
+      }
+      toast.success("Order Accepted! Customer notified that Mama is preparing their order 🍲");
+      if (idToUpdate) localStorage.setItem(`accepted_${idToUpdate}`, 'true');
+      setHasAccepted(true);
+    } catch (err) {
+      toast.error("Failed to accept order");
+    }
+  };
+
   const handleStatusUpdate = async (status) => {
     setShowStatusMenu(false);
     toast.error(`Action '${status}' is not supported in P2P flow yet.`);
@@ -258,16 +273,24 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
              </>
           ) : (
              <>
+               {!hasAccepted && !hasDispatched && !hasDelivered && (
+                 <button 
+                   onClick={handleAcceptOrder}
+                   className="w-full py-3 mb-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold shadow-md shadow-emerald-500/20 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+                 >
+                   <span>✅ Accept Order (Informal Flow)</span>
+                 </button>
+               )}
                <button 
-                 className="w-full py-2.5 mb-2 rounded-full border-2 border-gray-400 text-gray-500 font-bold bg-transparent"
+                 className="w-full py-2.5 mb-2 rounded-full border-2 border-gray-400 text-gray-500 font-bold bg-transparent text-xs sm:text-sm"
                  disabled
                >
-                 Current Status: {hasDelivered ? "Delivered" : (hasDispatched ? (payload.delivery_type === "pickup" ? "Available for pickup" : "Dispatched") : "Pending")}
+                 Current Status: {hasDelivered ? "Delivered" : (hasDispatched ? (payload.delivery_type === "pickup" ? "Available for pickup" : "Dispatched") : (hasAccepted ? "Accepted & Preparing" : "Pending"))}
                </button>
                {!hasDelivered && (
                  <button 
                    onClick={() => setShowStatusMenu(!showStatusMenu)}
-                   className="w-full py-2.5 rounded-full border-2 border-pink-400 text-pink-500 font-bold bg-transparent"
+                   className="w-full py-2.5 rounded-full border-2 border-pink-400 text-pink-500 font-bold bg-transparent text-xs sm:text-sm"
                  >
                    Change order status
                  </button>
