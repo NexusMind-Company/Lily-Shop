@@ -1,6 +1,0 @@
-Backend API Notes & Missing Items:
-
-1. `estimated_time` in Order Payload:
-   - The field `estimated_time` is missing from the OpenAPI documentation (`Lily Shop API.yaml`).
-   - Please ensure it is added to the schema documentation.
-   - If it is not found in the actual JSON response payload from the backend during testing, I will let you know.
