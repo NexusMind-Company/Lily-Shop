@@ -46,13 +46,15 @@ export const fetchOrderDetail = createAsyncThunk(
   }
 );
 
+import { fetchOrderPin as fetchOrderPinService } from "../services/api";
+
 // Fetch Order PIN
 export const fetchOrderPin = createAsyncThunk(
   "orders/fetchOrderPin",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/orders/orders/${orderId}/pin/`);
-      return response.data;
+      const data = await fetchOrderPinService(orderId);
+      return data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch order PIN."
@@ -134,7 +136,7 @@ const orderSlice = createSlice({
     // Fetch Order PIN
     builder
       .addCase(fetchOrderPin.fulfilled, (state, action) => {
-        state.orderPin = action.payload.pin;
+        state.orderPin = action.payload?.pin || (typeof action.payload === "string" ? action.payload : null);
       });
   },
 });

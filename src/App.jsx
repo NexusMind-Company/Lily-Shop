@@ -122,6 +122,9 @@ const MealSelectionPage = lazy(() => import("./pages/MealSelectionPage"));
 
 /* SETTINGS & ACCOUNT */
 const Settings = lazy(() => import("./pages/settings"));
+const ManageInterestsPage = lazy(() => import("./pages/ManageInterestsPage"));
+const WelcomeInterestsPage = lazy(() => import("./pages/WelcomeInterestsPage"));
+const PinValidationPage = lazy(() => import("./pages/PinValidationPage"));
 const ChangePasswordPage = lazy(() => import("./pages/ChangePassword"));
 const DeleteAccountPage = lazy(() => import("./pages/DeleteAccount"));
 const DeleteVendorProfilePage = lazy(
@@ -256,6 +259,7 @@ function App() {
             <Route path="/verify-email/*" element={<VerifyEmail />} />
             <Route path="/verify-email-sent" element={<VerificationSentPage />} />
             <Route path="/verify-code" element={<VerifyCode />} />
+            <Route path="/welcome/interests" element={<WelcomeInterestsPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/password-reset/:token"
@@ -424,6 +428,9 @@ function App() {
 
                 {/* Extras */}
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/interests" element={<ManageInterestsPage />} />
+                <Route path="/delivery/verify" element={<PinValidationPage />} />
+                <Route path="/pin-validation" element={<PinValidationPage />} />
                 <Route
                   path="/change-password"
                   element={<ChangePasswordPage />}

@@ -84,7 +84,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Top");
   const [recentSearches, setRecentSearches] = useState(getRecentSearches());
-  const [userLocation, setUserLocation] = useState(null);
+  const [_userLocation, setUserLocation] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {

@@ -39,14 +39,13 @@ const fetchFeedPage = async ({ pageParam = 1, activeTab, isAuthenticated, locati
   }
 
   const items = mergeFeedItems(data);
-  const hasMore = data?.next != null && data?.next !== undefined && data?.next !== "";
 
   // Collect IDs so we can detect duplicate pages from the backend
   const itemIds = new Set(items.map((item) => item.id));
 
   const contentCount = Array.isArray(data?.content) ? data.content.length : 0;
   const productCount = Array.isArray(data?.products) ? data.products.length : 0;
-  const hasMore = contentCount > 0 || productCount > 0;
+  const hasMore = (data?.next != null && data?.next !== undefined && data?.next !== "") || (contentCount > 0 || productCount > 0);
 
   return {
     items,
