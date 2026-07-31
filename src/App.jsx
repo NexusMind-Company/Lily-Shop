@@ -197,11 +197,9 @@ const About = lazy(() => import("./components/about/About"));
 const LilyChat = lazy(() => import("./components/ai/lilyChat"));
 const CreatePost = lazy(() => import("./components/content/CreatePost"));
 const AddAddressPage = lazy(() => import("./pages/AddAddressPage"));
-const AddCardPage = lazy(() => import("./pages/AddCardPage"));
 const ChoosePickupAddressPage = lazy(
   () => import("./pages/ChoosePickupAddressPage"),
 );
-const ChooseCardPage = lazy(() => import("./pages/ChooseCardPage"));
 const ChooseAddressPage = lazy(() => import("./pages/chooseAddressPage"));
 const CreateSubscriptionVendor = lazy(
   () => import("./components/subscription/CreateSubscriptionVendor"),
@@ -447,12 +445,10 @@ function App() {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/add-address" element={<AddAddressPage />} />
-                <Route path="/add-card" element={<AddCardPage />} />
                 <Route
                   path="/choose-pickup"
                   element={<ChoosePickupAddressPage />}
                 />
-                <Route path="/choose-card" element={<ChooseCardPage />} />
                 <Route path="/choose-address" element={<ChooseAddressPage />} />
               </Route>
 

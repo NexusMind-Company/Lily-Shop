@@ -8,15 +8,11 @@ export const createUser = createAsyncThunk(
   "createUser/signup",
   async ({ email_or_phonenumber, password }, { rejectWithValue }) => {
     try {
-      // Debug log — helps ensure correct payload structure
-      console.log("📦 Sending signup payload:", { email_or_phonenumber, password });
-
       const response = await api.post("/auth/users/", {
         email_or_phonenumber,
         password,
       });
 
-      console.log("✅ Signup response:", response.data);
       return response.data;
     } catch (error) {
       // Log details for easier debugging
