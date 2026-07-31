@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { setAuthTokens } from "../services/api";
 
 const VerificationPage = () => {
   const [searchParams] = useSearchParams();
@@ -57,8 +58,10 @@ const VerificationPage = () => {
 
         // Store tokens and redirect
         if (response.data.token) {
-          localStorage.setItem("access_token", response.data.token.access);
-          localStorage.setItem("refresh_token", response.data.token.refresh);
+          setAuthTokens({
+            access: response.data.token.access,
+            refresh: response.data.token.refresh,
+          });
           localStorage.setItem("user_id", response.data.user_id);
         }
 

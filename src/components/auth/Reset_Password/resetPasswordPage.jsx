@@ -75,9 +75,9 @@ const ResetPasswordPage = () => {
 
     if (!new_password)
       return setValidationErrors({ new_password: "New password is required" });
-    if (new_password.length < 6)
+    if (new_password.length < 8)
       return setValidationErrors({
-        new_password: "Password must be at least 6 characters",
+        new_password: "Password must be at least 8 characters",
       });
     if (!confirmPassword)
       return setValidationErrors({

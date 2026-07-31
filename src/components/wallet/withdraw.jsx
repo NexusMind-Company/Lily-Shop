@@ -8,20 +8,11 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
-
-const loadBankAccounts = () => {
-  try {
-    return JSON.parse(localStorage.getItem(BANK_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-};
+import { useSelector } from "react-redux";
 
 export default function Withdraw() {
   const navigate = useNavigate();
-  const bankAccounts = loadBankAccounts();
+  const bankAccounts = useSelector((state) => state.wallet?.savedBankAccounts || []);
   const defaultAccount =
     bankAccounts.find((account) => account.isDefault) || bankAccounts[0];
   const hasBankAccounts = bankAccounts.length > 0;

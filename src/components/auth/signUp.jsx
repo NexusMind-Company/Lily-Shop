@@ -80,8 +80,8 @@ const SignUp = () => {
     // Password validation
     if (!formData.password) {
       errors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
     }
 
     // Confirm password validation
@@ -122,8 +122,8 @@ const SignUp = () => {
   // Password strength indicator logic
   const getPasswordStrength = (password) => {
     if (!password) return { text: "", color: "" };
-    if (password.length < 6) return { text: "Weak", color: "text-red-500" };
-    if (password.length < 10)
+    if (password.length < 8) return { text: "Weak", color: "text-red-500" };
+    if (password.length < 12)
       return { text: "Medium", color: "text-yellow-500" };
     return { text: "Strong", color: "text-green-500" };
   };

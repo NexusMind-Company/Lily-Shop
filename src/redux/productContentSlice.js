@@ -10,14 +10,6 @@ export const createProductContent = createAsyncThunk(
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
-      // DEBUG: Log entries to verify data before sending
-      console.log("--- Sending Product Payload ---");
-      for (let [key, value] of formData.entries()) {
-        console.log(
-          `${key}:`,
-          value instanceof File ? `File: ${value.name}` : value,
-        );
-      }
 
       const response = await api.post("/shops/products/create/", formData, {
         headers: {

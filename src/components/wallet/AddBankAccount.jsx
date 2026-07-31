@@ -12,23 +12,13 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-
-const BANK_STORAGE_KEY = "lily_wallet_bank_accounts";
-
-const loadBankAccounts = () => {
-  try {
-    return JSON.parse(localStorage.getItem(BANK_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-};
-
-const saveBankAccounts = (accounts) => {
-  localStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(accounts));
-};
+import { useDispatch, useSelector } from "react-redux";
+import { addBankAccount } from "../../redux/walletSlice";
 
 export default function AddBankAccount() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const existingAccounts = useSelector((state) => state.wallet?.savedBankAccounts || []);
 
   const [accountNumber, setAccountNumber] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
@@ -128,24 +118,15 @@ export default function AddBankAccount() {
       return;
     }
 
-    const existingAccounts = loadBankAccounts();
-    const nextAccounts = [
-      ...existingAccounts.filter(
-        (account) =>
-          !(
-            account.accountNumber === accountNumber &&
-            account.bankName === selectedBank
-          ),
-      ),
-      {
+    dispatch(
+      addBankAccount({
         id: crypto.randomUUID(),
         bankName: selectedBank,
         accountNumber,
         accountName,
         isDefault: existingAccounts.length === 0,
-      },
-    ];
-    saveBankAccounts(nextAccounts);
+      })
+    );
     navigate("/bankAccountDetails");
   };
 

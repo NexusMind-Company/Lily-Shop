@@ -129,6 +129,7 @@ const walletSlice = createSlice({
     withdrawal_error: null,
     withdrawal_success: false,
     withdrawal_history: [],
+    savedBankAccounts: [],
   },
   reducers: {
     resetWalletState: (state) => {
@@ -142,6 +143,20 @@ const walletSlice = createSlice({
       state.withdrawal_loading = false;
       state.withdrawal_error = null;
       state.withdrawal_success = false;
+    },
+    addBankAccount: (state, action) => {
+      // Check if already exists
+      const exists = state.savedBankAccounts.find(
+        (acc) => acc.accountNumber === action.payload.accountNumber && acc.bankCode === action.payload.bankCode
+      );
+      if (!exists) {
+        state.savedBankAccounts.push(action.payload);
+      }
+    },
+    removeBankAccount: (state, action) => {
+      state.savedBankAccounts = state.savedBankAccounts.filter(
+        (acc) => acc.accountNumber !== action.payload.accountNumber || acc.bankCode !== action.payload.bankCode
+      );
     },
   },
   extraReducers: (builder) => {
@@ -227,5 +242,5 @@ const walletSlice = createSlice({
   },
 });
 
-export const { resetWalletState, resetWithdrawalState } = walletSlice.actions;
+export const { resetWalletState, resetWithdrawalState, addBankAccount, removeBankAccount } = walletSlice.actions;
 export default walletSlice.reducer;

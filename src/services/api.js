@@ -17,14 +17,12 @@ export const setAuthTokens = ({ access, refresh }) => {
   if (refresh) {
     localStorage.setItem("refresh_token", refresh);
   }
-  // For compatibility with legacy parts of the app
-  localStorage.setItem("auth_tokens", JSON.stringify({ access, refresh }));
 };
 
 export const clearAuthTokens = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  localStorage.removeItem("auth_tokens");
+
   localStorage.removeItem("user_data");
   delete api.defaults.headers.common["Authorization"];
 };
