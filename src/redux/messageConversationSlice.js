@@ -74,7 +74,7 @@ export const markMessageAsRead = createAsyncThunk(
   "messages/markMessageAsRead",
   async (messageId, { rejectWithValue }) => {
     try {
-      const res = await api.post(`/messages/${messageId}/read/`);
+      const res = await api.patch(`/messages/${messageId}/read/`);
       return { messageId, data: res.data };
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to mark as read");
