@@ -77,8 +77,8 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
     }
 
     const numericAmount = Number(amount);
-    if (!amount || Number.isNaN(numericAmount) || numericAmount <= 0) {
-      toast.error("Enter a valid amount.");
+    if (!amount || Number.isNaN(numericAmount) || numericAmount < 1000) {
+      toast.error("The minimum amount that can be withdrawn is N1,000.");
       return;
     }
     if (numericAmount > availableBalance) {
@@ -119,25 +119,24 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold text-gray-500">
-              Amount to Withdraw
-            </label>
+          <div className="relative pt-2">
             <input
               type="number"
-              min="0"
+              min="1000"
               max={availableBalance}
-              placeholder={`Max ${formatMoney(availableBalance)}`}
+              placeholder=" "
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-[#111813] focus:border-lily focus:outline-none   "
+              className="peer w-full rounded-xl border-2 border-gray-200 bg-white px-4 pb-2 pt-6 text-sm font-bold text-gray-900 transition-all focus:border-lily focus:outline-none"
             />
+            <label className="absolute left-7 top-6 text-xs font-semibold text-gray-400 transition-all peer-focus:-translate-y-3 peer-focus:text-[10px] peer-focus:text-lily peer-[:not(:placeholder-shown)]:-translate-y-3 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-500 pointer-events-none">
+              Amount to Withdraw (Min N1,000)
+            </label>
             {amount &&
-              Number(amount) > 0 &&
+              Number(amount) >= 1000 &&
               Number(amount) <= availableBalance && (
-                <p className="mt-1 text-xs text-lily">
-                  You will receive {formatMoney(Number(amount))} in your
-                  account.
+                <p className="mt-1 text-xs text-lily font-medium">
+                  You will receive {formatMoney(Number(amount))} in your account.
                 </p>
               )}
           </div>
@@ -169,7 +168,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
               },
             ].map((field) => (
               <div key={field.label}>
-                <label className="mb-1 block text-[10px] font-semibold text-gray-400">
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   {field.label}
                 </label>
                 <input
@@ -177,7 +176,7 @@ const WithdrawModal = ({ availableBalance, onClose, onConfirm, isPending }) => {
                   placeholder={field.placeholder}
                   value={field.value}
                   onChange={(event) => field.setter(event.target.value)}
-                  className="w-full rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm text-[#111813] focus:border-lily focus:outline-none   "
+                  className="w-full rounded-xl border-2 border-gray-100 bg-white px-4 py-3 text-sm font-semibold text-gray-900 focus:border-lily focus:outline-none transition-all"
                 />
               </div>
             ))}
@@ -290,26 +289,26 @@ const VendorEarningsPage = () => {
 
   return (
     <VendorLayout title="Earnings">
-      <div className="mb-4 rounded-2xl bg-[#111813] p-5 text-white ">
-        <p className="mb-1 text-xs text-gray-400">Total Earnings (All Time)</p>
-        <p className="mb-3 text-3xl font-bold">{formatMoney(totalEarnings)}</p>
+      <div className="mb-4 rounded-3xl bg-white border border-gray-100 p-6 text-gray-900 shadow-xl transition-all duration-300">
+        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-500">Total Earnings (All Time)</p>
+        <p className="mb-6 text-4xl font-extrabold text-black">{formatMoney(totalEarnings)}</p>
 
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div>
-            <p className="text-[10px] text-gray-400">Platform Fee</p>
-            <p className="text-sm font-bold text-orange-400">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Platform Fee</p>
+            <p className="text-sm font-bold text-orange-500">
               -{formatMoney(platformFee)}
             </p>
           </div>
-          <div>
-            <p className="text-[10px] text-gray-400">Net Earnings</p>
+          <div className="bg-lily/5 p-4 rounded-2xl border border-lily/10">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-lily/70 mb-1">Net Earnings</p>
             <p className="text-sm font-bold text-lily">
               {formatMoney(netEarnings)}
             </p>
           </div>
-          <div>
-            <p className="flex items-center gap-1 text-[10px] text-gray-400">
-              <Wallet size={11} />
+          <div className="bg-gray-900 p-4 rounded-2xl border border-black shadow-lg">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              <Wallet size={12} />
               Available Now
             </p>
             <p className="text-sm font-bold text-white">
