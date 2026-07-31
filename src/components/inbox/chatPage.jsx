@@ -47,9 +47,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const [pin, setPin] = useState("");
   
   const orderIdKey = payload.order_id || payload.reference;
-  const [hasAccepted, setHasAccepted] = useState(() => localStorage.getItem(`accepted_${orderIdKey}`) === 'true');
-  const [hasDispatched, setHasDispatched] = useState(() => localStorage.getItem(`dispatched_${orderIdKey}`) === 'true');
-  const [hasDelivered, setHasDelivered] = useState(() => localStorage.getItem(`delivered_${orderIdKey}`) === 'true');
+
 
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const fileInputRef = useRef(null);
@@ -92,6 +90,10 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
 
   const rawStatus = liveOrderData?.status || orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending";
   const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+  
+  const hasAccepted = ["accepted", "dispatched", "delivered"].includes(rawStatus.toLowerCase());
+  const hasDispatched = ["dispatched", "delivered"].includes(rawStatus.toLowerCase());
+  const hasDelivered = rawStatus.toLowerCase() === "delivered";
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -138,8 +140,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         await api.post(`/orders/orders/${idToUpdate}/confirm-delivery/`, { pin, gps_lat: 0, gps_lng: 0 });
       }
       toast.success("Delivery confirmed securely!");
-      localStorage.setItem(`delivered_${idToUpdate}`, 'true');
-      setHasDelivered(true);
+      setLiveOrderData(prev => ({ ...(prev || payload), status: "delivered" }));
       setShowPinModal(false);
       setPin("");
     } catch (err) {
@@ -155,8 +156,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         await api.post(`/orders/orders/${idToUpdate}/dispatch/`);
       }
       toast.success(`Order marked as ${statusLabel}`);
-      localStorage.setItem(`dispatched_${idToUpdate}`, 'true');
-      setHasDispatched(true);
+      setLiveOrderData(prev => ({ ...(prev || payload), status: "dispatched" }));
     } catch (err) {
       toast.error(err.response?.data?.message || `Failed to mark as ${statusLabel}`);
     }
@@ -169,8 +169,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         await api.put(`/foods/vendor/orders/${idToUpdate}/status/`, { status: "accepted" }).catch(() => {});
       }
       toast.success("Order Accepted! Customer notified that Mama is preparing their order 🍲");
-      if (idToUpdate) localStorage.setItem(`accepted_${idToUpdate}`, 'true');
-      setHasAccepted(true);
+      setLiveOrderData(prev => ({ ...(prev || payload), status: "accepted" }));
     } catch (err) {
       toast.error("Failed to accept order");
     }
@@ -273,7 +272,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
              </>
           ) : (
              <>
-               {!hasAccepted && !hasDispatched && !hasDelivered && (
+               {!hasAccepted && !hasDispatched && !hasDelivered && activePayload?.order_type !== "shop" && (
                  <button 
                    onClick={handleAcceptOrder}
                    className="w-full py-3 mb-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold shadow-md shadow-emerald-500/20 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"

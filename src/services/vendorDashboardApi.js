@@ -554,7 +554,6 @@ export const fetchConversationMessages = async (
     `/foods/vendor/conversations/${conversationId}/messages/`,
     { params },
   );
-  console.log(`API response for vendor conversation ${conversationId} messages:`, response.data);
   return response.data;
 };
 
