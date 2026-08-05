@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
 import CustomerSubscriptionsPage from "./CustomerSubscriptionsPage";
+import Orders from "../components/inbox/orders";
 import { getVendorImageUrl, getVendorInitials } from "../utils/vendorUtils";
 
 /* =========================
@@ -176,7 +177,7 @@ const VendorsList = () => {
   // const error = null;
 
   const handleVendorClick = (vendorId) => {
-    navigate(`/vendor-subscription/${vendorId}`);
+    navigate(`/vendor/${vendorId}`);
   };
 
   const handleSearchChange = (value) => {
@@ -202,17 +203,17 @@ const VendorsList = () => {
         <div className="flex bg-gray-100 p-1 rounded-full w-fit shadow-sm border border-gray-200">
           <button
             onClick={() => setActiveTab("food")}
-            className={`px-8 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
               activeTab === "food"
                 ? "bg-lily text-white shadow-md scale-105"
                 : "text-gray-500 hover:text-lily"
             }`}
           >
-            Food
+            Vendors
           </button>
           <button
             onClick={() => setActiveTab("sub")}
-            className={`px-8 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
               activeTab === "sub"
                 ? "bg-lily text-white shadow-md scale-105"
                 : "text-gray-500 hover:text-lily"
@@ -220,10 +221,20 @@ const VendorsList = () => {
           >
             Sub
           </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+              activeTab === "orders"
+                ? "bg-lily text-white shadow-md scale-105"
+                : "text-gray-500 hover:text-lily"
+            }`}
+          >
+            Orders
+          </button>
         </div>
       </div>
 
-      {activeTab === "food" ? (
+      {activeTab === "food" && (
         <>
           <h1 className="text-3xl font-extrabold mb-8 text-gray-900 tracking-tight">
             Food Vendors
@@ -248,50 +259,47 @@ const VendorsList = () => {
             )}
           </div>
 
-          {/* Loading State */}
-          {isLoading && (
+          {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
-          )}
-
-          {/* Error State */}
-          {error && (
+          ) : error ? (
             <div className="text-center py-20 text-red-500">
               Error loading vendors: {error.message}
             </div>
-          )}
-
-          {/* Vendors Grid */}
-          {!isLoading && !error && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {vendors.length > 0 ? (
-                  vendors.map((vendor) => (
-                    <VendorCard
-                      key={vendor.id}
-                      vendor={vendor}
-                      onClick={handleVendorClick}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full py-24 text-center">
-                    <p className="text-gray-400 text-lg">
-                      No vendors found matching your search
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {vendors.length > 0 ? (
+                vendors.map((vendor) => (
+                  <VendorCard
+                    key={vendor.id}
+                    vendor={vendor}
+                    onClick={handleVendorClick}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-24 text-center">
+                  <p className="text-gray-400 text-lg">
+                    No vendors found matching your search
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </>
-      ) : (
+      )}
+
+      {activeTab === "sub" && (
         <CustomerSubscriptionsPage
           hideHeader={true}
           onExplore={() => setActiveTab("food")}
         />
+      )}
+
+      {activeTab === "orders" && (
+        <Orders hideHeader={true} hideBottomNav={true} />
       )}
     </div>
   );

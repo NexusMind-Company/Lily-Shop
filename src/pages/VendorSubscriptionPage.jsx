@@ -18,8 +18,11 @@ import {
   Truck,
   ShoppingBag,
   Star,
+  ShoppingCart,
+  Plus,
+  Minus,
 } from "lucide-react";
-import { fetchMealPlansByVendor } from "../services/api";
+import { fetchMealPlansByVendor, fetchMealsByVendor } from "../services/api";
 import {
   fetchVendorDetails,
   fetchReviewsForVendor,
@@ -36,6 +39,10 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("food");
+  const [orderingProductId, setOrderingProductId] = useState(null);
+  const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
 
   const [quantity, setQuantity] = useState(1);
   const [preferredTime, setPreferredTime] = useState("12:00");
@@ -75,6 +82,17 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     retry: false,
   });
 
+  const {
+    data: mealsData,
+    isLoading: mealsLoading,
+  } = useQuery({
+    queryKey: ["vendorMeals", vendorId],
+    queryFn: () => fetchMealsByVendor(vendorId),
+    enabled: !!vendorId,
+  });
+
+  const meals = Array.isArray(mealsData) ? mealsData : mealsData?.results || [];
+
   const filteredPlans =
     plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
 
@@ -97,6 +115,27 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     setSelectedPlanIds((prev) =>
       prev.includes(planId) ? prev.filter((id) => id !== planId) : [planId],
     );
+  };
+
+  const handleQuantityChange = (delta) => {
+    setCurrentOrderQuantity((prev) => Math.max(1, prev + delta));
+  };
+
+  const handleStartOrder = (productId) => {
+    setOrderingProductId(productId);
+    setCurrentOrderQuantity(1);
+  };
+
+  const handleConfirmOrder = (meal) => {
+    setOrderingProductId(null);
+    navigate("/checkout", {
+      state: {
+        directBuy: true,
+        product: { ...meal, is_food: true },
+        quantity: currentOrderQuantity,
+        selectedItemIds: [meal.id],
+      },
+    });
   };
 
   const isValid = () => {
@@ -219,85 +258,209 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
               />
             </div>
 
-            <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Star
-                    className="w-5 h-5 text-amber-400"
-                    fill="currentColor"
-                  />
-                  <span className="font-black text-gray-900 text-lg">
-                    {Number(vendor?.avg_rating || 0).toFixed(1)}
-                  </span>
-                  <span className="text-gray-400 text-sm font-medium">
-                    ({vendor?.review_count || 0} reviews)
-                  </span>
-                </div>
+            <div className="mb-6">
+              <div className="flex border-b border-gray-200 mb-6">
                 <button
-                  onClick={() => setIsReviewModalOpen(true)}
-                  className="px-4 py-2 bg-lily text-white rounded-full text-sm font-semibold hover:bg-lily/90 transition-colors shadow-sm shadow-lily/25"
+                  onClick={() => setActiveTab("food")}
+                  className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === "food"
+                      ? "border-lily text-lily"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
                 >
-                  Write Review
+                  Instant Food
+                </button>
+                <button
+                  onClick={() => setActiveTab("subscriptions")}
+                  className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === "subscriptions"
+                      ? "border-lily text-lily"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Subscriptions
                 </button>
               </div>
-              {(reviews?.results || []).length > 0 ? (
-                <div className="space-y-3">
-                  {reviews.results.slice(0, 3).map((review, idx) => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      isLast={idx === Math.min(2, reviews.results.length - 1)}
-                    />
-                  ))}
+
+              {activeTab === "food" && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold mb-4 px-2">Live Kitchen</h3>
+                  {mealsLoading ? (
+                    <div className="text-gray-500 p-4">Loading meals...</div>
+                  ) : meals.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+                      {meals.map((meal) => (
+                        <div
+                          key={meal.id}
+                          className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition relative"
+                        >
+                          {!meal.is_available && (
+                            <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
+                              <span className="bg-red-500 text-white font-bold px-3 py-1 rounded-full shadow-md text-xs">
+                                Sold Out
+                              </span>
+                            </div>
+                          )}
+                          <div className="relative aspect-square">
+                            <img
+                              src={meal.image_url || "/placeholder.png"}
+                              alt={meal.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="p-3">
+                            <h4 className="font-semibold text-sm mb-1 truncate">
+                              {meal.name}
+                            </h4>
+                            <p className="text-lily font-bold mb-3">
+                              ₦{meal.price?.toLocaleString()}
+                            </p>
+                            
+                            {orderingProductId === meal.id ? (
+                              <div className="space-y-2 relative z-30">
+                                <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
+                                  <button
+                                    onClick={() => handleQuantityChange(-1)}
+                                    className="p-1 hover:bg-gray-100 rounded"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <span className="font-semibold min-w-7.5 text-center">
+                                    {currentOrderQuantity}
+                                  </span>
+                                  <button
+                                    onClick={() => handleQuantityChange(1)}
+                                    className="p-1 hover:bg-gray-100 rounded"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleConfirmOrder(meal)}
+                                    className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
+                                  >
+                                    Confirm
+                                  </button>
+                                  <button
+                                    onClick={() => setOrderingProductId(null)}
+                                    className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleStartOrder(meal.id)}
+                                disabled={!meal.is_available}
+                                className={`w-full py-2 rounded-lg relative z-30 text-sm font-semibold transition flex items-center justify-center gap-2 ${
+                                  meal.is_available 
+                                    ? "bg-lily text-white hover:bg-darklily" 
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                }`}
+                              >
+                                <ShoppingCart size={16} />
+                                Order
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300 text-gray-400 text-sm">
+                      No instant food available
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200">
-                  <Star size={36} className="mx-auto text-gray-300 mb-3" />
-                  <p className="font-semibold text-gray-500 mb-1">
-                    No reviews yet
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Be the first to share your experience!
-                  </p>
-                </div>
+              )}
+
+              {activeTab === "subscriptions" && (
+                <>
+                  {/* Reviews Section */}
+                  <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Star
+                          className="w-5 h-5 text-amber-400"
+                          fill="currentColor"
+                        />
+                        <span className="font-black text-gray-900 text-lg">
+                          {Number(vendor?.avg_rating || 0).toFixed(1)}
+                        </span>
+                        <span className="text-gray-400 text-sm font-medium">
+                          ({vendor?.review_count || 0} reviews)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setIsReviewModalOpen(true)}
+                        className="px-4 py-2 bg-lily text-white rounded-full text-sm font-semibold hover:bg-lily/90 transition-colors shadow-sm shadow-lily/25"
+                      >
+                        Write Review
+                      </button>
+                    </div>
+                    {(reviews?.results || []).length > 0 ? (
+                      <div className="space-y-3">
+                        {reviews.results.slice(0, 3).map((review, idx) => (
+                          <ReviewCard
+                            key={review.id}
+                            review={review}
+                            isLast={idx === Math.min(2, reviews.results.length - 1)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200">
+                        <Star size={36} className="mx-auto text-gray-300 mb-3" />
+                        <p className="font-semibold text-gray-500 mb-1">
+                          No reviews yet
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Be the first to share your experience!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Choose a Plan Section */}
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold mb-4 px-2">Choose a Plan</h3>
+                  <PlanToggle
+                    selectedPlan={selectedPlan}
+                    onPlanChange={handlePlanChange}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {selectedPlan === "monthly" ? (
+                      <div className="col-span-full py-16 w-full bg-white text-gray-700 px-6 rounded-2xl shadow-sm border border-gray-200 text-center">
+                        <span className="text-xl md:text-2xl font-extrabold">
+                          Monthly plans coming soon!
+                        </span>
+                      </div>
+                    ) : filteredPlans.length > 0 ? (
+                      filteredPlans.map((plan) => (
+                        <PricingCard
+                          key={plan.id}
+                          plan={plan}
+                          isSelected={selectedPlanIds.includes(plan.id)}
+                          isPopular={plan.popular}
+                          onSelect={handlePlanSelect}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300 text-gray-400 text-sm">
+                        No {selectedPlan} plans available
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
-            <div className="mb-6">
-              <h3 className="text-xl font-bold mb-4 px-2">Choose a Plan</h3>
-              <PlanToggle
-                selectedPlan={selectedPlan}
-                onPlanChange={handlePlanChange}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {selectedPlan === "monthly" ? (
-                  <div className="col-span-full py-16 w-full bg-white text-gray-700 px-6 rounded-2xl shadow-sm border border-gray-200 text-center">
-                    <span className="text-xl md:text-2xl font-extrabold">
-                      Monthly plans coming soon!
-                    </span>
-                  </div>
-                ) : filteredPlans.length > 0 ? (
-                  filteredPlans.map((plan) => (
-                    <PricingCard
-                      key={plan.id}
-                      plan={plan}
-                      isSelected={selectedPlanIds.includes(plan.id)}
-                      isPopular={plan.popular}
-                      onSelect={handlePlanSelect}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300 text-gray-400 text-sm">
-                    No {selectedPlan} plans available
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Customization (Sticky on Desktop) */}
+          {/* Right Column: Customization (Sticky on Desktop) - Only show if subscriptions tab is active */}
           <div className="w-full lg:w-[35%] lg:sticky lg:top-24 lg:h-fit px-4">
+            {activeTab === "subscriptions" && (
             <div className="space-y-8">
               <h3 className="text-xl font-bold border-b border-gray-50 pb-4">
                 Customize Subscription
@@ -605,6 +768,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                 </div>
               )}
             </div>
+            )}
+            <div className="h-[200px] hidden lg:block"></div>
           </div>
         </div>
       </div>

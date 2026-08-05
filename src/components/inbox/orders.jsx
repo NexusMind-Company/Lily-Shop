@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import BottomNav from "./bottomNav";
 import ReviewModal from "../common/ReviewModal";
 
-const Orders = () => {
+const Orders = ({ hideHeader, hideBottomNav }) => {
   const dispatch = useDispatch();
   const orders = useSelector(selectOrders);
   const loading = useSelector(selectOrderLoading);
@@ -56,14 +56,16 @@ const Orders = () => {
   };
 
   return (
-    <div className="bg-white relative w-full h-[100dvh] overflow-y-auto md:w-4xl md:mx-auto pb-24">
+    <div className={`bg-white relative w-full overflow-y-auto md:w-4xl md:mx-auto pb-24 ${hideHeader ? 'h-auto' : 'h-[100dvh]'}`}>
       {/* Header */}
-      <header className="relative p-4">
-        <Link to="/inbox">
-          <ChevronLeft className="absolute w-8 h-8" />
-        </Link>
-        <h1 className="text-[20px] font-semibold text-center">Orders</h1>
-      </header>
+      {!hideHeader && (
+        <header className="relative p-4">
+          <Link to="/inbox">
+            <ChevronLeft className="absolute w-8 h-8" />
+          </Link>
+          <h1 className="text-[20px] font-semibold text-center">Orders</h1>
+        </header>
+      )}
 
       <section className="p-4">
         {/* Loading and error states */}
@@ -140,7 +142,9 @@ const Orders = () => {
         </div>
       </section>
 
-      <BottomNav activePage={activePage} setActivePage={setActivePage} />
+      {!hideBottomNav && (
+        <BottomNav activePage={activePage} setActivePage={setActivePage} />
+      )}
 
       <ReviewModal
         isOpen={!!reviewTarget}
