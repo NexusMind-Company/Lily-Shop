@@ -34,7 +34,10 @@ import {
   Check,
   Heart,
   Edit3,
+  Utensils,
 } from "lucide-react";
+
+import { fetchMealsByVendor } from "../../services/api";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -63,6 +66,14 @@ const ShopDetails = () => {
     queryFn: () => fetchShopReviews(id),
     enabled: !!id,
   });
+
+  const { data: menuMeals } = useQuery({
+    queryKey: ["shopMeals", id],
+    queryFn: () => fetchMealsByVendor(id),
+    enabled: !!id,
+  });
+
+  const [activeTab, setActiveTab] = useState("products");
 
   const deleteReviewMutation = useMutation({
     mutationFn: (reviewId) => deleteReview(reviewId),
@@ -269,16 +280,35 @@ const ShopDetails = () => {
         </div>
       </div>
 
-      {/* Products Section */}
+      {/* Content Tabs Section */}
       <div className="bg-white mt-2">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="font-bold text-base flex items-center gap-2">
-            <Grid3x3 size={20} className="text-lily" />
+        <div className="flex px-4 py-2 border-b border-gray-200 gap-6">
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`font-bold text-base flex items-center gap-2 pb-2 transition-all ${
+              activeTab === "products"
+                ? "text-lily border-b-2 border-lily"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Grid3x3 size={20} />
             Products
-          </h3>
+          </button>
+          <button
+            onClick={() => setActiveTab("menu")}
+            className={`font-bold text-base flex items-center gap-2 pb-2 transition-all ${
+              activeTab === "menu"
+                ? "text-lily border-b-2 border-lily"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Utensils size={20} />
+            Food Menu
+          </button>
         </div>
 
         <div className="p-4">
+          {activeTab === "products" ? (
           {shop.products && shop.products.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">
               {shop.products.map((product) => (
@@ -391,6 +421,96 @@ const ShopDetails = () => {
               <Package size={64} className="mx-auto text-gray-300 mb-4" />
               <p className="text-gray-500">No products yet</p>
             </div>
+          ) : (
+            // Food Menu Tab
+            menuMeals?.results && menuMeals.results.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4">
+                {menuMeals.results.map((meal) => (
+                  <motion.div
+                    key={meal.id}
+                    layout
+                    className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition relative"
+                  >
+                    {!meal.is_available && (
+                      <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
+                        <span className="bg-red-500 text-white font-bold px-3 py-1 rounded-full shadow-md text-xs">
+                          Sold Out
+                        </span>
+                      </div>
+                    )}
+                    <div className="relative aspect-square">
+                      <img
+                        src={meal.image_url || "/placeholder.png"}
+                        alt={meal.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h4 className="font-semibold text-sm mb-1 truncate">
+                        {meal.name}
+                      </h4>
+                      <p className="text-lily font-bold mb-3">
+                        ₦{meal.price?.toLocaleString()}
+                      </p>
+                      
+                      {orderingProductId === meal.id ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
+                            <button
+                              onClick={() => handleQuantityChange(-1)}
+                              className="p-1 hover:bg-gray-100 rounded"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className="font-semibold min-w-7.5 text-center">
+                              {currentOrderQuantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(1)}
+                              className="p-1 hover:bg-gray-100 rounded"
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleConfirmOrder(meal.id)}
+                              className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setOrderingProductId(null)}
+                              className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleStartOrder(meal.id)}
+                          disabled={!meal.is_available}
+                          className={`w-full py-2 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 ${
+                            meal.is_available 
+                              ? "bg-lily text-white hover:bg-darklily" 
+                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          }`}
+                        >
+                          <ShoppingCart size={16} />
+                          {meal.is_available ? "Order" : "Sold Out"}
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <Utensils size={64} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-500">No food menu available</p>
+              </div>
+            )
           )}
         </div>
       </div>

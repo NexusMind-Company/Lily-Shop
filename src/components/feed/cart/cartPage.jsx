@@ -35,7 +35,20 @@ import {
 import { usePayment } from "../../../hooks/usePayment";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 import { toast } from "react-hot-toast";
-import { getDeliveryQuote } from "../../../services/shopApi";
+import OrderSuccessAnimation from "../../animations/orderSuccessAnimation";
+
+const isFoodItem = (item) => {
+  const product = item.product || {};
+  const cat = (product.category || product.category_name || "").toLowerCase();
+  const type = (product.type || product.product_type || "").toLowerCase();
+  
+  if (item.is_food) return true;
+  if (cat.includes("food") || cat.includes("meal") || cat.includes("restaurant")) return true;
+  if (type.includes("food") || type.includes("meal")) return true;
+  if (product.calories !== undefined || product.ingredients !== undefined) return true;
+  
+  return false;
+};
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -747,79 +760,105 @@ const CartPage = () => {
       <div className="flex-1 overflow-y-auto pb-28">
         <div className="bg-white p-4 mb-2 border-b border-gray-100">
           <div className="space-y-6">
-            {itemsToCheckout.map((item) => {
-              const unitPrice = getUnitPrice(item);
-              const vendorName =
-                item.username ||
-                item.product?.shop_name ||
-                item.product?.shop?.name ||
-                item.product?.username ||
-                item.product?.user?.username ||
-                "Vendor";
-              return (
-                <div key={item.id} className="flex flex-col">
-                  <p className="text-sm font-medium text-gray-600 mb-3">
-                    {vendorName}
-                  </p>
-                  <div className="flex space-x-4">
-                    <img
-                      src={
-                        item.mediaSrc ||
-                        item.product?.image_url ||
-                        item.product?.media_url ||
-                        "/feed-image.png"
-                      }
-                      alt={item.productName || item.product?.name || "Product"}
-                      className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/feed-image.png";
-                      }}
-                    />
-                    <div className="flex-1 space-y-1">
-                      <p className="font-medium text-gray-900">
-                        {item.productName || item.product?.name || "Product"}
-                      </p>
-                      <p className="text-sm font-semibold text-pink">
-                        NGN {formatPrice(unitPrice)}
-                      </p>
-                      <p className="text-sm text-black">
-                        Qty: {item.quantity}
-                      </p>
-                      {item.color && (
-                        <p className="text-sm text-gray-600">
-                          Color: {item.color}
-                        </p>
-                      )}
-                      {item.size && (
-                        <p className="text-sm text-gray-600">
-                          Size: {item.size}
-                        </p>
-                      )}
+            {(() => {
+              const foodItems = itemsToCheckout.filter(isFoodItem);
+              const shopItems = itemsToCheckout.filter((item) => !isFoodItem(item));
 
-                      {deliveryQuotes[item.id] ? (
-                        <div className="mt-1 space-y-0.5">
-                          <p className="text-sm text-black">
-                            Delivery Price: NGN {formatPrice(deliveryQuotes[item.id].fee_naira ?? deliveryQuotes[item.id].fee ?? 0)}
+              const renderItem = (item) => {
+                const unitPrice = getUnitPrice(item);
+                const vendorName =
+                  item.username ||
+                  item.product?.shop_name ||
+                  item.product?.shop?.name ||
+                  item.product?.username ||
+                  item.product?.user?.username ||
+                  "Vendor";
+                return (
+                  <div key={item.id} className="flex flex-col">
+                    <p className="text-sm font-medium text-gray-600 mb-3">
+                      {vendorName}
+                    </p>
+                    <div className="flex space-x-4">
+                      <img
+                        src={
+                          item.mediaSrc ||
+                          item.product?.image_url ||
+                          item.product?.media_url ||
+                          "/feed-image.png"
+                        }
+                        alt={item.productName || item.product?.name || "Product"}
+                        className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/feed-image.png";
+                        }}
+                      />
+                      <div className="flex-1 space-y-1">
+                        <p className="font-medium text-gray-900">
+                          {item.productName || item.product?.name || "Product"}
+                        </p>
+                        <p className="text-sm font-semibold text-pink">
+                          NGN {formatPrice(unitPrice)}
+                        </p>
+                        <p className="text-sm text-black">
+                          Qty: {item.quantity}
+                        </p>
+                        {item.color && (
+                          <p className="text-sm text-gray-600">
+                            Color: {item.color}
                           </p>
-                          {(deliveryQuotes[item.id].est_days_min !== null || deliveryQuotes[item.id].est_days_max !== null) && (
+                        )}
+                        {item.size && (
+                          <p className="text-sm text-gray-600">
+                            Size: {item.size}
+                          </p>
+                        )}
+
+                        {deliveryQuotes[item.id] ? (
+                          <div className="mt-1 space-y-0.5">
                             <p className="text-sm text-black">
-                              Arrives in: {deliveryQuotes[item.id].est_days_min}-{deliveryQuotes[item.id].est_days_max} days
+                              Delivery Price: NGN {formatPrice(deliveryQuotes[item.id].fee_naira ?? deliveryQuotes[item.id].fee ?? 0)}
                             </p>
-                          )}
-                        </div>
-                      ) : item.product?.delivery_info ? (
-                        <div className="mt-1">
-                          <p className="text-sm text-black">
-                            Delivery Info: {item.product.delivery_info}
-                          </p>
-                        </div>
-                      ) : null}
+                            {(deliveryQuotes[item.id].est_days_min !== null || deliveryQuotes[item.id].est_days_max !== null) && (
+                              <p className="text-sm text-black">
+                                Arrives in: {deliveryQuotes[item.id].est_days_min}-{deliveryQuotes[item.id].est_days_max} days
+                              </p>
+                            )}
+                          </div>
+                        ) : item.product?.delivery_info ? (
+                          <div className="mt-1">
+                            <p className="text-sm text-black">
+                              Delivery Info: {item.product.delivery_info}
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-                </div>
+                );
+              };
+
+              return (
+                <>
+                  {foodItems.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-bold text-lg mb-4 text-gray-900 border-b pb-2 flex items-center gap-2">
+                        🍲 Food Orders
+                      </h3>
+                      <div className="space-y-6">{foodItems.map(renderItem)}</div>
+                    </div>
+                  )}
+                  {shopItems.length > 0 && (
+                    <div>
+                      <h3 className="font-bold text-lg mb-4 text-gray-900 border-b pb-2 flex items-center gap-2">
+                        🛍️ Shop Items
+                      </h3>
+                      <div className="space-y-6">{shopItems.map(renderItem)}</div>
+                    </div>
+                  )}
+                </>
               );
-            })}
+            })()}
           </div>
         </div>
 
