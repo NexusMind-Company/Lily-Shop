@@ -261,6 +261,8 @@ export const updateMeal = async (mealId, mealData) => {
     formData.append("price", mealData.price.toString());
   if (mealData.description !== undefined)
     formData.append("description", mealData.description);
+  if (mealData.is_available !== undefined)
+    formData.append("is_available", mealData.is_available);
   if (mealData.image instanceof File) formData.append("image", mealData.image);
   if (mealData.video_url) formData.append("video_url", mealData.video_url);
   if (mealData.calories) formData.append("calories", mealData.calories);

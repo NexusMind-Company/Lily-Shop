@@ -155,6 +155,7 @@ const VendorSubscriptionsPage = lazy(
   () => import("./pages/vendor/VendorSubscriptionsPage"),
 );
 const VendorMenuPage = lazy(() => import("./pages/vendor/VendorMenuPage"));
+const VendorMealFormPage = lazy(() => import("./pages/vendor/VendorMealFormPage"));
 const VendorAvailabilityPage = lazy(
   () => import("./pages/vendor/VendorAvailabilityPage"),
 );
@@ -486,6 +487,14 @@ function App() {
                 <Route
                   path="/vendor/dashboard/menu"
                   element={<VendorMenuPage />}
+                />
+                <Route
+                  path="/vendor/dashboard/menu/add"
+                  element={<VendorMealFormPage />}
+                />
+                <Route
+                  path="/vendor/dashboard/menu/edit/:mealId"
+                  element={<VendorMealFormPage />}
                 />
                 <Route
                   path="/vendor/dashboard/availability"

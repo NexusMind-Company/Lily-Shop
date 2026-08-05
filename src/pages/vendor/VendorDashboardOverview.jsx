@@ -255,6 +255,24 @@ const VendorDashboardOverview = () => {
                   Add Plan
                 </span>
               </button>
+              <button
+                onClick={() => navigate("/vendor/dashboard/menu")}
+                className="flex flex-col items-center justify-center gap-2 px-3 py-6 rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-center"
+              >
+                <ShoppingBag size={20} className="text-white" />
+                <span className="text-[10px] font-semibold text-white">
+                  Food Menu
+                </span>
+              </button>
+              <button
+                onClick={() => navigate("/vendor/dashboard/orders")}
+                className="flex flex-col items-center justify-center gap-2 px-3 py-6 rounded-xl bg-green-500 hover:bg-green-600 transition-colors text-center"
+              >
+                <Activity size={20} className="text-white" />
+                <span className="text-[10px] font-semibold text-white">
+                  Live Kitchen
+                </span>
+              </button>
             </div>
           </div>
         </div>
