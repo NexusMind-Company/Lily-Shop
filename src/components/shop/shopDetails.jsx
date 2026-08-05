@@ -105,12 +105,18 @@ const ShopDetails = () => {
     setCurrentOrderQuantity((prev) => Math.max(1, prev + delta));
   };
 
-  const handleConfirmOrder = (productId) => {
-    console.log(
-      `Order confirmed: Product ${productId}, Quantity: ${currentOrderQuantity}`,
-    );
+  const handleConfirmOrder = (item, type = 'product') => {
     setOrderingProductId(null);
-    navigate(`/checkout?product=${productId}&quantity=${currentOrderQuantity}`);
+    const productData = type === 'meal' ? { ...item, is_food: true } : item;
+    
+    navigate("/checkout", {
+      state: {
+        directBuy: true,
+        product: productData,
+        quantity: currentOrderQuantity,
+        selectedItemIds: [item.id]
+      }
+    });
   };
 
   const handleShare = () => {
@@ -390,7 +396,7 @@ const ShopDetails = () => {
 
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleConfirmOrder(product.id)}
+                            onClick={() => handleConfirmOrder(product, 'product')}
                             className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
                           >
                             Confirm
@@ -474,7 +480,7 @@ const ShopDetails = () => {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleConfirmOrder(meal.id)}
+                              onClick={() => handleConfirmOrder(meal, 'meal')}
                               className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
                             >
                               Confirm
