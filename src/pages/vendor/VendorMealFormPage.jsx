@@ -13,7 +13,7 @@ const VendorMealFormPage = () => {
   const fileRef = useRef(null);
   
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [mediaPreviews, setMediaPreviews] = useState([]);
+  const [_, setMediaPreviews] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -106,7 +106,7 @@ const VendorMealFormPage = () => {
       toast.success(mealId ? "Meal updated!" : "Meal added!");
       navigate(-1);
     },
-    onError: (err) => {
+    onError: (_err) => {
       toast.error("An error occurred. Please try again.");
     },
   });

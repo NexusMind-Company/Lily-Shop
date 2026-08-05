@@ -315,8 +315,9 @@ const ShopDetails = () => {
 
         <div className="p-4">
           {activeTab === "products" ? (
-          {shop.products && shop.products.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4">
+            <>
+              {shop.products && shop.products.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4">
               {shop.products.map((product) => (
                 <motion.div
                   key={product.id}
@@ -427,6 +428,8 @@ const ShopDetails = () => {
               <Package size={64} className="mx-auto text-gray-300 mb-4" />
               <p className="text-gray-500">No products yet</p>
             </div>
+              )}
+            </>
           ) : (
             // Food Menu Tab
             menuMeals?.results && menuMeals.results.length > 0 ? (

@@ -35,7 +35,8 @@ import {
 import { usePayment } from "../../../hooks/usePayment";
 import { formatPrice, formatDate } from "../../../utils/formatters";
 import { toast } from "react-hot-toast";
-import OrderSuccessAnimation from "../../animations/orderSuccessAnimation";
+
+import { getDeliveryQuote } from "../../../services/shopApi";
 
 const isFoodItem = (item) => {
   const product = item.product || {};

@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { removeBankAccount, addBankAccount } from "../../redux/walletSlice";
+import { removeBankAccount } from "../../redux/walletSlice";
 
 export default function BankAccountDetails() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function BankAccountDetails() {
     setShowDeleteConfirm(null);
   };
 
-  const handleSetDefault = (id) => {
+  const handleSetDefault = (_id) => {
     // Wait, Redux slice doesn't have an action to set default. Let's just remove and re-add with isDefault true, 
     // or add a setDefaultBankAccount action in walletSlice. Let's just not implement setDefault for now, 
     // or I'll implement it by just doing nothing since it's just in memory anyway and usually the first one is used.
