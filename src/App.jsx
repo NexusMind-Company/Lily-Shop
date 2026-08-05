@@ -288,7 +288,7 @@ function App() {
                 <Route path="/my-shop" element={<MyShop />} />
                 <Route path="/myShop" element={<MyShop />} />
                 <Route path="/createContent" element={<CreatePost />} />
-                <Route path="/shop/:shopId" element={<ShopDetails />} />
+                {/* <Route path="/shop/:shopId" element={<ShopDetails />} /> */}
                 <Route path="/rating" element={<Ratings />} />
                 <Route path="/edit-shop/:shopId" element={<EditShop />} />
                 <Route
@@ -308,7 +308,7 @@ function App() {
                 </Route>
 
                 <Route
-                  path="/vendor-subscription/:vendorId"
+                  path="/vendor/:vendorId"
                   element={<VendorSubscriptionPage />}
                 />
                 <Route
