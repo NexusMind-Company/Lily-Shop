@@ -454,9 +454,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       </div>
                     )}
                   </div>
+                </div>
                 </>
               )}
             </div>
+          </div>
 
           {/* Right Column: Customization (Sticky on Desktop) - Only show if subscriptions tab is active */}
           <div className="w-full lg:w-[35%] lg:sticky lg:top-24 lg:h-fit px-4">
