@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/zohoverify/(.*)",
-      "destination": "/zohoverify/$1"
+      "source": "/zoho-domain-verification.html",
+      "destination": "/zoho-domain-verification.html"
     },
     {
       "source": "/(.*)",
