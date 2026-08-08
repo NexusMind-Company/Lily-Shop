@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/zohoverify/(.*)",
+      "destination": "/zohoverify/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
