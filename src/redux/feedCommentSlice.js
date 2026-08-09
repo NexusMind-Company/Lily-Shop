@@ -7,9 +7,7 @@ import {
   likeProductComment,
   likeContentComment,
 } from "../services/api";
-import { mockPosts } from "../components/feed/mockData";
 
-const USE_MOCK_DATA = false;
 
 // Helper to transform flat comment list into nested tree
 const nestComments = (comments) => {
@@ -118,11 +116,7 @@ const findCommentAndToggleLike = (comments, commentId) => {
 export const fetchComments = createAsyncThunk(
   "feed/fetchComments",
   async ({ postId, itemType }, { rejectWithValue }) => {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const post = mockPosts.find((p) => p.id === postId);
-      return post?.commentsData || [];
-    }
+
 
     try {
       let data;
@@ -154,10 +148,7 @@ export const fetchComments = createAsyncThunk(
 export const postComment = createAsyncThunk(
   "feed/postComment",
   async (commentData, { rejectWithValue }) => {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      return { ...commentData, id: `server_${Date.now()}` };
-    }
+
 
     const { postId, itemType } = commentData;
     const text = commentData.comment_text;
