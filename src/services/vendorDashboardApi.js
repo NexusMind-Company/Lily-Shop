@@ -255,6 +255,13 @@ export const addMeal = async (mealData) => {
  * Response: updated meal object
  */
 export const updateMeal = async (mealId, mealData) => {
+  // If we are not uploading any files, send it as a clean JSON payload
+  // This ensures booleans (like is_available) are sent correctly, rather than as strings
+  if (!(mealData.image instanceof File) && !mealData.media) {
+    const response = await api.patch(`/foods/vendor/menu/${mealId}/`, mealData);
+    return response.data;
+  }
+
   const formData = new FormData();
   if (mealData.name) formData.append("name", mealData.name);
   if (mealData.price !== undefined)
