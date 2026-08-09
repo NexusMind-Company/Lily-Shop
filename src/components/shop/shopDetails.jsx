@@ -107,16 +107,27 @@ const ShopDetails = () => {
 
   const handleConfirmOrder = (item, type = 'product') => {
     setOrderingProductId(null);
-    const productData = type === 'meal' ? { ...item, is_food: true } : item;
+    const isFood = type === 'meal';
+    const productData = isFood ? { ...item, is_food: true } : item;
     
-    navigate("/checkout", {
-      state: {
-        directBuy: true,
-        product: productData,
-        quantity: currentOrderQuantity,
-        selectedItemIds: [item.id]
-      }
-    });
+    if (isFood) {
+      navigate("/food-checkout", {
+        state: {
+          product: productData,
+          quantity: currentOrderQuantity,
+          vendorId: shop.id
+        }
+      });
+    } else {
+      navigate("/checkout", {
+        state: {
+          directBuy: true,
+          product: productData,
+          quantity: currentOrderQuantity,
+          selectedItemIds: [item.id]
+        }
+      });
+    }
   };
 
   const handleShare = () => {

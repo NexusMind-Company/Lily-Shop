@@ -128,12 +128,11 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const handleConfirmOrder = (meal) => {
     setOrderingProductId(null);
-    navigate("/checkout", {
+    navigate("/food-checkout", {
       state: {
-        directBuy: true,
-        product: { ...meal, is_food: true },
+        product: meal,
         quantity: currentOrderQuantity,
-        selectedItemIds: [meal.id],
+        vendorId,
       },
     });
   };

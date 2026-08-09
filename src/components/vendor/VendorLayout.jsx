@@ -14,11 +14,13 @@ import {
   PhoneCall,
   Menu,
   Truck,
+  Users,
 } from "lucide-react";
 import PropTypes from "prop-types";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/vendor/dashboard" },
+  { icon: Users, label: "Customers", path: "/vendor/dashboard/customers" },
   { icon: Wallet, label: "Earnings", path: "/vendor/dashboard/earnings" },
   {
     icon: MessageCircle,
