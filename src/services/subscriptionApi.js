@@ -364,6 +364,10 @@ export const updateMealPlan = async (id, payload) => {
     formData.append("meals_per_cycle", meals_per_cycle.toString());
   }
 
+  if (payload.delivery_fee_naira !== undefined && payload.delivery_fee_naira !== null) {
+    formData.append("delivery_fee_naira", payload.delivery_fee_naira.toString());
+  }
+
   // Handle media if provided
   const hasMedia =
     media &&

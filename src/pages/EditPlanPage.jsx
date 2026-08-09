@@ -21,7 +21,7 @@ const EditPlanPage = () => {
 
   const handleSuccess = (plan) => {
     navigate("/vendor/plans", {
-      state: { message: `Meal plan "${plan.plan_name}" updated successfully!` },
+      state: { message: `Meal plan "${plan.name}" updated successfully!` },
     });
   };
 

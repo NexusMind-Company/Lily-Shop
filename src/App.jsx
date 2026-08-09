@@ -74,6 +74,7 @@ const OrderSummaryPage = lazy(() => import("./pages/OrderSummaryPage"));
 const OrderHistoryPage = lazy(() => import("./pages/OrderHistoryPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const FoodOrderCheckoutPage = lazy(() => import("./pages/FoodOrderCheckoutPage"));
 const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
 const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
 
@@ -151,6 +152,7 @@ const VendorDashboardOverview = lazy(
   () => import("./pages/vendor/VendorDashboardOverview"),
 );
 const VendorOrdersPage = lazy(() => import("./pages/vendor/VendorOrdersPage"));
+const VendorCustomersPage = lazy(() => import("./pages/vendor/VendorCustomersPage"));
 const VendorSubscriptionsPage = lazy(
   () => import("./pages/vendor/VendorSubscriptionsPage"),
 );
@@ -445,6 +447,7 @@ function App() {
                 {/* Address & Card Selection */}
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/food-checkout" element={<FoodOrderCheckoutPage />} />
                 <Route path="/add-address" element={<AddAddressPage />} />
                 <Route
                   path="/choose-pickup"
@@ -479,6 +482,10 @@ function App() {
                 <Route
                   path="/vendor/dashboard/orders"
                   element={<VendorOrdersPage />}
+                />
+                <Route
+                  path="/vendor/dashboard/customers"
+                  element={<VendorCustomersPage />}
                 />
                 <Route
                   path="/vendor/dashboard/subscriptions"
