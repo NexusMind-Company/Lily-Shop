@@ -33,22 +33,9 @@ node_modules/
 .env.production
 dist/
 build/
-.next/
 
 .env*
-netlify.toml
-api_corrections.txt
 Lily Shop API.yaml
-UX_GUIDELINES_VALIDATION.txt
-DELIVERY_PROPOSAL.txt
-tell_backend.txt
+netlify.toml
 .antigravityignore
-api-docs/
-p2p-marketplace-build-plan.md.txt
-chat-design/
-Lily Shop API (1).yaml
-test-edit-chatpage.sh
-endpoints.txt
-src/components/feed/mockData.js
-docs/
 .agents/
