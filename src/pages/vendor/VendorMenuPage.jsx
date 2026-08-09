@@ -60,24 +60,54 @@ const VendorMenuPage = () => {
       }
       toast.error(getErrorMessage(err));
     },
-    onSuccess: () => {
+    onSuccess: (updatedMealFromServer, variables) => {
+      // Instead of invalidating and fetching stale backend data, 
+      // we permanently update the cache with the exact response from the PATCH request.
+      queryClient.setQueryData(["vendorMenu"], (old) => {
+        if (!old) return old;
+        const list = Array.isArray(old) ? old : (old.results || []);
+        const updatedList = list.map((item) =>
+          item.id === variables.id ? { ...item, ...updatedMealFromServer } : item
+        );
+        return Array.isArray(old) ? updatedList : { ...old, results: updatedList };
+      });
       toast.success("Meal availability updated!");
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure backend sync
-      queryClient.invalidateQueries({ queryKey: ["vendorMenu"] });
+      // We intentionally DO NOT invalidateQueries here anymore.
+      // The backend GET endpoint is heavily cached, so fetching it immediately 
+      // returns old data and ruins the optimistic update.
     },
   });
 
   const { mutate: remove } = useMutation({
     mutationFn: (id) => deleteMealItem(id),
-    onMutate: (id) => setDeletingId(id),
+    onMutate: (id) => {
+      setDeletingId(id);
+      // Optimistically remove from cache so it disappears instantly
+      queryClient.cancelQueries({ queryKey: ["vendorMenu"] });
+      const previousMenu = queryClient.getQueryData(["vendorMenu"]);
+      queryClient.setQueryData(["vendorMenu"], (old) => {
+        if (!old) return old;
+        const list = Array.isArray(old) ? old : (old.results || []);
+        const updatedList = list.filter((item) => item.id !== id);
+        return Array.isArray(old) ? updatedList : { ...old, results: updatedList };
+      });
+      return { previousMenu };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendorMenu"] });
       toast.success("Meal removed.");
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
-    onSettled: () => setDeletingId(null),
+    onError: (err, id, context) => {
+      if (context?.previousMenu) {
+        queryClient.setQueryData(["vendorMenu"], context.previousMenu);
+      }
+      toast.error(getErrorMessage(err));
+    },
+    onSettled: () => {
+      setDeletingId(null);
+      // Again, DO NOT invalidate to avoid stale backend cache returning the deleted item!
+    },
   });
 
   const menuData = Array.isArray(menu) ? menu : (menu?.results ?? []);
