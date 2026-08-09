@@ -31,10 +31,12 @@ const Login = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only auto-redirect on mount if already authenticated,
+    // NOT immediately after a successful login to avoid overriding the timeout.
+    if (isAuthenticated && !showSuccess) {
       navigate("/");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, showSuccess]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -73,10 +75,18 @@ const Login = () => {
       setShowSuccess(true);
       setTimeout(() => {
         const userId = resultAction.payload?.user?.id || formData.login;
+        const userInterests = resultAction.payload?.user?.interests;
+        
+        // Check backend flags for new user
+        const isFirstTimeServer = 
+          resultAction.payload?.user?.is_first_login || 
+          (Array.isArray(userInterests) && userInterests.length === 0);
+
         const hasOnboarded =
           localStorage.getItem(`onboarded_interests_${userId}`) ||
           localStorage.getItem("onboarded_interests");
-        if (!hasOnboarded) {
+          
+        if (isFirstTimeServer || !hasOnboarded) {
           navigate("/welcome/interests");
         } else {
           navigate("/");
