@@ -33,11 +33,40 @@ const VendorMenuPage = () => {
 
   const { mutate: update, isPending: updating } = useMutation({
     mutationFn: ({ id, data }) => updateMeal(id, data),
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["vendorMenu"] });
+      
+      // Snapshot the previous value
+      const previousMenu = queryClient.getQueryData(["vendorMenu"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["vendorMenu"], (old) => {
+        if (!old) return old;
+        const list = Array.isArray(old) ? old : (old.results || []);
+        const updatedList = list.map((item) =>
+          item.id === id ? { ...item, ...data } : item
+        );
+        return Array.isArray(old) ? updatedList : { ...old, results: updatedList };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousMenu };
+    },
+    onError: (err, newTodo, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousMenu) {
+        queryClient.setQueryData(["vendorMenu"], context.previousMenu);
+      }
+      toast.error(getErrorMessage(err));
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendorMenu"] });
       toast.success("Meal availability updated!");
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
+    onSettled: () => {
+      // Always refetch after error or success to ensure backend sync
+      queryClient.invalidateQueries({ queryKey: ["vendorMenu"] });
+    },
   });
 
   const { mutate: remove } = useMutation({
