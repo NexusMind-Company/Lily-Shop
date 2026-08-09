@@ -528,6 +528,16 @@ export const createOrder = async (orderData) => {
   }
 };
 
+export const createFoodOrder = async (orderData) => {
+  try {
+    const response = await api.post("/foods/orders/", orderData);
+    return response.data;
+  } catch (error) {
+    console.error("Create food order error - Response:", error.response?.data);
+    throw error;
+  }
+};
+
 export const getOrderById = async (orderId) => {
   const response = await api.get(`/orders/${orderId}/`);
   return response.data;
@@ -775,6 +785,8 @@ export const createMealPlan = async (mealPlanData) => {
     formData.append("frequency", mealPlanData.frequency);
   if (mealPlanData.trial_days !== undefined)
     formData.append("trial_days", mealPlanData.trial_days.toString());
+  if (mealPlanData.delivery_fee_naira !== undefined && mealPlanData.delivery_fee_naira !== null)
+    formData.append("delivery_fee_naira", mealPlanData.delivery_fee_naira.toString());
 
   // Array fields
   if (Array.isArray(mealPlanData.service_days)) {
@@ -978,6 +990,8 @@ export const updateSubscriptionPlan = async (planId, planData) => {
   if (planData.frequency) formData.append("frequency", planData.frequency);
   if (planData.trial_days !== undefined && planData.trial_days !== null)
     formData.append("trial_days", planData.trial_days.toString());
+  if (planData.delivery_fee_naira !== undefined && planData.delivery_fee_naira !== null)
+    formData.append("delivery_fee_naira", planData.delivery_fee_naira.toString());
 
   // Array fields
   if (Array.isArray(planData.service_days)) {

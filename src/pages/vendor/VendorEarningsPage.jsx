@@ -433,7 +433,7 @@ const VendorEarningsPage = () => {
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-sm font-bold text-lily">
-                      {formatMoney(payment.amount)}
+                      {formatMoney(payment.amount - (payment.amount * 0.10))}
                     </p>
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
@@ -443,6 +443,22 @@ const VendorEarningsPage = () => {
                     >
                       {payment.status}
                     </span>
+                  </div>
+                </div>
+
+                {/* Commission Breakdown */}
+                <div className="mb-3 grid grid-cols-3 gap-2 rounded-lg bg-gray-50 p-2 text-xs">
+                  <div>
+                    <span className="block text-gray-500">Gross Sale</span>
+                    <span className="font-semibold text-gray-700">{formatMoney(payment.amount)}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-500">Platform Fee (10%)</span>
+                    <span className="font-semibold text-red-500">-{formatMoney(payment.amount * 0.10)}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-500">Net Earnings</span>
+                    <span className="font-semibold text-lily">{formatMoney(payment.amount - (payment.amount * 0.10))}</span>
                   </div>
                 </div>
 
