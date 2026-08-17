@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
 import { fetchWallet, createSubscriptionWithPaystack } from "../services/api";
+import { isVendorOwner } from "../utils/vendorUtils";
 import {
   resolveSubscriptionFlowState,
   saveSubscriptionFlowState,
@@ -28,6 +30,13 @@ const SubscriptionPaymentPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const flowState = resolveSubscriptionFlowState(state);
+  const { user_data } = useSelector((reduxState) => reduxState.auth);
+  const profileData = useSelector((reduxState) => reduxState.profile?.data);
+  
+  const currentUser = {
+    ...user_data,
+    ...profileData?.user,
+  };
 
   const plan = flowState?.plan;
   const vendor = flowState?.vendor;
@@ -56,8 +65,14 @@ const SubscriptionPaymentPage = () => {
       return;
     }
 
+    if (isVendorOwner(currentUser, vendor, plan)) {
+      toast.error("Vendor owners cannot subscribe to their own plans.");
+      navigate("/vendor", { replace: true });
+      return;
+    }
+
     saveSubscriptionFlowState(flowState);
-  }, [plan, navigate, flowState]);
+  }, [plan, navigate, flowState, currentUser, vendor]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["walletBalance"],
