@@ -32,7 +32,9 @@ import {
   fetchVendorDetails,
   fetchReviewsForVendor,
 } from "../services/subscriptionApi";
+import { useSelector } from "react-redux";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
+import { isVendorOwner } from "../utils/vendorUtils";
 import { toast } from "react-hot-toast";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
@@ -98,6 +100,15 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
 
   const meals = Array.isArray(mealsData) ? mealsData : mealsData?.results || [];
 
+  const { user_data } = useSelector((state) => state.auth);
+  const profileData = useSelector((state) => state.profile?.data);
+  
+  const currentUser = {
+    ...user_data,
+    ...profileData?.user,
+  };
+  const isOwner = isVendorOwner(currentUser, vendor);
+
   const filteredPlans =
     plans?.results?.filter((plan) => plan.frequency === selectedPlan) || [];
 
@@ -133,6 +144,10 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   };
 
   const handleStartOrder = (productId) => {
+    if (isOwner) {
+      toast.error("You cannot order your own products.");
+      return;
+    }
     setOrderingProductId(productId);
     setCurrentOrderQuantity(1);
   };
@@ -372,6 +387,14 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                                 </div>
                               </div>
                             ) : (
+                              isOwner ? (
+                              <button
+                                onClick={() => navigate("/vendor/dashboard/menu")}
+                                className="w-full py-2 rounded-lg text-sm font-semibold text-center text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition cursor-pointer"
+                              >
+                                Your Product
+                              </button>
+                              ) : (
                               <button
                                 onClick={() => handleStartOrder(meal.id)}
                                 disabled={!meal.is_available}
@@ -384,6 +407,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                                 <ShoppingCart size={16} />
                                 Order
                               </button>
+                              )
                             )}
                           </div>
                         </div>
@@ -770,14 +794,24 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                         ₦{Number(totalPrice || 0).toLocaleString()}
                       </span>
                     </div>
-                    <button
-                      onClick={handleSubscribe}
-                      disabled={!totalPrice}
-                      className="w-full bg-lily text-white h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-lily/20 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Subscribe Now
-                      <ArrowRight size={20} />
-                    </button>
+                    {isOwner ? (
+                      <button
+                        onClick={() => navigate("/vendor/plans")}
+                        className="w-full bg-orange-100 text-orange-600 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-100/20 hover:brightness-105 active:scale-[0.98] transition-all"
+                      >
+                        Manage Your Plan
+                        <ArrowRight size={20} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubscribe}
+                        disabled={!totalPrice}
+                        className="w-full bg-lily text-white h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-lily/20 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Subscribe Now
+                        <ArrowRight size={20} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
