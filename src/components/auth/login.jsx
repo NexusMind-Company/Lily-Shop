@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, clearError } from "../../redux/authSlice";
-import { useNavigate, Link } from "react-router-dom";
+import { loginUser, clearError, logout } from "../../redux/authSlice";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   const { loading, error, isAuthenticated } = useSelector(
@@ -34,9 +35,16 @@ const Login = () => {
     // Only auto-redirect on mount if already authenticated,
     // NOT immediately after a successful login to avoid overriding the timeout.
     if (isAuthenticated && !showSuccess) {
-      navigate("/");
+      const hasToken = !!localStorage.getItem("access_token");
+      if (!hasToken) {
+        // Redux state is stale (no real token in localStorage)
+        dispatch(logout());
+      } else {
+        const from = location.state?.from?.pathname || "/";
+        navigate(from, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, showSuccess]);
+  }, [isAuthenticated, navigate, showSuccess, dispatch, location.state]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -89,7 +97,8 @@ const Login = () => {
         if (isFirstTimeServer || !hasOnboarded) {
           navigate("/welcome/interests");
         } else {
-          navigate("/");
+          const from = location.state?.from?.pathname || "/";
+          navigate(from, { replace: true });
         }
       }, 1500);
     } else if (loginUser.rejected.match(resultAction)) {

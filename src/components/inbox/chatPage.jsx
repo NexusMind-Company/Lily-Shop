@@ -218,7 +218,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
               <p>{address}</p>
             ) : (
               <div className="flex flex-col gap-0.5 mt-1 text-[13px]">
-                <p><span className="text-gray-500 font-medium mr-1">Name:</span>{buyerDisplayName || address.name || (activePayload.buyer_name && activePayload.buyer_name !== "Customer" ? activePayload.buyer_name : null) || activePayload.customer_name || "Customer"}</p>
+                <p><span className="text-gray-500 font-medium mr-1">Name:</span>{buyerDisplayName || address.name || (activePayload.buyer_name && activePayload.buyer_name !== "Customer" ? activePayload.buyer_name : null) || activePayload.customer_name || otherUserName || "Customer"}</p>
                 <p><span className="text-gray-500 font-medium mr-1">Phone:</span>{address.phone_number || address.phone || activePayload.buyer_phone || activePayload.phone || "Not provided"}</p>
                 <p><span className="text-gray-500 font-medium mr-1">Address:</span>{address.street_address || address.street || address.address || "Not provided"}</p>
                 
