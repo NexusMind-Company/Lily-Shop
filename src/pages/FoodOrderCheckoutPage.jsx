@@ -97,7 +97,15 @@ const FoodOrderCheckoutPage = () => {
         window.location.href = response.authorization_url;
       } else {
         toast.success("Food order placed successfully!");
-        navigate("/order-success", { state: { product, quantity, total } });
+        navigate("/order-success", { 
+          state: { 
+            order: response, 
+            product, 
+            quantity, 
+            total,
+            paymentMethod 
+          } 
+        });
       }
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to place order.";
