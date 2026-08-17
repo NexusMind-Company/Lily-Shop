@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../../redux/authSlice";
+import { handleLogout } from "../../redux/authSlice";
 import { fetchShops } from "../../redux/shopSlice";
 import { fetchNotifications } from "../../redux/notificationSlice";
 import { Search, Bell } from "lucide-react";
@@ -264,7 +264,7 @@ const Header = () => {
           <li className="py-2 hover:text-lily">
             <button
               className="cursor-pointer"
-              onClick={() => dispatch(logout())}
+              onClick={() => dispatch(handleLogout())}
             >
               Logout
             </button>

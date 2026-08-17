@@ -20,7 +20,7 @@ const Settings = () => {
 
   const handleLogoutClick = () => {
     dispatch(handleLogout()); // clear tokens, user data, profile, etc.
-    navigate("/login"); // redirect to login page
+    navigate("/login", { replace: true }); // redirect to login page
   };
 
   const items = [
@@ -61,7 +61,7 @@ const Settings = () => {
       to: "/about",
     },
     {
-      icon: <LogOut size={30} />,
+      icon: <LogOut size={30} className="text-red-600" />,
       text: "Logout",
       sub: "Logout of your account",
       action: handleLogoutClick,
@@ -85,16 +85,19 @@ const Settings = () => {
           return (
             <Wrapper
               key={i}
+              type={isLogout ? "button" : undefined}
               to={!isLogout ? item.to : undefined}
               onClick={isLogout ? item.action : undefined}
-              className="flex w-full text-left px-4 py-4 items-center "
+              className="flex w-full text-left px-4 py-4 items-center cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <div className="mr-3">{item.icon}</div>
               <div className="flex-1">
-                <p className="pb-1 font-medium">{item.text}</p>
+                <p className={`pb-1 font-medium ${isLogout ? "text-red-600" : ""}`}>
+                  {item.text}
+                </p>
                 <p className="text-sm text-gray-500">{item.sub}</p>
               </div>
-              <ChevronRight size={30} />
+              <ChevronRight size={30} className={isLogout ? "text-red-600" : ""} />
             </Wrapper>
           );
         })}

@@ -33,7 +33,11 @@ export const clearAuthTokens = () => {
   delete api.defaults.headers.common["Authorization"];
 
   if (storeRef) {
-    storeRef.dispatch({ type: "auth/logout" });
+    queueMicrotask(() => {
+      if (storeRef.getState()?.auth?.isAuthenticated) {
+        storeRef.dispatch({ type: "auth/logout" });
+      }
+    });
   }
 };
 
