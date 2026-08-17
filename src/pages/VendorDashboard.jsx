@@ -11,6 +11,7 @@ import ProfileSection from "../components/subscription/ProfileSection";
 import QuickStats from "../components/subscription/QuickStats";
 import ManagePlansCard from "../components/subscription/ManagePlansCard";
 import SubscriptionList from "../components/subscription/SubscriptionList";
+import VendorCustomersList from "../components/subscription/VendorCustomersList";
 
 import {
   fetchSubscriptionStats,
@@ -221,6 +222,8 @@ const VendorDashboard = ({ vendorId }) => {
               pagination={pagination}
               onPageChange={handlePageChange}
             />
+
+            <VendorCustomersList vendorId={validVendorId} />
           </>
         )}
       </main>

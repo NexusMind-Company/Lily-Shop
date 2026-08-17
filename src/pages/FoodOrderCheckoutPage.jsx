@@ -49,7 +49,9 @@ const FoodOrderCheckoutPage = () => {
 
   const subtotal = foodPrice * (quantity || 1);
   const platformFee = subtotal * 0.10; // 10% platform fee
-  const total = subtotal + deliveryFee;
+  const total = subtotal + deliveryFee + platformFee;
+
+  const [paymentMethod, setPaymentMethod] = useState("wallet");
 
   const handlePay = async () => {
     if (!customerName.trim() || !phone.trim() || !address.trim()) {
@@ -57,7 +59,7 @@ const FoodOrderCheckoutPage = () => {
       return;
     }
 
-    if (walletBalance < total) {
+    if (paymentMethod === "wallet" && walletBalance < total) {
       toast.error(`Insufficient wallet balance. You need NGN ${formatPrice(total)}`);
       return;
     }
@@ -73,7 +75,7 @@ const FoodOrderCheckoutPage = () => {
             quantity: quantity || 1
           }
         ],
-        payment_method: "wallet",
+        payment_method: paymentMethod,
         delivery_type: "delivery",
         delivery_fee_naira: deliveryFee,
         platform_fee_naira: platformFee, 
@@ -82,10 +84,21 @@ const FoodOrderCheckoutPage = () => {
         buyer_phone: phone
       };
 
-      await createFoodOrder(orderData);
+      const response = await createFoodOrder(orderData);
       
-      toast.success("Food order placed successfully!");
-      navigate("/order-success", { state: { product, quantity, total } });
+      if (paymentMethod === "paystack" && response?.authorization_url) {
+        localStorage.setItem("lily_pending_order", JSON.stringify({
+          product,
+          quantity,
+          total,
+          type: "food_order"
+        }));
+        toast.success("Redirecting to Paystack...");
+        window.location.href = response.authorization_url;
+      } else {
+        toast.success("Food order placed successfully!");
+        navigate("/order-success", { state: { product, quantity, total } });
+      }
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to place order.";
       toast.error(msg);
@@ -194,6 +207,10 @@ const FoodOrderCheckoutPage = () => {
               <span>Delivery Fee</span>
               <span>₦{formatPrice(deliveryFee)}</span>
             </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Platform Fee</span>
+              <span>₦{formatPrice(platformFee)}</span>
+            </div>
             <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-lg">
               <span>You Pay</span>
               <span>₦{formatPrice(total)}</span>
@@ -203,17 +220,46 @@ const FoodOrderCheckoutPage = () => {
 
         {/* Payment Action */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-lily/10 flex items-center justify-center">
-                <span className="font-bold text-lily">W</span>
+          <div className="space-y-3">
+            <button
+              onClick={() => setPaymentMethod("wallet")}
+              className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                paymentMethod === "wallet"
+                  ? "border-lily bg-lily/5"
+                  : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-lily/10 flex items-center justify-center">
+                  <span className="font-bold text-lily">W</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-gray-900">Lily Wallet</p>
+                  <p className="text-xs text-gray-500">Balance: ₦{formatPrice(walletBalance)}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-gray-900">Lily Wallet</p>
-                <p className="text-xs text-gray-500">Balance: ₦{formatPrice(walletBalance)}</p>
+              {paymentMethod === "wallet" && <CheckCircle2 className="w-5 h-5 text-lily" />}
+            </button>
+
+            <button
+              onClick={() => setPaymentMethod("paystack")}
+              className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                paymentMethod === "paystack"
+                  ? "border-lily bg-lily/5"
+                  : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <span className="font-bold text-blue-600">P</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-gray-900">Paystack</p>
+                  <p className="text-xs text-gray-500">Card, Bank Transfer, USSD</p>
+                </div>
               </div>
-            </div>
-            <CheckCircle2 className="w-5 h-5 text-lily" />
+              {paymentMethod === "paystack" && <CheckCircle2 className="w-5 h-5 text-lily" />}
+            </button>
           </div>
 
           <button
