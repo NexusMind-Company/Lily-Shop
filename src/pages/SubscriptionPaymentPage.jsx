@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -33,10 +33,10 @@ const SubscriptionPaymentPage = () => {
   const { user_data } = useSelector((reduxState) => reduxState.auth);
   const profileData = useSelector((reduxState) => reduxState.profile?.data);
   
-  const currentUser = {
+  const currentUser = useMemo(() => ({
     ...user_data,
     ...profileData?.user,
-  };
+  }), [user_data, profileData?.user]);
 
   const plan = flowState?.plan;
   const vendor = flowState?.vendor;
