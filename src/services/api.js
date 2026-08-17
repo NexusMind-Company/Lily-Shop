@@ -8,6 +8,12 @@ export const api = axios.create({
   timeout: 30000,
 });
 
+let storeRef = null;
+
+export const injectStore = (_store) => {
+  storeRef = _store;
+};
+
 /* ---------------- AUTH UTILS ---------------- */
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
@@ -25,6 +31,10 @@ export const clearAuthTokens = () => {
 
   localStorage.removeItem("user_data");
   delete api.defaults.headers.common["Authorization"];
+
+  if (storeRef) {
+    storeRef.dispatch({ type: "auth/logout" });
+  }
 };
 
 // Global variables for token refresh queuing
