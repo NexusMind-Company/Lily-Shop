@@ -21,7 +21,7 @@ import createSubscriptionVendorReducer from "./createSubscriptionVendorSlice";
 import userSubscriptionReducer from "./userSubscriptionSlice";
 import notificationReducer from "./notificationSlice";
 
-import { setAuthTokens } from "../services/api";
+import { setAuthTokens, injectStore } from "../services/api";
 
 export const store = configureStore({
   reducer: {
@@ -48,6 +48,8 @@ export const store = configureStore({
     notifications: notificationReducer,
   },
 });
+
+injectStore(store);
 
 // --- Initialize Auth Tokens Safely ---
 const initializeTokens = () => {
