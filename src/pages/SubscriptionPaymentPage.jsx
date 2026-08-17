@@ -373,11 +373,19 @@ const SubscriptionPaymentPage = () => {
           <p className="font-semibold text-[#111813] mb-3">Price Breakdown</p>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-sm">Subscription price</span>
+              <span className="text-gray-500 text-sm">Food</span>
               <span className="font-semibold text-[#111813]">
-                ₦{formatPrice(planPrice)}
+                ₦{formatPrice(flowState?.subtotal || planPrice)}
               </span>
             </div>
+            {deliveryType === "delivery" && flowState?.totalDeliveryFee > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 text-sm">Delivery</span>
+                <span className="font-semibold text-[#111813]">
+                  ₦{formatPrice(flowState.totalDeliveryFee)}
+                </span>
+              </div>
+            )}
             <div className="border-t border-gray-100 pt-2 mt-2 flex items-center justify-between">
               <span className="font-bold text-[#111813]">Total Amount</span>
               <span className="font-bold text-[#13ec49] text-lg">

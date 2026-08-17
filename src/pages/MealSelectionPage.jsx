@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Search, Check, X, Clock, Navigation } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, createSubscriptionCustomization } from "../services/api";
+import MediaCarousel from "../components/common/mediaCarousel";
 
 const DAYS_OF_WEEK = [
   "monday",
@@ -26,7 +27,14 @@ const MealCard = ({ meal, isSelected, onToggle }) => (
   >
     <div className="flex items-center gap-3">
       <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-gray-100 relative">
-        {meal.image_url ? (
+        {meal.all_media_urls && meal.all_media_urls.length > 1 ? (
+          <MediaCarousel 
+            media={meal.all_media_urls.map(url => ({
+              type: url.match(/\\.(mp4|webm|mov)$/i) ? 'video' : 'image',
+              src: url
+            }))} 
+          />
+        ) : meal.image_url ? (
           <img
             src={meal.image_url}
             alt={meal.name}

@@ -21,7 +21,12 @@ import {
   ShoppingCart,
   Plus,
   Minus,
+  Info,
+  Search,
+  X,
+  Calendar,
 } from "lucide-react";
+import MediaCarousel from "../components/common/mediaCarousel";
 import { fetchMealPlansByVendor, fetchMealsByVendor } from "../services/api";
 import {
   fetchVendorDetails,
@@ -99,9 +104,15 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const selectedPlans =
     plans?.results?.filter((plan) => selectedPlanIds.includes(plan.id)) || [];
 
-  const totalPrice =
+  const subtotal =
     selectedPlans.reduce((sum, plan) => sum + Number(plan.price || 0), 0) *
     quantity;
+    
+  const totalDeliveryFee = deliveryType === "delivery"
+    ? selectedPlans.reduce((sum, plan) => sum + Number(plan.delivery_fee_naira || plan.delivery_fee || 0), 0)
+    : 0;
+
+  const totalPrice = subtotal + totalDeliveryFee;
 
   //  Handlers
   const handleBack = () => navigate(-1);
@@ -167,6 +178,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
       vendor,
       vendorId,
       totalPrice,
+      subtotal,
+      totalDeliveryFee,
       quantity,
       preferredTime,
       deliveryType,
@@ -301,11 +314,20 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                             </div>
                           )}
                           <div className="relative aspect-square">
-                            <img
-                              src={meal.image_url || "/placeholder.png"}
-                              alt={meal.name}
-                              className="w-full h-full object-cover"
-                            />
+                            {meal.all_media_urls && meal.all_media_urls.length > 1 ? (
+                              <MediaCarousel 
+                                media={meal.all_media_urls.map(url => ({
+                                  type: url.match(/\\.(mp4|webm|mov)$/i) ? 'video' : 'image',
+                                  src: url
+                                }))} 
+                              />
+                            ) : (
+                              <img
+                                src={meal.image_url || "/placeholder.png"}
+                                alt={meal.name}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
                           </div>
                           <div className="p-3">
                             <h4 className="font-semibold text-sm mb-1 truncate">
