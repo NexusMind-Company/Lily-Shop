@@ -591,7 +591,7 @@ const ProfileVisiting = () => {
 
         {user.vendor_id && (
           <Link
-            to={`/vendor-subscription/${user.vendor_id}`}
+            to={`/vendor/${user.vendor_id}`}
             className="flex-1 min-w-30"
           >
             <button className="w-full py-3 border-2 border-[#FF9800] text-[#FF9800] hover:bg-orange-50 rounded-lg text-base font-extrabold transition-colors">

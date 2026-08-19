@@ -25,6 +25,7 @@ import {
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
+import ImageEditor from "./ImageEditor";
 
 import { api } from "../../services/api";
 import MessagesList from "./messagesList";
@@ -527,8 +528,10 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [editingFileId, setEditingFileId] = useState(null);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [pendingMessages, setPendingMessages] = useState([]);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -687,6 +690,44 @@ const ChatPage = () => {
     return [...conversation].reverse();
   }, [conversation]);
 
+  const allMessages = useMemo(() => {
+    return [...displayMessages, ...pendingMessages];
+  }, [displayMessages, pendingMessages]);
+
+  const groupedMessages = useMemo(() => {
+    const grouped = [];
+    let currentGroup = null;
+
+    allMessages.forEach((msg) => {
+      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+      
+      const isStandardMedia = !!msg.media && 
+        !msg.product && 
+        !msg.shared_content && 
+        !(typeof msg.content === 'string' && (msg.content.startsWith('[ORDER_PAYLOAD]:') || msg.content.startsWith('LILY_SHARE:')));
+
+      if (
+        currentGroup &&
+        currentGroup.isMine === isMine &&
+        currentGroup.isStandardMedia &&
+        isStandardMedia &&
+        Math.abs(new Date(msg.timestamp) - new Date(currentGroup.timestamp)) < 60000
+      ) {
+        currentGroup.subMessages.push(msg);
+      } else {
+        if (currentGroup) grouped.push(currentGroup);
+        currentGroup = {
+          ...msg,
+          isMine,
+          isStandardMedia,
+          subMessages: [msg]
+        };
+      }
+    });
+    if (currentGroup) grouped.push(currentGroup);
+    return grouped;
+  }, [allMessages, currentUserId]);
+
   // Ensure conversations list is loaded for metadata
   useEffect(() => {
     if (conversations.length === 0) {
@@ -743,15 +784,15 @@ const ChatPage = () => {
 
   // Mark incoming unread messages as read
   useEffect(() => {
-    const unreadMessages = displayMessages.filter((msg) => {
+    const unreadMessages = allMessages.filter((msg) => {
       const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
-      return !isMine && msg.read === false;
+      return !isMine && msg.read === false && !msg.isOptimistic;
     });
 
     unreadMessages.forEach((msg) => {
       dispatch(markMessageAsRead(msg.id));
     });
-  }, [displayMessages, currentUserId, dispatch]);
+  }, [allMessages, currentUserId, dispatch]);
 
   //  Load more messages on scroll top
   const handleScroll = () => {
@@ -775,29 +816,93 @@ const ChatPage = () => {
 
   //  Send Message
   const handleSend = () => {
-    if (!newMessage.trim() && !selectedFile) return;
+    if (!newMessage.trim() && selectedFiles.length === 0) return;
 
-    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage, media: selectedFile }))
-      .then(() => {
-        setNewMessage("");
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      })
-      .catch((error) => {
-        console.error("Error sending message:", error);
+    const currentMessage = newMessage;
+    const currentFiles = [...selectedFiles];
+
+    const newPending = [];
+    if (currentFiles.length > 0) {
+      currentFiles.forEach((f, idx) => {
+        newPending.push({
+          id: `temp-${Date.now()}-${idx}`,
+          content: idx === 0 ? currentMessage : "", // Attach text to first image only
+          media: f.url,
+          timestamp: new Date().toISOString(),
+          is_me: true,
+          sender_id: currentUserId,
+          isOptimistic: true,
+          originalFile: f.file
+        });
       });
+    } else {
+      newPending.push({
+        id: `temp-${Date.now()}`,
+        content: currentMessage,
+        media: null,
+        timestamp: new Date().toISOString(),
+        is_me: true,
+        sender_id: currentUserId,
+        isOptimistic: true,
+        originalFile: null
+      });
+    }
+
+    setPendingMessages((prev) => [...prev, ...newPending]);
+    setNewMessage("");
+    setSelectedFiles([]);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+    newPending.forEach((optimisticMsg) => {
+      dispatch(sendMessageToUser({ 
+        userId: conversationId, 
+        content: optimisticMsg.content, 
+        media: optimisticMsg.originalFile 
+      }))
+        .then(() => {
+          setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+          setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+        });
+    });
   };
 
   const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const newFiles = files.map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        url: URL.createObjectURL(file),
+        type: file.type
+      }));
+      setSelectedFiles(prev => [...prev, ...newFiles]);
     }
     // Reset input so selecting the same file again triggers onChange
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSaveEditedImage = (blob) => {
+    if (!editingFileId) return;
+    
+    // Create new file from blob
+    const originalFileObj = selectedFiles.find(f => f.id === editingFileId);
+    if (!originalFileObj) return;
+
+    const newFile = new File([blob], originalFileObj.file.name, { type: 'image/jpeg' });
+    const newUrl = URL.createObjectURL(newFile);
+
+    setSelectedFiles(prev => prev.map(f => {
+      if (f.id === editingFileId) {
+        return { ...f, file: newFile, url: newUrl };
+      }
+      return f;
+    }));
+    
+    setEditingFileId(null);
   };
 
   return (
@@ -901,13 +1006,13 @@ const ChatPage = () => {
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {loading && displayMessages.length === 0 ? (
+        {loading && allMessages.length === 0 ? (
           <p className="text-center text-gray-500">Loading messages...</p>
-        ) : displayMessages.length === 0 ? (
+        ) : allMessages.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
-          displayMessages.map((msg) => {
-            const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+          groupedMessages.map((msg) => {
+            const isMine = msg.isMine;
 
             // Check for order payload first
             if (
@@ -983,11 +1088,11 @@ const ChatPage = () => {
               <div
                 key={msg.id}
                 id={`msg-${msg.id}`}
-                className={`flex ${isMine ? "justify-end" : "justify-start"} ${String(msg.id) === targetMessageId ? "animate-pulse" : ""}`}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} ${msg.subMessages?.some(m => String(m.id) === targetMessageId) ? "animate-pulse" : ""}`}
               >
                 <div
                   className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words transition-colors duration-1000 ${
-                    String(msg.id) === targetMessageId
+                    msg.subMessages?.some(m => String(m.id) === targetMessageId)
                       ? "ring-4 ring-yellow-400 ring-opacity-50"
                       : ""
                   } ${
@@ -1003,12 +1108,21 @@ const ChatPage = () => {
                   )}
                   
                   {msg.media && (
-                    <div className="mb-2 overflow-hidden rounded-xl">
-                      {msg.media.match(/\.(mp4|webm|ogg)$/i) ? (
-                        <video src={msg.media} controls className="max-w-full h-auto max-h-[300px]" />
-                      ) : (
-                        <img src={msg.media} alt="Attached media" className="max-w-full h-auto max-h-[300px] object-cover" />
-                      )}
+                    <div className={`mb-2 overflow-hidden rounded-xl ${msg.subMessages?.length > 1 ? "grid grid-cols-2 gap-1" : ""}`}>
+                      {msg.subMessages?.map((subMsg, idx) => (
+                        <div key={subMsg.id || idx} className="relative">
+                          {subMsg.media.match(/\.(mp4|webm|ogg)$/i) ? (
+                            <video src={subMsg.media} controls className={`${msg.subMessages.length > 1 ? "w-full h-32 object-cover" : "max-w-[220px] sm:max-w-[260px] h-auto max-h-[240px]"} bg-black/5`} />
+                          ) : (
+                            <img 
+                              src={subMsg.media} 
+                              alt="Attached media" 
+                              className={`${msg.subMessages.length > 1 ? "w-full h-32 object-cover" : "max-w-[220px] sm:max-w-[260px] h-auto max-h-[240px] object-cover"} cursor-pointer hover:opacity-90 transition-opacity bg-black/5`} 
+                              onClick={() => setFullScreenImage(subMsg.media)}
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -1018,12 +1132,15 @@ const ChatPage = () => {
                     </p>
                   )}
                   
-                  <p className="text-[10px] mt-1 opacity-70 text-right">
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <div className="flex items-center justify-end gap-1 mt-1">
+                    <p className="text-[10px] opacity-70 text-right">
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    {msg.isOptimistic && <span className="text-[10px] text-gray-200">...</span>}
+                  </div>
                 </div>
               </div>
             );
@@ -1035,27 +1152,35 @@ const ChatPage = () => {
 
       {/* Input */}
       <div className="shrink-0 flex flex-col bg-white border-t">
-        {previewUrl && (
-          <div className="p-3 border-b border-gray-100 flex items-start bg-gray-50">
-            <div className="relative inline-block shadow-sm rounded-lg">
-              {selectedFile?.type?.startsWith('video/') ? (
-                <video src={previewUrl} className="h-24 w-auto rounded-lg" controls />
-              ) : (
-                <img src={previewUrl} alt="Preview" className="h-24 w-auto rounded-lg object-cover" />
-              )}
-              <button 
-                onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-colors"
-                title="Remove attachment"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        {selectedFiles.length > 0 && (
+          <div className="p-3 border-b border-gray-100 flex items-start bg-gray-50 overflow-x-auto gap-3">
+            {selectedFiles.map((fileObj) => (
+              <div key={fileObj.id} className="relative inline-block shadow-sm rounded-lg shrink-0">
+                {fileObj.type?.startsWith('video/') ? (
+                  <video src={fileObj.url} className="h-24 w-auto rounded-lg" controls />
+                ) : (
+                  <img 
+                    src={fileObj.url} 
+                    alt="Preview" 
+                    className="h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                    onClick={() => setEditingFileId(fileObj.id)}
+                  />
+                )}
+                <button 
+                  onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== fileObj.id))}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-colors"
+                  title="Remove attachment"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ))}
           </div>
         )}
         <div className="p-3 flex items-center space-x-2">
           <input
             type="file"
+            multiple
             ref={fileInputRef}
             onChange={handleFileSelect}
             className="hidden"
@@ -1081,22 +1206,53 @@ const ChatPage = () => {
 
             <button 
               onClick={handleSend} 
-              disabled={sending || (!newMessage.trim() && !selectedFile)} 
+              disabled={sending || (!newMessage.trim() && selectedFiles.length === 0)} 
               className={`p-2 rounded-full transition-colors ${
-                sending || (!newMessage.trim() && !selectedFile) 
+                sending || (!newMessage.trim() && selectedFiles.length === 0) 
                   ? "bg-transparent" 
                   : "bg-lily hover:bg-lily/90"
               }`}
             >
               <SendHorizontal
                 className={`h-5 w-5 ${
-                  sending || (!newMessage.trim() && !selectedFile) ? "text-gray-400" : "text-white"
+                  sending || (!newMessage.trim() && selectedFiles.length === 0) ? "text-gray-400" : "text-white"
                 } transition-all`}
               />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Full Screen Image Viewer Modal */}
+      {fullScreenImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setFullScreenImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full"
+            onClick={() => setFullScreenImage(null)}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          <img 
+            src={fullScreenImage} 
+            alt="Enlarged view" 
+            className="w-full max-w-[90vw] md:max-w-md lg:max-w-lg max-h-[75vh] object-contain rounded-2xl shadow-2xl cursor-default bg-black/40" 
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* Drawing Editor Modal */}
+      {editingFileId && (
+        <ImageEditor 
+          imageUrl={selectedFiles.find(f => f.id === editingFileId)?.url}
+          onSave={handleSaveEditedImage}
+          onCancel={() => setEditingFileId(null)}
+        />
+      )}
+
     </div>
   </div>
   );
