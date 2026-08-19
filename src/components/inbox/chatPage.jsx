@@ -527,6 +527,8 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -773,11 +775,13 @@ const ChatPage = () => {
 
   //  Send Message
   const handleSend = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !selectedFile) return;
 
-    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
+    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage, media: selectedFile }))
       .then(() => {
         setNewMessage("");
+        setSelectedFile(null);
+        setPreviewUrl(null);
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       })
       .catch((error) => {
@@ -786,7 +790,14 @@ const ChatPage = () => {
   };
 
   const handleFileSelect = (e) => {
-    console.log("Selected files:", Array.from(e.target.files));
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+    // Reset input so selecting the same file again triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -991,9 +1002,21 @@ const ChatPage = () => {
                     </p>
                   )}
                   
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                    {msg.content}
-                  </p>
+                  {msg.media && (
+                    <div className="mb-2 overflow-hidden rounded-xl">
+                      {msg.media.match(/\.(mp4|webm|ogg)$/i) ? (
+                        <video src={msg.media} controls className="max-w-full h-auto max-h-[300px]" />
+                      ) : (
+                        <img src={msg.media} alt="Attached media" className="max-w-full h-auto max-h-[300px] object-cover" />
+                      )}
+                    </div>
+                  )}
+
+                  {msg.content && msg.content !== "📷 Image" && (
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
+                  )}
                   
                   <p className="text-[10px] mt-1 opacity-70 text-right">
                     {new Date(msg.timestamp).toLocaleTimeString([], {
@@ -1011,41 +1034,72 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-          multiple
-          accept="image/*,video/*,.pdf,.doc,.docx"
-        />
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 bg-gray-200 rounded-full px-4 py-2 focus:outline-none"
-        />
-
-        <button
-          className="absolute right-[15%] text-gray-500"
-          onClick={() => fileInputRef.current.click()}
-        >
-          <Camera className="h-8 w-8" />
-        </button>
-
-        <button onClick={handleSend} disabled={sending}>
-          <SendHorizontal
-            className={`h-8 w-8 ${
-              sending ? "text-gray-400" : "text-lily"
-            } transition-all`}
+      <div className="shrink-0 flex flex-col bg-white border-t">
+        {previewUrl && (
+          <div className="p-3 border-b border-gray-100 flex items-start bg-gray-50">
+            <div className="relative inline-block shadow-sm rounded-lg">
+              {selectedFile?.type?.startsWith('video/') ? (
+                <video src={previewUrl} className="h-24 w-auto rounded-lg" controls />
+              ) : (
+                <img src={previewUrl} alt="Preview" className="h-24 w-auto rounded-lg object-cover" />
+              )}
+              <button 
+                onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-colors"
+                title="Remove attachment"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="p-3 flex items-center space-x-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,video/*"
           />
-        </button>
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+            className="flex-1 bg-gray-100 rounded-full px-5 py-3 focus:outline-none text-sm border border-transparent focus:border-lily/30 transition-colors"
+          />
+
+          <div className="flex items-center gap-1 shrink-0 bg-gray-100 rounded-full p-1">
+            <button
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-200"
+              onClick={() => fileInputRef.current.click()}
+              title="Attach media"
+            >
+              <Camera className="h-6 w-6" />
+            </button>
+
+            <button 
+              onClick={handleSend} 
+              disabled={sending || (!newMessage.trim() && !selectedFile)} 
+              className={`p-2 rounded-full transition-colors ${
+                sending || (!newMessage.trim() && !selectedFile) 
+                  ? "bg-transparent" 
+                  : "bg-lily hover:bg-lily/90"
+              }`}
+            >
+              <SendHorizontal
+                className={`h-5 w-5 ${
+                  sending || (!newMessage.trim() && !selectedFile) ? "text-gray-400" : "text-white"
+                } transition-all`}
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-);
+  );
 };
 
 export default ChatPage;
