@@ -33,12 +33,12 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const orders = useSelector(selectOrders);
 
   const firstItem = payload.items?.[0] || {};
-  const product = firstItem.product || {};
+  const product = firstItem.product || firstItem.menu_item || {};
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [liveOrderData, setLiveOrderData] = useState(null);
   
   // Try to find image
-  const imageUrl = product.image_url || product.media?.[0]?.file || "/placeholder.png";
+  const imageUrl = product.image_url || product.media?.[0]?.file || product.media || "/placeholder.png";
 
   const activePayload = liveOrderData || payload;
   const address = activePayload.delivery_address || {};
@@ -195,7 +195,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
 
       <div className="p-4 flex flex-col gap-1.5 text-sm text-gray-800">
         <p>Order no: {payload.reference}</p>
-        <p className="font-bold text-base mt-1">{product.name || firstItem.product_name || "Product"}</p>
+        <p className="font-bold text-base mt-1">{payload.meal_plan || product.name || firstItem.product_name || "Product"}</p>
         {product.caption && <p className="text-gray-500 text-xs line-clamp-2">{product.caption}</p>}
         <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
         <p>Qty: {firstItem.quantity || 1}</p>

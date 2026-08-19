@@ -34,10 +34,12 @@ const PlanCard = ({
         className="flex flex-col rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-white border border-gray-900 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         onClick={onCardClick}
       >
-        <div
-          className="w-full h-40 bg-center bg-no-repeat bg-cover relative"
-          style={{ backgroundImage: `url("${imageUrl}")` }}
-        >
+        <div className="w-full h-56 relative overflow-hidden bg-gray-100">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full object-cover object-center"
+          />
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg">
             <span className="text-xs font-bold text-black">{price}</span>
           </div>
@@ -90,13 +92,17 @@ const PlanCard = ({
   } else {
     return (
       <div
-        className="bg-cover bg-center flex flex-col items-stretch justify-end rounded-xl pt-25 shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden cursor-pointer group"
-        style={{ backgroundImage: `url("${imageUrl}")` }}
+        className="flex flex-col items-stretch justify-end rounded-xl min-h-[240px] pt-12 shadow-[0_2px_8px_rgba(0,0,0,0.08)] relative overflow-hidden cursor-pointer group bg-gray-100"
         onClick={onCardClick}
       >
+        <img
+          src={imageUrl}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover object-center z-0"
+        />
         {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent"></div>
-        <div className="relative z-10 flex w-full flex-col gap-4 p-5">
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent z-10"></div>
+        <div className="relative z-20 flex w-full flex-col gap-4 p-5">
           <div className="flex flex-col gap-1">
             <p className="text-white text-2xl font-bold leading-tight">
               {title}

@@ -248,26 +248,6 @@ const FoodOrderCheckoutPage = () => {
               </div>
               {paymentMethod === "wallet" && <CheckCircle2 className="w-5 h-5 text-lily" />}
             </button>
-
-            <button
-              onClick={() => setPaymentMethod("paystack")}
-              className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                paymentMethod === "paystack"
-                  ? "border-lily bg-lily/5"
-                  : "border-gray-200 bg-gray-50 hover:bg-gray-100"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-blue-600">P</span>
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-gray-900">Paystack</p>
-                  <p className="text-xs text-gray-500">Card, Bank Transfer, USSD</p>
-                </div>
-              </div>
-              {paymentMethod === "paystack" && <CheckCircle2 className="w-5 h-5 text-lily" />}
-            </button>
           </div>
 
           <button

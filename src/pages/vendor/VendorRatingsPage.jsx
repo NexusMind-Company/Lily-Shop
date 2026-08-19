@@ -46,7 +46,7 @@ const VendorRatingsPage = () => {
     isError: ratError,
   } = useQuery({
     queryKey: ["mealRatings"],
-    queryFn: fetchMealRatings,
+    queryFn: () => fetchMealRatings(),
   });
 
   if ((sumLoading && !summary) || (ratLoading && !ratingsData)) {
