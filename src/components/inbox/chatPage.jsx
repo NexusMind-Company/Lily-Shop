@@ -11,7 +11,13 @@ import {
   Eye,
   Play,
   ShoppingCart,
+  Reply,
+  Copy,
+  Edit2,
+  Share,
+  X
 } from "lucide-react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
@@ -532,6 +538,9 @@ const ChatPage = () => {
   const [editingFileId, setEditingFileId] = useState(null);
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [pendingMessages, setPendingMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -714,6 +723,14 @@ const ChatPage = () => {
         Math.abs(new Date(msg.timestamp) - new Date(currentGroup.timestamp)) < 60000
       ) {
         currentGroup.subMessages.push(msg);
+        // Ensure content is preserved if one of the grouped messages has text
+        if (
+          msg.content && 
+          msg.content !== "📷 Image" && 
+          (!currentGroup.content || currentGroup.content === "📷 Image" || currentGroup.content.trim() === "")
+        ) {
+          currentGroup.content = msg.content;
+        }
       } else {
         if (currentGroup) grouped.push(currentGroup);
         currentGroup = {
@@ -818,6 +835,14 @@ const ChatPage = () => {
   const handleSend = () => {
     if (!newMessage.trim() && selectedFiles.length === 0) return;
 
+    if (editingMessage) {
+      // Mock edit update for UI (Backend does not support PATCH yet)
+      toast.success("Message edited (UI only - Backend endpoint needed)");
+      setEditingMessage(null);
+      setNewMessage("");
+      return;
+    }
+
     const currentMessage = newMessage;
     const currentFiles = [...selectedFiles];
 
@@ -851,6 +876,7 @@ const ChatPage = () => {
     setPendingMessages((prev) => [...prev, ...newPending]);
     setNewMessage("");
     setSelectedFiles([]);
+    setReplyingTo(null);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
 
     newPending.forEach((optimisticMsg) => {
@@ -1088,8 +1114,26 @@ const ChatPage = () => {
               <div
                 key={msg.id}
                 id={`msg-${msg.id}`}
-                className={`flex ${isMine ? "justify-end" : "justify-start"} ${msg.subMessages?.some(m => String(m.id) === targetMessageId) ? "animate-pulse" : ""}`}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} ${msg.subMessages?.some(m => String(m.id) === targetMessageId) ? "animate-pulse" : ""} group relative items-center gap-2`}
               >
+                {/* 3-Dot Menu for other user's message */}
+                {!isMine && (
+                  <div className="relative shrink-0">
+                    <button 
+                      onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
+                      className="text-gray-400 hover:text-gray-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <EllipsisVertical className="w-4 h-4" />
+                    </button>
+                    {openMenuId === msg.id && (
+                      <div className="absolute left-0 top-full mt-1 bg-white border shadow-lg rounded-xl z-10 w-32 py-1 overflow-hidden">
+                        <button onClick={() => { setReplyingTo(msg); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Reply className="w-3 h-3"/> Reply</button>
+                        <button onClick={() => { navigator.clipboard.writeText(msg.content); toast.success("Copied"); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Copy className="w-3 h-3"/> Copy</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div
                   className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words transition-colors duration-1000 ${
                     msg.subMessages?.some(m => String(m.id) === targetMessageId)
@@ -1142,6 +1186,25 @@ const ChatPage = () => {
                     {msg.isOptimistic && <span className="text-[10px] text-gray-200">...</span>}
                   </div>
                 </div>
+
+                {/* 3-Dot Menu for my message */}
+                {isMine && (
+                  <div className="relative shrink-0">
+                    <button 
+                      onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
+                      className="text-gray-400 hover:text-gray-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <EllipsisVertical className="w-4 h-4" />
+                    </button>
+                    {openMenuId === msg.id && (
+                      <div className="absolute right-0 top-full mt-1 bg-white border shadow-lg rounded-xl z-10 w-32 py-1 overflow-hidden">
+                        <button onClick={() => { setReplyingTo(msg); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Reply className="w-3 h-3"/> Reply</button>
+                        <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content || ""); setReplyingTo(null); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Edit2 className="w-3 h-3"/> Edit</button>
+                        <button onClick={() => { navigator.clipboard.writeText(msg.content); toast.success("Copied"); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Copy className="w-3 h-3"/> Copy</button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })
@@ -1152,6 +1215,28 @@ const ChatPage = () => {
 
       {/* Input */}
       <div className="shrink-0 flex flex-col bg-white border-t">
+        {replyingTo && (
+          <div className="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center relative">
+            <div className="flex-1 flex flex-col border-l-4 border-lily pl-3 overflow-hidden">
+              <span className="text-xs font-bold text-lily mb-0.5">Replying to {replyingTo.isMine ? "yourself" : recipientData?.name || "User"}</span>
+              <span className="text-xs text-gray-600 truncate">{replyingTo.content || "📷 Media"}</span>
+            </div>
+            <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-gray-600 ml-2 p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        {editingMessage && (
+          <div className="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center relative">
+            <div className="flex-1 flex flex-col border-l-4 border-yellow-400 pl-3 overflow-hidden">
+              <span className="text-xs font-bold text-yellow-600 mb-0.5">Editing message</span>
+              <span className="text-xs text-gray-600 truncate">{editingMessage.content || "📷 Media"}</span>
+            </div>
+            <button onClick={() => { setEditingMessage(null); setNewMessage(""); }} className="text-gray-400 hover:text-gray-600 ml-2 p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
         {selectedFiles.length > 0 && (
           <div className="p-3 border-b border-gray-100 flex items-start bg-gray-50 overflow-x-auto gap-3">
             {selectedFiles.map((fileObj) => (
@@ -1230,17 +1315,29 @@ const ChatPage = () => {
           onClick={() => setFullScreenImage(null)}
         >
           <button 
-            className="absolute top-6 right-6 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full"
+            className="absolute top-6 right-6 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full z-50"
             onClick={() => setFullScreenImage(null)}
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <X className="w-8 h-8" />
           </button>
-          <img 
-            src={fullScreenImage} 
-            alt="Enlarged view" 
-            className="w-full max-w-[90vw] md:max-w-md lg:max-w-lg max-h-[75vh] object-contain rounded-2xl shadow-2xl cursor-default bg-black/40" 
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div onClick={(e) => e.stopPropagation()} className="w-full h-full flex items-center justify-center overflow-hidden">
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={4}
+              centerOnInit
+              doubleClick={{ mode: "zoomIn" }}
+            >
+              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                <img 
+                  src={fullScreenImage} 
+                  alt="Enlarged view" 
+                  className="w-full max-w-[100vw] max-h-[100vh] object-contain cursor-grab active:cursor-grabbing" 
+                  draggable={false}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
         </div>
       )}
 
