@@ -5,7 +5,6 @@ import {
   VendorPageLoader,
   VendorPageError,
 } from "../../components/vendor/VendorErrorStates";
-import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchMealRatings,
   fetchRatingsSummary,
@@ -32,12 +31,10 @@ const VendorRatingsPage = () => {
   const {
     data: summary,
     isLoading: sumLoading,
-    isError: sumError,
-    error: sumErr,
-    refetch: refetchSum,
   } = useQuery({
     queryKey: ["ratingsSummary"],
     queryFn: fetchRatingsSummary,
+    retry: false, // Don't retry on server errors — show graceful fallback
   });
 
   const {
@@ -47,22 +44,14 @@ const VendorRatingsPage = () => {
   } = useQuery({
     queryKey: ["mealRatings"],
     queryFn: () => fetchMealRatings(),
+    retry: false,
   });
 
-  if ((sumLoading && !summary) || (ratLoading && !ratingsData)) {
+  // Show loader only while both queries are in flight with no cached data
+  if ((sumLoading && !summary) && (ratLoading && !ratingsData)) {
     return (
       <VendorLayout title="Ratings & Feedback">
         <VendorPageLoader />
-      </VendorLayout>
-    );
-  }
-  if (sumError && !summary) {
-    return (
-      <VendorLayout title="Ratings & Feedback">
-        <VendorPageError
-          message={getErrorMessage(sumErr)}
-          onRetry={refetchSum}
-        />
       </VendorLayout>
     );
   }
@@ -75,15 +64,15 @@ const VendorRatingsPage = () => {
           sumData.reduce((s, m) => s + (m.average_rating ?? 0), 0) /
           sumData.length
         ).toFixed(1)
-      : "—";
+      : null;
 
   return (
     <VendorLayout title="Ratings & Feedback">
       <div className="bg-white  rounded-2xl p-5 shadow-sm border border-gray-100  text-center">
-        <p className="text-5xl font-bold text-[#111813]  mb-1">{avgRating}</p>
+        <p className="text-5xl font-bold text-[#111813]  mb-1">{avgRating ?? "—"}</p>
         <StarRating rating={parseFloat(avgRating) || 0} size={18} />
         <p className="text-xs text-gray-400 mt-2">
-          Overall rating across all meals
+          {avgRating ? "Overall rating across all meals" : "No ratings yet"}
         </p>
       </div>
 

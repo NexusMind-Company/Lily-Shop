@@ -55,7 +55,7 @@ const VendorAnalyticsPage = () => {
   return (
     <VendorLayout title="Analytics">
       {/* Tabs */}
-      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar">
+      <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar">
         {PERIODS.map(({ key, label }) => (
           <button
             key={key}
@@ -70,6 +70,16 @@ const VendorAnalyticsPage = () => {
           </button>
         ))}
       </div>
+
+      {/* Period filter note — backend currently returns identical data for all periods */}
+      {period !== "" && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 mb-4">
+          <span className="text-blue-400 text-sm">ℹ️</span>
+          <p className="text-[11px] text-blue-600">
+            Period filtering is being updated — figures shown currently reflect all-time data.
+          </p>
+        </div>
+      )}
 
       {isError && (
         <div className="bg-orange-50 border border-orange-100 rounded-xl px-4 py-2 flex items-center justify-between mb-4">
