@@ -1982,31 +1982,25 @@ export const sendConversationMessage = async (conversationId, data) => {
   return response.data;
 };
 
-// --- Informal Market Edition: Chop-PIN & Delivery Verification ---
-export const fetchOrderPin = async (orderId) => {
-  try {
-    const response = await api.get(`/orders/orders/${orderId}/pin/`);
-    return response.data;
-  } catch (error) {
-    if (error.response?.status === 404) {
-      const fallbackResponse = await api.get(`/api/orders/${orderId}/pin/`);
-      return fallbackResponse.data;
-    }
-    throw error;
-  }
+// --- Order Status & Confirmation ---
+
+export const confirmOrderReceipt = async (orderId) => {
+  const response = await api.post(`/orders/orders/${orderId}/confirm-receipt/`);
+  return response.data;
 };
 
-export const confirmOrderDelivery = async (orderId, data) => {
-  try {
-    const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
-    return response.data;
-  } catch (error) {
-    if (error.response?.status === 404) {
-      const fallbackResponse = await api.post(`/api/orders/${orderId}/confirm-delivery/`, data);
-      return fallbackResponse.data;
-    }
-    throw error;
-  }
+export const updateShopOrderStatus = async (orderId, newStatus) => {
+  const response = await api.patch(`/orders/orders/${orderId}/update-status/`, {
+    status: newStatus,
+  });
+  return response.data;
+};
+
+// --- Shopa Delivery ---
+
+export const submitShopaDeliveryRequest = async (data) => {
+  const response = await api.post('/orders/shopa/request-delivery/', data);
+  return response.data;
 };
 
 // --- Advanced Messaging & Global Search ---

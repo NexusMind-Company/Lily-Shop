@@ -17,32 +17,56 @@ import {
 import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorOrders,
-  updateOrderStatus,
-  confirmDelivery
+  updateShopOrderStatus,
 } from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
+  paid: "bg-green-100 text-green-700 border-green-200",
   preparing: "bg-orange-100 text-orange-700 border-orange-200",
-  ready: "bg-blue-100 text-blue-700 border-blue-200",
+  ready_for_pickup: "bg-blue-100 text-blue-700 border-blue-200",
   out_for_delivery: "bg-purple-100 text-purple-700 border-purple-200",
-  delivered: "bg-green-100 text-green-700 border-green-200",
+  dispatched: "bg-purple-100 text-purple-700 border-purple-200",
+  delivered: "bg-teal-100 text-teal-700 border-teal-200",
+  completed: "bg-green-100 text-green-700 border-green-200",
   pending: "bg-gray-100 text-gray-600 border-gray-200",
 };
+
 const STATUS_LABELS = {
+  paid: "Paid",
   preparing: "Preparing",
-  ready: "Ready",
+  ready_for_pickup: "Ready for Pickup",
   out_for_delivery: "Out for Delivery",
+  dispatched: "Dispatched",
   delivered: "Delivered",
+  completed: "Completed",
   pending: "Pending",
 };
 
-const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => {
+const STATUS_BUTTON_COLORS = {
+  preparing: "#f97316", // orange-500
+  ready_for_pickup: "#3b82f6", // blue-500
+  out_for_delivery: "#a855f7", // purple-500
+  delivered: "#14b8a6", // teal-500
+};
+
+const getNextStatuses = (currentStatus, deliveryType) => {
+  const transitions = {
+    paid: deliveryType === 'pickup' 
+      ? ['preparing', 'ready_for_pickup'] 
+      : ['preparing', 'out_for_delivery'],
+    preparing: deliveryType === 'pickup'
+      ? ['ready_for_pickup']
+      : ['out_for_delivery'],
+    ready_for_pickup: ['delivered'],
+    out_for_delivery: ['delivered'],
+    dispatched: ['delivered'],
+    pending: ['paid'], // fallback just in case testing needs it
+  };
+  return transitions[currentStatus] || [];
+};
+
+const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
   const [open, setOpen] = useState(false);
-  const [pin, setPin] = useState("");
-  
-  const isPending = order.status === "pending" || order.status === "preparing";
-  const needsPin = order.status === "out_for_delivery" || order.status === "ready";
-  const targetStatus = order.delivery_type === "pickup" ? "ready" : "out_for_delivery";
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -76,34 +100,22 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
             <span>Delivery: {order.delivery_time}</span>
           </div>
           
-          {needsPin ? (
-            <div className="mt-2 space-y-2 border border-gray-100 p-3 rounded-xl bg-gray-50">
-              <p className="text-xs text-gray-600 font-medium mb-1">Enter buyer's delivery PIN to confirm:</p>
-              <input 
-                type="text" 
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="4-digit PIN"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tracking-widest text-center focus:outline-none focus:border-lily"
-              />
-              <button
-                onClick={() => onConfirmDelivery(order.id, pin)}
-                disabled={isUpdating || pin.length < 4}
-                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-              >
-                {isUpdating ? "Confirming..." : "Confirm Delivery"}
-              </button>
+          {/* Status update buttons based on current state */}
+          {getNextStatuses(order.status, order.delivery_type).length > 0 && (
+            <div className="mt-2 space-y-2">
+              {getNextStatuses(order.status, order.delivery_type).map((nextStatus) => (
+                <button
+                  key={nextStatus}
+                  onClick={() => onStatusUpdate(order.id, nextStatus)}
+                  disabled={isUpdating}
+                  className="w-full py-2.5 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: STATUS_BUTTON_COLORS[nextStatus] || '#f472b6' }}
+                >
+                  {isUpdating ? "Updating..." : `Mark as ${STATUS_LABELS[nextStatus]}`}
+                </button>
+              ))}
             </div>
-          ) : isPending ? (
-            <button
-              onClick={() => onStatusUpdate(order.id, targetStatus)}
-              disabled={isUpdating}
-              className="w-full py-2.5 rounded-xl bg-lily text-white text-xs font-bold mt-1 hover:bg-darklily disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              {isUpdating ? "Updating..." : "Dispatch Order"}
-            </button>
-          ) : null}
+          )}
         </div>
       )}
     </div>
@@ -130,7 +142,7 @@ const VendorOrdersPage = () => {
   });
 
   const { mutate: updateStatus } = useMutation({
-    mutationFn: ({ orderId, status }) => updateOrderStatus(orderId, status),
+    mutationFn: ({ orderId, status }) => updateShopOrderStatus(orderId, status),
     onMutate: ({ orderId }) => setUpdatingId(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
@@ -142,23 +154,11 @@ const VendorOrdersPage = () => {
     onSettled: () => setUpdatingId(null),
   });
 
-  const { mutate: confirmDel } = useMutation({
-    mutationFn: ({ orderId, pin }) => confirmDelivery(orderId, { pin, gps_lat: 0, gps_lng: 0 }),
-    onMutate: ({ orderId }) => setUpdatingId(orderId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
-      toast.success("Delivery confirmed securely!");
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error));
-    },
-    onSettled: () => setUpdatingId(null),
-  });
-
   const orders = ordersData?.results ?? [];
   const filtered = orders.filter((o) => {
     const matchesSearch = searchTerm ? o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-    const matchesTab = activeTab === "active" ? o.status !== "delivered" : o.status === "delivered";
+    const isCompleted = ['delivered', 'completed', 'refunded', 'cancelled', 'failed'].includes(o.status);
+    const matchesTab = activeTab === "active" ? !isCompleted : ['delivered', 'completed'].includes(o.status);
     return matchesSearch && matchesTab;
   });
 
@@ -209,7 +209,6 @@ const VendorOrdersPage = () => {
               order={order}
               isUpdating={updatingId === order.id}
               onStatusUpdate={(id, status) => updateStatus({ orderId: id, status })}
-              onConfirmDelivery={(id, pin) => confirmDel({ orderId: id, pin })}
             />
           ))}
         </div>

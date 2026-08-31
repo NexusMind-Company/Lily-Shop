@@ -7,9 +7,19 @@ import {
   ArrowLeft, Package, MessageCircle, Printer, MapPin,
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
-import { fetchOrderDetail, fetchOrderPin, selectCurrentOrder, selectOrderPin, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import { confirmOrderReceipt } from '../services/api';
+import { toast } from 'react-hot-toast';
 import UnboxingModal from '../components/orders/UnboxingModal';
 import DisputeModal from '../components/orders/DisputeModal';
+
+const ORDER_STAGES = [
+  { key: 'paid', label: 'Order Confirmed', icon: CheckCircle2 },
+  { key: 'preparing', label: 'Preparing', icon: Package },
+  { key: 'out_for_delivery', label: 'Out for Delivery', icon: Truck, altKeys: ['dispatched'] },
+  { key: 'delivered', label: 'Delivered', icon: MapPin },
+  { key: 'completed', label: 'Completed', icon: CheckCircle2 },
+];
 
 const OrderDetailPage = () => {
   const { orderId } = useParams();
@@ -20,9 +30,7 @@ const OrderDetailPage = () => {
   const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
 
   const order = useSelector(selectCurrentOrder);
-  const orderPin = useSelector(selectOrderPin);
-  const loading = useSelector(selectOrderLoading);
-  const error = useSelector(selectOrderError);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     if (orderId) {
@@ -30,14 +38,18 @@ const OrderDetailPage = () => {
     }
   }, [dispatch, orderId]);
 
-  useEffect(() => {
-    if (order?.id) {
-      // Fetch PIN for delivery verification
-      if (order.status !== 'cancelled' && order.status !== 'failed') {
-        dispatch(fetchOrderPin(order.id));
-      }
+  const handleConfirmReceipt = async () => {
+    setIsConfirming(true);
+    try {
+      await confirmOrderReceipt(order.id);
+      toast.success('Order confirmed! Funds released to seller 🎉');
+      dispatch(fetchOrderDetail(orderId)); // Refresh order data
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to confirm order');
+    } finally {
+      setIsConfirming(false);
     }
-  }, [dispatch, order]);
+  };
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -49,6 +61,60 @@ const OrderDetailPage = () => {
         icon: <CheckCircle2 className="w-8 h-8 text-white" />,
         title: 'Order Confirmed',
         subtitle: 'Your order has been confirmed and paid'
+      },
+      preparing: {
+        color: 'from-orange-400 to-amber-600',
+        textColor: 'text-orange-800',
+        bgColor: 'bg-orange-50',
+        borderColor: 'border-orange-200',
+        icon: <Package className="w-8 h-8 text-white" />,
+        title: 'Being Prepared',
+        subtitle: 'The seller is preparing your order'
+      },
+      ready_for_pickup: {
+        color: 'from-blue-400 to-blue-600',
+        textColor: 'text-blue-800',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        icon: <MapPin className="w-8 h-8 text-white" />,
+        title: 'Ready for Pickup',
+        subtitle: 'Your order is ready to be picked up'
+      },
+      out_for_delivery: {
+        color: 'from-purple-400 to-indigo-600',
+        textColor: 'text-purple-800',
+        bgColor: 'bg-purple-50',
+        borderColor: 'border-purple-200',
+        icon: <Truck className="w-8 h-8 text-white" />,
+        title: 'Out for Delivery',
+        subtitle: 'Shopa is delivering your order 🚚'
+      },
+      dispatched: {
+        color: 'from-purple-400 to-indigo-600',
+        textColor: 'text-purple-800',
+        bgColor: 'bg-purple-50',
+        borderColor: 'border-purple-200',
+        icon: <Truck className="w-8 h-8 text-white" />,
+        title: 'Out for Delivery',
+        subtitle: 'Your order is on its way'
+      },
+      delivered: {
+        color: 'from-teal-400 to-emerald-600',
+        textColor: 'text-teal-800',
+        bgColor: 'bg-teal-50',
+        borderColor: 'border-teal-200',
+        icon: <CheckCircle2 className="w-8 h-8 text-white" />,
+        title: 'Delivered',
+        subtitle: 'Please confirm you received your order'
+      },
+      completed: {
+        color: 'from-green-500 to-emerald-700',
+        textColor: 'text-green-800',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200',
+        icon: <CheckCircle2 className="w-8 h-8 text-white" />,
+        title: 'Order Completed',
+        subtitle: 'Transaction complete — funds released to seller'
       },
       pending: {
         color: 'from-yellow-400 to-orange-500',
@@ -176,30 +242,56 @@ const OrderDetailPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Delivery PIN Section */}
-            {orderPin && (
+            {/* "My Item Has Been Delivered" Confirmation Card */}
+            {order.status === 'delivered' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-pink-100 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm border-2 border-teal-200 overflow-hidden"
               >
-                <div className="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100">
+                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-6 py-4 border-b border-teal-100">
                   <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 text-pink-600" />
-                    Delivery Security PIN
+                    <CheckCircle2 className="w-5 h-5 mr-2 text-teal-600" />
+                    Confirm Your Order
                   </h3>
                 </div>
-                <div className="p-6 text-center">
+                <div className="p-6">
                   <p className="text-gray-600 mb-4">
-                    Provide this PIN to the delivery rider <b>only</b> when you have received and inspected your order.
+                    The seller has marked your order as delivered. If you have received and inspected your items, 
+                    please confirm below to release payment to the seller.
                   </p>
-                  <div className="inline-block bg-gray-50 border border-gray-200 rounded-xl px-8 py-4 mb-2">
-                    <span className="text-4xl font-mono font-bold tracking-widest text-gray-900">
-                      {orderPin}
-                    </span>
+                  
+                  {/* Item cards — one per order item */}
+                  <div className="space-y-3 mb-6">
+                    {order.items?.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <img 
+                          src={item.product?.image_url || item.product?.media_url || '/placeholder.png'} 
+                          alt={item.product?.name} 
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-800 truncate">{item.product?.name}</p>
+                          <p className="text-sm text-gray-500">{item.product?.shop_name}</p>
+                          <p className="text-sm font-bold text-gray-700">₦{(item.subtotal_kobo / 100).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-sm text-pink-600 font-medium">
-                    Do not share this PIN before delivery.
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleConfirmReceipt}
+                    disabled={isConfirming}
+                    className="w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
+                  >
+                    {isConfirming ? 'Confirming...' : '✅ My Item Has Been Delivered'}
+                  </motion.button>
+
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    By confirming, payment will be released to the seller. 
+                    If there's an issue, <span className="text-red-600 font-medium cursor-pointer" onClick={() => setIsDisputeModalOpen(true)}>open a dispute</span> instead.
                   </p>
                 </div>
               </motion.div>
@@ -287,75 +379,49 @@ const OrderDetailPage = () => {
               <div className="p-6">
                 <div className="relative space-y-6">
                   {/* Timeline Line */}
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-pink-300 to-purple-300" />
+                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200" />
+                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-pink-400 to-purple-400" 
+                       style={{ 
+                         height: `${Math.max(0, ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status)) / (ORDER_STAGES.length - 1)) * 100}%` 
+                       }} 
+                  />
 
-                  {/* Order Placed */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="relative flex items-start space-x-4"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg z-10">
-                      <CheckCircle2 className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 pt-0.5">
-                      <p className="font-semibold text-gray-800">Order Placed</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {new Date(order.created_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </motion.div>
+                  {ORDER_STAGES.map((stage, index) => {
+                    const currentStageIndex = ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status));
+                    const isCompleted = index <= currentStageIndex;
+                    const isActive = index === currentStageIndex;
+                    const Icon = stage.icon;
 
-                  {/* Payment Status */}
-                  {order.status === 'paid' && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 }}
-                      className="relative flex items-start space-x-4"
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg z-10">
-                        <CheckCircle2 className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 pt-0.5">
-                        <p className="font-semibold text-gray-800">Payment Confirmed</p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {new Date(order.updated_at).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Next Steps */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="relative flex items-start space-x-4"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center shadow-lg z-10">
-                      <MapPin className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 pt-0.5">
-                      <p className="font-semibold text-gray-800">Awaiting Delivery</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Contact seller to arrange delivery
-                      </p>
-                    </div>
-                  </motion.div>
+                    return (
+                      <motion.div
+                        key={stage.key}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + index * 0.1 }}
+                        className="relative flex items-start space-x-4"
+                      >
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500
+                          ${isCompleted 
+                            ? 'bg-gradient-to-br from-pink-500 to-purple-600' 
+                            : 'bg-gradient-to-br from-gray-200 to-gray-300'
+                          }
+                          ${isActive ? 'ring-4 ring-pink-100' : ''}
+                        `}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 pt-1">
+                          <p className={`font-semibold ${isCompleted ? 'text-gray-800' : 'text-gray-400'}`}>
+                            {stage.label}
+                          </p>
+                          {isActive && (
+                            <p className="text-sm text-pink-600 mt-1 animate-pulse">
+                              Currently in progress
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
@@ -399,6 +465,17 @@ const OrderDetailPage = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Delivery Type */}
+                {order.delivery_type === 'delivery' && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Delivery Type</p>
+                    <div className="flex items-center space-x-2 bg-teal-50 px-3 py-2 rounded-lg border border-teal-100">
+                      <Truck className="w-5 h-5 text-teal-600" />
+                      <span className="font-semibold text-teal-800">Delivery by Shopa</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Order Date */}
                 <div>

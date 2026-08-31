@@ -297,6 +297,33 @@ const VendorShippingPage = () => {
     <ShippingLayout>
       <div className="max-w-4xl mx-auto">
         
+        {/* Shopa Partnership Banner */}
+        <div className="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-2xl p-6 mb-6 shadow-lg shadow-teal-500/20 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+          <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center justify-between">
+            <div className="flex gap-4 items-start md:items-center">
+              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm shrink-0">
+                <Truck size={32} className="text-white" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-2 px-2 py-1 bg-white/20 rounded-lg backdrop-blur-sm mb-2 text-xs font-bold uppercase tracking-wider">
+                  <Check size={14} /> Official Partner
+                </div>
+                <h2 className="text-2xl font-bold mb-1">Let Shopa Handle Your Deliveries</h2>
+                <p className="text-teal-50 text-sm max-w-lg">
+                  LilyShop has partnered with Shopa Logistics. You can now request on-demand pickup and delivery for your orders directly through us.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => navigate('/shopa-delivery')}
+              className="w-full md:w-auto bg-white text-teal-700 font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-xl hover:bg-gray-50 transition-all active:scale-95 whitespace-nowrap"
+            >
+              Use Shopa Today 🚀
+            </button>
+          </div>
+        </div>
+
         {/* Banner */}
         <div className="bg-linear-to-r from-lily/25 to-lily/10 rounded-2xl p-6 mb-6 border border-lily/20">
           <div className="flex gap-4 items-start">

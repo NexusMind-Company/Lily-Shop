@@ -11,6 +11,7 @@ import {
   MapPin,
   CreditCard,
   ChefHat,
+  Truck,
 } from "lucide-react";
 import { fetchCart } from "../redux/cartSlice";
 import { usePayment } from "../hooks/usePayment";
@@ -282,6 +283,17 @@ const OrderSuccessPage = () => {
                     </span>
                     <span className="font-semibold text-[#111813] text-right text-xs max-w-[60%] truncate">
                       {address}
+                    </span>
+                  </div>
+                )}
+
+                {order?.delivery_type === "delivery" && (
+                  <div className="flex justify-between items-center text-gray-600 pt-1">
+                    <span className="flex items-center gap-2 shrink-0">
+                      <Truck size={15} className="text-teal-500" /> Delivery Handled By
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                      Shopa Logistics
                     </span>
                   </div>
                 )}
