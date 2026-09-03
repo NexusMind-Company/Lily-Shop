@@ -29,7 +29,7 @@ import {
   deleteProductPost,
   fetchUserProfile,
 } from "../../../services/api";
-import { getDeliveryQuote } from "../../../services/shopApi";
+import { getDeliveryQuote, fetchShopReviews } from "../../../services/shopApi";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -38,7 +38,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 import { Star, Info, Truck } from "lucide-react";
 import MentionText from "../../common/MentionText";
-const ReviewModal = lazy(() => import("../../common/ReviewModal"));
+const ShopReviewModal = lazy(() => import("../../shop/ShopReviewModal"));
 import toast from "react-hot-toast";
 
 const DESCRIPTION_CHAR_LIMIT = 100;
@@ -190,8 +190,20 @@ const ProductItem = ({ product }) => {
   const [isFollowed, setIsFollowed] = useState(
     product.is_followed === true ||
       product.is_followed === "true" ||
+      product.is_following === true ||
+      product.is_following === "true" ||
       product.has_followed === true,
   );
+
+  useEffect(() => {
+    setIsFollowed(
+      product.is_followed === true ||
+        product.is_followed === "true" ||
+        product.is_following === true ||
+        product.is_following === "true" ||
+        product.has_followed === true,
+    );
+  }, [product.is_followed, product.is_following, product.has_followed]);
 
   // Stock status logic
   const isOutOfStock =
@@ -239,25 +251,37 @@ const ProductItem = ({ product }) => {
   }, []);
 
   // --- Data Normalization ---
-  // Handle varying backend media structures (string vs array)
+  // Handle varying backend media structures (string vs array vs object)
   const rawMedia =
     product.all_media_urls?.length > 0
       ? product.all_media_urls
-      : product.media || product.media_url || product.image_url;
+      : product.media_url ||
+        product.image_url ||
+        (typeof product.media === "string" ? product.media : product.media?.url) ||
+        product.image;
 
   // Format media into a consistent array of objects with type checking
   const mediaArray = Array.isArray(rawMedia)
-    ? rawMedia.map((item) => ({
-        src: typeof item === "string" ? item : item.src || item,
-        type:
-          typeof item === "string" && item.match(/\.(mp4|mov|webm)$/i)
-            ? "video"
-            : "image",
-      }))
+    ? rawMedia.map((item) => {
+        const src =
+          typeof item === "string"
+            ? item
+            : item.src || item.url || item.file || "/placeholder.png";
+        return {
+          src,
+          type:
+            typeof src === "string" && src.match(/\.(mp4|mov|webm)$/i)
+              ? "video"
+              : "image",
+        };
+      })
     : rawMedia
       ? [
           {
-            src: rawMedia,
+            src:
+              typeof rawMedia === "string"
+                ? rawMedia
+                : rawMedia.src || rawMedia.url || rawMedia.file || "/placeholder.png",
             type:
               typeof rawMedia === "string" &&
               rawMedia.match(/\.(mp4|mov|webm)$/i)
@@ -269,14 +293,41 @@ const ProductItem = ({ product }) => {
 
   const displayPrice = product.price_in_naira || product.price || 0;
 
+  const resolvedShopId =
+    product.shop_id ||
+    product.shop?.id ||
+    (typeof product.shop === "string" ? product.shop : null);
+
+  const { data: shopReviewsData } = useQuery({
+    queryKey: ["shopReviews", resolvedShopId],
+    queryFn: () => fetchShopReviews(resolvedShopId),
+    enabled: !!resolvedShopId,
+  });
+
+  const reviewsArray =
+    (Array.isArray(shopReviewsData)
+      ? shopReviewsData
+      : shopReviewsData?.results || product.reviewsData) || [];
+
+  const productReviewsCount =
+    reviewsArray.length > 0
+      ? reviewsArray.length
+      : product.reviews || product.comment_count || 0;
+
+  const productRating =
+    reviewsArray.length > 0
+      ? (
+          reviewsArray.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) /
+          reviewsArray.length
+        ).toFixed(1)
+      : product.rating || product.avg_rating || "0.0";
+
   // Dynamic API Data Mapping
   const vendorDescription =
     product.shop_description ||
     product.vendorDetail ||
     product.shop?.description ||
     "No description provided by the vendor.";
-  const productRating = product.rating || product.avg_rating || "0.0";
-  const productReviewsCount = product.reviews || product.comment_count || "0";
 
   // --- Side Effects ---
   // Record a "view" only after the user has been on the page for 2 seconds
@@ -305,10 +356,16 @@ const ProductItem = ({ product }) => {
   });
 
   const { mutate: toggleFollow } = useMutation({
-    mutationFn: () =>
-      followUser(
-        product.username || product.vendorName || product.user || "unknown",
-      ),
+    mutationFn: () => {
+      const followTarget =
+        product.user_id ||
+        product.userId ||
+        (typeof product.user === "object" ? product.user?.id : null) ||
+        product.username ||
+        product.vendorName ||
+        (typeof product.user === "string" ? product.user : "unknown");
+      return followUser(followTarget);
+    },
     onMutate: () => {
       if (!isAuthenticated) return;
       setIsFollowed((prev) => !prev); // Optimistic UI update
@@ -407,7 +464,6 @@ const ProductItem = ({ product }) => {
   const formatPrice = (price) => Number(price).toLocaleString();
 
   // Review pagination/display logic
-  const reviewsArray = product.reviewsData || [];
   const reviewsToShow = showAllReviews
     ? reviewsArray
     : reviewsArray.slice(0, 3);
@@ -415,10 +471,30 @@ const ProductItem = ({ product }) => {
 
   // Vendor profile mapping
   const displayUsername =
-    product.shop_name || product.username || product.user || "Unknown Vendor";
-  const profileLink = product.shop
-    ? `/shop/${product.shop}`
-    : `/profile/${product.user_id || product.userId}`;
+    product.shop_name ||
+    product.shop?.name ||
+    product.username ||
+    product.user ||
+    "Unknown Vendor";
+
+  const targetUserId =
+    product.user_id ||
+    product.userId ||
+    (typeof product.user === "object" ? product.user?.id : null) ||
+    (typeof product.user === "string" && product.user.includes("-")
+      ? product.user
+      : null);
+
+  const targetUsername =
+    product.username ||
+    product.vendorName ||
+    (typeof product.user === "string" ? product.user : null);
+
+  const profileLink = targetUserId
+    ? `/profile/${targetUserId}`
+    : targetUsername
+      ? `/profile/${targetUsername}`
+      : "#";
 
   return (
     <div className="relative w-full md:max-w-xl mx-auto min-h-screen pb-6 flex flex-col">
@@ -728,7 +804,10 @@ const ProductItem = ({ product }) => {
               )}
             </div>
             <button
-              onClick={() => setShowReviewModal(true)}
+              onClick={() => {
+                if (!isAuthenticated) return navigate("/login");
+                setShowReviewModal(true);
+              }}
               className="text-xs font-semibold text-lily hover:text-lily/80 transition-colors px-3 py-1.5 rounded-full border border-lily/30 hover:bg-lily/5"
             >
               Write Review
@@ -737,7 +816,7 @@ const ProductItem = ({ product }) => {
 
           {/* Rating Summary */}
           {reviewsArray.length > 0 && (
-            <div className="flex items-center gap-4 bg-white rounded-xl p-3 shadow-sm border border-gray-50">
+            <div className="flex items-center gap-4 bg-white rounded-xl p-3.5 shadow-sm border border-gray-100">
               <div className="text-center px-4 py-2 bg-lily rounded-xl">
                 <p className="text-3xl font-black text-white">
                   {Number(productRating).toFixed(1)}
@@ -749,23 +828,14 @@ const ProductItem = ({ product }) => {
                   />
                 </div>
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 font-medium mb-2">
-                  Based on {productReviewsCount} reviews
+              <div>
+                <p className="text-sm font-bold text-gray-800">
+                  {Number(productRating).toFixed(1)} out of 5 stars
                 </p>
-                <div className="flex items-center gap-1">
-                  {[5, 4, 3, 2, 1].map((star) => (
-                    <div key={star} className="flex items-center gap-1">
-                      <span className="text-xs text-gray-500 w-4">{star}</span>
-                      <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-amber-400 rounded-full"
-                          style={{ width: `${Math.random() * 60 + 20}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  Based on {productReviewsCount}{" "}
+                  {productReviewsCount === 1 ? "review" : "reviews"}
+                </p>
               </div>
             </div>
           )}
@@ -806,13 +876,25 @@ const ProductItem = ({ product }) => {
         <div className="pt-6 pb-15 border-t border-gray-200 space-y-3">
           <h3 className="font-bold text-md text-gray-900">Vendor details</h3>
           <div className="flex items-center space-x-3 mt-1">
-            <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center overflow-hidden shrink-0">
+            <Link
+              to={profileLink}
+              className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-90 transition-opacity"
+            >
               <img
-                src="/icons/user.svg"
+                src={
+                  product.shop?.logo ||
+                  product.user_avatar ||
+                  product.user_profile_pic ||
+                  "/icons/user.svg"
+                }
                 alt="vendor avatar"
-                className="w-5 h-5 opacity-60"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/icons/user.svg";
+                }}
               />
-            </div>
+            </Link>
             <div className="flex items-center flex-wrap gap-2">
               <div className="flex items-center space-x-1">
                 <Link
@@ -912,15 +994,19 @@ const ProductItem = ({ product }) => {
 
       <Suspense fallback={null}>
         {showReviewModal && (
-          <ReviewModal
+          <ShopReviewModal
             isOpen={showReviewModal}
             onClose={() => setShowReviewModal(false)}
-            vendorId={product.vendor_id || product.shop}
-            vendorName={
-              product.vendor_name ||
+            shopId={
+              product.shop_id ||
+              product.shop?.id ||
+              (typeof product.shop === "string" ? product.shop : null)
+            }
+            shopName={
               product.shop_name ||
+              product.shop?.name ||
               product.name ||
-              product.title
+              "Shop"
             }
           />
         )}

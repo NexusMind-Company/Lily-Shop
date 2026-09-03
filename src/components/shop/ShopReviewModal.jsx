@@ -59,6 +59,10 @@ const ShopReviewModal = ({ isOpen, onClose, shopId, shopName }) => {
       toast.error("Please tap a star to rate");
       return;
     }
+    if (!shopId || shopId === "undefined") {
+      toast.error("Shop not found for this review");
+      return;
+    }
     createReviewMutation.mutate({
       shop_id: shopId,
       rating,

@@ -349,9 +349,10 @@ const ProfileVisiting = () => {
       <div className="grid grid-cols-3 gap-1 md:gap-0 my-2 pt-1">
         {items.map((item, i) => {
           const mediaSrc =
-            item.image_url ||
             item.media_url ||
-            item.media ||
+            item.image_url ||
+            (Array.isArray(item.all_media_urls) && item.all_media_urls[0]) ||
+            (typeof item.media === "string" ? item.media : item.media?.url) ||
             item.image ||
             item.images?.[0]?.image ||
             "/placeholder.png";
@@ -367,7 +368,9 @@ const ProfileVisiting = () => {
               key={item.id || i}
               onClick={() => {
                 if (activeTab === "products") {
-                  navigate(`/product-details/${item.id}`);
+                  navigate(`/product-details/${item.id}`, {
+                    state: { itemType: "product" },
+                  });
                 } else {
                   setFeedOverlay({
                     isOpen: true,
@@ -389,6 +392,10 @@ const ProfileVisiting = () => {
                   src={mediaSrc}
                   alt="Post"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder.png";
+                  }}
                 />
               )}
 

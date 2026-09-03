@@ -311,11 +311,15 @@ const OrderSuccessPage = () => {
               <ul className="space-y-2 text-xs sm:text-sm text-gray-600">
                 <li className="flex items-start gap-2">
                   <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
-                  <span>The vendor has received your order details and is preparing it.</span>
+                  <span>The vendor will prepare your order and mark it ready for delivery.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
-                  <span>You can chat directly with the vendor if you have special requests.</span>
+                  <span>Once delivered, click "Confirm Delivery" on the order details page to release payment.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
+                  <span>If unconfirmed after 72 hours with no dispute, payment auto-releases.</span>
                 </li>
               </ul>
             </motion.div>

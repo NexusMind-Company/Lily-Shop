@@ -9,7 +9,10 @@ export const formatPrice = (price) => {
   if (isNaN(numericPrice)) {
     return "N/A";
   }
-  return numericPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return numericPrice.toLocaleString("en-US", {
+    minimumFractionDigits: Number.isInteger(numericPrice) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 /**

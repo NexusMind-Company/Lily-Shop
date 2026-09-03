@@ -8,7 +8,7 @@ import {
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
 import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
-import { confirmOrderReceipt } from '../services/api';
+import { confirmOrderReceipt, confirmFoodOrderReceipt } from '../services/api';
 import { toast } from 'react-hot-toast';
 import UnboxingModal from '../components/orders/UnboxingModal';
 import DisputeModal from '../components/orders/DisputeModal';
@@ -41,7 +41,11 @@ const OrderDetailPage = () => {
   const handleConfirmReceipt = async () => {
     setIsConfirming(true);
     try {
-      await confirmOrderReceipt(order.id);
+      if (order.order_type === 'food') {
+        await confirmFoodOrderReceipt(order.id);
+      } else {
+        await confirmOrderReceipt(order.id);
+      }
       toast.success('Order confirmed! Funds released to seller 🎉');
       dispatch(fetchOrderDetail(orderId)); // Refresh order data
     } catch (err) {

@@ -1,0 +1,124 @@
+LILY SHOP — BACKEND REMAINING ISSUES
+Tested live on: 2026-08-22 | Account: jd33n27@gmail.com (choko_mr)
+======================================================================
+
+PRIORITY 1 — CRITICAL BLOCKERS (Entire escrow flow is stuck)
+--------------------------------------------------------------
+
+[1] FOOD ORDER SCHEMA IS BROKEN
+Endpoints: GET /orders/  |  GET /orders/{orderId}/
+Problem:   Food orders (instant food from restaurants/vendors, order_type: "food") return only 7 bare fields.
+           Shop orders return a full 20+ field response. Food orders need parity.
+
+Food orders currently return:
+  { id, customer_name, phone, delivery_address, meal_plan, status, created_at, order_type }
+
+What is MISSING (must be added to food order serializer):
+  - items[]          → list of ordered items with menu_item name, image_url, price, quantity
+  - total_amount_kobo / total_amount_naira  → total price paid
+  - reference        → order reference string for display
+  - user {}          → buyer object { id, username, first_name, last_name }
+  - seller {} / vendor {}  → vendor object { id, username/name } so UI can show "Ordered from X"
+  - payment_method   → "wallet" or "paystack"
+  - delivery_fee_naira
+  - image            → top-level convenience image field (first item's image)
+
+---
+
+[2] CHOP-PIN ENDPOINT MISSING (Route does not exist)
+Endpoint: GET /foods/orders/{orderId}/pin/
+Problem:  Returns 404 HTML page — the URL route is not registered on the server at all.
+          Tested with both "paid" and "success" status food orders — both 404.
+          Also tested alternate path: GET /orders/orders/{orderId}/pin/ — returns 404 JSON.
+Fix:      Register and implement GET /foods/orders/{orderId}/pin/
+          Response should be: { "pin": "1234" }
+          PIN should only be visible to the buyer (order.user == request.user).
+
+---
+
+[3] FOOD ORDER DOES NOT AUTO-CREATE A CHAT CONVERSATION
+Flow:     POST /foods/orders/ → (should trigger) → create a conversation in /messages/conversations/
+Problem:  Confirmed by checking GET /messages/conversations/ after 5 food orders were placed —
+          zero food-order conversations exist. No conversation is created between buyer and vendor.
+Fix:      After a food order is successfully created and paid, automatically create a
+          Message Conversation between the buyer (order.user) and the vendor (order.vendor.user).
+          This conversation is needed so the vendor can access the "Confirm Delivery" button
+          and the buyer can chat with the vendor about their order.
+
+---
+
+[4] VENDOR CONVERSATION MESSAGES RETURN 500
+Endpoint: GET /foods/vendor/conversations/{conversationId}/messages/
+Problem:  Returns HTTP 500 Internal Server Error. Tested with real conversation ID.
+          The conversation list (GET /foods/vendor/conversations/) works fine.
+Fix:      Debug and fix the 500. The GET /messages/user/{userId}/ endpoint works —
+          likely a serializer or queryset issue specific to this vendor-scoped endpoint.
+
+---
+
+PRIORITY 2 — IMPORTANT (Features broken but not blocking the whole app)
+--------------------------------------------------------------
+
+[5] ANALYTICS PERIOD FILTER IS IGNORED
+Endpoint: GET /foods/vendor/analytics/?period={period}
+Problem:  Passing ?period=daily, ?period=weekly, or ?period=monthly returns the EXACT
+          same response as calling the endpoint with no period parameter.
+          Confirmed by comparing all 3 period values — responses are byte-for-byte identical.
+Fix:      Implement the period filtering logic so the analytics data is scoped to the
+          requested time window. The OpenAPI spec already documents this parameter.
+
+---
+
+[6] reply_to NOT RETURNED IN GET /messages/ RESPONSES
+Endpoints: GET /messages/user/{userId}/  |  GET /messages/conversations/
+Problem:   POST /messages/ with reply_to correctly saves the reply association (HTTP 201 ✅),
+           but GET /messages/ does NOT include reply_to in the serialized response.
+           The field is saved to the DB but invisible to the frontend.
+Fix:       Add reply_to to the Message serializer in GET responses.
+           Return it as a nested object with at minimum:
+             reply_to: { id, sender_username, content (truncated ~80 chars), media (bool) }
+           This is needed so the frontend can render "Replying to [user]: [message snippet]"
+           inside chat history.
+
+---
+
+[8] WALLET ENDPOINT LACKS A.T.O.M.I.C TRANSACTION PRINCIPLES
+Endpoints: GET /foods/vendor/wallet/ (and related transaction endpoints)
+Problem:   The wallet transaction system does not handle state correctly using A.T.O.M.I.C principles 
+           (Atomicity, Consistency, Isolation, Durability). 
+           Specifically, incomplete transactions from a very long time ago that were cancelled or 
+           failed at the payment gateway (e.g., Paystack) are permanently stuck showing as "pending" 
+           in the wallet rather than being properly rolled back or marked as failed/cancelled.
+Fix:       Implement proper transaction state synchronization via webhooks or background checks to 
+           ensure wallet states exactly reflect the actual gateway state.
+
+---
+
+PRIORITY 3 — LOWER PRIORITY (Nice to have, not immediately blocking)
+--------------------------------------------------------------
+
+[7] PAYSTACK PAYMENT FOR FOOD ORDERS — UNCONFIRMED
+Endpoint: POST /foods/orders/ with payment_method: "paystack"
+Problem:  Cannot confirm authorization_url generation. To test a valid Paystack payment, we need to send a valid 
+          menu_item_id. However, the vendor account used for testing (`choko_mr`) has zero menu items 
+          (verified via `GET /foods/vendor/menu/`), so we could not construct a valid food order payload to trigger 
+          Paystack. Validation layer works (rejects invalid UUIDs with 400). Please confirm that a valid request 
+          returns authorization_url in the response.
+Action:   Add a menu item to vendor account (eec12143-...) and test a valid paystack food order.
+
+---
+
+WHAT IS ALREADY WORKING (Do not touch)
+--------------------------------------------------------------
+✅ GET /foods/vendor/analytics/              → 200, returns metrics
+✅ GET /foods/vendor/ratings/               → 200, paginated list
+✅ GET /foods/vendor/ratings/summary/       → 200, returns [] (no longer 500)
+✅ GET /foods/vendor/conversations/         → 200, returns conversation list
+✅ GET /foods/vendor/dashboard/overview/    → 200, returns overview metrics
+✅ GET /foods/vendor/wallet/                → 200, returns balance
+✅ GET /messages/conversations/             → 200, returns shop-order conversations
+✅ GET /messages/user/{userId}/             → 200, returns paginated messages
+✅ POST /messages/ (send message)           → 201, works including reply_to in request
+✅ PATCH /messages/{id}/ (edit message)     → 200, works within 15-minute window
+✅ is_edited field                          → present in GET message responses after edit
+✅ PATCH /messages/{id}/read/               → 200, marks message as read

@@ -17,7 +17,7 @@ import {
 import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorOrders,
-  updateShopOrderStatus,
+  updateOrderStatus,
 } from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
@@ -142,7 +142,7 @@ const VendorOrdersPage = () => {
   });
 
   const { mutate: updateStatus } = useMutation({
-    mutationFn: ({ orderId, status }) => updateShopOrderStatus(orderId, status),
+    mutationFn: ({ orderId, status }) => updateOrderStatus(orderId, status),
     onMutate: ({ orderId }) => setUpdatingId(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });

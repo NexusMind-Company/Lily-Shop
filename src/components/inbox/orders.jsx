@@ -5,18 +5,19 @@ import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import BottomNav from "./bottomNav";
 import ReviewModal from "../common/ReviewModal";
+import ShopReviewModal from "../shop/ShopReviewModal";
 
-const Orders = ({ hideHeader, hideBottomNav }) => {
+const Orders = ({ hideHeader, hideBottomNav = false }) => {
   const dispatch = useDispatch();
-  const orders = useSelector(selectOrders);
+  const orders = useSelector(selectOrders) || [];
   const loading = useSelector(selectOrderLoading);
   const error = useSelector(selectOrderError);
 
   const [activePage, setActivePage] = useState("inbox");
   const [reviewTarget, setReviewTarget] = useState(null);
 
-  const openReviewModal = (vendorId, vendorName) => {
-    setReviewTarget({ vendorId, vendorName });
+  const openReviewModal = (targetId, targetName, type = "food") => {
+    setReviewTarget({ targetId, targetName, type });
   };
 
   const closeReviewModal = () => {
@@ -125,15 +126,32 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
 
                 {order.status === "Delivered" && (
                   <button
-                    onClick={() =>
-                      openReviewModal(
-                        order.product?.vendor_id || order.vendor_id,
-                        order.product?.vendor_name || order.vendor_name || order.name || order.product_name,
-                      )
-                    }
+                    onClick={() => {
+                      const isShop =
+                        order.order_type === "shop" ||
+                        Boolean(order.items?.[0]?.product || order.shop_id || order.shop);
+                      const targetId = isShop
+                        ? order.items?.[0]?.product?.shop_id ||
+                          order.items?.[0]?.product?.shop?.id ||
+                          order.shop_id ||
+                          order.shop?.id
+                        : order.vendor?.id ||
+                          order.vendor_id ||
+                          order.product?.vendor_id;
+                      const targetName = isShop
+                        ? order.items?.[0]?.product?.shop_name ||
+                          order.items?.[0]?.product?.shop?.name ||
+                          order.shop_name ||
+                          order.shop?.name ||
+                          "Shop"
+                        : order.vendor?.name ||
+                          order.vendor_name ||
+                          "Food Vendor";
+                      openReviewModal(targetId, targetName, isShop ? "shop" : "food");
+                    }}
                     className="text-pink-600 text-xs font-medium"
                   >
-                    Rate product
+                    Rate order
                   </button>
                 )}
               </div>
@@ -146,12 +164,21 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
         <BottomNav activePage={activePage} setActivePage={setActivePage} />
       )}
 
-      <ReviewModal
-        isOpen={!!reviewTarget}
-        onClose={closeReviewModal}
-        vendorId={reviewTarget?.vendorId}
-        vendorName={reviewTarget?.vendorName}
-      />
+      {reviewTarget?.type === "shop" ? (
+        <ShopReviewModal
+          isOpen={!!reviewTarget}
+          onClose={closeReviewModal}
+          shopId={reviewTarget?.targetId}
+          shopName={reviewTarget?.targetName}
+        />
+      ) : (
+        <ReviewModal
+          isOpen={!!reviewTarget}
+          onClose={closeReviewModal}
+          vendorId={reviewTarget?.targetId}
+          vendorName={reviewTarget?.targetName}
+        />
+      )}
     </div>
   );
 };

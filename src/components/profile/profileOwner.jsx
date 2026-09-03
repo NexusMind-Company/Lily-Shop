@@ -314,7 +314,12 @@ const ProfileOwner = () => {
       <div className="grid grid-cols-3 gap-1 md:gap-0 my-2">
         {items.map((post, i) => {
           const mediaSrc =
-            post.image_url || post.media || post.image || "/placeholder.png";
+            post.media_url ||
+            post.image_url ||
+            (Array.isArray(post.all_media_urls) && post.all_media_urls[0]) ||
+            (typeof post.media === "string" ? post.media : post.media?.url) ||
+            post.image ||
+            "/placeholder.png";
           const isVideo =
             post.is_video ||
             (typeof mediaSrc === "string" && mediaSrc.endsWith(".mp4"));
@@ -325,7 +330,9 @@ const ProfileOwner = () => {
               className="relative aspect-square overflow-hidden cursor-pointer group"
               onClick={() => {
                 if (post.itemType === "product") {
-                  navigate(`/product-details/${post.id}`);
+                  navigate(`/product-details/${post.id}`, {
+                    state: { itemType: "product" },
+                  });
                 } else {
                   const contentItems = items.filter(
                     (item) => item.itemType === "content",
@@ -352,6 +359,10 @@ const ProfileOwner = () => {
                   src={mediaSrc}
                   alt="Post"
                   className="w-full h-full object-cover bg-gray-100"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder.png";
+                  }}
                 />
               )}
 
