@@ -79,14 +79,22 @@ const ShopaDeliveryPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-teal-700 text-white py-10 px-6 text-center">
-        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-          <Truck className="w-8 h-8 text-teal-600" />
+      <section className="relative bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-16 px-6 text-center overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
+          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-teal-400 blur-3xl"></div>
+          <div className="absolute top-40 -right-20 w-80 h-80 rounded-full bg-teal-500 blur-3xl"></div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Deliveries powered by Shopa</h2>
-        <p className="text-teal-100 max-w-md mx-auto">
-          We've partnered with Shopa to handle all your logistics. Fast, reliable, and just a WhatsApp message away.
-        </p>
+        
+        <div className="relative z-10">
+          <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/20 transform hover:scale-105 transition-transform duration-300">
+            <Truck className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-extrabold mb-4 tracking-tight drop-shadow-md">Deliveries powered by Shopa</h2>
+          <p className="text-teal-50 max-w-md mx-auto text-lg leading-relaxed opacity-90">
+            We've partnered with Shopa to handle all your logistics. Fast, reliable, and just a WhatsApp message away.
+          </p>
+        </div>
       </section>
 
       {/* How It Works Section */}
