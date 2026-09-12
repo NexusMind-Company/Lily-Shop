@@ -138,7 +138,7 @@ const ShopaDeliveryPage = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                className="input w-full"
                 placeholder="First Name"
               />
             </div>
@@ -149,7 +149,7 @@ const ShopaDeliveryPage = () => {
                 name="surname"
                 value={formData.surname}
                 onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                className="input w-full"
                 placeholder="Surname"
               />
             </div>
@@ -161,7 +161,7 @@ const ShopaDeliveryPage = () => {
               name="otherNames"
               value={formData.otherNames}
               onChange={handleChange}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+              className="input w-full"
               placeholder="Other Names"
             />
           </div>
@@ -174,7 +174,7 @@ const ShopaDeliveryPage = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+              className="input w-full"
               placeholder="e.g. +23490..."
             />
           </div>
@@ -187,7 +187,7 @@ const ShopaDeliveryPage = () => {
               value={formData.pickupLocation}
               onChange={handleChange}
               rows={2}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors resize-none"
+              className="input w-full resize-none"
               placeholder="Full address of pickup"
             />
           </div>
@@ -200,7 +200,7 @@ const ShopaDeliveryPage = () => {
               value={formData.deliveryLocation}
               onChange={handleChange}
               rows={2}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors resize-none"
+              className="input w-full resize-none"
               placeholder="Full address of destination"
             />
           </div>
@@ -211,7 +211,7 @@ const ShopaDeliveryPage = () => {
               name="packageDescription"
               value={formData.packageDescription}
               onChange={handleChange}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+              className="input w-full"
               placeholder="e.g. 2 pairs of shoes, fragile"
             />
           </div>
@@ -223,7 +223,7 @@ const ShopaDeliveryPage = () => {
               value={formData.specialInstructions}
               onChange={handleChange}
               rows={2}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors resize-none"
+              className="input w-full resize-none"
               placeholder="Any specific directions for the rider?"
             />
           </div>
