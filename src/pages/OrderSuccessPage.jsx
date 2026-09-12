@@ -74,8 +74,7 @@ const Confetti = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-10"
-      style={{ opacity: 0.75 }}
+      className="fixed inset-0 pointer-events-none z-10 opacity-75"
     />
   );
 };
@@ -196,7 +195,7 @@ const OrderSuccessPage = () => {
         description="Your food order has been placed successfully."
       />
 
-      <div className="flex flex-col min-h-screen w-full max-w-xl mx-auto bg-[#f6f8f6]">
+      <div className="flex flex-col min-h-screen w-full max-w-xl mx-auto bg-gray-50">
         <Confetti />
 
         <main className="flex-1 flex flex-col items-center p-4 sm:p-6 pt-10 relative z-20">
@@ -211,15 +210,15 @@ const OrderSuccessPage = () => {
               <motion.div
                 animate={{ scale: [1, 1.12, 1] }}
                 transition={{ duration: 0.5, delay: 0.15 }}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#13ec49]/10 flex items-center justify-center border-4 border-[#13ec49]"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/10 flex items-center justify-center border-4 border-green-500"
               >
-                <CheckCircle size={48} className="text-[#13ec49]" />
+                <CheckCircle size={48} className="text-green-500" />
               </motion.div>
             </motion.div>
 
             {/* Title & Subtitle */}
             <motion.div variants={itemVariants} className="text-center mb-6">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111813] mb-1">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1">
                 Order Placed Successfully! 🎉
               </h1>
               <p className="text-gray-500 text-sm sm:text-base">
@@ -242,15 +241,15 @@ const OrderSuccessPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <ChefHat className="text-[#13ec49]" size={28} />
+                    <ChefHat className="text-green-500" size={28} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-[#111813] text-base truncate">
+                  <h3 className="font-bold text-gray-900 text-base truncate">
                     {productName}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">Quantity: {quantity}</p>
-                  <p className="font-extrabold text-[#13ec49] text-base mt-1">
+                  <p className="font-extrabold text-green-500 text-base mt-1">
                     ₦{formatPrice(total)}
                   </p>
                 </div>
@@ -262,7 +261,7 @@ const OrderSuccessPage = () => {
                   <span className="flex items-center gap-2">
                     <CreditCard size={15} className="text-gray-400" /> Payment Method
                   </span>
-                  <span className="font-semibold text-[#111813] capitalize">
+                  <span className="font-semibold text-gray-900 capitalize">
                     {paymentMethod === "paystack" ? "Paystack" : "Lily Wallet"}
                   </span>
                 </div>
@@ -271,7 +270,7 @@ const OrderSuccessPage = () => {
                   <span className="flex items-center gap-2">
                     <CheckCircle size={15} className="text-gray-400" /> Order Status
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#13ec49]/15 text-[#111813]">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/15 text-gray-900">
                     Confirmed & Paid
                   </span>
                 </div>
@@ -281,7 +280,7 @@ const OrderSuccessPage = () => {
                     <span className="flex items-center gap-2 shrink-0">
                       <MapPin size={15} className="text-gray-400" /> Delivery Address
                     </span>
-                    <span className="font-semibold text-[#111813] text-right text-xs max-w-[60%] truncate">
+                    <span className="font-semibold text-gray-900 text-right text-xs max-w-[60%] truncate">
                       {address}
                     </span>
                   </div>
@@ -303,22 +302,22 @@ const OrderSuccessPage = () => {
             {/* Next Steps Banner */}
             <motion.div
               variants={itemVariants}
-              className="bg-[#13ec49]/5 border border-[#13ec49]/20 rounded-2xl p-4 w-full mb-6"
+              className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4 w-full mb-6"
             >
-              <p className="text-xs font-bold text-[#111813] uppercase tracking-wider mb-2">
+              <p className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
                 What happens next?
               </p>
               <ul className="space-y-2 text-xs sm:text-sm text-gray-600">
                 <li className="flex items-start gap-2">
-                  <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
+                  <CheckCircle size={15} className="text-green-500 mt-0.5 shrink-0" />
                   <span>The vendor will prepare your order and mark it ready for delivery.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
+                  <CheckCircle size={15} className="text-green-500 mt-0.5 shrink-0" />
                   <span>Once delivered, click "Confirm Delivery" on the order details page to release payment.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle size={15} className="text-[#13ec49] mt-0.5 shrink-0" />
+                  <CheckCircle size={15} className="text-green-500 mt-0.5 shrink-0" />
                   <span>If unconfirmed after 72 hours with no dispute, payment auto-releases.</span>
                 </li>
               </ul>
@@ -330,7 +329,7 @@ const OrderSuccessPage = () => {
         <div className="bg-white border-t border-gray-100 p-4 space-y-3 relative z-20 mt-auto">
           <button
             onClick={handleChatWithVendor}
-            className="w-full bg-[#13ec49] text-[#111813] font-bold py-3.5 rounded-2xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm hover:brightness-105 active:scale-[0.98] transition-all"
+            className="w-full bg-green-500 text-gray-900 font-bold py-3.5 rounded-2xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm hover:brightness-105 active:scale-[0.98] transition-all"
           >
             <MessageCircle size={18} />
             Chat with Vendor
@@ -339,7 +338,7 @@ const OrderSuccessPage = () => {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate("/orders")}
-              className="w-full bg-gray-50 text-[#111813] font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
+              className="w-full bg-gray-50 text-gray-900 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
             >
               <ShoppingBag size={16} />
               View Orders

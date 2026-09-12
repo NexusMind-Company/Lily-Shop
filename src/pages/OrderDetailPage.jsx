@@ -498,7 +498,7 @@ const OrderDetailPage = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-semibold">
-                      ₦{order.total_amount_naira?.toLocaleString() || (order.total_amount_kobo / 100).toLocaleString()}
+                      ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
@@ -509,7 +509,7 @@ const OrderDetailPage = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Total</span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                        ₦{order.total_amount_naira?.toLocaleString() || (order.total_amount_kobo / 100).toLocaleString()}
+                        ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
                       </span>
                     </div>
                   </div>

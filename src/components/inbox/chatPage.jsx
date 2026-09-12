@@ -11,6 +11,7 @@ import {
   Eye,
   Play,
   ShoppingCart,
+  X,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -21,6 +22,8 @@ import {
   clearConversation,
   fetchConversations,
   markMessageAsRead,
+  editMessage,
+  sendMediaMessage
 } from "../../redux/messageConversationSlice";
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
@@ -276,6 +279,11 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
                    </button>
                  </div>
                )}
+               {activePayload?.order_type === "food" && hasDispatched && !hasDelivered && (
+                 <div className="mt-2 w-full py-2 bg-amber-50 text-amber-600 text-xs font-bold text-center rounded-xl border border-amber-200">
+                   Auto-completes in 24h
+                 </div>
+               )}
              </>
           ) : (
              <>
@@ -293,6 +301,11 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
                >
                  Current Status: {hasDelivered ? "Delivered" : (hasDispatched ? (payload.delivery_type === "pickup" ? "Available for pickup" : "Dispatched") : (hasAccepted ? "Accepted & Preparing" : "Pending"))}
                </button>
+               {activePayload?.order_type === "food" && hasDispatched && !hasDelivered && (
+                 <div className="w-full py-2 mb-2 bg-amber-50 text-amber-600 text-xs font-bold text-center rounded-xl border border-amber-200">
+                   Auto-completes in 24h
+                 </div>
+               )}
                {!hasDelivered && (
                  <button 
                    onClick={() => setShowStatusMenu(!showStatusMenu)}
@@ -304,7 +317,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
 
                {showStatusMenu && (
                  <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
-                   {!hasDelivered && (
+                   {!hasDelivered && activePayload?.order_type !== "food" && (
                      <button onClick={handleDeliveredClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                        <span className="font-medium text-gray-700">Delivered</span>
@@ -527,6 +540,10 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -775,9 +792,24 @@ const ChatPage = () => {
   const handleSend = () => {
     if (!newMessage.trim()) return;
 
-    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
+    if (editingMessage) {
+      dispatch(editMessage({ messageId: editingMessage.id, content: newMessage }))
+        .then(() => {
+          setNewMessage("");
+          setEditingMessage(null);
+        })
+        .catch((error) => console.error("Error editing message:", error));
+      return;
+    }
+
+    dispatch(sendMessageToUser({ 
+      userId: conversationId, 
+      content: newMessage,
+      reply_to_id: replyingTo?.id 
+    }))
       .then(() => {
         setNewMessage("");
+        setReplyingTo(null);
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       })
       .catch((error) => {
@@ -786,7 +818,55 @@ const ChatPage = () => {
   };
 
   const handleFileSelect = (e) => {
-    console.log("Selected files:", Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    files.forEach(file => {
+      dispatch(sendMediaMessage({ userId: conversationId, file, reply_to_id: replyingTo?.id }))
+        .catch(err => console.error("Failed to send media", err));
+    });
+    setReplyingTo(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 500);
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  
+  const handleTouchEnd = (msg, isMine) => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if ((isMine && isLeftSwipe) || (!isMine && isRightSwipe)) {
+      setReplyingTo(msg);
+      setEditingMessage(null);
+    }
+  };
+
+  const handleEditClick = (msg, isMine) => {
+    if (!isMine) return;
+    const isWithin15Mins = (new Date() - new Date(msg.timestamp)) < 15 * 60 * 1000;
+    if (!isWithin15Mins) {
+       toast.error("Can only edit messages within 15 minutes of sending");
+       return;
+    }
+    if (msg.is_edited) {
+       toast.error("Message has already been edited");
+       return;
+    }
+    setEditingMessage(msg);
+    setReplyingTo(null);
+    setNewMessage(msg.content);
   };
 
   return (
@@ -973,6 +1053,14 @@ const ChatPage = () => {
                 key={msg.id}
                 id={`msg-${msg.id}`}
                 className={`flex ${isMine ? "justify-end" : "justify-start"} ${String(msg.id) === targetMessageId ? "animate-pulse" : ""}`}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={() => handleTouchEnd(msg, isMine)}
+                onDoubleClick={() => handleEditClick(msg, isMine)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  handleEditClick(msg, isMine);
+                }}
               >
                 <div
                   className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words transition-colors duration-1000 ${
@@ -985,17 +1073,29 @@ const ChatPage = () => {
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
+                  {msg.reply_to && (
+                    <div className={`mb-2 p-2 rounded-lg text-xs border-l-4 opacity-80 ${isMine ? "bg-white/20 border-white" : "bg-gray-200 border-lily"}`}>
+                      <p className="font-bold">{msg.reply_to.sender_username || "User"}</p>
+                      <p className="truncate line-clamp-2">{msg.reply_to.content || "Media"}</p>
+                    </div>
+                  )}
+
                   {msg.is_system_message && (
                     <p className="text-xs text-gray-400 font-medium mb-1">
                       System Message
                     </p>
                   )}
                   
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                    {msg.content}
-                  </p>
+                  {msg.media ? (
+                    <img src={msg.media} alt="Media" className="max-w-full rounded-lg mb-1 object-cover max-h-60" />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
+                  )}
                   
-                  <p className="text-[10px] mt-1 opacity-70 text-right">
+                  <p className="text-[10px] mt-1 opacity-70 text-right flex justify-end gap-1 items-center">
+                    {msg.is_edited && <span className="italic mr-1">(edited)</span>}
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -1010,8 +1110,35 @@ const ChatPage = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
+      <div className="shrink-0 flex flex-col bg-white border-t">
+        {(replyingTo || editingMessage) && (
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b">
+            <div className="flex-1 truncate">
+              {replyingTo && (
+                <>
+                  <p className="text-xs font-bold text-lily">Replying to {replyingTo.sender_username || "User"}</p>
+                  <p className="text-sm text-gray-600 truncate">{replyingTo.content || "Media"}</p>
+                </>
+              )}
+              {editingMessage && (
+                <>
+                  <p className="text-xs font-bold text-lily">Editing Message</p>
+                  <p className="text-sm text-gray-600 truncate">{editingMessage.content}</p>
+                </>
+              )}
+            </div>
+            <button onClick={() => {
+              setReplyingTo(null);
+              if (editingMessage) {
+                setEditingMessage(null);
+                setNewMessage("");
+              }
+            }} className="p-1 rounded-full hover:bg-gray-200 text-gray-500">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        <div className="relative p-3 flex items-center space-x-2">
         <input
           type="file"
           ref={fileInputRef}

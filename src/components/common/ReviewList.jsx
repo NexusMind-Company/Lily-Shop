@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Star, Store } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 const formatTimeAgo = (dateString) => {
@@ -105,6 +106,20 @@ const ReviewCard = ({ review, isLast, canEdit = false, onEdit, onDelete, onLike,
           <p className="mt-2 text-sm text-gray-600 leading-relaxed">
             {review.comment}
           </p>
+        )}
+
+        {/* Shop Link (if available) */}
+        {review.shop && review.shop_name && (
+          <div className="mt-3">
+            <Link
+              to={`/shop/${review.shop}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-lily/5 border border-gray-100 hover:border-lily/20 rounded-lg text-xs font-medium text-gray-600 hover:text-lily transition-colors group"
+            >
+              <Store size={14} className="text-gray-400 group-hover:text-lily transition-colors" />
+              <span>{review.shop_name}</span>
+              <span className="opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all">→</span>
+            </Link>
+          </div>
         )}
 
         {/* Like and Action Buttons */}

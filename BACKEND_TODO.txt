@@ -15,7 +15,7 @@ Food orders currently return:
 
 What is MISSING (must be added to food order serializer):
   - items[]          → list of ordered items with menu_item name, image_url, price, quantity
-  - total_amount_kobo / total_amount_naira  → total price paid
+  - total_price      → total price paid (in kobo)
   - reference        → order reference string for display
   - user {}          → buyer object { id, username, first_name, last_name }
   - seller {} / vendor {}  → vendor object { id, username/name } so UI can show "Ordered from X"
