@@ -53,10 +53,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     : null;
   const buyerDisplayName = buyerFullName ? `${buyerFullName} (@${orderUser.username})` : (orderUser?.username ? `@${orderUser.username}` : null);
 
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [pin, setPin] = useState("");
-  
-  const orderIdKey = payload.order_id || payload.reference;
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
 
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -134,27 +131,20 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     }
   };
 
-  const handleDeliveredClick = () => {
-    setShowStatusMenu(false);
-    setShowPinModal(true);
-  };
-
-  const handleConfirmDelivery = async () => {
-    if (!pin) {
-      toast.error("Please enter the PIN provided by the buyer");
-      return;
-    }
+  const handleBuyerConfirmReceipt = async () => {
     const idToUpdate = payload.order_id || payload.reference;
     try {
       if (idToUpdate) {
-        await api.post(`/orders/orders/${idToUpdate}/confirm-delivery/`, { pin, gps_lat: 0, gps_lng: 0 });
+        if (activePayload?.order_type === "food") {
+          await api.post(`/foods/orders/${idToUpdate}/confirm-receipt/`);
+        } else {
+          await api.post(`/orders/orders/${idToUpdate}/confirm-receipt/`);
+        }
       }
-      toast.success("Delivery confirmed securely!");
-      setLiveOrderData(prev => ({ ...(prev || payload), status: "delivered" }));
-      setShowPinModal(false);
-      setPin("");
+      toast.success("Receipt confirmed! Funds have been released to the vendor.");
+      setLiveOrderData(prev => ({ ...(prev || payload), status: "completed" }));
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to confirm delivery");
+      toast.error(err.response?.data?.message || "Failed to confirm receipt");
     }
   };
 
@@ -247,8 +237,16 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
           {isMine ? (
              <>
                <button className="w-full py-2.5 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
-                 {buyerStatus}
+                 {buyerStatus === "Out_for_delivery" ? "Out for Delivery" : buyerStatus}
                </button>
+               {buyerStatus === "Out_for_delivery" && (
+                 <button
+                   onClick={handleBuyerConfirmReceipt}
+                   className="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-extrabold shadow-md shadow-green-500/20 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+                 >
+                   <span>📦 Confirm Order Received</span>
+                 </button>
+               )}
                {buyerStatus === "Delivered" && (
                  <div className="mt-2 space-y-2">
                    <input 
@@ -317,12 +315,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
 
                {showStatusMenu && (
                  <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
-                   {!hasDelivered && activePayload?.order_type !== "food" && (
-                     <button onClick={handleDeliveredClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
-                       <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                       <span className="font-medium text-gray-700">Delivered</span>
-                     </button>
-                   )}
+
                    {!hasDispatched && !hasDelivered && (
                      <button onClick={() => handleDispatchUpdate('Dispatched')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
                        <ShoppingCart className="w-5 h-5 text-gray-700" />
@@ -384,49 +377,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
           </div>
         )}
 
-        {/* PIN Modal */}
-        {showPinModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Enter Delivery PIN</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                Ask the buyer for their 4-digit PIN to confirm delivery.
-              </p>
-              
-              <div className="flex justify-center mb-2">
-                <ShoppingCart className="w-12 h-12 text-lily/20" />
-              </div>
-              
-              <input
-                type="text"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="0000"
-                className="w-full border-2 border-gray-200 rounded-xl p-3 text-center text-2xl font-bold tracking-widest mb-4 focus:border-lily focus:ring-0 outline-none"
-              />
-              
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => {
-                    setShowPinModal(false);
-                    setPin("");
-                  }}
-                  className="flex-1 py-3 font-bold text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleConfirmDelivery}
-                  disabled={pin.length < 4}
-                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90 disabled:opacity-50"
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );
