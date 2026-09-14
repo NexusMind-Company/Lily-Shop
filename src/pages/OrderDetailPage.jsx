@@ -7,9 +7,10 @@ import {
   ArrowLeft, Package, MessageCircle, Printer, MapPin,
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
-import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import { fetchOrderDetail, fetchOrderPin, selectCurrentOrder, selectOrderPin, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
 import { confirmOrderReceipt, confirmFoodOrderReceipt } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { Truck } from 'lucide-react';
 import UnboxingModal from '../components/orders/UnboxingModal';
 import DisputeModal from '../components/orders/DisputeModal';
 
@@ -31,6 +32,9 @@ const OrderDetailPage = () => {
 
   const order = useSelector(selectCurrentOrder);
   const [isConfirming, setIsConfirming] = useState(false);
+  const orderPin = useSelector(selectOrderPin);
+  const loading = useSelector(selectOrderLoading);
+  const error = useSelector(selectOrderError);
 
   useEffect(() => {
     if (orderId) {
@@ -54,6 +58,15 @@ const OrderDetailPage = () => {
       setIsConfirming(false);
     }
   };
+
+  useEffect(() => {
+    if (order?.id) {
+      // Fetch PIN for delivery verification
+      if (order.status !== 'cancelled' && order.status !== 'failed') {
+        dispatch(fetchOrderPin(order.id));
+      }
+    }
+  }, [dispatch, order]);
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -296,6 +309,35 @@ const OrderDetailPage = () => {
                   <p className="text-xs text-gray-500 text-center mt-3">
                     By confirming, payment will be released to the seller. 
                     If there's an issue, <span className="text-red-600 font-medium cursor-pointer" onClick={() => setIsDisputeModalOpen(true)}>open a dispute</span> instead.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Delivery PIN Section */}
+            {orderPin && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-sm border-2 border-pink-100 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100">
+                  <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2 text-pink-600" />
+                    Delivery Security PIN
+                  </h3>
+                </div>
+                <div className="p-6 text-center">
+                  <p className="text-gray-600 mb-4">
+                    Provide this PIN to the delivery rider <b>only</b> when you have received and inspected your order.
+                  </p>
+                  <div className="inline-block bg-gray-50 border border-gray-200 rounded-xl px-8 py-4 mb-2">
+                    <span className="text-4xl font-mono font-bold tracking-widest text-gray-900">
+                      {orderPin}
+                    </span>
+                  </div>
+                  <p className="text-sm text-pink-600 font-medium">
+                    Do not share this PIN before delivery.
                   </p>
                 </div>
               </motion.div>

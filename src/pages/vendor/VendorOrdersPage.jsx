@@ -18,6 +18,7 @@ import { getErrorMessage } from "../../utils/errorUtils";
 import {
   fetchVendorOrders,
   updateOrderStatus,
+  confirmDelivery
 } from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
@@ -41,7 +42,6 @@ const STATUS_LABELS = {
   completed: "Completed",
   pending: "Pending",
 };
-
 const STATUS_BUTTON_COLORS = {
   preparing: "#f97316", // orange-500
   ready_for_pickup: "#3b82f6", // blue-500
@@ -65,8 +65,11 @@ const getNextStatuses = (currentStatus, deliveryType) => {
   return transitions[currentStatus] || [];
 };
 
-const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
+const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => {
   const [open, setOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  
+  const needsPin = order.status === "out_for_delivery" || order.status === "ready_for_pickup" || order.status === "dispatched";
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -101,7 +104,26 @@ const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
           </div>
           
           {/* Status update buttons based on current state */}
-          {getNextStatuses(order.status, order.delivery_type).length > 0 && (
+          {needsPin ? (
+            <div className="mt-2 space-y-2 border border-gray-100 p-3 rounded-xl bg-gray-50">
+              <p className="text-xs text-gray-600 font-medium mb-1">Enter buyer's delivery PIN to confirm:</p>
+              <input 
+                type="text" 
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="4-digit PIN"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tracking-widest text-center focus:outline-none focus:border-lily"
+              />
+              <button
+                onClick={() => onConfirmDelivery(order.id, pin)}
+                disabled={isUpdating || pin.length < 4}
+                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                {isUpdating ? "Confirming..." : "Confirm Delivery"}
+              </button>
+            </div>
+          ) : getNextStatuses(order.status, order.delivery_type).length > 0 ? (
             <div className="mt-2 space-y-2">
               {getNextStatuses(order.status, order.delivery_type).map((nextStatus) => (
                 <button
@@ -115,7 +137,7 @@ const OrderCard = ({ order, onStatusUpdate, isUpdating }) => {
                 </button>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
@@ -147,6 +169,19 @@ const VendorOrdersPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
       toast.success("Order status updated!");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+    onSettled: () => setUpdatingId(null),
+  });
+
+  const { mutate: confirmDel } = useMutation({
+    mutationFn: ({ orderId, pin }) => confirmDelivery(orderId, { pin, gps_lat: 0, gps_lng: 0 }),
+    onMutate: ({ orderId }) => setUpdatingId(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
+      toast.success("Delivery confirmed securely!");
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -209,6 +244,7 @@ const VendorOrdersPage = () => {
               order={order}
               isUpdating={updatingId === order.id}
               onStatusUpdate={(id, status) => updateStatus({ orderId: id, status })}
+              onConfirmDelivery={(id, pin) => confirmDel({ orderId: id, pin })}
             />
           ))}
         </div>

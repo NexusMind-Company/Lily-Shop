@@ -47,9 +47,9 @@ const FoodOrderCheckoutPage = () => {
     return Number(product?.delivery_fee_naira) || Number(product?.deliveryCharge) || 0;
   }, [product]);
 
-  const subtotal = Math.round(foodPrice * (quantity || 1) * 100) / 100;
-  const platformFee = 0; // Backend commission is deducted from vendor payout; ₦0 charged to buyer
-  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
+  const subtotal = foodPrice * (quantity || 1);
+  const platformFee = subtotal * 0.10; // 10% platform fee
+  const total = subtotal + deliveryFee + platformFee;
 
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
@@ -217,7 +217,7 @@ const FoodOrderCheckoutPage = () => {
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Platform Fee</span>
-              <span className="text-lily font-semibold">₦0</span>
+              <span>₦{formatPrice(platformFee)}</span>
             </div>
             <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-lg">
               <span>You Pay</span>

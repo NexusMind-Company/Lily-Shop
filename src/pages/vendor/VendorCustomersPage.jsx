@@ -33,8 +33,7 @@ const VendorCustomersPage = () => {
       const name = item.customer_name || item.user_name || item.buyer_name || "Unknown";
       const phone = item.phone || item.customer_phone || item.buyer_phone || "";
       const address = item.delivery_address || item.address || "";
-      const rawKobo = item.total_price || item.total_amount_kobo;
-      const amount = Number(rawKobo ? rawKobo / 100 : item.total_price_naira || item.price || 0);
+      const amount = Number(item.total_amount_kobo ? item.total_amount_kobo / 100 : item.total_price_naira || item.price || 0);
       const date = item.created_at || item.start_date;
       
       const key = phone || name;

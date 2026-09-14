@@ -56,11 +56,10 @@ export const searchGlobalMessages = createAsyncThunk(
 // Send Message API
 export const sendMessageToUser = createAsyncThunk(
   "messages/sendMessageToUser",
-  async ({ userId, content, product_id = null, reply_to_id = null }, { rejectWithValue }) => {
+  async ({ userId, content, product_id = null }, { rejectWithValue }) => {
     try {
       const payload = { recipient: userId, content };
       if (product_id) payload.product_id = product_id;
-      if (reply_to_id) payload.reply_to_id = reply_to_id;
 
       const res = await api.post(`/messages/`, payload);
       return res.data;
@@ -79,41 +78,6 @@ export const markMessageAsRead = createAsyncThunk(
       return { messageId, data: res.data };
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to mark as read");
-    }
-  }
-);
-
-// Edit Message API
-export const editMessage = createAsyncThunk(
-  "messages/editMessage",
-  async ({ messageId, content }, { rejectWithValue }) => {
-    try {
-      const res = await api.patch(`/messages/${messageId}/`, { content });
-      return res.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to edit message");
-    }
-  }
-);
-
-// Send Media Message
-export const sendMediaMessage = createAsyncThunk(
-  "messages/sendMediaMessage",
-  async ({ userId, file, reply_to_id = null }, { rejectWithValue }) => {
-    try {
-      const formData = new FormData();
-      formData.append("recipient", userId);
-      formData.append("media", file);
-      if (reply_to_id) formData.append("reply_to_id", reply_to_id);
-
-      const res = await api.post(`/messages/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return res.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to send media");
     }
   }
 );
@@ -226,34 +190,13 @@ const messageConversationSlice = createSlice({
       })
       .addCase(sendMessageToUser.fulfilled, (state, action) => {
         state.sending = false;
-        state.messages.unshift(action.payload); // Unshift instead of push because it's reversed
+        state.messages.push(action.payload);
       })
       .addCase(sendMessageToUser.rejected, (state, action) => {
         state.sending = false;
         state.error = action.payload;
       })
       
-      // Edit message
-      .addCase(editMessage.fulfilled, (state, action) => {
-        const index = state.messages.findIndex(m => String(m.id) === String(action.payload.id));
-        if (index !== -1) {
-          state.messages[index] = action.payload;
-        }
-      })
-      
-      // Sending media message
-      .addCase(sendMediaMessage.pending, (state) => {
-        state.sending = true;
-      })
-      .addCase(sendMediaMessage.fulfilled, (state, action) => {
-        state.sending = false;
-        state.messages.unshift(action.payload); // Since list is reversed, unshift adds it to the bottom
-      })
-      .addCase(sendMediaMessage.rejected, (state, action) => {
-        state.sending = false;
-        state.error = action.payload;
-      })
-
       // Mark message as read
       .addCase(markMessageAsRead.fulfilled, (state, action) => {
         const msg = state.messages.find((m) => String(m.id) === String(action.payload.messageId));

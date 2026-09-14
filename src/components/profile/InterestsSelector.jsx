@@ -182,8 +182,8 @@ const InterestsSelector = ({ mode = "settings", onComplete, onSkip }) => {
         </h1>
         <p className="text-sm sm:text-base text-gray-600 max-w-2xl">
           {mode === "onboarding"
-            ? "Choose topics you enjoy so we can curate a lively, personalized For You Page full of small creators and trending meals."
-            : "Tailor your For You Page by adding or removing content categories. Your selections instantly adjust what you see in your feed."}
+            ? "Choose topics you enjoy so we can curate a lively, personalized TikTok-style For You Page full of small creators and trending meals."
+            : "Tailor your For You Page by adding or removing content categories. Your selections instantly adjust our TikTok-style viral recommendation algorithm."}
         </p>
       </div>
 
@@ -196,28 +196,28 @@ const InterestsSelector = ({ mode = "settings", onComplete, onSkip }) => {
             placeholder="Search interests (e.g., Spicy Foods, Fashion, Tech)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 text-black placeholder-gray-500 border border-gray-200 focus:border-lily rounded-2xl text-sm sm:text-base outline-none transition-all duration-200 shadow-inner focus:shadow-md"
+            className="w-full pl-11 pr-4 py-3 text-black placeholder-gray-500 border border-black focus:border-lily rounded-2xl text-sm sm:text-base outline-none transition-all duration-200 shadow-inner focus:shadow-md"
           />
         </div>
 
         {/* Populated field from endpoint search results to pick from */}
         {searchQuery.trim().length > 0 && (
-          <div className="bg-white border border-lily/30 rounded-2xl p-4 shadow-md mb-1 transition-all duration-200">
+          <div className="bg-white border-2 border-gray-900 rounded-2xl p-4 shadow-lg mb-1 transition-all duration-200">
             <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
               <span className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-lily" />
-                Search Results ({isSearching ? "Searching..." : `${(searchResults.length > 0 ? searchResults : filteredInterests).length} available to pick`})
+                Live Endpoint Matches ({isSearching ? "Querying..." : `${(searchResults.length > 0 ? searchResults : filteredInterests).length} available to pick`})
               </span>
               {isSearching && <Loader2 className="w-4 h-4 animate-spin text-lily" />}
             </div>
             {isSearching ? (
               <div className="py-4 flex items-center justify-center gap-2 text-gray-500 text-sm font-medium">
                 <Loader2 className="w-5 h-5 animate-spin text-lily" />
-                <span>Searching for "{searchQuery}"...</span>
+                <span>Searching live endpoint for "{searchQuery}"...</span>
               </div>
             ) : (searchResults.length > 0 ? searchResults : filteredInterests).length === 0 ? (
               <div className="py-4 text-center text-gray-500 text-sm">
-                No matching interests found for <span className="font-semibold text-gray-800">"{searchQuery}"</span>.
+                No matching interests returned from server for <span className="font-semibold text-gray-800">"{searchQuery}"</span>.
               </div>
             ) : (
               <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1">
@@ -233,7 +233,7 @@ const InterestsSelector = ({ mode = "settings", onComplete, onSkip }) => {
                           : "bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300"
                         }`}
                     >
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${isSelected ? "bg-white text-lily" : "bg-lily/10 text-lily font-extrabold"
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${isSelected ? "bg-white text-lily" : "bg-black text-white font-extrabold"
                         }`}>
                         {isSelected ? <Check className="w-3 h-3 font-bold" /> : "+"}
                       </span>
@@ -261,7 +261,7 @@ const InterestsSelector = ({ mode = "settings", onComplete, onSkip }) => {
                 type="button"
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 ${activeCategory === cat
-                    ? "bg-lily text-white shadow-md transform scale-102"
+                    ? "bg-gray-900 text-white shadow-md transform scale-102"
                     : "bg-gray-100 hover:bg-gray-200/80 text-gray-700"
                   }`}
               >

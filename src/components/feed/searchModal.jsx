@@ -116,7 +116,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
   const buildMealPlanParams = () => {
     const term = debouncedSearchTerm.trim();
     if (!term) return null;
-    return { search: term };
+    return { vendor__name: term };
   };
 
   // Immediate reactive queries for each category

@@ -72,14 +72,12 @@ export const updateOrderStatus = async (orderId, status) => {
 };
 
 /**
- * PATCH /orders/orders/{orderId}/update-status/
- * Updates the status of a SHOP order (not food order).
- * Body: { status: "preparing" | "ready_for_pickup" | "out_for_delivery" | "delivered" }
+ * POST /orders/orders/{orderId}/confirm-delivery/
+ * Confirm delivery with PIN from buyer.
  */
-export const updateShopOrderStatus = async (orderId, status) => {
-  const response = await api.patch(`/orders/orders/${orderId}/update-status/`, {
-    status,
-  });
+export const confirmDelivery = async (orderId, data) => {
+  // data should contain { pin, gps_lat, gps_lng }
+  const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
   return response.data;
 };
 
