@@ -455,6 +455,7 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             isFeedCarousel={true}
             containerClassName="media-box"
             onDoubleClick={handleDoubleTap}
+            isActive={isActive}
           />
         ) : isVideo ? (
           <VideoPlayer
