@@ -708,7 +708,7 @@ const ChatPage = () => {
     let currentGroup = null;
 
     allMessages.forEach((msg) => {
-      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id || msg.sender?.id) === String(currentUserId));
       
       const isStandardMedia = !!msg.media && 
         !msg.product && 
@@ -802,7 +802,7 @@ const ChatPage = () => {
   // Mark incoming unread messages as read
   useEffect(() => {
     const unreadMessages = allMessages.filter((msg) => {
-      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id || msg.sender?.id) === String(currentUserId));
       return !isMine && msg.read === false && !msg.isOptimistic;
     });
 
@@ -876,6 +876,7 @@ const ChatPage = () => {
     setPendingMessages((prev) => [...prev, ...newPending]);
     setNewMessage("");
     setSelectedFiles([]);
+    const replyToId = replyingTo?.id;
     setReplyingTo(null);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
 
@@ -883,7 +884,8 @@ const ChatPage = () => {
       dispatch(sendMessageToUser({ 
         userId: conversationId, 
         content: optimisticMsg.content, 
-        media: optimisticMsg.originalFile 
+        media: optimisticMsg.originalFile,
+        reply_to_id: replyToId
       }))
         .then(() => {
           setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
@@ -1153,6 +1155,13 @@ const ChatPage = () => {
                     </div>
                   )}
 
+                  {msg.reply_to && (
+                    <div className="bg-black/10 rounded-lg p-2 mb-2 border-l-4 border-lily/60">
+                      <span className="text-xs font-bold block mb-0.5 opacity-80">{msg.reply_to.sender_username || "User"}</span>
+                      <span className="text-xs opacity-90 line-clamp-2">{msg.reply_to.content || "📷 Media"}</span>
+                    </div>
+                  )}
+
                   {msg.content && msg.content !== "📷 Image" && (
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">
                       {msg.content}
@@ -1166,7 +1175,17 @@ const ChatPage = () => {
                         minute: "2-digit",
                       })}
                     </p>
-                    {msg.isOptimistic && <span className="text-[10px] text-gray-200">...</span>}
+                    {isMine && (
+                      <span className="ml-0.5">
+                        {msg.isOptimistic ? (
+                          <svg className="w-3 h-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        ) : msg.read ? (
+                          <svg className="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7M5 13l4 4L19 7" style={{ transform: "translate(-3px, 0)" }} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 17l4 4L22 11" style={{ transform: "translate(3px, 0)" }} /></svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        )}
+                      </span>
+                    )}
                     
                     {/* 3-Dot Menu inside the bubble */}
                     <div className="relative flex items-center ml-1">
