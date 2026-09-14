@@ -11,7 +11,13 @@ import {
   Eye,
   Play,
   ShoppingCart,
+  Reply,
+  Copy,
+  Edit2,
+  Share,
+  X
 } from "lucide-react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
@@ -25,6 +31,7 @@ import {
 import { fetchPublicProfile } from "../../services/api";
 import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
+import ImageEditor from "./ImageEditor";
 
 import { api } from "../../services/api";
 import MessagesList from "./messagesList";
@@ -33,12 +40,12 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const orders = useSelector(selectOrders);
 
   const firstItem = payload.items?.[0] || {};
-  const product = firstItem.product || {};
+  const product = firstItem.product || firstItem.menu_item || {};
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [liveOrderData, setLiveOrderData] = useState(null);
   
   // Try to find image
-  const imageUrl = product.image_url || product.media?.[0]?.file || "/placeholder.png";
+  const imageUrl = product.image_url || product.media?.[0]?.file || product.media || "/placeholder.png";
 
   const activePayload = liveOrderData || payload;
   const address = activePayload.delivery_address || {};
@@ -195,7 +202,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
 
       <div className="p-4 flex flex-col gap-1.5 text-sm text-gray-800">
         <p>Order no: {payload.reference}</p>
-        <p className="font-bold text-base mt-1">{product.name || firstItem.product_name || "Product"}</p>
+        <p className="font-bold text-base mt-1">{payload.meal_plan || product.name || firstItem.product_name || "Product"}</p>
         {product.caption && <p className="text-gray-500 text-xs line-clamp-2">{product.caption}</p>}
         <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
         <p>Qty: {firstItem.quantity || 1}</p>
@@ -527,6 +534,13 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [editingFileId, setEditingFileId] = useState(null);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [pendingMessages, setPendingMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -685,6 +699,52 @@ const ChatPage = () => {
     return [...conversation].reverse();
   }, [conversation]);
 
+  const allMessages = useMemo(() => {
+    return [...displayMessages, ...pendingMessages];
+  }, [displayMessages, pendingMessages]);
+
+  const groupedMessages = useMemo(() => {
+    const grouped = [];
+    let currentGroup = null;
+
+    allMessages.forEach((msg) => {
+      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+      
+      const isStandardMedia = !!msg.media && 
+        !msg.product && 
+        !msg.shared_content && 
+        !(typeof msg.content === 'string' && (msg.content.startsWith('[ORDER_PAYLOAD]:') || msg.content.startsWith('LILY_SHARE:')));
+
+      if (
+        currentGroup &&
+        currentGroup.isMine === isMine &&
+        currentGroup.isStandardMedia &&
+        isStandardMedia &&
+        Math.abs(new Date(msg.timestamp) - new Date(currentGroup.timestamp)) < 60000
+      ) {
+        currentGroup.subMessages.push(msg);
+        // Ensure content is preserved if one of the grouped messages has text
+        if (
+          msg.content && 
+          msg.content !== "📷 Image" && 
+          (!currentGroup.content || currentGroup.content === "📷 Image" || currentGroup.content.trim() === "")
+        ) {
+          currentGroup.content = msg.content;
+        }
+      } else {
+        if (currentGroup) grouped.push(currentGroup);
+        currentGroup = {
+          ...msg,
+          isMine,
+          isStandardMedia,
+          subMessages: [msg]
+        };
+      }
+    });
+    if (currentGroup) grouped.push(currentGroup);
+    return grouped;
+  }, [allMessages, currentUserId]);
+
   // Ensure conversations list is loaded for metadata
   useEffect(() => {
     if (conversations.length === 0) {
@@ -741,15 +801,15 @@ const ChatPage = () => {
 
   // Mark incoming unread messages as read
   useEffect(() => {
-    const unreadMessages = displayMessages.filter((msg) => {
+    const unreadMessages = allMessages.filter((msg) => {
       const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
-      return !isMine && msg.read === false;
+      return !isMine && msg.read === false && !msg.isOptimistic;
     });
 
     unreadMessages.forEach((msg) => {
       dispatch(markMessageAsRead(msg.id));
     });
-  }, [displayMessages, currentUserId, dispatch]);
+  }, [allMessages, currentUserId, dispatch]);
 
   //  Load more messages on scroll top
   const handleScroll = () => {
@@ -773,20 +833,102 @@ const ChatPage = () => {
 
   //  Send Message
   const handleSend = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && selectedFiles.length === 0) return;
 
-    dispatch(sendMessageToUser({ userId: conversationId, content: newMessage }))
-      .then(() => {
-        setNewMessage("");
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      })
-      .catch((error) => {
-        console.error("Error sending message:", error);
+    if (editingMessage) {
+      // Mock edit update for UI (Backend does not support PATCH yet)
+      toast.success("Message edited (UI only - Backend endpoint needed)");
+      setEditingMessage(null);
+      setNewMessage("");
+      return;
+    }
+
+    const currentMessage = newMessage;
+    const currentFiles = [...selectedFiles];
+
+    const newPending = [];
+    if (currentFiles.length > 0) {
+      currentFiles.forEach((f, idx) => {
+        newPending.push({
+          id: `temp-${Date.now()}-${idx}`,
+          content: idx === 0 ? currentMessage : "", // Attach text to first image only
+          media: f.url,
+          timestamp: new Date().toISOString(),
+          is_me: true,
+          sender_id: currentUserId,
+          isOptimistic: true,
+          originalFile: f.file
+        });
       });
+    } else {
+      newPending.push({
+        id: `temp-${Date.now()}`,
+        content: currentMessage,
+        media: null,
+        timestamp: new Date().toISOString(),
+        is_me: true,
+        sender_id: currentUserId,
+        isOptimistic: true,
+        originalFile: null
+      });
+    }
+
+    setPendingMessages((prev) => [...prev, ...newPending]);
+    setNewMessage("");
+    setSelectedFiles([]);
+    setReplyingTo(null);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+    newPending.forEach((optimisticMsg) => {
+      dispatch(sendMessageToUser({ 
+        userId: conversationId, 
+        content: optimisticMsg.content, 
+        media: optimisticMsg.originalFile 
+      }))
+        .then(() => {
+          setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+          setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+        });
+    });
   };
 
   const handleFileSelect = (e) => {
-    console.log("Selected files:", Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const newFiles = files.map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        url: URL.createObjectURL(file),
+        type: file.type
+      }));
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+    }
+    // Reset input so selecting the same file again triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSaveEditedImage = (blob) => {
+    if (!editingFileId) return;
+    
+    // Create new file from blob
+    const originalFileObj = selectedFiles.find(f => f.id === editingFileId);
+    if (!originalFileObj) return;
+
+    const newFile = new File([blob], originalFileObj.file.name, { type: 'image/jpeg' });
+    const newUrl = URL.createObjectURL(newFile);
+
+    setSelectedFiles(prev => prev.map(f => {
+      if (f.id === editingFileId) {
+        return { ...f, file: newFile, url: newUrl };
+      }
+      return f;
+    }));
+    
+    setEditingFileId(null);
   };
 
   return (
@@ -890,13 +1032,13 @@ const ChatPage = () => {
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {loading && displayMessages.length === 0 ? (
+        {loading && allMessages.length === 0 ? (
           <p className="text-center text-gray-500">Loading messages...</p>
-        ) : displayMessages.length === 0 ? (
+        ) : allMessages.length === 0 ? (
           <p className="text-center text-gray-400">No messages yet.</p>
         ) : (
-          displayMessages.map((msg) => {
-            const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id) === String(currentUserId));
+          groupedMessages.map((msg) => {
+            const isMine = msg.isMine;
 
             // Check for order payload first
             if (
@@ -972,11 +1114,12 @@ const ChatPage = () => {
               <div
                 key={msg.id}
                 id={`msg-${msg.id}`}
-                className={`flex ${isMine ? "justify-end" : "justify-start"} ${String(msg.id) === targetMessageId ? "animate-pulse" : ""}`}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} ${msg.subMessages?.some(m => String(m.id) === targetMessageId) ? "animate-pulse" : ""} group relative items-center gap-2`}
               >
+
                 <div
                   className={`max-w-[85%] sm:max-w-[75%] w-fit p-3 rounded-2xl text-sm break-words transition-colors duration-1000 ${
-                    String(msg.id) === targetMessageId
+                    msg.subMessages?.some(m => String(m.id) === targetMessageId)
                       ? "ring-4 ring-yellow-400 ring-opacity-50"
                       : ""
                   } ${
@@ -991,16 +1134,57 @@ const ChatPage = () => {
                     </p>
                   )}
                   
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                    {msg.content}
-                  </p>
+                  {msg.media && (
+                    <div className={`mb-2 overflow-hidden rounded-xl ${msg.subMessages?.length > 1 ? "grid grid-cols-2 gap-1" : ""}`}>
+                      {msg.subMessages?.map((subMsg, idx) => (
+                        <div key={subMsg.id || idx} className="relative">
+                          {subMsg.media.match(/\.(mp4|webm|ogg)$/i) ? (
+                            <video src={subMsg.media} controls className={`${msg.subMessages.length > 1 ? "w-full h-32 object-cover" : "max-w-[220px] sm:max-w-[260px] h-auto max-h-[240px]"} bg-black/5`} />
+                          ) : (
+                            <img 
+                              src={subMsg.media} 
+                              alt="Attached media" 
+                              className={`${msg.subMessages.length > 1 ? "w-full h-32 object-cover" : "max-w-[220px] sm:max-w-[260px] h-auto max-h-[240px] object-cover"} cursor-pointer hover:opacity-90 transition-opacity bg-black/5`} 
+                              onClick={() => setFullScreenImage(subMsg.media)}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {msg.content && msg.content !== "📷 Image" && (
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
+                  )}
                   
-                  <p className="text-[10px] mt-1 opacity-70 text-right">
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <div className="flex items-center justify-end gap-1 mt-1 relative">
+                    <p className="text-[10px] opacity-70 text-right">
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    {msg.isOptimistic && <span className="text-[10px] text-gray-200">...</span>}
+                    
+                    {/* 3-Dot Menu inside the bubble */}
+                    <div className="relative flex items-center ml-1">
+                      <button 
+                        onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
+                        className={`${isMine ? "text-white/80 hover:text-white" : "text-gray-400 hover:text-gray-600"} p-0.5 opacity-60 hover:opacity-100 transition-opacity`}
+                      >
+                        <EllipsisVertical className="w-3 h-3" />
+                      </button>
+                      {openMenuId === msg.id && (
+                        <div className={`absolute ${isMine ? "right-0" : "left-0"} bottom-full mb-1 bg-white border shadow-lg rounded-xl z-10 w-32 py-1 overflow-hidden text-gray-800`}>
+                          <button onClick={() => { setReplyingTo(msg); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Reply className="w-3 h-3"/> Reply</button>
+                          {isMine && <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content || ""); setReplyingTo(null); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Edit2 className="w-3 h-3"/> Edit</button>}
+                          <button onClick={() => { navigator.clipboard.writeText(msg.content); toast.success("Copied"); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Copy className="w-3 h-3"/> Copy</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -1011,41 +1195,145 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 relative bg-white p-3 flex items-center space-x-2 border-t">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-          multiple
-          accept="image/*,video/*,.pdf,.doc,.docx"
-        />
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 bg-gray-200 rounded-full px-4 py-2 focus:outline-none"
-        />
-
-        <button
-          className="absolute right-[15%] text-gray-500"
-          onClick={() => fileInputRef.current.click()}
-        >
-          <Camera className="h-8 w-8" />
-        </button>
-
-        <button onClick={handleSend} disabled={sending}>
-          <SendHorizontal
-            className={`h-8 w-8 ${
-              sending ? "text-gray-400" : "text-lily"
-            } transition-all`}
+      <div className="shrink-0 flex flex-col bg-white border-t">
+        {replyingTo && (
+          <div className="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center relative">
+            <div className="flex-1 flex flex-col border-l-4 border-lily pl-3 overflow-hidden">
+              <span className="text-xs font-bold text-lily mb-0.5">Replying to {replyingTo.isMine ? "yourself" : recipientData?.name || "User"}</span>
+              <span className="text-xs text-gray-600 truncate">{replyingTo.content || "📷 Media"}</span>
+            </div>
+            <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-gray-600 ml-2 p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        {editingMessage && (
+          <div className="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center relative">
+            <div className="flex-1 flex flex-col border-l-4 border-yellow-400 pl-3 overflow-hidden">
+              <span className="text-xs font-bold text-yellow-600 mb-0.5">Editing message</span>
+              <span className="text-xs text-gray-600 truncate">{editingMessage.content || "📷 Media"}</span>
+            </div>
+            <button onClick={() => { setEditingMessage(null); setNewMessage(""); }} className="text-gray-400 hover:text-gray-600 ml-2 p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        {selectedFiles.length > 0 && (
+          <div className="p-3 border-b border-gray-100 flex items-start bg-gray-50 overflow-x-auto gap-3">
+            {selectedFiles.map((fileObj) => (
+              <div key={fileObj.id} className="relative inline-block shadow-sm rounded-lg shrink-0">
+                {fileObj.type?.startsWith('video/') ? (
+                  <video src={fileObj.url} className="h-24 w-auto rounded-lg" controls />
+                ) : (
+                  <img 
+                    src={fileObj.url} 
+                    alt="Preview" 
+                    className="h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                    onClick={() => setEditingFileId(fileObj.id)}
+                  />
+                )}
+                <button 
+                  onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== fileObj.id))}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-colors"
+                  title="Remove attachment"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="p-3 flex items-center space-x-2">
+          <input
+            type="file"
+            multiple
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,video/*"
           />
-        </button>
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+            className="flex-1 bg-gray-100 rounded-full px-5 py-3 focus:outline-none text-sm border border-transparent focus:border-lily/30 transition-colors"
+          />
+
+          <div className="flex items-center gap-1 shrink-0 bg-gray-100 rounded-full p-1">
+            <button
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-200"
+              onClick={() => fileInputRef.current.click()}
+              title="Attach media"
+            >
+              <Camera className="h-6 w-6" />
+            </button>
+
+            <button 
+              onClick={handleSend} 
+              disabled={sending || (!newMessage.trim() && selectedFiles.length === 0)} 
+              className={`p-2 rounded-full transition-colors ${
+                sending || (!newMessage.trim() && selectedFiles.length === 0) 
+                  ? "bg-transparent" 
+                  : "bg-lily hover:bg-lily/90"
+              }`}
+            >
+              <SendHorizontal
+                className={`h-5 w-5 ${
+                  sending || (!newMessage.trim() && selectedFiles.length === 0) ? "text-gray-400" : "text-white"
+                } transition-all`}
+              />
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Full Screen Image Viewer Modal */}
+      {fullScreenImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setFullScreenImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full z-50"
+            onClick={() => setFullScreenImage(null)}
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <div onClick={(e) => e.stopPropagation()} className="w-full h-full flex items-center justify-center overflow-hidden">
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={4}
+              centerOnInit
+              doubleClick={{ mode: "zoomIn" }}
+            >
+              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                <img 
+                  src={fullScreenImage} 
+                  alt="Enlarged view" 
+                  className="w-full max-w-[100vw] max-h-[100vh] object-contain cursor-grab active:cursor-grabbing" 
+                  draggable={false}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        </div>
+      )}
+
+      {/* Drawing Editor Modal */}
+      {editingFileId && (
+        <ImageEditor 
+          imageUrl={selectedFiles.find(f => f.id === editingFileId)?.url}
+          onSave={handleSaveEditedImage}
+          onCancel={() => setEditingFileId(null)}
+        />
+      )}
+
     </div>
   </div>
-);
+  );
 };
 
 export default ChatPage;

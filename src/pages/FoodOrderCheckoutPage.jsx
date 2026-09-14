@@ -248,7 +248,6 @@ const FoodOrderCheckoutPage = () => {
               </div>
               {paymentMethod === "wallet" && <CheckCircle2 className="w-5 h-5 text-lily" />}
             </button>
-
             <button
               onClick={() => setPaymentMethod("paystack")}
               className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${

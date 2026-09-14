@@ -51,6 +51,9 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
       order.items?.[0]?.product?.image_url ||
       order.items?.[0]?.product?.media ||
       order.items?.[0]?.product?.all_media_urls?.[0] ||
+      order.items?.[0]?.menu_item?.image_url ||
+      order.items?.[0]?.menu_item?.media ||
+      order.items?.[0]?.menu_item?.all_media_urls?.[0] ||
       null
     );
   };
@@ -103,12 +106,23 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
 
                   <div>
                     <h3 className="font-medium text-gray-800">
-                      {order.name || order.product_name || order.product?.name || order.items?.[0]?.product?.name || "Unnamed Product"}
+                      {order.meal_plan || order.name || order.product_name || order.product?.name || order.items?.[0]?.product?.name || order.items?.[0]?.menu_item?.name || "Unnamed Product"}
                     </h3>
                     <p className="text-xs text-gray-500">
                       Order no: {order.reference || order.orderNo || order.order_number || order.id}
                     </p>
                     <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-xs text-gray-500 font-medium">
+                        Qty: {order.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || order.quantity || 1}
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium">
+                        •
+                      </span>
+                      <span className="text-xs text-gray-700 font-bold">
+                        ₦{parseFloat(order.total_amount_naira || (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) || order.amount || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1.5">
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full ${getStatusColor(
                           order.status
@@ -128,7 +142,7 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
                     onClick={() =>
                       openReviewModal(
                         order.product?.vendor_id || order.vendor_id,
-                        order.product?.vendor_name || order.vendor_name || order.name || order.product_name,
+                        order.product?.vendor_name || order.vendor_name || order.name || order.product_name || order.items?.[0]?.menu_item?.vendor_name,
                       )
                     }
                     className="text-pink-600 text-xs font-medium"

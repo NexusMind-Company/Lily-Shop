@@ -175,53 +175,55 @@ const ManageVendorPlansPage = () => {
         </div>
 
         {/* Active Plans */}
-        {activePlans.map((plan) => (
-          <div key={plan.id} className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1 flex-wrap gap-2">
-              <h3 className="text-lg font-bold text-black">Meal Plan</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleCopyMealPlanLink(plan.id)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-lily text-lily font-semibold text-xs hover:bg-lily/5 transition-colors"
-                  title="Copy meal plan link"
-                >
-                  <Copy size={14} />
-                  <span className="hidden sm:inline">Copy Link</span>
-                </button>
-                <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
-                  Active
-                </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6 w-full">
+          {activePlans.map((plan) => (
+            <div key={plan.id} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between px-1 flex-wrap gap-2">
+                <h3 className="text-lg font-bold text-black">Meal Plan</h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCopyMealPlanLink(plan.id)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-lily text-lily font-semibold text-xs hover:bg-lily/5 transition-colors"
+                    title="Copy meal plan link"
+                  >
+                    <Copy size={14} />
+                    <span className="hidden sm:inline">Copy Link</span>
+                  </button>
+                  <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
+                    Active
+                  </span>
+                </div>
               </div>
+              <PlanCard
+                isActive
+                imageUrl={
+                  plan.all_media_urls && plan.all_media_urls.length > 0
+                    ? plan.all_media_urls[0]
+                    : "/placeholder-food.jpg"
+                }
+                price={
+                  plan.price
+                    ? `₦${Number(plan.price).toLocaleString("en-NG", {
+                        minimumFractionDigits: Number.isInteger(
+                          Number(plan.price),
+                        )
+                          ? 0
+                          : 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : "—"
+                }
+                title={plan.plan_name}
+                description={plan.description || "No description"}
+                features={["Visible in marketplace", "Currently live"]}
+                buttonText="Edit Plan details"
+                onButtonClick={() => handleEditPlan(plan.id)}
+                onCardClick={() => handleViewPlan(plan.id)}
+                onDeleteClick={() => handleDeletePlan(plan.id)}
+              />
             </div>
-            <PlanCard
-              isActive
-              imageUrl={
-                plan.all_media_urls && plan.all_media_urls.length > 0
-                  ? plan.all_media_urls[0]
-                  : "/placeholder-food.jpg"
-              }
-              price={
-                plan.price
-                  ? `₦${Number(plan.price).toLocaleString("en-NG", {
-                      minimumFractionDigits: Number.isInteger(
-                        Number(plan.price),
-                      )
-                        ? 0
-                        : 2,
-                      maximumFractionDigits: 2,
-                    })}`
-                  : "—"
-              }
-              title={plan.plan_name}
-              description={plan.description || "No description"}
-              features={["Visible in marketplace", "Currently live"]}
-              buttonText="Edit Plan details"
-              onButtonClick={() => handleEditPlan(plan.id)}
-              onCardClick={() => handleViewPlan(plan.id)}
-              onDeleteClick={() => handleDeletePlan(plan.id)}
-            />
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* Pagination */}
         {totalCount > pageSize && (

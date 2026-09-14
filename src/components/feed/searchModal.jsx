@@ -373,7 +373,7 @@ const SearchModal = ({ isOpen = true, onClose }) => {
               key={vendor.id}
               className="flex items-center space-x-3 p-3 rounded-2xl bg-white border border-gray-100 hover:bg-gray-50 cursor-pointer transition-all"
               onClick={() => {
-                navigate(`/vendor-subscription/${vendor.id}`);
+                navigate(`/vendor/${vendor.id}`);
                 onClose();
               }}
             >

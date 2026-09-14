@@ -108,16 +108,16 @@ const VendorDashboard = ({ vendorId }) => {
 
   // Handle copy vendor link
   const handleCopyVendorLink = () => {
-    if (!validVendorId) return;
-    const vendorLink = `${window.location.origin}/vendor-subscription/${validVendorId}`;
+    const validVendorId = user_data?.vendor_id || vendorId;
+    const vendorLink = `${window.location.origin}/vendor/${validVendorId}`;
     navigator.clipboard.writeText(vendorLink);
     toast.success("Vendor link copied to clipboard!");
   };
 
   // Handle view vendor as customer
   const handleViewAsCustomer = () => {
-    if (!validVendorId) return;
-    navigate(`/vendor-subscription/${validVendorId}`);
+    const validVendorId = user_data?.vendor_id || vendorId;
+    navigate(`/vendor/${validVendorId}`);
   };
 
   // ---------------- Loading / Error states ----------------

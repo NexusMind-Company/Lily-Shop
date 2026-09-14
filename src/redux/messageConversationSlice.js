@@ -56,12 +56,25 @@ export const searchGlobalMessages = createAsyncThunk(
 // Send Message API
 export const sendMessageToUser = createAsyncThunk(
   "messages/sendMessageToUser",
-  async ({ userId, content, product_id = null }, { rejectWithValue }) => {
+  async ({ userId, content, product_id = null, media = null }, { rejectWithValue }) => {
     try {
-      const payload = { recipient: userId, content };
-      if (product_id) payload.product_id = product_id;
+      let payload;
+      let headers = {};
 
-      const res = await api.post(`/messages/`, payload);
+      if (media) {
+        payload = new FormData();
+        payload.append("recipient", userId);
+        if (content) payload.append("content", content);
+        else payload.append("content", "📷 Image"); // Content is usually required
+        if (product_id) payload.append("product_id", product_id);
+        payload.append("media", media);
+        headers = { "Content-Type": "multipart/form-data" };
+      } else {
+        payload = { recipient: userId, content };
+        if (product_id) payload.product_id = product_id;
+      }
+
+      const res = await api.post(`/messages/`, payload, { headers });
       return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to send message");

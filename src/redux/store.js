@@ -47,6 +47,10 @@ export const store = configureStore({
     userSubscription: userSubscriptionReducer,
     notifications: notificationReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 injectStore(store);

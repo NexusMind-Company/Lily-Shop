@@ -29,7 +29,7 @@ const VendorAnalyticsPage = () => {
     refetch,
   } = useQuery({
     queryKey: ["vendorAnalytics", period],
-    queryFn: () => fetchVendorAnalytics(period),
+    queryFn: () => fetchVendorAnalytics(period ? { period } : {}),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -47,11 +47,6 @@ const VendorAnalyticsPage = () => {
     return (
       <VendorLayout title="Analytics">
         <VendorPageError message={getErrorMessage(error)} onRetry={refetch} />
-        {/* Error Detail Dump */}
-        <div className="mt-4 p-4 bg-red-50 text-red-800 text-[10px] font-mono overflow-auto rounded-xl">
-          <p className="font-bold mb-2">Error Details:</p>
-          <pre>{JSON.stringify(error, null, 2)}</pre>
-        </div>
       </VendorLayout>
     );
 
@@ -74,16 +69,6 @@ const VendorAnalyticsPage = () => {
             {label}
           </button>
         ))}
-      </div>
-
-      {/* Raw Data Dump for Debugging */}
-      <div className="bg-gray-50 rounded-2xl p-4 shadow-sm border border-gray-200 mb-4 overflow-x-auto">
-        <h3 className="text-sm font-bold text-gray-700 mb-2">
-          Raw API Response
-        </h3>
-        <pre className="text-[10px] text-gray-600 font-mono whitespace-pre-wrap">
-          {JSON.stringify(analytics, null, 2)}
-        </pre>
       </div>
 
       {isError && (

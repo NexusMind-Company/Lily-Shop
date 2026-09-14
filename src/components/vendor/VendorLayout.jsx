@@ -13,7 +13,6 @@ import {
   User,
   PhoneCall,
   Menu,
-  Truck,
   Users,
 } from "lucide-react";
 import PropTypes from "prop-types";
@@ -29,7 +28,6 @@ const navItems = [
   },
   { icon: Star, label: "Ratings", path: "/vendor/dashboard/ratings" },
   { icon: BarChart2, label: "Analytics", path: "/vendor/dashboard/analytics" },
-  { icon: Truck, label: "Shipping Profiles", path: "/vendor/dashboard/shipping" },
 ];
 
 const appItems = [

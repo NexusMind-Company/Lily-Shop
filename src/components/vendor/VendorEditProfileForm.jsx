@@ -104,6 +104,12 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         setLgas([]);
         return;
       }
+
+      // Prevent fetching if values.state is a string name (e.g., "Lagos") instead of a numeric ID
+      if (isNaN(Number(values.state))) {
+        return;
+      }
+
       setLgasLoading(true);
       try {
         const data = await fetchLgas(values.state);
