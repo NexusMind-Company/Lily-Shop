@@ -79,7 +79,7 @@ const CarouselVideoPlayer = ({ src, poster, onVideoInit }) => {
 };
 
 const MediaCarousel = forwardRef(function MediaCarousel(
-  { media, isFeedCarousel = false, containerClassName, onDoubleClick },
+  { media, isFeedCarousel = false, containerClassName, onDoubleClick, isActive = true },
   ref,
 ) {
   const containerRef = useRef(null);
@@ -118,10 +118,25 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       prevVideo.currentTime = 0;
     }
     const currentVideo = videoRefs.current[swiper.realIndex];
-    if (currentVideo) {
+    if (currentVideo && isActive) {
       currentVideo.play().catch(() => console.log("Autoplay was prevented."));
     }
   };
+
+  useEffect(() => {
+    if (!isFeedCarousel) return;
+    const swiper = containerRef.current?.swiper;
+    if (!swiper) return;
+    
+    const currentVideo = videoRefs.current[swiper.realIndex];
+    if (!currentVideo) return;
+    
+    if (isActive) {
+      currentVideo.play().catch(() => {});
+    } else {
+      currentVideo.pause();
+    }
+  }, [isActive, isFeedCarousel]);
 
   const finalContainerClass = `relative group ${
     containerClassName || "w-full h-full"

@@ -337,19 +337,23 @@ const EditProfile = () => {
           </div>
         </div>
 
-        <div className="w-full opacity-60">
-          <label className="block text-sm font-medium text-gray-600">
-            Location
+        <div className="w-full">
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            Delivery Location & OSRM ETA
           </label>
-          <div className="flex items-center bg-gray-100 rounded-lg px-3 py-3 mt-1 cursor-not-allowed">
-            <MapPin size={18} className="text-gray-500 mr-2 shrink-0" />
-            <input
-              type="text"
-              value="Coming soon"
-              disabled
-              className="bg-transparent w-full outline-none text-sm sm:text-base min-w-0 cursor-not-allowed text-gray-500"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/choose-address")}
+            className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <div className="flex items-center text-gray-700">
+              <MapPin size={18} className="text-gray-500 mr-2 shrink-0" />
+              <span className="text-sm sm:text-base font-medium">
+                Manage Addresses
+              </span>
+            </div>
+            <span className="text-sm font-medium text-lily">Edit</span>
+          </button>
         </div>
 
         <div className="w-full">

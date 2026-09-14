@@ -56,7 +56,7 @@ export const searchGlobalMessages = createAsyncThunk(
 // Send Message API
 export const sendMessageToUser = createAsyncThunk(
   "messages/sendMessageToUser",
-  async ({ userId, content, product_id = null, media = null }, { rejectWithValue }) => {
+  async ({ userId, content, product_id = null, media = null, reply_to_id = null }, { rejectWithValue }) => {
     try {
       let payload;
       let headers = {};
@@ -67,11 +67,13 @@ export const sendMessageToUser = createAsyncThunk(
         if (content) payload.append("content", content);
         else payload.append("content", "📷 Image"); // Content is usually required
         if (product_id) payload.append("product_id", product_id);
+        if (reply_to_id) payload.append("reply_to_id", reply_to_id);
         payload.append("media", media);
         headers = { "Content-Type": "multipart/form-data" };
       } else {
         payload = { recipient: userId, content };
         if (product_id) payload.product_id = product_id;
+        if (reply_to_id) payload.reply_to_id = reply_to_id;
       }
 
       const res = await api.post(`/messages/`, payload, { headers });
