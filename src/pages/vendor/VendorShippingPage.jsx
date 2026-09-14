@@ -316,7 +316,7 @@ const VendorShippingPage = () => {
               </div>
             </div>
             <button 
-              onClick={() => navigate('/shopa-delivery')}
+              onClick={() => navigate('/delivery/shopa')}
               className="w-full md:w-auto bg-white text-teal-700 font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-xl hover:bg-gray-50 transition-all active:scale-95 whitespace-nowrap"
             >
               Use Shopa Today 🚀

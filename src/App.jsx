@@ -432,6 +432,10 @@ function App() {
                 <Route path="/settings/interests" element={<ManageInterestsPage />} />
                 <Route path="/delivery/shopa" element={<ShopaDeliveryPage />} />
                 <Route
+                  path="/shopa-delivery"
+                  element={<Navigate to="/delivery/shopa" replace />}
+                />
+                <Route
                   path="/change-password"
                   element={<ChangePasswordPage />}
                 />
