@@ -50,7 +50,7 @@ const Feed = () => {
               <div className="w-16 h-16 bg-lily/10 text-lily rounded-2xl flex items-center justify-center mb-4">
                 <Download className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Install LilyApp</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Install LilyShops</h3>
               <p className="text-sm text-gray-600 mb-6 px-2">
                 Get the best experience with instant chats, faster ordering, and push notifications.
               </p>
