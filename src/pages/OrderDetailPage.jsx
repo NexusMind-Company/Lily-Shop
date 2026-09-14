@@ -103,10 +103,10 @@ const OrderDetailPage = () => {
         subtitle: 'Your order is on its way'
       },
       delivered: {
-        color: 'from-teal-400 to-emerald-600',
-        textColor: 'text-teal-800',
-        bgColor: 'bg-teal-50',
-        borderColor: 'border-teal-200',
+        color: 'from-lily to-darklily',
+        textColor: 'text-darklily',
+        bgColor: 'bg-lily/10',
+        borderColor: 'border-lily/40',
         icon: <CheckCircle2 className="w-8 h-8 text-white" />,
         title: 'Delivered',
         subtitle: 'Please confirm you received your order'
@@ -251,11 +251,11 @@ const OrderDetailPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-teal-200 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm border-2 border-lily/40 overflow-hidden"
               >
-                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-6 py-4 border-b border-teal-100">
+                <div className="bg-gradient-to-r from-lily/10 to-lily/10 px-6 py-4 border-b border-lily/20">
                   <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <CheckCircle2 className="w-5 h-5 mr-2 text-teal-600" />
+                    <CheckCircle2 className="w-5 h-5 mr-2 text-lily" />
                     Confirm Your Order
                   </h3>
                 </div>
@@ -288,7 +288,7 @@ const OrderDetailPage = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={handleConfirmReceipt}
                     disabled={isConfirming}
-                    className="w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
+                    className="w-full bg-gradient-to-r from-lily to-darklily text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
                   >
                     {isConfirming ? 'Confirming...' : '✅ My Item Has Been Delivered'}
                   </motion.button>
@@ -474,9 +474,9 @@ const OrderDetailPage = () => {
                 {order.delivery_type === 'delivery' && (
                   <div>
                     <p className="text-sm text-gray-500 mb-2">Delivery Type</p>
-                    <div className="flex items-center space-x-2 bg-teal-50 px-3 py-2 rounded-lg border border-teal-100">
-                      <Truck className="w-5 h-5 text-teal-600" />
-                      <span className="font-semibold text-teal-800">Delivery by Shopa</span>
+                    <div className="flex items-center space-x-2 bg-lily/10 px-3 py-2 rounded-lg border border-lily/20">
+                      <Truck className="w-5 h-5 text-lily" />
+                      <span className="font-semibold text-darklily">Delivery by Shopa</span>
                     </div>
                   </div>
                 )}

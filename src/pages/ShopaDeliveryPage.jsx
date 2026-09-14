@@ -79,11 +79,11 @@ const ShopaDeliveryPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-16 px-6 text-center overflow-hidden">
+      <section className="relative bg-gradient-to-br from-darklily via-lily to-darklily text-white py-16 px-6 text-center overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
-          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-teal-400 blur-3xl"></div>
-          <div className="absolute top-40 -right-20 w-80 h-80 rounded-full bg-teal-500 blur-3xl"></div>
+          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-lily blur-3xl"></div>
+          <div className="absolute top-40 -right-20 w-80 h-80 rounded-full bg-lily blur-3xl"></div>
         </div>
         
         <div className="relative z-10">
@@ -91,7 +91,7 @@ const ShopaDeliveryPage = () => {
             <Truck className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-3xl font-extrabold mb-4 tracking-tight drop-shadow-md">Deliveries powered by Shopa</h2>
-          <p className="text-teal-50 max-w-md mx-auto text-lg leading-relaxed opacity-90">
+          <p className="text-lily/10 max-w-md mx-auto text-lg leading-relaxed opacity-90">
             We've partnered with Shopa to handle all your logistics. Fast, reliable, and just a WhatsApp message away.
           </p>
         </div>
@@ -102,21 +102,21 @@ const ShopaDeliveryPage = () => {
         <h3 className="text-lg font-bold text-gray-800 mb-6">How it works</h3>
         <div className="space-y-6">
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 text-teal-700 font-bold flex items-center justify-center">1</div>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-lily/20 text-darklily font-bold flex items-center justify-center">1</div>
             <div>
               <h4 className="font-semibold text-gray-800">Fill the form</h4>
               <p className="text-sm text-gray-500">Provide your pickup and delivery details below.</p>
             </div>
           </div>
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 text-teal-700 font-bold flex items-center justify-center">2</div>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-lily/20 text-darklily font-bold flex items-center justify-center">2</div>
             <div>
               <h4 className="font-semibold text-gray-800">Shopa contacts you</h4>
               <p className="text-sm text-gray-500">Our rider will reach out to you via WhatsApp immediately.</p>
             </div>
           </div>
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 text-teal-700 font-bold flex items-center justify-center">3</div>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-lily/20 text-darklily font-bold flex items-center justify-center">3</div>
             <div>
               <h4 className="font-semibold text-gray-800">Item gets delivered</h4>
               <p className="text-sm text-gray-500">Track and confirm delivery right from your WhatsApp.</p>
@@ -231,7 +231,7 @@ const ShopaDeliveryPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-xl shadow-md hover:bg-teal-700 hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-4 bg-lily text-white font-bold py-4 rounded-xl shadow-md hover:bg-darklily hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               'Sending Request...'
