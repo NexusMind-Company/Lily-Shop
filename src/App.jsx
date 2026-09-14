@@ -125,6 +125,7 @@ const MealSelectionPage = lazy(() => import("./pages/MealSelectionPage"));
 const Settings = lazy(() => import("./pages/settings"));
 const ManageInterestsPage = lazy(() => import("./pages/ManageInterestsPage"));
 const WelcomeInterestsPage = lazy(() => import("./pages/WelcomeInterestsPage"));
+const ShopaDeliveryPage = lazy(() => import("./pages/ShopaDeliveryPage"));
 const PinValidationPage = lazy(() => import("./pages/PinValidationPage"));
 const ChangePasswordPage = lazy(() => import("./pages/ChangePassword"));
 const DeleteAccountPage = lazy(() => import("./pages/DeleteAccount"));
@@ -430,6 +431,11 @@ function App() {
                 {/* Extras */}
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/settings/interests" element={<ManageInterestsPage />} />
+                <Route path="/delivery/shopa" element={<ShopaDeliveryPage />} />
+                <Route
+                  path="/shopa-delivery"
+                  element={<Navigate to="/delivery/shopa" replace />}
+                />
                 <Route path="/delivery/verify" element={<PinValidationPage />} />
                 <Route path="/pin-validation" element={<PinValidationPage />} />
                 <Route

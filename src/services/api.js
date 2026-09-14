@@ -312,7 +312,7 @@ export const searchFoodVendors = async (params = {}) => {
 };
 
 export const searchMealPlans = async (params = {}) => {
-  const response = await api.get("/foods/subscriptions/vendor/plans/", {
+  const response = await api.get("/foods/subscriptions/plans/", {
     params,
   });
   return response.data;
@@ -1184,11 +1184,17 @@ export const deleteReview = async (reviewId) => {
 };
 
 export const fetchVendorReviews = async (vendorId) => {
+  if (!vendorId || vendorId === "undefined") {
+    return { count: 0, results: [] };
+  }
   const response = await api.get(`/foods/vendors/${vendorId}/reviews/`);
   return response.data;
 };
 
 export const createVendorReview = async (vendorId, reviewData) => {
+  if (!vendorId || vendorId === "undefined") {
+    throw new Error("Invalid vendor ID");
+  }
   const response = await api.post(
     `/foods/vendors/${vendorId}/reviews/`,
     reviewData,
@@ -1979,6 +1985,32 @@ export const startConversation = async (data) => {
 
 export const sendConversationMessage = async (conversationId, data) => {
   const response = await api.post(`/messages/conversations/${conversationId}/send/`, data);
+  return response.data;
+};
+
+// --- Order Status & Confirmation ---
+
+export const confirmOrderReceipt = async (orderId) => {
+  const response = await api.post(`/orders/orders/${orderId}/confirm-receipt/`);
+  return response.data;
+};
+
+export const confirmFoodOrderReceipt = async (orderId) => {
+  const response = await api.post(`/foods/orders/${orderId}/confirm-receipt/`);
+  return response.data;
+};
+
+export const updateShopOrderStatus = async (orderId, newStatus) => {
+  const response = await api.patch(`/orders/orders/${orderId}/update-status/`, {
+    status: newStatus,
+  });
+  return response.data;
+};
+
+// --- Shopa Delivery ---
+
+export const submitShopaDeliveryRequest = async (data) => {
+  const response = await api.post('/orders/shopa/request-delivery/', data);
   return response.data;
 };
 

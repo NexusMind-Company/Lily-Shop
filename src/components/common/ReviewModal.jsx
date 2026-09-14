@@ -64,6 +64,10 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName }) => {
       toast.error("Please tap a star to rate");
       return;
     }
+    if (!vendorId || vendorId === "undefined") {
+      toast.error("Vendor not found for this review");
+      return;
+    }
     createReviewMutation.mutate({ rating, comment });
   };
 

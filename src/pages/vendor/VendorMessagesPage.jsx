@@ -94,7 +94,13 @@ const ChatView = ({ conversation, onBack }) => {
                   <div
                     className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${isMine ? "bg-lily text-white rounded-br-sm" : "bg-pink-100 text-gray-800 rounded-bl-sm"}`}
                   >
-                    {msg.text}
+                    {msg.reply_to && (
+                      <div className={`mb-2 p-2 rounded-lg text-xs border-l-4 opacity-80 ${isMine ? "bg-white/20 border-white" : "bg-gray-200 border-lily"}`}>
+                        <p className="font-bold">{msg.reply_to.sender_username || "User"}</p>
+                        <p className="truncate line-clamp-2">{msg.reply_to.content || "Media"}</p>
+                      </div>
+                    )}
+                    {msg.text || msg.content}
                     <p
                       className={`text-[10px] mt-1 ${isMine ? "text-green-100" : "text-gray-400"}`}
                     >

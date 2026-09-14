@@ -22,27 +22,54 @@ import {
 } from "../../services/vendorDashboardApi";
 
 const STATUS_COLORS = {
+  paid: "bg-green-100 text-green-700 border-green-200",
   preparing: "bg-orange-100 text-orange-700 border-orange-200",
-  ready: "bg-blue-100 text-blue-700 border-blue-200",
+  ready_for_pickup: "bg-blue-100 text-blue-700 border-blue-200",
   out_for_delivery: "bg-purple-100 text-purple-700 border-purple-200",
-  delivered: "bg-green-100 text-green-700 border-green-200",
+  dispatched: "bg-purple-100 text-purple-700 border-purple-200",
+  delivered: "bg-teal-100 text-teal-700 border-teal-200",
+  completed: "bg-green-100 text-green-700 border-green-200",
   pending: "bg-gray-100 text-gray-600 border-gray-200",
 };
+
 const STATUS_LABELS = {
+  paid: "Paid",
   preparing: "Preparing",
-  ready: "Ready",
+  ready_for_pickup: "Ready for Pickup",
   out_for_delivery: "Out for Delivery",
+  dispatched: "Dispatched",
   delivered: "Delivered",
+  completed: "Completed",
   pending: "Pending",
+};
+const STATUS_BUTTON_COLORS = {
+  preparing: "#f97316", // orange-500
+  ready_for_pickup: "#3b82f6", // blue-500
+  out_for_delivery: "#a855f7", // purple-500
+  delivered: "#14b8a6", // teal-500
+};
+
+const getNextStatuses = (currentStatus, deliveryType) => {
+  const transitions = {
+    paid: deliveryType === 'pickup' 
+      ? ['preparing', 'ready_for_pickup'] 
+      : ['preparing', 'out_for_delivery'],
+    preparing: deliveryType === 'pickup'
+      ? ['ready_for_pickup']
+      : ['out_for_delivery'],
+    ready_for_pickup: ['delivered'],
+    out_for_delivery: ['delivered'],
+    dispatched: ['delivered'],
+    pending: ['paid'], // fallback just in case testing needs it
+  };
+  return transitions[currentStatus] || [];
 };
 
 const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => {
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   
-  const isPending = order.status === "pending" || order.status === "preparing";
-  const needsPin = order.status === "out_for_delivery" || order.status === "ready";
-  const targetStatus = order.delivery_type === "pickup" ? "ready" : "out_for_delivery";
+  const needsPin = order.status === "out_for_delivery" || order.status === "ready_for_pickup" || order.status === "dispatched";
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -76,6 +103,7 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
             <span>Delivery: {order.delivery_time}</span>
           </div>
           
+          {/* Status update buttons based on current state */}
           {needsPin ? (
             <div className="mt-2 space-y-2 border border-gray-100 p-3 rounded-xl bg-gray-50">
               <p className="text-xs text-gray-600 font-medium mb-1">Enter buyer's delivery PIN to confirm:</p>
@@ -95,14 +123,20 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
                 {isUpdating ? "Confirming..." : "Confirm Delivery"}
               </button>
             </div>
-          ) : isPending ? (
-            <button
-              onClick={() => onStatusUpdate(order.id, targetStatus)}
-              disabled={isUpdating}
-              className="w-full py-2.5 rounded-xl bg-lily text-white text-xs font-bold mt-1 hover:bg-darklily disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              {isUpdating ? "Updating..." : "Dispatch Order"}
-            </button>
+          ) : getNextStatuses(order.status, order.delivery_type).length > 0 ? (
+            <div className="mt-2 space-y-2">
+              {getNextStatuses(order.status, order.delivery_type).map((nextStatus) => (
+                <button
+                  key={nextStatus}
+                  onClick={() => onStatusUpdate(order.id, nextStatus)}
+                  disabled={isUpdating}
+                  className="w-full py-2.5 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: STATUS_BUTTON_COLORS[nextStatus] || '#f472b6' }}
+                >
+                  {isUpdating ? "Updating..." : `Mark as ${STATUS_LABELS[nextStatus]}`}
+                </button>
+              ))}
+            </div>
           ) : null}
         </div>
       )}
@@ -158,7 +192,8 @@ const VendorOrdersPage = () => {
   const orders = ordersData?.results ?? [];
   const filtered = orders.filter((o) => {
     const matchesSearch = searchTerm ? o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-    const matchesTab = activeTab === "active" ? o.status !== "delivered" : o.status === "delivered";
+    const isCompleted = ['delivered', 'completed', 'refunded', 'cancelled', 'failed'].includes(o.status);
+    const matchesTab = activeTab === "active" ? !isCompleted : ['delivered', 'completed'].includes(o.status);
     return matchesSearch && matchesTab;
   });
 
