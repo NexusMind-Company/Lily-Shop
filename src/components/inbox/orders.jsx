@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, selectOrders, selectOrderLoading, selectOrderError } from "../../redux/orderSlice";
 import { Link } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Package } from "lucide-react";
 import BottomNav from "./bottomNav";
 import ReviewModal from "../common/ReviewModal";
 
@@ -86,68 +86,74 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
         <div className="space-y-4">
           {orders.map((order, i) => {
             const imageUrl = getOrderImage(order);
+            const orderId = order.id || order.orderNo || order.reference;
+            
             return (
-              <div
-                key={order.id || i}
-                className="flex justify-between items-start border-b border-gray-100 pb-3"
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={order.name || order.product?.name || "Order image"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200" />
-                    )}
-                  </div>
+              <div key={orderId || i} className="relative group">
+                <Link
+                  to={`/order/${orderId}`}
+                  className="block flex justify-between items-start bg-white p-4 rounded-2xl shadow-sm border border-gray-50/50 hover:shadow-md transition-all duration-300 backdrop-blur-sm"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 shadow-inner">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={order.name || order.product?.name || "Order image"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <Package className="w-6 h-6 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
 
-                  <div>
-                    <h3 className="font-medium text-gray-800">
-                      {order.meal_plan || order.name || order.product_name || order.product?.name || order.items?.[0]?.product?.name || order.items?.[0]?.menu_item?.name || "Unnamed Product"}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Order no: {order.reference || order.orderNo || order.order_number || order.id}
-                    </p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500 font-medium">
-                        Qty: {order.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || order.quantity || 1}
-                      </span>
-                      <span className="text-xs text-gray-500 font-medium">
-                        •
-                      </span>
-                      <span className="text-xs text-gray-700 font-bold">
-                        ₦{parseFloat(order.total_amount_naira || (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) || order.amount || 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1.5">
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
-                      <p className="text-xs text-gray-400">
-                        {new Date(order.date || order.created_at).toLocaleDateString()}
+                    <div className="flex flex-col justify-center">
+                      <h3 className="font-bold text-gray-900 text-[15px] leading-tight mb-1">
+                        {order.meal_plan || order.name || order.product_name || order.product?.name || order.items?.[0]?.product?.name || order.items?.[0]?.menu_item?.name || "Unnamed Product"}
+                      </h3>
+                      <p className="text-[12px] text-gray-400 font-medium tracking-wide uppercase">
+                        Order #{order.reference || order.orderNo || order.order_number || order.id?.substring(0,8)}
                       </p>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <span className="text-[13px] text-gray-500 font-medium">
+                          Qty: {order.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || order.quantity || 1}
+                        </span>
+                        <span className="text-[13px] text-gray-400 font-medium">•</span>
+                        <span className="text-[14px] text-lily font-black">
+                          ₦{parseFloat(order.total_amount_naira || (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) || order.amount || 0).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-3 mt-2.5">
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {order.status}
+                        </span>
+                        <p className="text-[12px] text-gray-400 font-medium">
+                          {new Date(order.date || order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 {order.status === "Delivered" && (
                   <button
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       openReviewModal(
                         order.product?.vendor_id || order.vendor_id,
                         order.product?.vendor_name || order.vendor_name || order.name || order.product_name || order.items?.[0]?.menu_item?.vendor_name,
-                      )
-                    }
-                    className="text-pink-600 text-xs font-medium"
+                      );
+                    }}
+                    className="absolute right-4 bottom-4 text-pink-600 text-xs font-bold hover:text-pink-700 bg-pink-50 px-3 py-1.5 rounded-full transition-colors z-10"
                   >
-                    Rate product
+                    Rate
                   </button>
                 )}
               </div>
