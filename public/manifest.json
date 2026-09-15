@@ -1,7 +1,7 @@
 {
-  "name": "Lily Shop - Create Your Online Store",
+  "name": "Lily Shop - Turn Every Scroll into a Purchase",
   "short_name": "Lily Shop",
-  "description": "Create your own virtual store and sell products online with AI-powered chatbot support",
+  "description": "Turn every scroll into a purchase. Discover Nigerian creators, explore authentic products, and support small businesses directly from your feed",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/lily-logo.jpg",
+      "src": "/lily-logo-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/lily-logo.jpg",
+      "src": "/lily-logo-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
