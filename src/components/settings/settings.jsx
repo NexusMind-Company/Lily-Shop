@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   Utensils,
   Sparkles,
+  Truck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -47,6 +48,12 @@ const Settings = () => {
       text: "Notifications",
       sub: "Manage notifications",
       to: "/notifications",
+    },
+    {
+      icon: <Truck size={30} className="text-lily" />,
+      text: "Shopa Delivery",
+      sub: "Request on-demand courier pickup and delivery",
+      to: "/delivery/shopa",
     },
     {
       icon: <Utensils size={30} />,

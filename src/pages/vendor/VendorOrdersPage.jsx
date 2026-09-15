@@ -43,10 +43,10 @@ const STATUS_LABELS = {
   pending: "Pending",
 };
 const STATUS_BUTTON_COLORS = {
-  preparing: "#f97316", // orange-500
-  ready_for_pickup: "#3b82f6", // blue-500
-  out_for_delivery: "#a855f7", // purple-500
-  delivered: "#14b8a6", // teal-500
+  preparing: "bg-lily",
+  ready_for_pickup: "bg-lily",
+  out_for_delivery: "bg-lily",
+  delivered: "bg-lily",
 };
 
 const getNextStatuses = (currentStatus, deliveryType) => {
@@ -66,14 +66,13 @@ const getNextStatuses = (currentStatus, deliveryType) => {
 };
 
 const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => {
-  const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   
   const needsPin = order.status === "out_for_delivery" || order.status === "ready_for_pickup" || order.status === "dispatched";
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setOpen(!open)}>
+      <div className="flex items-center justify-between p-4 pb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p className="text-sm font-bold text-[#111813]">
@@ -85,11 +84,12 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
           </div>
           <p className="text-xs text-gray-400">{order.meal_plan ? order.meal_plan : "Immediate Order"}</p>
         </div>
-        <ChevronDown size={16} className={`text-gray-400 transition-transform shrink-0 ml-2 ${open ? "rotate-180" : ""}`} />
+        <div className="text-right">
+          <p className="text-sm font-bold text-gray-900">₦{order.total_amount || order.price || 0}</p>
+        </div>
       </div>
 
-      {open && (
-        <div className="px-4 pb-4 space-y-2.5 border-t border-gray-50 pt-3">
+      <div className="px-4 pb-4 space-y-2.5">
           <div className="flex items-start gap-2 text-xs text-gray-500">
             <Phone size={13} className="mt-0.5 text-lily shrink-0" />
             <span>{order.phone}</span>
@@ -130,16 +130,14 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
                   key={nextStatus}
                   onClick={() => onStatusUpdate(order.id, nextStatus)}
                   disabled={isUpdating}
-                  className="w-full py-2.5 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: STATUS_BUTTON_COLORS[nextStatus] || '#f472b6' }}
+                  className={`w-full py-2.5 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${STATUS_BUTTON_COLORS[nextStatus] || 'bg-lily'}`}
                 >
                   {isUpdating ? "Updating..." : `Mark as ${STATUS_LABELS[nextStatus]}`}
                 </button>
               ))}
             </div>
           ) : null}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -193,7 +191,7 @@ const VendorOrdersPage = () => {
   const filtered = orders.filter((o) => {
     const matchesSearch = searchTerm ? o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) : true;
     const isCompleted = ['delivered', 'completed', 'refunded', 'cancelled', 'failed'].includes(o.status);
-    const matchesTab = activeTab === "active" ? !isCompleted : ['delivered', 'completed'].includes(o.status);
+    const matchesTab = activeTab === "active" ? !isCompleted : isCompleted;
     return matchesSearch && matchesTab;
   });
 

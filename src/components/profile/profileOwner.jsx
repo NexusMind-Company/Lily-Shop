@@ -417,7 +417,7 @@ const ProfileOwner = () => {
           <ChevronLeft size={28} />
         </button>
         <div className="flex gap-4 items-center">
-          <Link to="/shipping-profiles" title="Shipping Settings">
+          <Link to="/delivery/shopa" title="Shopa Delivery">
             <Truck size={28} />
           </Link>
           <Link to="/settings">
@@ -457,7 +457,7 @@ const ProfileOwner = () => {
             <h2 className="text-xl font-normal">
               @{user.username || "unknown"}
             </h2>
-            <Link to="/shipping-profiles" title="Shipping Settings">
+            <Link to="/delivery/shopa" title="Shopa Delivery">
               <Truck className="cursor-pointer" size={24} />
             </Link>
             <Link to="/settings">

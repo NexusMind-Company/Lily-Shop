@@ -205,7 +205,7 @@ const messageConversationSlice = createSlice({
       })
       .addCase(sendMessageToUser.fulfilled, (state, action) => {
         state.sending = false;
-        state.messages.push(action.payload);
+        state.messages.unshift(action.payload);
       })
       .addCase(sendMessageToUser.rejected, (state, action) => {
         state.sending = false;

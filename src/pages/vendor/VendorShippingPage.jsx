@@ -83,6 +83,7 @@ const DEFAULT_ZONES = [
 ];
 
 const VendorShippingPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null);

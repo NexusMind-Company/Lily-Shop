@@ -113,6 +113,24 @@ export const fetchWithdrawals = createAsyncThunk(
   },
 );
 
+/**
+ * Cancel a pending transaction
+ */
+export const cancelTransaction = createAsyncThunk(
+  "wallet/cancelTransaction",
+  async (transactionId, { rejectWithValue }) => {
+    try {
+      setAuthHeader();
+      const response = await api.post(`/wallet/transactions/${transactionId}/cancel/`);
+      return { transactionId, ...response.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { detail: "Unable to cancel transaction." },
+      );
+    }
+  },
+);
+
 const walletSlice = createSlice({
   name: "wallet",
   initialState: {
@@ -238,6 +256,15 @@ const walletSlice = createSlice({
       .addCase(fetchWithdrawals.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.detail || "Failed to fetch withdrawal history.";
+      })
+      
+      // Cancel transaction
+      .addCase(cancelTransaction.fulfilled, (state, action) => {
+        const id = action.payload.transactionId;
+        const tx = state.recent_transactions.find(t => t.id === id);
+        if (tx) {
+          tx.status = "failed"; // Update status locally
+        }
       });
   },
 });

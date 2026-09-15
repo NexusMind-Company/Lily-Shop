@@ -22,12 +22,18 @@ const Feed = () => {
     setShowInstallModal(false);
   };
 
-  const handleInstall = () => {
-    // Logic for actual PWA install would go here (e.g. triggering deferredPrompt.prompt())
-    // For now, just dismiss
+  const handleInstall = async () => {
     handleDismiss();
-    // Simulate install request if service worker logic exists elsewhere
-    window.dispatchEvent(new Event('app_install_requested'));
+    
+    if (window.deferredPrompt) {
+      window.deferredPrompt.prompt();
+      const { outcome } = await window.deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      window.deferredPrompt = null;
+    } else {
+      console.log("deferredPrompt is null. App may already be installed or browser unsupported.");
+      window.dispatchEvent(new Event('app_install_requested'));
+    }
   };
 
   return (
@@ -52,7 +58,7 @@ const Feed = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Install LilyShops</h3>
               <p className="text-sm text-gray-600 mb-6 px-2">
-                Get the best experience with instant chats, faster ordering, and push notifications.
+                Turn every scroll into a purchase. Discover Nigerian creators, explore authentic products, and support small businesses directly from your feed
               </p>
               
               <button 

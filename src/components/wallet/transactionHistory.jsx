@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchWallet } from "../../redux/walletSlice";
+import { fetchWallet, cancelTransaction } from "../../redux/walletSlice";
+import { toast } from "sonner";
 
 export default function TransactionHistory() {
   const navigate = useNavigate();
@@ -36,10 +37,23 @@ export default function TransactionHistory() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [dateRange, setDateRange] = useState("all");
+  const [cancellingId, setCancellingId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchWallet());
   }, [dispatch]);
+
+  const handleCancel = async (id) => {
+    try {
+      setCancellingId(id);
+      await dispatch(cancelTransaction(id)).unwrap();
+      toast.success("Transaction cancelled successfully");
+    } catch (err) {
+      toast.error(err?.detail || "Failed to cancel transaction");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const filteredTransactions = useMemo(() => {
     if (!recent_transactions) return [];
@@ -444,6 +458,18 @@ export default function TransactionHistory() {
                             >
                               {tx.status}
                             </p>
+                            {tx.status?.toLowerCase() === 'pending' && tx.transaction_type?.toLowerCase() === 'wallet_topup' && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancel(tx.id);
+                                }}
+                                disabled={cancellingId === tx.id}
+                                className="px-3 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-bold hover:bg-red-100 transition"
+                              >
+                                {cancellingId === tx.id ? "..." : "Cancel"}
+                              </button>
+                            )}
                             <div className="sm:hidden">
                               <p
                                 className={`font-bold text-[16px] tracking-tight ${isCredit ? "text-lily" : "text-red-500"}`}

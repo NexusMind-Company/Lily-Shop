@@ -208,6 +208,7 @@ const ChooseAddressPage = lazy(() => import("./pages/chooseAddressPage"));
 const CreateSubscriptionVendor = lazy(
   () => import("./components/subscription/CreateSubscriptionVendor"),
 );
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 /* ================= LAZY LOADING FALLBACK ================= */
 const PageLoader = () => (
@@ -462,7 +463,10 @@ function App() {
                 <Route path="/choose-address" element={<ChooseAddressPage />} />
               </Route>
 
-              <Route path="/shipping-profiles" element={<VendorShippingPage />} />
+              <Route
+                path="/shipping-profiles"
+                element={<Navigate to="/delivery/shopa" replace />}
+              />
 
               <Route path="/payment-loading" element={<PaymentLoadingPage />} />
               <Route path="/payment-failed" element={<PaymentFailedPage />} />
@@ -612,6 +616,9 @@ function App() {
                 <Route path="/lilyChat" element={<LilyChat />} />
               </Route>
             </Route>
+
+            {/* 404 Catch-All Route */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>
