@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Truck, ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { submitShopaDeliveryRequest } from '../services/api';
 
@@ -87,8 +87,8 @@ const ShopaDeliveryPage = () => {
         </div>
         
         <div className="relative z-10">
-          <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/20 transform hover:scale-105 transition-transform duration-300">
-            <Truck className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 bg-white backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/20 transform hover:scale-105 transition-transform duration-300 overflow-hidden">
+            <img src="/shopa_assets/shopa-logo.jpg" alt="Shopa" className="w-full h-full object-cover" />
           </div>
           <h2 className="text-3xl font-extrabold mb-4 tracking-tight drop-shadow-md">Deliveries powered by Shopa</h2>
           <p className="text-lily/10 max-w-md mx-auto text-lg leading-relaxed opacity-90">

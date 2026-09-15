@@ -16,9 +16,12 @@ import {
   Users,
 } from "lucide-react";
 import PropTypes from "prop-types";
+import { useQuery } from "@tanstack/react-query";
+import { fetchVendorOrders } from "../../services/vendorDashboardApi";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/vendor/dashboard" },
+  { icon: UtensilsCrossed, label: "Live Orders", path: "/vendor/dashboard/orders", isLiveFood: true },
   { icon: Users, label: "Customers", path: "/vendor/dashboard/customers" },
   { icon: Wallet, label: "Earnings", path: "/vendor/dashboard/earnings" },
   {
@@ -41,6 +44,17 @@ const VendorLayout = ({ children, title, showBack = false, onBack }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const { data: ordersData } = useQuery({
+    queryKey: ["vendorOrders"],
+    queryFn: () => fetchVendorOrders(),
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 60, // Poll every 1 min
+  });
+
+  const activeOrdersCount = ordersData?.results?.filter(
+    (o) => !['delivered', 'completed', 'refunded', 'cancelled', 'failed'].includes(o.status)
+  ).length || 0;
 
   const go = (path) => {
     navigate(path);
@@ -77,20 +91,32 @@ const VendorLayout = ({ children, title, showBack = false, onBack }) => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {navItems.map(({ icon: Icon, label, path }) => {
+          {navItems.map(({ icon: Icon, label, path, isLiveFood }) => {
             const isActive = location.pathname === path;
             return (
               <button
                 key={path}
                 onClick={() => go(path)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
                     ? "bg-lily text-white"
                     : "text-black hover:bg-gray-100"
                 }`}
               >
-                <Icon size={18} />
-                {label}
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Icon size={18} />
+                    {isLiveFood && activeOrdersCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+                    )}
+                  </div>
+                  {label}
+                </div>
+                {isLiveFood && activeOrdersCount > 0 && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-lily' : 'bg-red-500 text-white'}`}>
+                    {activeOrdersCount}
+                  </span>
+                )}
               </button>
             );
           })}
