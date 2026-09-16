@@ -46,7 +46,6 @@ const ChangePassword = () => {
       setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
       navigate(-1);
     } catch (error) {
-      console.error("Failed to change password:", error);
       const serverMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||

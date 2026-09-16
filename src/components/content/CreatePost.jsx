@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import {
   createProductContent,
   resetContentState as resetProductContent,
@@ -332,7 +333,7 @@ const CreatePost = () => {
         }
       }
     } catch (err) {
-      console.error("PUBLISH ERROR:", err);
+      toast.error(err?.message || "An unexpected error occurred.");
       setErrorMessage("An unexpected error occurred.");
       setLocalLoading(false);
     }

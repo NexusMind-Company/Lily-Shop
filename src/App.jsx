@@ -24,10 +24,11 @@ import ResetPasswordPage from "./components/auth/Reset_Password/resetPasswordPag
 
 /* ---------------- FEED - Critical, load immediately ---------------- */
 import Feed from "./pages/feed";
-import VendorsList from "./pages/VendorsList";
-import FeedProductDetails from "./pages/feedProductDetails";
 
 /* ================= LAZY LOADED PAGES ================= */
+const VendorsList = lazy(() => import("./pages/VendorsList"));
+const FeedProductDetails = lazy(() => import("./pages/feedProductDetails"));
+
 
 /* SHOP */
 const CreateShop = lazy(() => import("./pages/createShop"));

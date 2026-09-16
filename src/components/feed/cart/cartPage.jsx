@@ -675,12 +675,10 @@ const CartPage = () => {
           localStorage.setItem("lily_pending_order", JSON.stringify(newOrder));
           window.location.href = authorizationUrl;
         } else {
-          console.warn("No authorization URL returned for Paystack payment");
           toast.error("Payment initialization failed. Please try again.");
         }
       }
     } catch (err) {
-      console.error("Failed to create order:", err);
       const errorMessage =
         err.message ||
         err.detail ||

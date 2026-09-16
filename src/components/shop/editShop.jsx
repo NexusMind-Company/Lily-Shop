@@ -7,6 +7,7 @@ import { fetchShopById, clearSelectedShopState } from "../../redux/shopSlice";
 import useFormValidation from "../../hooks/useFormValidation";
 import ErrorDisplay from "../common/ErrorDisplay";
 import { PageSkeleton } from "../loaders/TailoredSkeletons";
+import toast from "react-hot-toast";
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
@@ -184,7 +185,7 @@ const EditShop = () => {
         navigate("/myShop");
       }, 2000);
     } catch (error) {
-      console.error("Error updating shop:", error);
+      toast.error(error?.message || "Failed to update shop.");
       let errorMsg = "Failed to update shop. ";
       if (error && error.message && error.message.includes("timeout")) {
         errorMsg += "Request timed out. Please try again.";
