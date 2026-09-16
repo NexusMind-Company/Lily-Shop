@@ -169,9 +169,9 @@ const messageConversationSlice = createSlice({
         if (action.payload.page === 1 || action.payload.target_message_id) {
           state.messages = action.payload.messages;
         }
-        // Next pages prepend older messages (infinite scroll UX)
+        // Next pages append older messages (since they are in descending order)
         else {
-          state.messages = [...action.payload.messages, ...state.messages];
+          state.messages = [...state.messages, ...action.payload.messages];
         }
 
         state.nextPage = action.payload.nextPage;

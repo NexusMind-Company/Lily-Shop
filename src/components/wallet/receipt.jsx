@@ -208,13 +208,13 @@ export default function Receipt() {
           {(isDeposit || isWithdrawal) && (
             <section className="space-y-4">
               <h3 className="font-bold text-gray-900 text-lg">
-                {isDeposit ? "Payment Method" : "Withdrawal details"}
+                {isDeposit ? "Payment Details" : "Withdrawal details"}
               </h3>
               <div className="space-y-2 font-medium text-gray-900">
-                <p>{isDeposit ? "Bank Transfer" : "Bank Withdrawal"}</p>
-                <p>Account no: {tx.account_no || "02*******42"}</p>
-                <p>Name: {tx.account_name || "Adeyemi Sharon kehinde"}</p>
-                <p>Bank: {tx.bank_name || "Wema Bank"}</p>
+                <p>{tx.payment_method || (isDeposit ? "Wallet Deposit" : "Bank Withdrawal")}</p>
+                {(tx.account_no || tx.account_number) && <p>Account no: {tx.account_no || tx.account_number}</p>}
+                {tx.account_name && <p>Name: {tx.account_name}</p>}
+                {tx.bank_name && <p>Bank: {tx.bank_name}</p>}
               </div>
             </section>
           )}

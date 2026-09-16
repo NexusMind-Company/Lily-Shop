@@ -29,7 +29,6 @@ const DeleteAccount = () => {
       toast.success("Your account has been successfully deleted.");
       navigate("/login", { replace: true });
     } catch (error) {
-      console.error("Failed to delete account:", error);
       const serverMessage =
         error.response?.data?.message ||
         "Failed to delete account. Please try again later.";

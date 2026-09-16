@@ -36,7 +36,7 @@ import ImageEditor from "./ImageEditor";
 import { api } from "../../services/api";
 import MessagesList from "./messagesList";
 
-const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
+export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const orders = useSelector(selectOrders);
 
   const firstItem = payload.items?.[0] || {};
@@ -426,7 +426,7 @@ const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   );
 };
 
-const SharedProductCard = ({ product, isMine }) => {
+export const SharedProductCard = ({ product, isMine }) => {
   const dispatch = useDispatch();
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -484,7 +484,7 @@ const SharedProductCard = ({ product, isMine }) => {
   );
 };
 
-const SharedContentCard = ({ content, isMine }) => {
+export const SharedContentCard = ({ content, isMine }) => {
   return (
     <div
       className={`flex flex-col rounded-2xl overflow-hidden max-w-[280px] shadow-lg ${isMine ? "bg-pink-50" : "bg-pink-100"}`}

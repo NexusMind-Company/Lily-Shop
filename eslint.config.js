@@ -43,6 +43,7 @@ export default [
       ],
       "react/prop-types": "off",
       "react/no-unescaped-entities": "off",
+      "no-console": "warn",
     },
     settings: {
       react: {

@@ -144,68 +144,76 @@ const Activity = () => {
         )}
 
         {/* Notifications List */}
-        {notifications.map((item) => (
-          <div
+        {notifications.map((item) => {
+          const Wrapper = item.url ? Link : "div";
+          const wrapperProps = item.url ? { to: item.url } : {};
+          
+          return (
+          <Wrapper
             key={item.id}
+            {...wrapperProps}
             onClick={() => {
               handleNotificationClick(item);
-              setSelectedNotification(item);
+              if (!item.url) {
+                setSelectedNotification(item);
+              }
             }}
-            className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+            className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border border-gray-50/50 backdrop-blur-sm ${
               item.read
-                ? "bg-white hover:bg-gray-50"
-                : "bg-lily/5 hover:bg-lily/10 border-l-4 border-lily"
+                ? "bg-white hover:bg-gray-50/80"
+                : "bg-lily/5 hover:bg-lily/10 border-l-[6px] border-l-lily"
             }`}
           >
             {/* Icon */}
             <div
-              className={`w-10 h-10 flex items-center justify-center rounded-full shrink-0 ${
+              className={`w-12 h-12 flex items-center justify-center rounded-full shrink-0 shadow-inner ${
                 item.read ? "bg-gray-100" : "bg-lily/20"
               }`}
             >
-              {iconMap[item.type] || <Bell className="text-gray-400 w-5 h-5" />}
+              {iconMap[item.type] || <Bell className="text-gray-400 w-6 h-6" />}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex flex-col justify-center mt-1">
               <p
-                className={`text-sm leading-snug ${
-                  item.read ? "text-gray-600" : "text-gray-800 font-medium"
+                className={`text-[15px] leading-snug ${
+                  item.read ? "text-gray-600" : "text-gray-900 font-bold"
                 }`}
               >
                 {item.message || item.title || "New notification"}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-[13px] text-gray-400 mt-1.5 font-medium">
                 {formatTimeAgo(item.created_at)}
               </p>
             </div>
 
             {/* Unread indicator */}
             {!item.read && (
-              <div className="w-2 h-2 bg-lily rounded-full shrink-0 mt-2"></div>
+              <div className="w-3 h-3 bg-lily rounded-full shrink-0 mt-3 shadow-sm"></div>
             )}
-          </div>
-        ))}
+          </Wrapper>
+          );
+        })}
         
         {/* Activity Detail Modal */}
         {selectedNotification && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-lily/10">
-                  {iconMap[selectedNotification.type] || <Bell className="text-gray-400 w-7 h-7" />}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+            <div className="bg-white/90 backdrop-blur-lg rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative border border-white/20">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 flex items-center justify-center rounded-full bg-lily/10 shadow-inner">
+                  {iconMap[selectedNotification.type] || <Bell className="text-gray-400 w-8 h-8" />}
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 tracking-tight">
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">
                     Activity Detail
                   </h3>
-                  <p className="text-sm text-lily font-semibold">
+                  <p className="text-sm text-lily font-bold mt-1">
                     {formatTimeAgo(selectedNotification.created_at)}
                   </p>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+              <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <p className="text-lg font-bold text-gray-800 leading-relaxed">
                   {selectedNotification.message || selectedNotification.title || "New notification"}
                 </p>
@@ -213,7 +221,7 @@ const Activity = () => {
               
               <button 
                 onClick={() => setSelectedNotification(null)}
-                className="w-full mt-6 py-3.5 font-bold text-white bg-lily hover:bg-lily/90 rounded-xl transition-colors shadow-sm shadow-lily/20"
+                className="w-full mt-8 py-4 font-bold text-white text-lg bg-lily hover:bg-lily/90 rounded-2xl transition-all shadow-lg shadow-lily/30 active:scale-95"
               >
                 Close
               </button>
