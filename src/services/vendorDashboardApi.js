@@ -572,10 +572,25 @@ export const fetchConversationMessages = async (
  * Body: { text }
  * Response: created message object
  */
-export const sendMessageToCustomer = async (conversationId, text) => {
+export const sendMessageToCustomer = async (conversationId, { text, media, reply_to_id }) => {
+  let payload;
+  let headers = {};
+
+  if (media) {
+    payload = new FormData();
+    payload.append("content", text || "");
+    payload.append("media", media);
+    if (reply_to_id) payload.append("reply_to_id", reply_to_id);
+    headers = { "Content-Type": "multipart/form-data" };
+  } else {
+    payload = { content: text };
+    if (reply_to_id) payload.reply_to_id = reply_to_id;
+  }
+
   const response = await api.post(
     `/foods/vendor/conversations/${conversationId}/messages/`,
-    { text },
+    payload,
+    { headers }
   );
   return response.data;
 };

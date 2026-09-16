@@ -16,13 +16,35 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Bypass Service Worker for non-GET requests (like POST uploads) and API endpoints
+  if (
+    event.request.method !== 'GET' || 
+    event.request.url.includes('api.lilyshops.com') || 
+    event.request.url.includes('localhost:8000') || 
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('/foods/')
+  ) {
+    return; 
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    // Network-first strategy for reliable updates
+    fetch(event.request)
       .then(response => {
-        if (response) {
-          return response;
+        // Optionally cache successful responses here if desired
+        return response;
+      })
+      .catch(async error => {
+        console.warn('Service worker fetch failed, falling back to cache:', error);
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) {
+          return cachedResponse;
         }
-        return fetch(event.request);
+        // Prevent uncaught promise rejection by returning a fallback response
+        return new Response('Network error occurred', { 
+          status: 503, 
+          statusText: 'Service Unavailable' 
+        });
       })
   );
 });

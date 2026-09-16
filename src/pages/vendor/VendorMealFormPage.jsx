@@ -154,7 +154,25 @@ const VendorMealFormPage = () => {
               className="hidden"
               onChange={(e) => {
                 if (e.target.files?.length) {
-                  setForm({ ...form, media: Array.from(e.target.files) });
+                  const files = Array.from(e.target.files);
+                  let hasLargeFile = false;
+                  
+                  const validFiles = files.filter(file => {
+                    const isVideo = file.type.startsWith("video/");
+                    // 15MB limit for videos, 3MB limit for images (to avoid Nginx 413 CORS drops)
+                    const sizeLimit = isVideo ? 15 * 1024 * 1024 : 3 * 1024 * 1024;
+                    
+                    if (file.size > sizeLimit) {
+                      toast.error(`${file.name} is too large. Max size is ${isVideo ? '15MB' : '3MB'}.`);
+                      hasLargeFile = true;
+                      return false;
+                    }
+                    return true;
+                  });
+
+                  if (!hasLargeFile || validFiles.length > 0) {
+                    setForm({ ...form, media: validFiles });
+                  }
                 }
               }}
             />

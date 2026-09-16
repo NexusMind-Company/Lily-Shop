@@ -167,7 +167,7 @@ const OrderDetailPage = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -177,7 +177,7 @@ const OrderDetailPage = () => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 border-4 border-pink-200 border-t-pink-600 rounded-full"
+              className="absolute inset-0 border-4 border-lily/20 border-t-lily rounded-full"
             />
           </div>
           <p className="text-gray-600 font-medium">Loading order details...</p>
@@ -189,7 +189,7 @@ const OrderDetailPage = () => {
   // Error State
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -204,7 +204,7 @@ const OrderDetailPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/orders')}
-            className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
+            className="bg-gradient-to-r from-lily to-darklily text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             View All Orders
           </motion.button>
@@ -216,7 +216,7 @@ const OrderDetailPage = () => {
   const statusConfig = getStatusConfig(order.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-8">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -319,11 +319,11 @@ const OrderDetailPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-pink-100 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm border-2 border-lily/20 overflow-hidden"
               >
-                <div className="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100">
+                <div className="bg-gradient-to-r from-lily/5 to-lily/10 px-6 py-4 border-b border-lily/20">
                   <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 text-pink-600" />
+                    <AlertCircle className="w-5 h-5 mr-2 text-lily" />
                     Delivery Security PIN
                   </h3>
                 </div>
@@ -336,7 +336,7 @@ const OrderDetailPage = () => {
                       {orderPin}
                     </span>
                   </div>
-                  <p className="text-sm text-pink-600 font-medium">
+                  <p className="text-sm text-lily font-medium">
                     Do not share this PIN before delivery.
                   </p>
                 </div>
@@ -350,9 +350,9 @@ const OrderDetailPage = () => {
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                  <Package className="w-5 h-5 mr-2 text-pink-600" />
+                  <Package className="w-5 h-5 mr-2 text-lily" />
                   Order Items ({order.items?.length})
                 </h3>
               </div>
@@ -374,12 +374,12 @@ const OrderDetailPage = () => {
                           alt={item.product?.name || 'Product'}
                           className="w-24 h-24 object-cover rounded-xl group-hover:opacity-75 transition-opacity"
                         />
-                        <div className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
+                        <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
                           {item.quantity}
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 group-hover:text-pink-600 transition-colors mb-1 truncate">
+                        <h4 className="font-semibold text-gray-800 group-hover:text-lily transition-colors mb-1 truncate">
                           {item.product?.name || 'Product'}
                         </h4>
                         {item.product?.shop_name && (
@@ -400,7 +400,7 @@ const OrderDetailPage = () => {
                         <p className="text-lg font-bold text-gray-800">
                           ₦{(item.subtotal_kobo / 100).toLocaleString()}
                         </p>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-pink-600 transition-colors mt-1 ml-auto" />
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-lily transition-colors mt-1 ml-auto" />
                       </div>
                     </motion.div>
                   ))}
@@ -415,9 +415,9 @@ const OrderDetailPage = () => {
               transition={{ delay: 0.3 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                  <Clock className="w-5 h-5 mr-2 text-pink-600" />
+                  <Clock className="w-5 h-5 mr-2 text-lily" />
                   Order Timeline
                 </h3>
               </div>
@@ -426,7 +426,7 @@ const OrderDetailPage = () => {
                 <div className="relative space-y-6">
                   {/* Timeline Line */}
                   <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200" />
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-pink-400 to-purple-400" 
+                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-lily/50 to-lily" 
                        style={{ 
                          height: `${Math.max(0, ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status)) / (ORDER_STAGES.length - 1)) * 100}%` 
                        }} 
@@ -448,10 +448,10 @@ const OrderDetailPage = () => {
                       >
                         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500
                           ${isCompleted 
-                            ? 'bg-gradient-to-br from-pink-500 to-purple-600' 
+                            ? 'bg-gradient-to-br from-lily to-darklily' 
                             : 'bg-gradient-to-br from-gray-200 to-gray-300'
                           }
-                          ${isActive ? 'ring-4 ring-pink-100' : ''}
+                          ${isActive ? 'ring-4 ring-lily/20' : ''}
                         `}>
                           <Icon className="w-4 h-4 text-white" />
                         </div>
@@ -460,7 +460,7 @@ const OrderDetailPage = () => {
                             {stage.label}
                           </p>
                           {isActive && (
-                            <p className="text-sm text-pink-600 mt-1 animate-pulse">
+                            <p className="text-sm text-lily mt-1 animate-pulse">
                               Currently in progress
                             </p>
                           )}
@@ -481,7 +481,7 @@ const OrderDetailPage = () => {
               transition={{ delay: 0.2 }}
               className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24"
             >
-              <div className="bg-gradient-to-r from-pink-600 to-purple-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-lily to-darklily px-6 py-4">
                 <h3 className="text-xl font-bold text-white">Order Summary</h3>
               </div>
 
@@ -500,7 +500,7 @@ const OrderDetailPage = () => {
                   <div className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
                     {order.payment_method === 'wallet' ? (
                       <>
-                        <Wallet className="w-5 h-5 text-pink-600" />
+                        <Wallet className="w-5 h-5 text-lily" />
                         <span className="font-semibold text-gray-800">Lily Wallet</span>
                       </>
                     ) : (
@@ -550,7 +550,7 @@ const OrderDetailPage = () => {
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Total</span>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                      <span className="text-2xl font-bold bg-gradient-to-r from-lily to-darklily bg-clip-text text-transparent">
                         ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
                       </span>
                     </div>
@@ -565,7 +565,7 @@ const OrderDetailPage = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigate('/inbox')}
-                        className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+                        className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
                       >
                         <MessageCircle className="w-5 h-5" />
                         <span>Contact Seller</span>
