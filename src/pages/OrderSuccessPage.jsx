@@ -91,6 +91,7 @@ const OrderSuccessPage = () => {
   const quantity = state.quantity || order?.items?.[0]?.quantity || 1;
   const total = state.total || order?.total_amount || order?.total || 0;
   const paymentMethod = state.paymentMethod || order?.payment_method || "Wallet";
+  const isFood = state.isFood || false;
 
   // Clean up cart & payment state
   useEffect(() => {
@@ -336,13 +337,23 @@ const OrderSuccessPage = () => {
           </button>
 
           <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => navigate("/orders")}
-              className="w-full bg-gray-50 text-gray-900 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
-            >
-              <ShoppingBag size={16} />
-              View Orders
-            </button>
+            {isFood ? (
+              <button
+                onClick={() => navigate(`/orders/${order?.id}`)}
+                className="w-full bg-orange-50 text-orange-600 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-orange-200 flex items-center justify-center gap-1.5 hover:bg-orange-100 transition-all"
+              >
+                <ShoppingBag size={16} />
+                Track Food Order
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/orders")}
+                className="w-full bg-gray-50 text-gray-900 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
+              >
+                <ShoppingBag size={16} />
+                View Orders
+              </button>
+            )}
 
             <button
               onClick={() => navigate("/feed")}

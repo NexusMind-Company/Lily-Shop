@@ -37,6 +37,7 @@ import { useSelector } from "react-redux";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 import { isVendorOwner } from "../utils/vendorUtils";
 import { toast } from "react-hot-toast";
+import { usePayment } from "../hooks/usePayment";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
@@ -52,11 +53,22 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [orderingProductId, setOrderingProductId] = useState(null);
   const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
 
+  const { paymentData } = usePayment();
+  const selectedAddress = paymentData?.selectedAddress;
+
   const [quantity, setQuantity] = useState(1);
   const [preferredTime, setPreferredTime] = useState("12:00");
   const [deliveryType, setDeliveryType] = useState("delivery");
-  const [address, setAddress] = useState("");
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
+  // Auto-sync phone when selected address changes
   const [phone, setPhone] = useState("");
+  useEffect(() => {
+    if (selectedAddress?.phone_number) {
+      setPhone(selectedAddress.phone_number);
+    }
+  }, [selectedAddress]);
+
   const [collectionCode, setCollectionCode] = useState("");
   const [dietaryPreferences, setDietaryPreferences] = useState("");
   const [allergies, setAllergies] = useState("");
@@ -169,7 +181,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     if (selectedPlanIds.length === 0) return false;
     if (!deliveryType) return false;
     if (!phone.trim()) return false;
-    if (deliveryType === "delivery" && !address.trim()) return false;
+    if (deliveryType === "delivery" && !selectedAddress) return false;
     return true;
   };
 
@@ -200,7 +212,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
       quantity,
       preferredTime,
       deliveryType,
-      address,
+      address: selectedAddress ? `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}` : "",
       phone,
       collectionCode,
       dietaryPreferences,
@@ -619,16 +631,35 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
                         Delivery Address <span className="text-red-500">*</span>
                       </h3>
-                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                        <MapPin className="text-gray-400" size={18} />
-                        <input
-                          type="text"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          placeholder="Enter delivery address"
-                          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold outline-none"
-                        />
-                      </div>
+                      
+                      {selectedAddress ? (
+                        <div 
+                          onClick={() => {
+                            saveSubscriptionFlowState({ selectedPlan, selectedPlanIds, quantity, preferredTime, deliveryType, phone, collectionCode, dietaryPreferences, allergies, portionSize, specialInstructions });
+                            navigate("/choose-address");
+                          }}
+                          className="w-full rounded-xl border border-lily/30 bg-lily/5 p-4 cursor-pointer hover:bg-lily/10 transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-gray-900">{selectedAddress.label || "Selected Address"}</span>
+                            <span className="text-lily text-sm font-semibold">Change</span>
+                          </div>
+                          <p className="text-gray-700 text-sm">
+                            {selectedAddress.street_address}, {selectedAddress.city}, {selectedAddress.state}
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            saveSubscriptionFlowState({ selectedPlan, selectedPlanIds, quantity, preferredTime, deliveryType, phone, collectionCode, dietaryPreferences, allergies, portionSize, specialInstructions });
+                            navigate("/choose-address");
+                          }}
+                          className="w-full rounded-xl border border-dashed border-gray-300 p-4 text-gray-500 hover:text-lily hover:border-lily hover:bg-lily/5 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-5 h-5" />
+                          <span className="font-medium">Select Delivery Address</span>
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -649,8 +680,18 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                     </div>
                   </div>
 
-                  {/* Collection Code */}
-                  {deliveryType === "pickup" && (
+                  <button 
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                    className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <span>Advanced Options (Optional)</span>
+                    <span className="text-lily">{showAdvancedOptions ? "Hide" : "Show"}</span>
+                  </button>
+
+                  {showAdvancedOptions && (
+                    <div className="space-y-6 pt-2 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
+                      {/* Collection Code */}
+                      {deliveryType === "pickup" && (
                     <div>
                       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
                         Collection Code (Optional)

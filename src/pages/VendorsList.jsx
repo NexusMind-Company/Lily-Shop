@@ -1,5 +1,5 @@
-import { ArrowLeft, Search, X, MapPin } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { ArrowLeft, Search, X, MapPin, Flame, Star, TrendingUp } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
@@ -91,6 +91,9 @@ const VendorsList = () => {
   const [activeTab, setActiveTab] = useState("food");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const categories = ["All", "Nigerian", "Fast Food", "Healthy", "Snacks", "Drinks"];
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -98,16 +101,27 @@ const VendorsList = () => {
   }, [searchQuery]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["vendors", debouncedSearch],
+    queryKey: ["vendors", debouncedSearch, activeCategory],
     queryFn: async () => {
       const params = { page_size: 100 };
       if (debouncedSearch) params.search = debouncedSearch;
+      if (activeCategory !== "All") params.cuisine = activeCategory;
       const response = await api.get("/foods/vendors/", { params });
       return response.data;
     },
     enabled: activeTab === "food",
   });
+  
   const vendors = Array.isArray(data) ? data : data?.results || [];
+  
+  const topVendors = useMemo(() => {
+    return vendors.filter(v => v.rating >= 4.0).slice(0, 3);
+  }, [vendors]);
+  
+  const otherVendors = useMemo(() => {
+    const topIds = topVendors.map(v => v.id);
+    return vendors.filter(v => !topIds.includes(v.id));
+  }, [vendors, topVendors]);
 
   // const mockVendors = [
   //   {
@@ -240,11 +254,11 @@ const VendorsList = () => {
             Food Vendors
           </h1>
 
-          <div className="relative mb-8 group">
+          <div className="relative mb-6 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-lily transition-colors" />
             <input
               type="text"
-              placeholder="Search local food vendors..."
+              placeholder="Search local food vendors or cuisines..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-12 pr-12 py-4 rounded-2xl border border-gray-100 focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily bg-gray-50/50 text-base transition-all shadow-sm"
@@ -259,33 +273,76 @@ const VendorsList = () => {
             )}
           </div>
 
+          {/* Categories Pill Row */}
+          <div className="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`whitespace-nowrap px-5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 shadow-sm ${
+                  activeCategory === cat
+                    ? "bg-gray-900 text-white scale-105"
+                    : "bg-white text-gray-600 border border-gray-100 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...Array(6)].map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(3)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-20 text-red-500">
               Error loading vendors: {error.message}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {vendors.length > 0 ? (
-                vendors.map((vendor) => (
-                  <VendorCard
-                    key={vendor.id}
-                    vendor={vendor}
-                    onClick={handleVendorClick}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full py-24 text-center">
-                  <p className="text-gray-400 text-lg">
-                    No vendors found matching your search
-                  </p>
+            <div className="space-y-10">
+              {topVendors.length > 0 && !searchQuery && activeCategory === "All" && (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-orange-500" /> Trending & Top Rated
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {topVendors.map((vendor) => (
+                      <VendorCard
+                        key={vendor.id}
+                        vendor={vendor}
+                        onClick={handleVendorClick}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
+
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-red-500" /> {searchQuery ? "Search Results" : "All Vendors"}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {otherVendors.length > 0 || (topVendors.length > 0 && (searchQuery || activeCategory !== "All")) ? (
+                    (searchQuery || activeCategory !== "All" ? vendors : otherVendors).map((vendor) => (
+                      <VendorCard
+                        key={vendor.id}
+                        vendor={vendor}
+                        onClick={handleVendorClick}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full py-24 text-center">
+                      <p className="text-gray-400 text-lg">
+                        No vendors found matching your search or category
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </>

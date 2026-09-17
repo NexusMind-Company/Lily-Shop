@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { ArrowLeft, MapPin, Phone, User, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, User, CheckCircle2, Loader2, AlertCircle, ChevronRight, Plus } from "lucide-react";
 import { createFoodOrder } from "../services/api";
 import { fetchWallet } from "../redux/walletSlice";
 import { formatPrice } from "../utils/formatters";
+import { usePayment } from "../hooks/usePayment";
 import toast from "react-hot-toast";
 
 const FoodOrderCheckoutPage = () => {
@@ -19,14 +20,27 @@ const FoodOrderCheckoutPage = () => {
   );
   
   const { user_data } = useSelector((state) => state.auth || {});
+  const { paymentData } = usePayment();
+  const selectedAddress = paymentData?.selectedAddress;
 
   const [customerName, setCustomerName] = useState(
     user_data?.first_name 
       ? `${user_data.first_name} ${user_data.last_name || ""}`.trim() 
       : ""
   );
-  const [phone, setPhone] = useState(user_data?.phone_number || "");
-  const [address, setAddress] = useState("");
+  
+  // Use the phone number from the selected address if available, otherwise fallback to user data
+  const [phone, setPhone] = useState(
+    selectedAddress?.phone_number || user_data?.phone_number || ""
+  );
+  
+  // Auto-sync phone when selected address changes
+  useEffect(() => {
+    if (selectedAddress?.phone_number) {
+      setPhone(selectedAddress.phone_number);
+    }
+  }, [selectedAddress]);
+
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,8 +68,8 @@ const FoodOrderCheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
   const handlePay = async () => {
-    if (!customerName.trim() || !phone.trim() || !address.trim()) {
-      toast.error("Please fill in your name, phone, and delivery address.");
+    if (!customerName.trim() || !phone.trim() || !selectedAddress) {
+      toast.error("Please fill in your name, phone, and select a delivery address.");
       return;
     }
 
@@ -68,7 +82,7 @@ const FoodOrderCheckoutPage = () => {
     try {
       const orderData = {
         vendor: vendorId,
-        delivery_address: address,
+        delivery_address: `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}`,
         items: [
           {
             menu_item_id: product.id,
@@ -103,7 +117,8 @@ const FoodOrderCheckoutPage = () => {
             product, 
             quantity, 
             total,
-            paymentMethod 
+            paymentMethod,
+            isFood: true
           } 
         });
       }
@@ -177,16 +192,32 @@ const FoodOrderCheckoutPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <MapPin className="w-4 h-4" /> Delivery Address
             </label>
-            <textarea 
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Enter your full delivery address"
-              rows={2}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-lily focus:ring-1 focus:ring-lily transition-colors resize-none"
-            />
+            
+            {selectedAddress ? (
+              <div 
+                onClick={() => navigate("/choose-address")}
+                className="w-full rounded-xl border border-lily/30 bg-lily/5 p-4 cursor-pointer hover:bg-lily/10 transition-colors"
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="font-bold text-gray-900">{selectedAddress.label || "Selected Address"}</span>
+                  <span className="text-lily text-sm font-semibold">Change</span>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  {selectedAddress.street_address}, {selectedAddress.city}, {selectedAddress.state}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate("/choose-address")}
+                className="w-full rounded-xl border border-dashed border-gray-300 p-4 text-gray-500 hover:text-lily hover:border-lily hover:bg-lily/5 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="font-medium">Select Delivery Address</span>
+              </button>
+            )}
           </div>
 
           <div>
