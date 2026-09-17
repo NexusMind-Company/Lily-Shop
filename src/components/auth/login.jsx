@@ -95,7 +95,7 @@ const Login = () => {
           localStorage.getItem("onboarded_interests");
           
         if (isFirstTimeServer || !hasOnboarded) {
-          navigate("/welcome/interests");
+          navigate("/onboarding");
         } else {
           const from = location.state?.from?.pathname || "/";
           navigate(from, { replace: true });
