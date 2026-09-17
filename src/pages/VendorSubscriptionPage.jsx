@@ -7,6 +7,7 @@ import PricingCard from "../components/subscription/PricingCard";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import ReviewModal from "../components/common/ReviewModal";
 import { ReviewCard } from "../components/common/ReviewList";
+import MealDetailModal from "../components/shop/MealDetailModal";
 import {
   ArrowLeft,
   ArrowRight,
@@ -62,6 +63,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [portionSize, setPortionSize] = useState("regular");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [showCustomization, setShowCustomization] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const {
     data: vendor,
@@ -338,77 +340,63 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                               />
                             ) : (
                               <img
-                                src={meal.image_url || "/placeholder.png"}
-                                alt={meal.name}
-                                className="w-full h-full object-cover"
-                              />
+                          <div className="h-48 bg-gray-100 relative">
+                            <img
+                              src={meal.image_url || meal.media || "/placeholder.png"}
+                              alt={meal.name}
+                              className="w-full h-full object-cover"
+                            />
+                            {!meal.is_available && (
+                              <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                                <span className="bg-red-500 text-white font-bold px-4 py-1.5 rounded-full shadow-lg text-sm tracking-wide">
+                                  Sold Out
+                                </span>
+                              </div>
                             )}
                           </div>
-                          <div className="p-3">
-                            <h4 className="font-semibold text-sm mb-1 truncate">
-                              {meal.name}
-                            </h4>
-                            <p className="text-lily font-bold mb-3">
-                              ₦{meal.price?.toLocaleString()}
-                            </p>
-                            
-                            {orderingProductId === meal.id ? (
-                              <div className="space-y-2 relative z-30">
-                                <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
-                                  <button
-                                    onClick={() => handleQuantityChange(-1)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                  >
-                                    <Minus size={16} />
-                                  </button>
-                                  <span className="font-semibold min-w-7.5 text-center">
-                                    {currentOrderQuantity}
-                                  </span>
-                                  <button
-                                    onClick={() => handleQuantityChange(1)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                  >
-                                    <Plus size={16} />
-                                  </button>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleConfirmOrder(meal)}
-                                    className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
-                                  >
-                                    Confirm
-                                  </button>
-                                  <button
-                                    onClick={() => setOrderingProductId(null)}
-                                    className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              isOwner ? (
-                              <button
-                                onClick={() => navigate("/vendor/dashboard/menu")}
-                                className="w-full py-2 rounded-lg text-sm font-semibold text-center text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition cursor-pointer"
-                              >
-                                Your Product
-                              </button>
-                              ) : (
-                              <button
-                                onClick={() => handleStartOrder(meal.id)}
-                                disabled={!meal.is_available}
-                                className={`w-full py-2 rounded-lg relative z-30 text-sm font-semibold transition flex items-center justify-center gap-2 ${
-                                  meal.is_available 
-                                    ? "bg-lily text-white hover:bg-darklily" 
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                }`}
-                              >
-                                <ShoppingCart size={16} />
-                                Order
-                              </button>
-                              )
+                          <div className="p-4 flex flex-col min-h-[140px]">
+                            <div className="flex justify-between items-start mb-2 gap-2">
+                              <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
+                                {meal.name}
+                              </h3>
+                              <span className="font-bold text-lily whitespace-nowrap">
+                                ₦{meal.price?.toLocaleString()}
+                              </span>
+                            </div>
+                            {meal.description && (
+                              <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-grow">
+                                {meal.description}
+                              </p>
                             )}
+                            <div className="mt-auto pt-4 border-t border-gray-50">
+                              {isOwner ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate("/vendor/dashboard/menu");
+                                  }}
+                                  className="w-full py-2 rounded-lg text-sm font-semibold text-center text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition cursor-pointer"
+                                >
+                                  Your Product
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (meal.is_available) setSelectedMeal(meal);
+                                  }}
+                                  disabled={!meal.is_available}
+                                  className={`w-full py-2 rounded-lg relative z-30 text-sm font-semibold transition flex items-center justify-center gap-2 ${
+                                    meal.is_available 
+                                      ? "bg-lily text-white hover:bg-darklily" 
+                                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                  }`}
+                                >
+                                  <ShoppingCart size={16} />
+                                  Order Now
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -855,6 +843,23 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         onClose={() => setIsReviewModalOpen(false)}
         vendorId={vendorId}
         vendorName={vendor?.name}
+      />
+
+      <MealDetailModal
+        isOpen={!!selectedMeal}
+        onClose={() => setSelectedMeal(null)}
+        meal={selectedMeal}
+        shopName={vendor?.name}
+        onConfirmOrder={(meal, qty) => {
+          setSelectedMeal(null);
+          navigate("/food-checkout", {
+            state: {
+              product: meal,
+              quantity: qty,
+              vendorId,
+            },
+          });
+        }}
       />
     </div>
   );
