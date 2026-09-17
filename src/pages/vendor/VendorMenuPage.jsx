@@ -187,13 +187,10 @@ const VendorMenuPage = () => {
                       update({ id: meal.id, data: { is_available: !meal.is_available } });
                     }}
                     disabled={updating}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${meal.is_available ? 'bg-lily' : 'bg-gray-300'}`}
+                    className={`px-3 py-1 rounded-lg text-[11px] font-bold border transition-colors ${meal.is_available ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'}`}
                   >
-                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${meal.is_available ? 'translate-x-5' : 'translate-x-1'}`} />
+                    {meal.is_available ? 'Available (Tap to mark Sold Out)' : 'Sold Out (Tap to mark Available)'}
                   </button>
-                  <span className={`text-[10px] font-medium ${meal.is_available ? 'text-green-600' : 'text-red-500'}`}>
-                    {meal.is_available ? 'Available' : 'Sold Out'}
-                  </span>
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
