@@ -124,7 +124,7 @@ const MealSelectionPage = lazy(() => import("./pages/MealSelectionPage"));
 
 /* SETTINGS & ACCOUNT */
 const Settings = lazy(() => import("./pages/settings"));
-const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const ManageInterestsPage = lazy(() => import("./pages/ManageInterestsPage"));
 const WelcomeInterestsPage = lazy(() => import("./pages/WelcomeInterestsPage"));
 const UserOnboardingWizard = lazy(() => import("./pages/UserOnboardingWizard"));
 const ShopaDeliveryPage = lazy(() => import("./pages/ShopaDeliveryPage"));
