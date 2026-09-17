@@ -330,22 +330,21 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                               </span>
                             </div>
                           )}
-                          <div className="relative aspect-square">
+                          <div className="h-48 bg-gray-100 relative">
                             {meal.all_media_urls && meal.all_media_urls.length > 1 ? (
                               <MediaCarousel 
                                 media={meal.all_media_urls.map(url => ({
-                                  type: url.match(/\\.(mp4|webm|mov)$/i) ? 'video' : 'image',
+                                  type: url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image',
                                   src: url
                                 }))} 
                               />
                             ) : (
                               <img
-                          <div className="h-48 bg-gray-100 relative">
-                            <img
-                              src={meal.image_url || meal.media || "/placeholder.png"}
-                              alt={meal.name}
-                              className="w-full h-full object-cover"
-                            />
+                                src={meal.image_url || meal.media || "/placeholder.png"}
+                                alt={meal.name}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
                             {!meal.is_available && (
                               <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
                                 <span className="bg-red-500 text-white font-bold px-4 py-1.5 rounded-full shadow-lg text-sm tracking-wide">
