@@ -1108,7 +1108,7 @@ const ChatPage = () => {
                       : ""
                   } ${
                     isMine
-                      ? "bg-lily text-white rounded-br-none"
+                      ? "bg-lily/30 text-gray-800 rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
