@@ -10,6 +10,7 @@ import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
 const ShopReviewModal = lazy(() => import("./ShopReviewModal"));
 const EditReviewModal = lazy(() => import("./EditReviewModal"));
+import MealDetailModal from "./MealDetailModal";
 import ReviewList from "../common/ReviewList";
 import {
   fetchShopReviews,
@@ -60,6 +61,7 @@ const ShopDetails = () => {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const { data: reviews } = useQuery({
     queryKey: ["shopReviews", id],
@@ -449,7 +451,8 @@ const ShopDetails = () => {
                   <motion.div
                     key={meal.id}
                     layout
-                    className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition relative"
+                    className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition relative cursor-pointer"
+                    onClick={() => meal.is_available && setSelectedMeal(meal)}
                   >
                     {!meal.is_available && (
                       <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
@@ -460,7 +463,7 @@ const ShopDetails = () => {
                     )}
                     <div className="relative aspect-square">
                       <img
-                        src={meal.image_url || "/placeholder.png"}
+                        src={meal.image_url || meal.media || "/placeholder.png"}
                         alt={meal.name}
                         className="w-full h-full object-cover"
                       />
@@ -473,54 +476,21 @@ const ShopDetails = () => {
                         ₦{meal.price?.toLocaleString()}
                       </p>
                       
-                      {orderingProductId === meal.id ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
-                            <button
-                              onClick={() => handleQuantityChange(-1)}
-                              className="p-1 hover:bg-gray-100 rounded"
-                            >
-                              <Minus size={16} />
-                            </button>
-                            <span className="font-semibold min-w-7.5 text-center">
-                              {currentOrderQuantity}
-                            </span>
-                            <button
-                              onClick={() => handleQuantityChange(1)}
-                              className="p-1 hover:bg-gray-100 rounded"
-                            >
-                              <Plus size={16} />
-                            </button>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleConfirmOrder(meal, 'meal')}
-                              className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={() => setOrderingProductId(null)}
-                              className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleStartOrder(meal.id)}
-                          disabled={!meal.is_available}
-                          className={`w-full py-2 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 ${
-                            meal.is_available 
-                              ? "bg-lily text-white hover:bg-darklily" 
-                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          }`}
-                        >
-                          <ShoppingCart size={16} />
-                          {meal.is_available ? "Order" : "Sold Out"}
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (meal.is_available) setSelectedMeal(meal);
+                        }}
+                        disabled={!meal.is_available}
+                        className={`w-full py-2 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 ${
+                          meal.is_available 
+                            ? "bg-lily text-white hover:bg-darklily" 
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        <ShoppingCart size={16} />
+                        {meal.is_available ? "Order Now" : "Sold Out"}
+                      </button>
                     </div>
                   </motion.div>
                 ))}
@@ -548,6 +518,24 @@ const ShopDetails = () => {
           }}
         />
       </div>
+
+      {/* Modals */}
+      <MealDetailModal
+        isOpen={!!selectedMeal}
+        onClose={() => setSelectedMeal(null)}
+        meal={selectedMeal}
+        shopName={shop?.name}
+        onConfirmOrder={(meal, qty) => {
+          setSelectedMeal(null);
+          navigate("/food-checkout", {
+            state: {
+              product: { ...meal, is_food: true },
+              quantity: qty,
+              vendorId: shop.id
+            }
+          });
+        }}
+      />
 
       {/* Share Menu */}
       <AnimatePresence>
