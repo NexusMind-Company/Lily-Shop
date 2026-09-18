@@ -188,7 +188,7 @@ const WalletTopUpPage = () => {
                     value={amount ? formatPrice(amount) : ""}
                     onChange={handleCustomChange}
                     autoFocus
-                    className="w-full pl-12 pr-6 py-5 bg-lily/30 rounded-2xl text-gray-800 font-black text-2xl outline-none border-2 border-lily focus:border-lily focus:ring-4 focus:ring-lily transition-all"
+                    className="w-full pl-12 pr-6 py-5 bg-lily-100 rounded-2xl text-gray-800 font-black text-2xl outline-none border-2 border-lily focus:border-lily focus:ring-4 focus:ring-lily transition-all"
                   />
                 </div>
                 {parsedAmount > 0 && parsedAmount < 100 && (
@@ -205,10 +205,10 @@ const WalletTopUpPage = () => {
         <AnimatePresence>
           {isValid && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="bg-lily/30 rounded-3xl p-6 border border-lily/50 relative z-10"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="bg-lily-100 rounded-3xl p-6 border border-lily/50 relative z-10"
             >
               <div className="flex items-center justify-between">
                 <span className="text-lily font-bold text-sm">
