@@ -7,7 +7,7 @@ import {
   ArrowLeft, Package, MessageCircle, Printer, MapPin,
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
-import { fetchOrderDetail, fetchOrderPin, selectCurrentOrder, selectOrderPin, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
+import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
 import { confirmOrderReceipt, confirmFoodOrderReceipt } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { Truck } from 'lucide-react';
@@ -32,7 +32,6 @@ const OrderDetailPage = () => {
 
   const order = useSelector(selectCurrentOrder);
   const [isConfirming, setIsConfirming] = useState(false);
-  const orderPin = useSelector(selectOrderPin);
   const loading = useSelector(selectOrderLoading);
   const error = useSelector(selectOrderError);
 
@@ -60,12 +59,7 @@ const OrderDetailPage = () => {
   };
 
   useEffect(() => {
-    if (order?.id) {
-      // Fetch PIN for delivery verification
-      if (order.status !== 'cancelled' && order.status !== 'failed') {
-        dispatch(fetchOrderPin(order.id));
-      }
-    }
+    // PIN fetching removed
   }, [dispatch, order]);
 
   const getStatusConfig = (status) => {
@@ -314,32 +308,25 @@ const OrderDetailPage = () => {
               </motion.div>
             )}
 
-            {/* Delivery PIN Section */}
-            {orderPin && (
+            {/* Confirm Delivery Section */}
+            {order?.status !== 'delivered' && order?.status !== 'cancelled' && order?.status !== 'refunded' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-lily/20 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm border-2 border-lily/20 p-6 mt-4 flex flex-col items-center justify-center gap-4 text-center"
               >
-                <div className="bg-gradient-to-r from-lily/5 to-lily/10 px-6 py-4 border-b border-lily/20">
-                  <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 text-lily" />
-                    Delivery Security PIN
-                  </h3>
-                </div>
-                <div className="p-6 text-center">
-                  <p className="text-gray-600 mb-4">
-                    Provide this PIN to the delivery rider <b>only</b> when you have received and inspected your order.
-                  </p>
-                  <div className="inline-block bg-gray-50 border border-gray-200 rounded-xl px-8 py-4 mb-2">
-                    <span className="text-4xl font-mono font-bold tracking-widest text-gray-900">
-                      {orderPin}
-                    </span>
-                  </div>
-                  <p className="text-sm text-lily font-medium">
-                    Do not share this PIN before delivery.
-                  </p>
-                </div>
+                <h3 className="text-lg font-bold text-gray-800">Have you received your order?</h3>
+                <p className="text-sm text-gray-600">
+                  Confirm receipt to release the funds to the seller. Only do this if you are satisfied with the delivery.
+                </p>
+                <button
+                  onClick={handleConfirmReceipt}
+                  disabled={isConfirming}
+                  className="w-full sm:w-auto px-8 py-3 bg-lily text-white font-bold rounded-xl hover:bg-lily/90 transition-colors shadow-lg shadow-lily/20 flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {isConfirming && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
+                  Confirm Delivery
+                </button>
               </motion.div>
             )}
 
@@ -365,13 +352,17 @@ const OrderDetailPage = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2 + index * 0.05 }}
-                      className="flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group cursor-pointer"
-                      onClick={() => navigate(`/product/${item.product?.id}`)}
+                      className={`flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group ${item.product?.id ? 'cursor-pointer' : ''}`}
+                      onClick={() => {
+                        if (item.product?.id) {
+                          navigate(`/product/${item.product.id}`);
+                        }
+                      }}
                     >
                       <div className="relative flex-shrink-0">
                         <img
-                          src={item.product?.image_url || item.product?.media_url || '/placeholder.png'}
-                          alt={item.product?.name || 'Product'}
+                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'}
+                          alt={item.product?.name || item.name || 'Product'}
                           className="w-24 h-24 object-cover rounded-xl group-hover:opacity-75 transition-opacity"
                         />
                         <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
@@ -380,7 +371,7 @@ const OrderDetailPage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-gray-800 group-hover:text-lily transition-colors mb-1 truncate">
-                          {item.product?.name || 'Product'}
+                          {item.product?.name || item.name || 'Product'}
                         </h4>
                         {item.product?.shop_name && (
                           <p className="text-sm text-gray-500 mb-2">
@@ -392,7 +383,7 @@ const OrderDetailPage = () => {
                             Qty: {item.quantity}
                           </span>
                           <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            ₦{(item.price_kobo / 100).toLocaleString()} each
+                            ₦{item.price_kobo ? (item.price_kobo / 100).toLocaleString() : Number(item.price || 0).toLocaleString()} each
                           </span>
                         </div>
                       </div>

@@ -339,7 +339,7 @@ const OrderSuccessPage = () => {
           <div className="grid grid-cols-2 gap-3">
             {isFood ? (
               <button
-                onClick={() => navigate(`/orders/${order?.id}`)}
+                onClick={() => navigate(`/order/${order?.id}`)}
                 className="w-full bg-orange-50 text-orange-600 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-orange-200 flex items-center justify-center gap-1.5 hover:bg-orange-100 transition-all"
               >
                 <ShoppingBag size={16} />
