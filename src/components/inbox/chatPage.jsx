@@ -572,7 +572,8 @@ const ChatPage = () => {
     nextPage,
   } = useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
-  const currentUserId = user_data?.id || user_data?.user?.id;
+  const profile = useSelector((state) => state.profile.data);
+  const currentUserId = user_data?.id || user_data?.user?.id || profile?.id;
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -717,7 +718,9 @@ const ChatPage = () => {
     let currentGroup = null;
 
     allMessages.forEach((msg) => {
-      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id || msg.sender?.id) === String(currentUserId));
+      const senderId = msg.sender_id || msg.sender?.id || msg.sender;
+      const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
+      const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
       
       const isStandardMedia = !!msg.media && 
         !msg.product && 
@@ -811,7 +814,9 @@ const ChatPage = () => {
   // Mark incoming unread messages as read
   useEffect(() => {
     const unreadMessages = allMessages.filter((msg) => {
-      const isMine = typeof msg.is_me === "boolean" ? msg.is_me : (String(msg.sender_id || msg.sender?.id) === String(currentUserId));
+      const senderId = msg.sender_id || msg.sender?.id || msg.sender;
+      const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
+      const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
       return !isMine && msg.read === false && !msg.isOptimistic;
     });
 
@@ -1135,7 +1140,7 @@ const ChatPage = () => {
                       : ""
                   } ${
                     isMine
-                      ? "bg-lily/30 text-gray-800 rounded-br-none"
+                      ? "bg-lily-100 text-gray-800 rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
