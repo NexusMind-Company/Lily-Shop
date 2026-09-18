@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { updateProfile } from "../redux/authSlice";
-import { addNewAddress, fetchStates, fetchLgas } from "../services/api";
+import { addNewAddress, fetchStates, fetchLgas, updateProfile } from "../services/api";
 import InterestsSelector from "../components/profile/InterestsSelector";
 import PageSEO from "../components/common/PageSEO";
 import { ArrowRight, User, MapPin, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
@@ -69,11 +68,11 @@ const UserOnboardingWizard = () => {
       // Clean phone number (strip non-numeric except +)
       let rawPhone = profileData.phone.replace(/[^\d+]/g, "");
       
-      await dispatch(updateProfile({
+      await updateProfile({
         first_name: profileData.firstName,
         last_name: profileData.lastName,
         phone_number: rawPhone
-      })).unwrap();
+      });
       
       setCurrentStep(2);
     } catch (err) {
