@@ -1991,7 +1991,7 @@ export const sendConversationMessage = async (conversationId, data) => {
 // --- Order Status & Confirmation ---
 
 export const confirmOrderReceipt = async (orderId) => {
-  const response = await api.post(`/orders/orders/${orderId}/confirm-receipt/`);
+  const response = await api.post(`/orders/${orderId}/confirm-receipt/`);
   return response.data;
 };
 

@@ -33,7 +33,7 @@ import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
 import ImageEditor from "./ImageEditor";
 
-import { api } from "../../services/api";
+import { api, confirmOrderReceipt, confirmFoodOrderReceipt } from "../../services/api";
 import MessagesList from "./messagesList";
 
 export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
@@ -58,6 +58,7 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const buyerDisplayName = buyerFullName ? `${buyerFullName} (@${orderUser.username})` : (orderUser?.username ? `@${orderUser.username}` : null);
 
   const [showPinModal, setShowPinModal] = useState(false);
+  const [isConfirmingReceipt, setIsConfirmingReceipt] = useState(false);
   
   const orderIdKey = payload.order_id || payload.reference;
 
@@ -156,6 +157,23 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     }
   };
 
+  const handleBuyerConfirmReceipt = async () => {
+    setIsConfirmingReceipt(true);
+    try {
+      if (activePayload.order_type === 'food') {
+        await confirmFoodOrderReceipt(orderIdKey);
+      } else {
+        await confirmOrderReceipt(orderIdKey);
+      }
+      toast.success("Delivery confirmed successfully! Funds released.");
+      setLiveOrderData(prev => ({ ...(prev || payload), status: "completed" }));
+    } catch (err) {
+      toast.error(err.response?.data?.detail || err.response?.data?.message || "Failed to confirm delivery");
+    } finally {
+      setIsConfirmingReceipt(false);
+    }
+  };
+
   const handleDispatchUpdate = async (statusLabel) => {
     setShowStatusMenu(false);
     const idToUpdate = payload.order_id || payload.reference;
@@ -244,9 +262,19 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         <div className="mt-4 relative">
           {isMine ? (
              <>
-               <button className="w-full py-2.5 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
+               <button className="w-full py-2.5 mb-2 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
                  {buyerStatus}
                </button>
+               {activePayload.status !== 'completed' && activePayload.status !== 'cancelled' && activePayload.status !== 'refunded' && (
+                 <button
+                   onClick={handleBuyerConfirmReceipt}
+                   disabled={isConfirmingReceipt}
+                   className="w-full py-2.5 mb-2 rounded-full bg-lily text-white font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-md shadow-lily/20"
+                 >
+                   {isConfirmingReceipt && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>}
+                   Confirm Delivery
+                 </button>
+               )}
                {buyerStatus === "Delivered" && (
                  <div className="mt-2 space-y-2">
                    <input 
