@@ -563,6 +563,25 @@ const ChatPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const targetMessageId = searchParams.get("target_message_id");
 
+  const getUserIdFromToken = () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return null;
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.user_id || decoded.id;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const {
     messages: conversation,
     conversations,
@@ -573,7 +592,7 @@ const ChatPage = () => {
   } = useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
   const profile = useSelector((state) => state.profile.data);
-  const currentUserId = user_data?.id || user_data?.user?.id || profile?.id;
+  const currentUserId = user_data?.id || user_data?.user?.id || profile?.user?.id || getUserIdFromToken();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -721,6 +740,8 @@ const ChatPage = () => {
       const senderId = msg.sender_id || msg.sender?.id || msg.sender;
       const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
       const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
+      
+      console.log(`[DEBUG CHAT] Message: ${msg.content}, senderId: ${senderId}, currentUserId: ${currentUserId}, is_me API: ${msg.is_me}, computedIsMine: ${computedIsMine}, final isMine: ${isMine}`);
       
       const isStandardMedia = !!msg.media && 
         !msg.product && 
