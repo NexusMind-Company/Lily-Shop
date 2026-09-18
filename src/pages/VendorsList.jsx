@@ -112,7 +112,9 @@ const VendorsList = () => {
     enabled: activeTab === "food",
   });
   
-  const vendors = Array.isArray(data) ? data : data?.results || [];
+  const vendors = useMemo(() => {
+    return Array.isArray(data) ? data : data?.results || [];
+  }, [data]);
   
   const topVendors = useMemo(() => {
     return vendors.filter(v => v.rating >= 4.0).slice(0, 3);

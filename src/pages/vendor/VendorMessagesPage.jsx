@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, ChevronRight, Camera, X, Phone, EllipsisVertical, Reply, Copy, Edit2, SendHorizontal } from "lucide-react";
@@ -77,7 +77,9 @@ const ChatView = ({ conversation, onBack }) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const msgs = messages?.results ? [...messages.results].reverse() : [];
+  const msgs = useMemo(() => {
+    return messages?.results ? [...messages.results].reverse() : [];
+  }, [messages?.results]);
 
   useEffect(() => {
     if (msgs.length > 0) {

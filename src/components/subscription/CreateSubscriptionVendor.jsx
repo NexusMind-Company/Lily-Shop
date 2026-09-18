@@ -40,7 +40,7 @@ const CreateSubscriptionVendor = () => {
 
   const [states, setStates] = useState([]);
   const [lgas, setLgas] = useState([]);
-  const [statesLoading, setStatesLoading] = useState(false);
+  const [, setStatesLoading] = useState(false);
   const [lgasLoading, setLgasLoading] = useState(false);
 
   // If already a vendor, redirect immediately

@@ -10,10 +10,9 @@ import {
  * VendorHero component displaying vendor profile and basic info
  * @param {Object} props - Component props
  * @param {Object} props.vendor - Vendor data
- * @param {Array} props.reviews - Array of vendor reviews
  * @param {boolean} props.hasSubscriptionPlans - Whether vendor has subscription plans available
  */
-const VendorHero = ({ vendor, reviews = [], hasSubscriptionPlans = false }) => {
+const VendorHero = ({ vendor, hasSubscriptionPlans = false }) => {
   if (!vendor) return null;
 
   // Determine media URLs and initials using utilities
@@ -118,15 +117,6 @@ VendorHero.propTypes = {
     contact_phone: PropTypes.string,
     phone: PropTypes.string,
   }),
-  reviews: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      user_name: PropTypes.string.isRequired,
-      rating: PropTypes.number.isRequired,
-      comment: PropTypes.string,
-      created_at: PropTypes.string.isRequired,
-    }),
-  ),
   hasSubscriptionPlans: PropTypes.bool,
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
@@ -48,10 +48,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-
   const [activeTab, setActiveTab] = useState("food");
-  const [orderingProductId, setOrderingProductId] = useState(null);
-  const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
 
   const { paymentData } = usePayment();
   const selectedAddress = paymentData?.selectedAddress;
@@ -153,29 +150,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     );
   };
 
-  const handleQuantityChange = (delta) => {
-    setCurrentOrderQuantity((prev) => Math.max(1, prev + delta));
-  };
-
-  const handleStartOrder = (productId) => {
-    if (isOwner) {
-      toast.error("You cannot order your own products.");
-      return;
-    }
-    setOrderingProductId(productId);
-    setCurrentOrderQuantity(1);
-  };
-
-  const handleConfirmOrder = (meal) => {
-    setOrderingProductId(null);
-    navigate("/food-checkout", {
-      state: {
-        product: meal,
-        quantity: currentOrderQuantity,
-        vendorId,
-      },
-    });
-  };
+  // Remove unused handlers
 
   const isValid = () => {
     if (selectedPlanIds.length === 0) return false;
@@ -812,6 +787,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       </div>
                     </div>
                   )}
+                    </div>
+                  )}
 
                   <div className="pt-4 border-t border-gray-50">
                     <div className="flex justify-between items-end mb-4">
@@ -868,7 +845,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         totalPrice={totalPrice}
         quantity={quantity}
         deliveryType={deliveryType}
-        address={address}
+        address={selectedAddress ? `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}` : ""}
         phone={phone}
         collectionCode={collectionCode}
         dietaryPreferences={dietaryPreferences}

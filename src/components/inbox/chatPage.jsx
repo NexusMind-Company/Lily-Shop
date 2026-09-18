@@ -58,7 +58,6 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const buyerDisplayName = buyerFullName ? `${buyerFullName} (@${orderUser.username})` : (orderUser?.username ? `@${orderUser.username}` : null);
 
   const [showPinModal, setShowPinModal] = useState(false);
-  const [pin, setPin] = useState("");
   
   const orderIdKey = payload.order_id || payload.reference;
 

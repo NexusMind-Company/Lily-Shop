@@ -45,7 +45,7 @@ const UserOnboardingWizard = () => {
   }, [user_data]);
 
   // Fetch states for address
-  const { data: states = [], isLoading: statesLoading } = useQuery({
+  const { data: states = [] } = useQuery({
     queryKey: ["states"],
     queryFn: fetchStates,
   });
