@@ -2054,4 +2054,15 @@ export const fetchTargetedUserMessages = async (userId, params = {}) => {
   return response.data;
 };
 
+// --- Push Notifications ---
+export const registerDeviceToken = async (token, platform = "web") => {
+  const response = await api.post(`/notifications/devices/register/`, { token, platform });
+  return response.data;
+};
+
+export const unregisterDeviceToken = async (token) => {
+  const response = await api.post(`/notifications/devices/unregister/`, { token });
+  return response.data;
+};
+
 export default api;
