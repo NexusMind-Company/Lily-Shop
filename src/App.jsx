@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import { fetchProfile } from "./redux/profileSlice";
 import { fetchCart } from "./redux/cartSlice";
@@ -12,6 +12,7 @@ import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { FeedProvider } from "./context/feedContext.jsx";
 import NotificationPoller from "./components/common/NotificationPoller";
+import usePushNotifications from "./hooks/usePushNotifications";
 
 /* ---------------- AUTH ---------------- */
 import Login from "./components/auth/login";
@@ -234,6 +235,9 @@ const ScrollToTopAuto = () => {
 
 function App() {
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
+
+  usePushNotifications(isAuthenticated);
 
   useEffect(() => {
     dispatch(fetchProfile());
