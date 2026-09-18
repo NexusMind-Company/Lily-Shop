@@ -7,7 +7,10 @@ const Feed = () => {
   const [showInstallModal, setShowInstallModal] = useState(false);
 
   useEffect(() => {
-    // Only show once per session
+    // Only show once per session and if not installed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) return;
+
     if (!sessionStorage.getItem("pwaPromptDismissed")) {
       // Small delay so it doesn't jarringly appear before feed loads
       const timer = setTimeout(() => {

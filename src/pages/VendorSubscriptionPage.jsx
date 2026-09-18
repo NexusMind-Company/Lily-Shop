@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import VendorHero from "../components/subscription/VendorHero";
@@ -7,6 +7,7 @@ import PricingCard from "../components/subscription/PricingCard";
 import SubscriptionConfirmationModal from "../components/subscription/SubscriptionConfirmationModal";
 import ReviewModal from "../components/common/ReviewModal";
 import { ReviewCard } from "../components/common/ReviewList";
+import MealDetailModal from "../components/shop/MealDetailModal";
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,6 +37,7 @@ import { useSelector } from "react-redux";
 import { saveSubscriptionFlowState } from "../utils/subscriptionFlow";
 import { isVendorOwner } from "../utils/vendorUtils";
 import { toast } from "react-hot-toast";
+import { usePayment } from "../hooks/usePayment";
 
 const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const navigate = useNavigate();
@@ -46,22 +48,31 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
   const [selectedPlanIds, setSelectedPlanIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-
   const [activeTab, setActiveTab] = useState("food");
-  const [orderingProductId, setOrderingProductId] = useState(null);
-  const [currentOrderQuantity, setCurrentOrderQuantity] = useState(1);
+
+  const { paymentData } = usePayment();
+  const selectedAddress = paymentData?.selectedAddress;
 
   const [quantity, setQuantity] = useState(1);
   const [preferredTime, setPreferredTime] = useState("12:00");
   const [deliveryType, setDeliveryType] = useState("delivery");
-  const [address, setAddress] = useState("");
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
+  // Auto-sync phone when selected address changes
   const [phone, setPhone] = useState("");
+  useEffect(() => {
+    if (selectedAddress?.phone_number) {
+      setPhone(selectedAddress.phone_number);
+    }
+  }, [selectedAddress]);
+
   const [collectionCode, setCollectionCode] = useState("");
   const [dietaryPreferences, setDietaryPreferences] = useState("");
   const [allergies, setAllergies] = useState("");
   const [portionSize, setPortionSize] = useState("regular");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [showCustomization, setShowCustomization] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const {
     data: vendor,
@@ -139,35 +150,13 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
     );
   };
 
-  const handleQuantityChange = (delta) => {
-    setCurrentOrderQuantity((prev) => Math.max(1, prev + delta));
-  };
-
-  const handleStartOrder = (productId) => {
-    if (isOwner) {
-      toast.error("You cannot order your own products.");
-      return;
-    }
-    setOrderingProductId(productId);
-    setCurrentOrderQuantity(1);
-  };
-
-  const handleConfirmOrder = (meal) => {
-    setOrderingProductId(null);
-    navigate("/food-checkout", {
-      state: {
-        product: meal,
-        quantity: currentOrderQuantity,
-        vendorId,
-      },
-    });
-  };
+  // Remove unused handlers
 
   const isValid = () => {
     if (selectedPlanIds.length === 0) return false;
     if (!deliveryType) return false;
     if (!phone.trim()) return false;
-    if (deliveryType === "delivery" && !address.trim()) return false;
+    if (deliveryType === "delivery" && !selectedAddress) return false;
     return true;
   };
 
@@ -198,7 +187,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
       quantity,
       preferredTime,
       deliveryType,
-      address,
+      address: selectedAddress ? `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}` : "",
       phone,
       collectionCode,
       dietaryPreferences,
@@ -328,87 +317,72 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                               </span>
                             </div>
                           )}
-                          <div className="relative aspect-square">
+                          <div className="h-48 bg-gray-100 relative">
                             {meal.all_media_urls && meal.all_media_urls.length > 1 ? (
                               <MediaCarousel 
                                 media={meal.all_media_urls.map(url => ({
-                                  type: url.match(/\\.(mp4|webm|mov)$/i) ? 'video' : 'image',
+                                  type: url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image',
                                   src: url
                                 }))} 
                               />
                             ) : (
                               <img
-                                src={meal.image_url || "/placeholder.png"}
+                                src={meal.image_url || meal.media || "/placeholder.png"}
                                 alt={meal.name}
                                 className="w-full h-full object-cover"
                               />
                             )}
-                          </div>
-                          <div className="p-3">
-                            <h4 className="font-semibold text-sm mb-1 truncate">
-                              {meal.name}
-                            </h4>
-                            <p className="text-lily font-bold mb-3">
-                              ₦{meal.price?.toLocaleString()}
-                            </p>
-                            
-                            {orderingProductId === meal.id ? (
-                              <div className="space-y-2 relative z-30">
-                                <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-2">
-                                  <button
-                                    onClick={() => handleQuantityChange(-1)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                  >
-                                    <Minus size={16} />
-                                  </button>
-                                  <span className="font-semibold min-w-7.5 text-center">
-                                    {currentOrderQuantity}
-                                  </span>
-                                  <button
-                                    onClick={() => handleQuantityChange(1)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                  >
-                                    <Plus size={16} />
-                                  </button>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleConfirmOrder(meal)}
-                                    className="flex-1 bg-lily text-white py-2 rounded-lg text-sm font-semibold hover:bg-darklily transition"
-                                  >
-                                    Confirm
-                                  </button>
-                                  <button
-                                    onClick={() => setOrderingProductId(null)}
-                                    className="flex-1 bg-gray-100 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
+                            {!meal.is_available && (
+                              <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                                <span className="bg-red-500 text-white font-bold px-4 py-1.5 rounded-full shadow-lg text-sm tracking-wide">
+                                  Sold Out
+                                </span>
                               </div>
-                            ) : (
-                              isOwner ? (
-                              <button
-                                onClick={() => navigate("/vendor/dashboard/menu")}
-                                className="w-full py-2 rounded-lg text-sm font-semibold text-center text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition cursor-pointer"
-                              >
-                                Your Product
-                              </button>
-                              ) : (
-                              <button
-                                onClick={() => handleStartOrder(meal.id)}
-                                disabled={!meal.is_available}
-                                className={`w-full py-2 rounded-lg relative z-30 text-sm font-semibold transition flex items-center justify-center gap-2 ${
-                                  meal.is_available 
-                                    ? "bg-lily text-white hover:bg-darklily" 
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                }`}
-                              >
-                                <ShoppingCart size={16} />
-                                Order
-                              </button>
-                              )
                             )}
+                          </div>
+                          <div className="p-4 flex flex-col min-h-[140px]">
+                            <div className="flex justify-between items-start mb-2 gap-2">
+                              <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
+                                {meal.name}
+                              </h3>
+                              <span className="font-bold text-lily whitespace-nowrap">
+                                ₦{meal.price?.toLocaleString()}
+                              </span>
+                            </div>
+                            {meal.description && (
+                              <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-grow">
+                                {meal.description}
+                              </p>
+                            )}
+                            <div className="mt-auto pt-4 border-t border-gray-50">
+                              {isOwner ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate("/vendor/dashboard/menu");
+                                  }}
+                                  className="w-full py-2 rounded-lg text-sm font-semibold text-center text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition cursor-pointer"
+                                >
+                                  Your Product
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (meal.is_available) setSelectedMeal(meal);
+                                  }}
+                                  disabled={!meal.is_available}
+                                  className={`w-full py-2 rounded-lg relative z-30 text-sm font-semibold transition flex items-center justify-center gap-2 ${
+                                    meal.is_available 
+                                      ? "bg-lily text-white hover:bg-darklily" 
+                                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                  }`}
+                                >
+                                  <ShoppingCart size={16} />
+                                  Order Now
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -632,16 +606,35 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
                         Delivery Address <span className="text-red-500">*</span>
                       </h3>
-                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                        <MapPin className="text-gray-400" size={18} />
-                        <input
-                          type="text"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          placeholder="Enter delivery address"
-                          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold outline-none"
-                        />
-                      </div>
+                      
+                      {selectedAddress ? (
+                        <div 
+                          onClick={() => {
+                            saveSubscriptionFlowState({ selectedPlan, selectedPlanIds, quantity, preferredTime, deliveryType, phone, collectionCode, dietaryPreferences, allergies, portionSize, specialInstructions });
+                            navigate("/choose-address");
+                          }}
+                          className="w-full rounded-xl border border-lily/30 bg-lily/5 p-4 cursor-pointer hover:bg-lily/10 transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-gray-900">{selectedAddress.label || "Selected Address"}</span>
+                            <span className="text-lily text-sm font-semibold">Change</span>
+                          </div>
+                          <p className="text-gray-700 text-sm">
+                            {selectedAddress.street_address}, {selectedAddress.city}, {selectedAddress.state}
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            saveSubscriptionFlowState({ selectedPlan, selectedPlanIds, quantity, preferredTime, deliveryType, phone, collectionCode, dietaryPreferences, allergies, portionSize, specialInstructions });
+                            navigate("/choose-address");
+                          }}
+                          className="w-full rounded-xl border border-dashed border-gray-300 p-4 text-gray-500 hover:text-lily hover:border-lily hover:bg-lily/5 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-5 h-5" />
+                          <span className="font-medium">Select Delivery Address</span>
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -662,8 +655,18 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                     </div>
                   </div>
 
-                  {/* Collection Code */}
-                  {deliveryType === "pickup" && (
+                  <button 
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                    className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <span>Advanced Options (Optional)</span>
+                    <span className="text-lily">{showAdvancedOptions ? "Hide" : "Show"}</span>
+                  </button>
+
+                  {showAdvancedOptions && (
+                    <div className="space-y-6 pt-2 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
+                      {/* Collection Code */}
+                      {deliveryType === "pickup" && (
                     <div>
                       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
                         Collection Code (Optional)
@@ -784,6 +787,8 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
                       </div>
                     </div>
                   )}
+                    </div>
+                  )}
 
                   <div className="pt-4 border-t border-gray-50">
                     <div className="flex justify-between items-end mb-4">
@@ -840,7 +845,7 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         totalPrice={totalPrice}
         quantity={quantity}
         deliveryType={deliveryType}
-        address={address}
+        address={selectedAddress ? `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}` : ""}
         phone={phone}
         collectionCode={collectionCode}
         dietaryPreferences={dietaryPreferences}
@@ -855,6 +860,23 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
         onClose={() => setIsReviewModalOpen(false)}
         vendorId={vendorId}
         vendorName={vendor?.name}
+      />
+
+      <MealDetailModal
+        isOpen={!!selectedMeal}
+        onClose={() => setSelectedMeal(null)}
+        meal={selectedMeal}
+        shopName={vendor?.name}
+        onConfirmOrder={(meal, qty) => {
+          setSelectedMeal(null);
+          navigate("/food-checkout", {
+            state: {
+              product: meal,
+              quantity: qty,
+              vendorId,
+            },
+          });
+        }}
       />
     </div>
   );

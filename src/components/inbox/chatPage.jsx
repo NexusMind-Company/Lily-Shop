@@ -58,7 +58,6 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   const buyerDisplayName = buyerFullName ? `${buyerFullName} (@${orderUser.username})` : (orderUser?.username ? `@${orderUser.username}` : null);
 
   const [showPinModal, setShowPinModal] = useState(false);
-  const [pin, setPin] = useState("");
   
   const orderIdKey = payload.order_id || payload.reference;
 
@@ -144,19 +143,14 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   };
 
   const handleConfirmDelivery = async () => {
-    if (!pin) {
-      toast.error("Please enter the PIN provided by the buyer");
-      return;
-    }
     const idToUpdate = payload.order_id || payload.reference;
     try {
       if (idToUpdate) {
-        await api.post(`/orders/orders/${idToUpdate}/confirm-delivery/`, { pin, gps_lat: 0, gps_lng: 0 });
+        await api.patch(`/orders/${idToUpdate}/update-status/`, { status: "delivered" });
       }
-      toast.success("Delivery confirmed securely!");
+      toast.success("Delivery confirmed successfully!");
       setLiveOrderData(prev => ({ ...(prev || payload), status: "delivered" }));
       setShowPinModal(false);
-      setPin("");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to confirm delivery");
     }
@@ -382,40 +376,27 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         {showPinModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Enter Delivery PIN</h3>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Confirm Delivery</h3>
               <p className="text-sm text-gray-500 text-center mb-6">
-                Ask the buyer for their 4-digit PIN to confirm delivery.
+                Are you sure you want to mark this order as delivered? This will notify the buyer to confirm receipt.
               </p>
               
-              <div className="flex justify-center mb-2">
+              <div className="flex justify-center mb-6">
                 <ShoppingCart className="w-12 h-12 text-lily/20" />
               </div>
               
-              <input
-                type="text"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="0000"
-                className="w-full border-2 border-gray-200 rounded-xl p-3 text-center text-2xl font-bold tracking-widest mb-4 focus:border-lily focus:ring-0 outline-none"
-              />
-              
               <div className="flex gap-3">
                 <button 
-                  onClick={() => {
-                    setShowPinModal(false);
-                    setPin("");
-                  }}
+                  onClick={() => setShowPinModal(false)}
                   className="flex-1 py-3 font-bold text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleConfirmDelivery}
-                  disabled={pin.length < 4}
-                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90 disabled:opacity-50"
+                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90"
                 >
-                  Confirm
+                  Confirm Delivery
                 </button>
               </div>
             </div>
@@ -1126,7 +1107,7 @@ const ChatPage = () => {
                       : ""
                   } ${
                     isMine
-                      ? "bg-lily text-white rounded-br-none"
+                      ? "bg-lily/30 text-gray-800 rounded-br-none"
                       : "bg-pink-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
