@@ -2070,4 +2070,35 @@ export const unregisterDeviceToken = async (token) => {
   return response.data;
 };
 
+// --- Shopa API ---
+export const shopaCalculateFee = async (payload) => {
+  const response = await api.post("/delivery/shopa/calculate-fee/", payload);
+  return response.data;
+};
+
+export const shopaCreateDelivery = async (payload) => {
+  const response = await api.post("/delivery/shopa/create/", payload);
+  return response.data;
+};
+
+export const shopaVerifyPayment = async (deliveryId, reference) => {
+  const response = await api.post(`/delivery/shopa/${deliveryId}/verify-payment/`, { reference });
+  return response.data;
+};
+
+export const shopaMyDeliveries = async (params = {}) => {
+  const response = await api.get("/delivery/shopa/my-deliveries/", { params });
+  return response.data;
+};
+
+export const shopaGetConfig = async () => {
+  const response = await api.get("/delivery/shopa/config/");
+  return response.data;
+};
+
+export const shopaUpdateConfig = async (payload) => {
+  const response = await api.patch("/delivery/shopa/config/", payload);
+  return response.data;
+};
+
 export default api;

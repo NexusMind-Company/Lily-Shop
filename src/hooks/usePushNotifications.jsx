@@ -14,9 +14,13 @@ export const usePushNotifications = (isAuthenticated) => {
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
+          // Explicitly wait for the service worker registration
+          const registration = await navigator.serviceWorker.ready;
+          
           // Get the FCM token
           const currentToken = await getToken(messaging, {
             vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+            serviceWorkerRegistration: registration,
           });
 
           if (currentToken) {
