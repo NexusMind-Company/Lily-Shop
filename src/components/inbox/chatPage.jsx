@@ -1076,12 +1076,12 @@ const ChatPage = () => {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          {isSearching ? (
+          {isSearching && (
             <div className="flex items-center bg-gray-100 rounded-full px-3 py-1 mr-2 transition-all">
               <input
                 type="text"
                 autoFocus
-                placeholder="Search..."
+                placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-32 md:w-48"
@@ -1090,10 +1090,6 @@ const ChatPage = () => {
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
-          ) : (
-            <button onClick={() => setIsSearching(true)}>
-              <Search className="h-6 w-6 text-gray-600" />
-            </button>
           )}
 
           <button
@@ -1121,6 +1117,15 @@ const ChatPage = () => {
                   className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
                 >
                   View Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSearching(true);
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors border-t"
+                >
+                  Search Chat
                 </button>
                 <button
                   onClick={() => {
