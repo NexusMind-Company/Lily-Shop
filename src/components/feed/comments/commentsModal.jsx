@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { X, Send } from "lucide-react";
+import TextareaAutosize from 'react-textarea-autosize';
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -351,15 +352,15 @@ const CommentsModal = ({
                     />
                   )}
                 </div>
-                <textarea
+                <TextareaAutosize
                   ref={textareaRef}
                   value={commentText}
                   onChange={handleCommentChange}
                   onSelect={handleSelectionChange}
                   onKeyUp={handleSelectionChange}
                   placeholder="Add a comment..."
-                  rows={1}
-                  style={{ height: inputHeight }}
+                  minRows={1}
+                  maxRows={5}
                   className="flex-1 resize-none border-0 focus:ring-0 text-gray-800 p-2 rounded-lg bg-gray-100"
                 />
                 <button
