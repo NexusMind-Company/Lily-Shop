@@ -77,7 +77,7 @@ export const updateOrderStatus = async (orderId, status) => {
  */
 export const confirmDelivery = async (orderId, data) => {
   // data should contain { pin, gps_lat, gps_lng }
-  const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
+  const response = await api.post(`/orders/${orderId}/confirm-delivery/`, data);
   return response.data;
 };
 

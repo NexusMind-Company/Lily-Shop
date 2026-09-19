@@ -47,7 +47,7 @@ const PaystackCallbackPage = () => {
     };
 
     const run = async () => {
-      if (!reference || status === "failed" || status === "cancelled") {
+      if (!reference) {
         if (subscriptionRedirectRequested) {
           redirectSubscriptionFailure("Payment failed. Please try again.");
           return;
