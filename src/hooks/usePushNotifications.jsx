@@ -39,7 +39,11 @@ export const usePushNotifications = (isAuthenticated) => {
           console.log('Notification permission not granted.');
         }
       } catch (error) {
-        console.error('An error occurred while retrieving token:', error);
+        if (error.name === 'AbortError') {
+          console.warn('Push notification registration aborted. This is common if notifications are unsupported or blocked.');
+        } else {
+          console.error('An error occurred while retrieving token:', error);
+        }
       }
     };
 

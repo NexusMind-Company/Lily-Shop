@@ -29,10 +29,12 @@ const ShopaDeliveryPage = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [paymentStep, setPaymentStep] = useState(false);
 
-  const { data: addresses, isLoading: isAddressesLoading } = useQuery({
+  const { data: addressesResponse, isLoading: isAddressesLoading } = useQuery({
     queryKey: ["deliveryAddresses"],
     queryFn: fetchDeliveryAddresses,
   });
+
+  const addresses = Array.isArray(addressesResponse) ? addressesResponse : addressesResponse?.results || [];
 
   const handleChange = (e) => {
     setFormData({
