@@ -2017,11 +2017,11 @@ export const submitShopaDeliveryRequest = async (data) => {
 // --- Informal Market Edition: Chop-PIN & Delivery Verification ---
 export const fetchOrderPin = async (orderId) => {
   try {
-    const response = await api.get(`/orders/orders/${orderId}/pin/`);
+    const response = await api.get(`/orders/${orderId}/pin/`);
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
-      const fallbackResponse = await api.get(`/api/orders/${orderId}/pin/`);
+      const fallbackResponse = await api.get(`/foods/orders/${orderId}/pin/`);
       return fallbackResponse.data;
     }
     throw error;
@@ -2030,11 +2030,11 @@ export const fetchOrderPin = async (orderId) => {
 
 export const confirmOrderDelivery = async (orderId, data) => {
   try {
-    const response = await api.post(`/orders/orders/${orderId}/confirm-delivery/`, data);
+    const response = await api.post(`/orders/${orderId}/confirm-delivery/`, data);
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
-      const fallbackResponse = await api.post(`/api/orders/${orderId}/confirm-delivery/`, data);
+      const fallbackResponse = await api.post(`/foods/orders/${orderId}/confirm-delivery/`, data);
       return fallbackResponse.data;
     }
     throw error;

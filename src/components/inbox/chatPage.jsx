@@ -15,7 +15,10 @@ import {
   Copy,
   Edit2,
   Share,
-  X
+  X,
+  CheckCheck,
+  Check,
+  Clock
 } from "lucide-react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useDispatch, useSelector } from "react-redux";
@@ -147,7 +150,11 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     const idToUpdate = payload.order_id || payload.reference;
     try {
       if (idToUpdate) {
-        await api.patch(`/orders/${idToUpdate}/update-status/`, { status: "delivered" });
+        if (activePayload?.order_type === 'food') {
+          await api.patch(`/foods/vendor/orders/${idToUpdate}/status/`, { status: "delivered" });
+        } else {
+          await api.patch(`/orders/${idToUpdate}/update-status/`, { status: "delivered" });
+        }
       }
       toast.success("Delivery confirmed successfully!");
       setLiveOrderData(prev => ({ ...(prev || payload), status: "delivered" }));
@@ -179,7 +186,11 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     const idToUpdate = payload.order_id || payload.reference;
     try {
       if (idToUpdate) {
-        await api.post(`/orders/orders/${idToUpdate}/dispatch/`);
+        if (activePayload?.order_type === 'food') {
+          await api.patch(`/foods/vendor/orders/${idToUpdate}/status/`, { status: statusLabel.toLowerCase() });
+        } else {
+          await api.post(`/orders/${idToUpdate}/dispatch/`);
+        }
       }
       toast.success(`Order marked as ${statusLabel}`);
       setLiveOrderData(prev => ({ ...(prev || payload), status: "dispatched" }));
@@ -563,6 +574,30 @@ const ChatPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const targetMessageId = searchParams.get("target_message_id");
 
+  const getUserIdFromToken = () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return null;
+      const base64Url = token.split(".")[1];
+      let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const pad = base64.length % 4;
+      if (pad) {
+        if (pad === 1) throw new Error("Invalid base64 length");
+        base64 += new Array(5 - pad).join("=");
+      }
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.user_id || decoded.id;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const {
     messages: conversation,
     conversations,
@@ -573,7 +608,7 @@ const ChatPage = () => {
   } = useSelector((state) => state.messages);
   const { user_data } = useSelector((state) => state.auth);
   const profile = useSelector((state) => state.profile.data);
-  const currentUserId = user_data?.id || user_data?.user?.id || profile?.id;
+  const currentUserId = user_data?.id || user_data?.user?.id || profile?.id || profile?.user?.id || getUserIdFromToken();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -721,6 +756,8 @@ const ChatPage = () => {
       const senderId = msg.sender_id || msg.sender?.id || msg.sender;
       const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
       const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
+      
+      console.log(`[DEBUG CHAT] Message: ${msg.content}, senderId: ${senderId}, currentUserId: ${currentUserId}, is_me API: ${msg.is_me}, computedIsMine: ${computedIsMine}, final isMine: ${isMine}`);
       
       const isStandardMedia = !!msg.media && 
         !msg.product && 
@@ -907,7 +944,8 @@ const ChatPage = () => {
         })
         .catch((error) => {
           console.error("Error sending message:", error);
-          setPendingMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+          setPendingMessages((prev) => prev.map((m) => m.id === optimisticMsg.id ? { ...m, hasError: true } : m));
+          toast.error("Message not sent. Please check your internet connection.");
         });
     });
   };
@@ -1140,8 +1178,8 @@ const ChatPage = () => {
                       : ""
                   } ${
                     isMine
-                      ? "bg-lily-100 text-gray-800 rounded-br-none"
-                      : "bg-pink-100 text-gray-800 rounded-bl-none"
+                      ? "bg-[#4eb75e]/30 text-gray-800 rounded-br-none"
+                      : "bg-[#FCE4EC] text-gray-800 rounded-bl-none"
                   }`}
                 >
                   {msg.is_system_message && (
@@ -1182,21 +1220,23 @@ const ChatPage = () => {
                     </p>
                   )}
                   
-                  <div className="flex items-center justify-end gap-1 mt-1 relative">
-                    <p className="text-[10px] opacity-70 text-right">
+                  <div className="flex items-center justify-end gap-0.5 mt-1.5 mr-1 relative">
+                    <p className="text-[10px] opacity-70 text-right leading-none flex items-center">
                       {new Date(msg.timestamp).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
                     </p>
                     {isMine && (
-                      <span className="ml-0.5">
-                        {msg.isOptimistic ? (
-                          <svg className="w-3 h-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span className="flex items-center justify-center">
+                        {msg.hasError ? (
+                          <Clock className="w-3.5 h-3.5 text-red-500" />
+                        ) : msg.isOptimistic ? (
+                          <Clock className="w-3.5 h-3.5 text-gray-500" />
                         ) : msg.read ? (
-                          <svg className="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7M5 13l4 4L19 7" style={{ transform: "translate(-3px, 0)" }} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 17l4 4L22 11" style={{ transform: "translate(3px, 0)" }} /></svg>
+                          <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
                         ) : (
-                          <svg className="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          <Check className="w-3 h-3 text-gray-500" />
                         )}
                       </span>
                     )}
