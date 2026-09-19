@@ -482,6 +482,11 @@ export const sendMessage = async ({
   return response.data;
 };
 
+export const editMessage = async (messageId, content) => {
+  const response = await api.patch(`/messages/${messageId}/`, { content });
+  return response.data;
+};
+
 export const shareProductToChat = async (productId, recipientId) => {
   const response = await api.post(`/messages/share/${productId}/`, {
     recipient: recipientId,

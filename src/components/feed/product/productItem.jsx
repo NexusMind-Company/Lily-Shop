@@ -226,7 +226,10 @@ const ProductItem = ({ product }) => {
     (product.user_id === currentUserId ||
       product.userId === currentUserId ||
       product.user === currentUserId ||
-      product.user?.id === currentUserId);
+      product.user?.id === currentUserId ||
+      product.shop?.user_id === currentUserId ||
+      product.shop?.user?.id === currentUserId ||
+      product.shop?.user === currentUserId);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -371,6 +374,10 @@ const ProductItem = ({ product }) => {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) return navigate("/login");
+    if (isOwner) {
+      toast.error("You cannot order your own product.");
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
@@ -391,6 +398,10 @@ const ProductItem = ({ product }) => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) return navigate("/login");
+    if (isOwner) {
+      toast.error("You cannot order your own product.");
+      return;
+    }
     navigate("/checkout", {
       state: {
         directBuy: true,
@@ -870,9 +881,11 @@ const ProductItem = ({ product }) => {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={isAddingToCart || itemInCart || isOutOfStock}
+              disabled={isAddingToCart || itemInCart || isOutOfStock || isOwner}
               className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center ${
-                isOutOfStock
+                isOwner
+                  ? "border-2 border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : isOutOfStock
                   ? "border-2 border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
                   : itemInCart
                     ? "border-2 border-gray-300 text-gray-500 bg-gray-50 opacity-70 cursor-not-allowed"
@@ -881,7 +894,9 @@ const ProductItem = ({ product }) => {
                       : "border-2 border-lily text-lily hover:bg-green-50"
               }`}
             >
-              {isAddingToCart ? (
+              {isOwner ? (
+                "Your Product"
+              ) : isAddingToCart ? (
                 "Adding..."
               ) : itemInCart ? (
                 <>
@@ -897,14 +912,14 @@ const ProductItem = ({ product }) => {
             </button>
             <button
               onClick={handleCheckout}
-              disabled={isOutOfStock}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                isOutOfStock
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-lily text-white shadow-md hover:bg-green-700 hover:shadow-lg"
+              disabled={isOutOfStock || isOwner}
+              className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${
+                isOwner || isOutOfStock
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-lily hover:bg-green-600"
               }`}
             >
-              Buy Now
+              {isOwner ? "Your Product" : "Buy Now"}
             </button>
           </div>
         </div>

@@ -430,6 +430,11 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
       return;
     }
 
+    if (isOwnPost) {
+      toast.error("You cannot order your own product.");
+      return;
+    }
+
     dispatch(addToCart({ product_id: productId, quantity: 1 }))
       .unwrap()
       .then(() => {

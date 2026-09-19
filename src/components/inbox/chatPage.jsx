@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import TextareaAutosize from 'react-textarea-autosize';
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import {
@@ -18,7 +19,8 @@ import {
   X,
   CheckCheck,
   Check,
-  Clock
+  Clock,
+  Search
 } from "lucide-react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useDispatch, useSelector } from "react-redux";
@@ -36,7 +38,7 @@ import { addToCart } from "../../redux/cartSlice";
 import { fetchOrders, selectOrders } from "../../redux/orderSlice";
 import ImageEditor from "./ImageEditor";
 
-import { api, confirmOrderReceipt, confirmFoodOrderReceipt } from "../../services/api";
+import { api, confirmOrderReceipt, confirmFoodOrderReceipt, editMessage } from "../../services/api";
 import MessagesList from "./messagesList";
 
 export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
@@ -566,6 +568,11 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const chatBoxRef = useRef(null);
   const menuRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const justSentMessageRef = useRef(false);
+  const chatInputRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -752,7 +759,11 @@ const ChatPage = () => {
     const grouped = [];
     let currentGroup = null;
 
-    allMessages.forEach((msg) => {
+    const filteredMessages = allMessages.filter(msg => 
+      !searchQuery || (msg.content && msg.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    filteredMessages.forEach((msg) => {
       const senderId = msg.sender_id || msg.sender?.id || msg.sender;
       const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
       const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
@@ -845,7 +856,10 @@ const ChatPage = () => {
 
   //  Auto scroll bottom when new messages come in
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isAtBottomRef.current || justSentMessageRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      justSentMessageRef.current = false;
+    }
   }, [displayMessages]);
 
   // Mark incoming unread messages as read
@@ -864,7 +878,14 @@ const ChatPage = () => {
 
   //  Load more messages on scroll top
   const handleScroll = () => {
-    const top = chatBoxRef.current.scrollTop;
+    const container = chatBoxRef.current;
+    if (!container) return;
+    
+    const top = container.scrollTop;
+    
+    // Track if user is at the bottom (within 100px)
+    const isNearBottom = container.scrollHeight - top - container.clientHeight < 100;
+    isAtBottomRef.current = isNearBottom;
     if (top === 0 && nextPage && !isFetchingMore) {
       setIsFetchingMore(true);
 
@@ -883,12 +904,25 @@ const ChatPage = () => {
   };
 
   //  Send Message
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!newMessage.trim() && selectedFiles.length === 0) return;
 
     if (editingMessage) {
-      // Mock edit update for UI (Backend does not support PATCH yet)
-      toast.success("Message edited (UI only - Backend endpoint needed)");
+      try {
+        const updatedMsg = await editMessage(editingMessage.id, newMessage);
+        setPendingMessages((prev) =>
+          prev.map((m) => (m.id === editingMessage.id ? updatedMsg : m))
+        );
+        toast.success("Message edited");
+        dispatch(
+          fetchConversationMessages({
+            userId: conversationId,
+            page: 1,
+          })
+        );
+      } catch (err) {
+        toast.error("Failed to edit message");
+      }
       setEditingMessage(null);
       setNewMessage("");
       return;
@@ -923,6 +957,9 @@ const ChatPage = () => {
         originalFile: null
       });
     }
+
+    justSentMessageRef.current = true;
+    isAtBottomRef.current = true;
 
     setPendingMessages((prev) => [...prev, ...newPending]);
     setNewMessage("");
@@ -1039,6 +1076,26 @@ const ChatPage = () => {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          {isSearching ? (
+            <div className="flex items-center bg-gray-100 rounded-full px-3 py-1 mr-2 transition-all">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-32 md:w-48"
+              />
+              <button onClick={() => { setIsSearching(false); setSearchQuery(""); }}>
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setIsSearching(true)}>
+              <Search className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+
           <button
             onClick={() =>
               toast("Voice call coming soon", {
@@ -1208,9 +1265,26 @@ const ChatPage = () => {
                   )}
 
                   {msg.reply_to && (
-                    <div className="bg-black/10 rounded-lg p-2 mb-2 border-l-4 border-lily/60">
-                      <span className="text-xs font-bold block mb-0.5 opacity-80">{msg.reply_to.sender_username || "User"}</span>
-                      <span className="text-xs opacity-90 line-clamp-2">{msg.reply_to.content || "📷 Media"}</span>
+                    <div 
+                      onClick={() => {
+                        const target = document.getElementById(`msg-${msg.reply_to.id}`);
+                        if (target) {
+                          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          target.classList.add('bg-lily/20', 'transition-colors', 'duration-500');
+                          setTimeout(() => {
+                            target.classList.remove('bg-lily/20');
+                          }, 1500);
+                        }
+                      }}
+                      className="bg-black/10 rounded-lg p-2 mb-2 border-l-4 border-lily/60 cursor-pointer hover:bg-black/20 transition-colors flex gap-2 items-center"
+                    >
+                      {msg.reply_to.media_url && (
+                        <img src={msg.reply_to.media_url} alt="Reply media" className="w-10 h-10 object-cover rounded-md" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold block mb-0.5 opacity-80">{msg.reply_to.sender_username || "User"}</span>
+                        <span className="text-xs opacity-90 line-clamp-2">{msg.reply_to.content || "📷 Media"}</span>
+                      </div>
                     </div>
                   )}
 
@@ -1251,8 +1325,8 @@ const ChatPage = () => {
                       </button>
                       {openMenuId === msg.id && (
                         <div className={`absolute ${isMine ? "right-0" : "left-0"} bottom-full mb-1 bg-white border shadow-lg rounded-xl z-10 w-32 py-1 overflow-hidden text-gray-800`}>
-                          <button onClick={() => { setReplyingTo(msg); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Reply className="w-3 h-3"/> Reply</button>
-                          {isMine && <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content || ""); setReplyingTo(null); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Edit2 className="w-3 h-3"/> Edit</button>}
+                          <button onClick={() => { setReplyingTo(msg); setOpenMenuId(null); setTimeout(() => chatInputRef.current?.focus(), 0); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Reply className="w-3 h-3"/> Reply</button>
+                          {isMine && <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content || ""); setReplyingTo(null); setOpenMenuId(null); setTimeout(() => chatInputRef.current?.focus(), 0); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Edit2 className="w-3 h-3"/> Edit</button>}
                           <button onClick={() => { navigator.clipboard.writeText(msg.content); toast.success("Copied"); setOpenMenuId(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2"><Copy className="w-3 h-3"/> Copy</button>
                         </div>
                       )}
@@ -1325,13 +1399,20 @@ const ChatPage = () => {
             className="hidden"
             accept="image/*,video/*"
           />
-          <input
-            type="text"
+          <TextareaAutosize
+            minRows={1}
+            maxRows={5}
+            ref={chatInputRef}
             placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-            className="flex-1 bg-gray-100 rounded-full px-5 py-3 focus:outline-none text-sm border border-transparent focus:border-lily/30 transition-colors"
+            onKeyDown={(e) => { 
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend(); 
+              }
+            }}
+            className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 focus:outline-none text-sm border border-transparent focus:border-lily/30 transition-colors resize-none overflow-hidden"
           />
 
           <div className="flex items-center gap-1 shrink-0 bg-gray-100 rounded-full p-1">

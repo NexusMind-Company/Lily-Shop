@@ -35,7 +35,24 @@ const FeedContainer = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [hasScrolledToShared, setHasScrolledToShared] = useState(false);
+  const [hasRestoredScroll, setHasRestoredScroll] = useState(false);
 
+  // Restore scroll position
+  useEffect(() => {
+    if (posts.length > 0 && scrollContainerRef.current && !hasRestoredScroll && !sharedPostId) {
+      if (scrollPositionRef.current > 0) {
+        scrollContainerRef.current.scrollTo({
+          top: scrollPositionRef.current,
+          behavior: "instant" // Snap immediately without smooth scrolling
+        });
+        const index = Math.round(scrollPositionRef.current / scrollContainerRef.current.clientHeight);
+        setCurrentPostIndex(index);
+      }
+      setHasRestoredScroll(true);
+    }
+  }, [posts, hasRestoredScroll, sharedPostId, scrollPositionRef]);
+
+  // Jump to shared post
   useEffect(() => {
     if (
       sharedPostId &&
