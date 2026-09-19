@@ -1,8 +1,9 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { addNewAddress, fetchStates, fetchLgas } from "../../services/api";
+import { addNewAddress } from "../../services/api";
+import { MapPin, Search, Loader2 } from "lucide-react";
 
 const AddAddressPage = () => {
   const navigate = useNavigate();
@@ -17,39 +18,77 @@ const AddAddressPage = () => {
     zipCode: "",
     landmark: "",
     description: "",
+    lat: null,
+    lon: null,
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const phoneRef = useRef(null);
-  const addressRef = useRef(null);
-  const stateRef = useRef(null);
-  const cityRef = useRef(null);
+  const searchRef = useRef(null);
+  const suggestionContainerRef = useRef(null);
 
-  const { data: states = [], isLoading: statesLoading } = useQuery({
-    queryKey: ["states"],
-    queryFn: fetchStates,
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionContainerRef.current &&
+        !suggestionContainerRef.current.contains(event.target) &&
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Nominatim Autocomplete Query
+  const { data: suggestions = [], isFetching: isSearching } = useQuery({
+    queryKey: ["nominatim", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 3) return [];
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ng&q=${encodeURIComponent(
+          searchQuery
+        )}&addressdetails=1`
+      );
+      return res.json();
+    },
+    enabled: searchQuery.length >= 3,
+    staleTime: 60000,
   });
 
-  const selectedStateId = useMemo(() => {
-    const selectedState = states.find((s) => s.name === formData.state);
-    return selectedState?.id ?? null;
-  }, [states, formData.state]);
-
-  const { data: lgas = [], isLoading: lgasLoading } = useQuery({
-    queryKey: ["lgas", selectedStateId],
-    queryFn: () => fetchLgas(selectedStateId),
-    enabled: !!selectedStateId,
-  });
+  const handleSuggestionClick = (suggestion) => {
+    const addressDetails = suggestion.address || {};
+    
+    setFormData((prev) => ({
+      ...prev,
+      address: suggestion.display_name,
+      city: addressDetails.city || addressDetails.town || addressDetails.village || addressDetails.county || "",
+      state: addressDetails.state || "",
+      lat: parseFloat(suggestion.lat),
+      lon: parseFloat(suggestion.lon),
+    }));
+    
+    setSearchQuery(suggestion.display_name);
+    setShowSuggestions(false);
+    
+    if (fieldErrors.address) {
+      setFieldErrors((prev) => ({ ...prev, address: false }));
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-      ...(name === "state" ? { city: "" } : {}),
     }));
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: false }));
@@ -67,22 +106,18 @@ const AddAddressPage = () => {
       newErrors.phone = true;
       if (!firstErrorRef) firstErrorRef = phoneRef;
     }
-    if (!formData.address) {
+    if (!formData.address || !formData.lat || !formData.lon) {
       newErrors.address = true;
-      if (!firstErrorRef) firstErrorRef = addressRef;
-    }
-    if (!formData.state) {
-      newErrors.state = true;
-      if (!firstErrorRef) firstErrorRef = stateRef;
-    }
-    if (!formData.city) {
-      newErrors.city = true;
-      if (!firstErrorRef) firstErrorRef = cityRef;
+      if (!firstErrorRef) firstErrorRef = searchRef;
     }
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
-      toast.error("Please fill in all required fields", { icon: "📍" });
+      if (newErrors.address && !formData.lat) {
+        toast.error("Please select a valid address from the search suggestions", { icon: "📍" });
+      } else {
+        toast.error("Please fill in all required fields", { icon: "📍" });
+      }
       firstErrorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -107,29 +142,31 @@ const AddAddressPage = () => {
 
       const formattedPhoneNumber = `${formData.countryCode}${rawPhone}`;
 
-      // 3. Construct payload matching API.yaml schema
+      // 3. Construct payload matching backend model
       const payload = {
         label: formData.landmark || "Home",
         street_address: streetAddress,
-        city: formData.city,
-        state: formData.state,
+        city: formData.city || "Unknown City",
+        state: formData.state || "Unknown State",
         country: "Nigeria",
         postal_code: formData.zipCode || null,
         phone_number: formattedPhoneNumber,
+        latitude: formData.lat,
+        longitude: formData.lon,
         is_default: true,
       };
 
       await addNewAddress(payload);
+      toast.success("Address saved successfully");
       navigate(-1);
     } catch (err) {
       console.error("Error adding address:", err);
-      // Display backend validation error if available, else fallback
       if (err.response?.data?.phone_number) {
         setError(`Phone Number Error: ${err.response.data.phone_number[0]}`);
       } else {
         setError(
           err.response?.data?.message ||
-            "Failed to add address. Please check your inputs and try again.",
+            "Failed to add address. Please check your inputs and try again."
         );
       }
     } finally {
@@ -171,6 +208,7 @@ const AddAddressPage = () => {
           </div>
         )}
 
+        {/* CONTACT SECTION */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">Contact info</h2>
 
@@ -185,7 +223,7 @@ const AddAddressPage = () => {
               value={formData.name}
               onChange={handleChange}
               placeholder="John Doe"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors"
             />
           </div>
 
@@ -201,7 +239,7 @@ const AddAddressPage = () => {
                 name="countryCode"
                 value={formData.countryCode}
                 onChange={handleChange}
-                className={`w-1/3 bg-gray-50 border border-transparent rounded-full px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
+                className={`w-1/3 bg-gray-50 border border-transparent rounded-full px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
               >
                 <option value="+234">NG (+234)</option>
                 <option value="+1">US (+1)</option>
@@ -217,7 +255,7 @@ const AddAddressPage = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="80X XXX XXXX"
-                className={`w-2/3 bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
+                className={`w-2/3 bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors ${fieldErrors.phone ? "bg-red-50" : ""}`}
               />
             </div>
             {fieldErrors.phone && <span className="text-red-500 text-xs mt-1 block px-2">Phone number is required</span>}
@@ -226,72 +264,88 @@ const AddAddressPage = () => {
 
         <div className="h-px w-full bg-gray-100"></div>
 
+        {/* DELIVERY ADDRESS SECTION (Nominatim) */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">Delivery address</h2>
 
-          <div className="space-y-1" ref={addressRef}>
-            <label htmlFor="address" className="text-sm text-gray-700">
-              Address*
+          <div className="space-y-1 relative" ref={searchRef}>
+            <label htmlFor="searchQuery" className="text-sm text-gray-700">
+              Search Address / Street*
             </label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="Address"
-              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors ${fieldErrors.address ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
-            />
-            {fieldErrors.address && <span className="text-red-500 text-xs mt-1 block px-2">Address is required</span>}
-          </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                id="searchQuery"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                  if (fieldErrors.address) setFieldErrors((prev) => ({ ...prev, address: false }));
+                }}
+                onFocus={() => {
+                  if (searchQuery.length >= 3) setShowSuggestions(true);
+                }}
+                placeholder="Start typing your street..."
+                className={`w-full bg-gray-50 border border-transparent rounded-full pl-11 pr-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors ${fieldErrors.address ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
+                autoComplete="off"
+              />
+              {isSearching && (
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                </div>
+              )}
+            </div>
+            {fieldErrors.address && <span className="text-red-500 text-xs mt-1 block px-2">Please select a valid address from the dropdown</span>}
 
-          <div className="space-y-1" ref={stateRef}>
-            <label htmlFor="state" className="text-sm text-gray-700">
-              State*
-            </label>
-            <select
-              id="state"
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              disabled={statesLoading}
-              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50 ${fieldErrors.state ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
-            >
-              <option value="">Select State</option>
-              {states.map((s) => (
-                <option key={s.id} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.state && <span className="text-red-500 text-xs mt-1 block px-2">State is required</span>}
+            {/* Suggestions Dropdown */}
+            {showSuggestions && searchQuery.length >= 3 && (
+              <div 
+                ref={suggestionContainerRef}
+                className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto"
+              >
+                {!isSearching && suggestions.length === 0 ? (
+                  <div className="p-4 text-sm text-gray-500 text-center">
+                    No matching addresses found in Nigeria
+                  </div>
+                ) : (
+                  <ul>
+                    {suggestions.map((suggestion) => (
+                      <li 
+                        key={suggestion.place_id}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="p-4 border-b border-gray-50 hover:bg-[#f6f8f6] cursor-pointer transition-colors flex items-start gap-3"
+                      >
+                        <MapPin className="w-5 h-5 text-[#4eb75e] shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-700 leading-tight">
+                          {suggestion.display_name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
-
-          <div className="space-y-1" ref={cityRef}>
-            <label htmlFor="city" className="text-sm text-gray-700">
-              LGA / City*
-            </label>
-            <select
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              disabled={lgasLoading || !formData.state}
-              className={`w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors disabled:opacity-50 ${fieldErrors.city ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
-            >
-              <option value="">Select LGA / City</option>
-              {lgas.map((l) => (
-                <option key={l.id} value={l.name}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.city && <span className="text-red-500 text-xs mt-1 block px-2">City is required</span>}
-          </div>
+          
+          {formData.address && formData.lat && (
+            <div className="bg-[#f6f8f6] p-4 rounded-xl border border-green-100 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 text-[#4eb75e]" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium mb-1">Selected Location</p>
+                <p className="text-sm text-gray-900 line-clamp-2">{formData.address}</p>
+                <p className="text-xs text-gray-500 mt-1">Coordinates stored successfully</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1">
             <label htmlFor="zipCode" className="text-sm text-gray-700">
-              Zip code
+              Zip code (Optional)
             </label>
             <input
               type="text"
@@ -299,14 +353,14 @@ const AddAddressPage = () => {
               name="zipCode"
               value={formData.zipCode}
               onChange={handleChange}
-              placeholder="ZIP code (Optional)"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              placeholder="e.g. 100001"
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors"
             />
           </div>
 
           <div className="space-y-1">
             <label htmlFor="landmark" className="text-sm text-gray-700">
-              Nearest Landmark
+              Address Label / Nearest Landmark
             </label>
             <input
               type="text"
@@ -314,22 +368,23 @@ const AddAddressPage = () => {
               name="landmark"
               value={formData.landmark}
               onChange={handleChange}
-              placeholder="Nearest Landmark"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              placeholder="e.g. Home, Office, Next to filling station"
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors"
             />
           </div>
         </section>
 
         <div className="h-px w-full bg-gray-100"></div>
 
+        {/* DESCRIPTION SECTION */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold text-gray-900">
-            Describe your location as simple as possible
+            Describe your location to help the rider
           </h2>
 
           <div className="space-y-1">
             <label htmlFor="description" className="text-sm text-gray-700">
-              Description
+              Description (Optional)
             </label>
             <input
               type="text"
@@ -337,23 +392,24 @@ const AddAddressPage = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="e.g building type, gate color etc"
-              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-colors"
+              placeholder="e.g building type, gate color, flat number"
+              className="w-full bg-gray-50 border border-transparent rounded-full px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e] focus:bg-white transition-colors"
             />
           </div>
         </section>
 
-        <div className="fixed bottom-0 left-0 md:left-64 right-0 p-5 bg-white border-t border-gray-100">
+        {/* SUBMIT BUTTON */}
+        <div className="fixed bottom-0 left-0 md:left-64 right-0 p-5 bg-white border-t border-gray-100 z-40">
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full font-medium text-base rounded-full py-4 transition-colors focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50 ${
+            className={`w-full font-medium text-base rounded-full py-4 transition-colors focus:outline-none focus:ring-4 focus:ring-[#4eb75e] focus:ring-opacity-50 ${
               isLoading
                 ? "bg-green-400 cursor-not-allowed text-white"
-                : "bg-[#4CAF50] hover:bg-green-600 text-white"
+                : "bg-[#4eb75e] hover:bg-[#3da64d] text-white shadow-lg shadow-green-500/20"
             }`}
           >
-            {isLoading ? "Saving..." : "Add address"}
+            {isLoading ? "Saving Address..." : "Save Address"}
           </button>
         </div>
       </form>
@@ -362,3 +418,4 @@ const AddAddressPage = () => {
 };
 
 export default AddAddressPage;
+

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -27,6 +27,8 @@ import {
   markWithdrawalUnsuccessful,
   getVendorsAsStaff,
   deleteVendorAsStaff,
+  shopaGetConfig,
+  shopaUpdateConfig,
 } from "../services/api";
 
 import { getVendorImageUrl } from "../utils/vendorUtils";
@@ -138,6 +140,50 @@ const StaffOperationsPage = () => {
     },
   });
 
+  const {
+    data: shopaConfig,
+    isLoading: isShopaConfigLoading,
+    refetch: refetchShopaConfig,
+  } = useQuery({
+    queryKey: ["shopaConfig"],
+    queryFn: shopaGetConfig,
+    enabled: mainTab === "shopa",
+  });
+
+  const updateShopaConfigMutation = useMutation({
+    mutationFn: shopaUpdateConfig,
+    onSuccess: () => {
+      toast.success("Shopa config updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["shopaConfig"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.detail || "Failed to update Shopa config");
+    },
+  });
+
+  const [shopaForm, setShopaForm] = useState({
+    base_fee_kobo: "",
+    per_km_fee_kobo: "",
+    min_fee_kobo: "",
+    max_fee_kobo: "",
+  });
+
+  useEffect(() => {
+    if (shopaConfig) {
+      setShopaForm({
+        base_fee_kobo: shopaConfig.base_fee_kobo,
+        per_km_fee_kobo: shopaConfig.per_km_fee_kobo,
+        min_fee_kobo: shopaConfig.min_fee_kobo,
+        max_fee_kobo: shopaConfig.max_fee_kobo,
+      });
+    }
+  }, [shopaConfig]);
+
+  const handleShopaConfigSubmit = (e) => {
+    e.preventDefault();
+    updateShopaConfigMutation.mutate(shopaForm);
+  };
+
   const formatCurrency = (amount) => {
     return `₦${Number(amount || 0).toLocaleString()}`;
   };
@@ -178,8 +224,9 @@ const StaffOperationsPage = () => {
               onClick={() => {
                 if (mainTab === "withdrawals") refetchWithdrawals();
                 if (mainTab === "vendors") refetchVendors();
+                if (mainTab === "shopa") refetchShopaConfig();
               }}
-              disabled={isWithdrawalsRefetching || isVendorsRefetching}
+              disabled={isWithdrawalsRefetching || isVendorsRefetching || isShopaConfigLoading}
               className="absolute right-4 p-2 hover:bg-gray-50 rounded-full transition-colors"
             >
               <RefreshCw
@@ -208,6 +255,12 @@ const StaffOperationsPage = () => {
             className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "vendors" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
           >
             Vendors
+          </button>
+          <button
+            onClick={() => setMainTab("shopa")}
+            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "shopa" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+          >
+            Shopa Config
           </button>
         </div>
 
@@ -544,6 +597,87 @@ const StaffOperationsPage = () => {
                     When there are vendors registered, they'll show up here.
                   </p>
                 </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {mainTab === "shopa" && (
+          <>
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Shopa Configuration
+              </h2>
+              <p className="text-gray-500">
+                Manage global delivery pricing settings for Shopa.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+              {isShopaConfigLoading ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <Loader2 className="w-8 h-8 text-lily animate-spin" />
+                  <p className="mt-2 text-gray-400">Loading configuration...</p>
+                </div>
+              ) : (
+                <form onSubmit={handleShopaConfigSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Base Fee (Kobo)</label>
+                      <input
+                        type="number"
+                        required
+                        value={shopaForm.base_fee_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, base_fee_kobo: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
+                      />
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.base_fee_kobo / 100)}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Per KM Fee (Kobo)</label>
+                      <input
+                        type="number"
+                        required
+                        value={shopaForm.per_km_fee_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, per_km_fee_kobo: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
+                      />
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.per_km_fee_kobo / 100)}/km</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Minimum Fee (Kobo)</label>
+                      <input
+                        type="number"
+                        required
+                        value={shopaForm.min_fee_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, min_fee_kobo: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
+                      />
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.min_fee_kobo / 100)}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Maximum Fee (Kobo)</label>
+                      <input
+                        type="number"
+                        required
+                        value={shopaForm.max_fee_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, max_fee_kobo: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
+                      />
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.max_fee_kobo / 100)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-100 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={updateShopaConfigMutation.isPending}
+                      className="px-8 py-3 bg-lily text-white font-bold rounded-xl hover:brightness-105 transition-all shadow-lg shadow-lily/20 flex items-center gap-2"
+                    >
+                      {updateShopaConfigMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </>
