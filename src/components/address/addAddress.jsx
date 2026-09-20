@@ -235,8 +235,8 @@ const AddAddressPage = () => {
         state: formData.stateId,
         country: "Nigeria",
         phone_number: formattedPhoneNumber,
-        latitude: formData.lat || null,
-        longitude: formData.lon || null,
+        latitude: formData.lat ? Number(Number(formData.lat).toFixed(6)) : null,
+        longitude: formData.lon ? Number(Number(formData.lon).toFixed(6)) : null,
         is_default: true,
       };
 
