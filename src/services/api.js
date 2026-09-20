@@ -447,8 +447,18 @@ export const recordProductView = async (productId) => {
 
 export const recordContentView = async (contentId) => {
   const response = await api.post(`/shops/contents/${contentId}/views/`, {
-    view_count: 1,
+    contentId,
   });
+  return response.data;
+};
+
+export const incrementProductShare = async (productId) => {
+  const response = await api.post(`/shops/products/${productId}/shares/`, {});
+  return response.data;
+};
+
+export const incrementContentShare = async (contentId) => {
+  const response = await api.post(`/shops/contents/${contentId}/shares/`, {});
   return response.data;
 };
 
@@ -2072,7 +2082,7 @@ export const unregisterDeviceToken = async (token) => {
 
 // --- Shopa API ---
 export const shopaCalculateFee = async (payload) => {
-  const response = await api.post("/delivery/shopa/calculate-fee/", payload);
+  const response = await api.post("/orders/shopa/calculate-fee/", payload);
   return response.data;
 };
 
