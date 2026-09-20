@@ -230,6 +230,7 @@ const AddAddressPage = () => {
         house_number: formData.houseNumber,
         landmark: formData.landmark,
         city: formData.cityId || null,
+        custom_city_name: (!formData.cityId && formData.cityName) ? formData.cityName : null,
         lga: formData.lgaId,
         state: formData.stateId,
         country: "Nigeria",
@@ -392,17 +393,28 @@ const AddAddressPage = () => {
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">City / Town (Optional)</label>
               <div className="relative">
-                <select
-                  value={formData.cityId}
-                  onChange={handleCityChange}
-                  disabled={!formData.lgaId || cities.length === 0}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">Select City</option>
-                  {cities.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                {cities.length > 0 ? (
+                  <select
+                    value={formData.cityId}
+                    onChange={handleCityChange}
+                    disabled={!formData.lgaId}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Enter your city/town (Optional)"
+                    value={formData.cityName || ""}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value, cityId: "" }))}
+                    disabled={!formData.lgaId}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                )}
                 {isLoadingCities && <Loader2 className="w-4 h-4 text-gray-400 animate-spin absolute right-10 top-4 pointer-events-none" />}
               </div>
             </div>
