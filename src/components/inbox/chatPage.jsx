@@ -768,7 +768,7 @@ const ChatPage = () => {
       const computedIsMine = Boolean(currentUserId && senderId && String(senderId) === String(currentUserId));
       const isMine = typeof msg.is_me === "boolean" ? (msg.is_me || computedIsMine) : computedIsMine;
       
-      console.log(`[DEBUG CHAT] Message: ${msg.content}, senderId: ${senderId}, currentUserId: ${currentUserId}, is_me API: ${msg.is_me}, computedIsMine: ${computedIsMine}, final isMine: ${isMine}`);
+      // console.log(`[DEBUG CHAT] Message: ${msg.content}, senderId: ${senderId}, currentUserId: ${currentUserId}, is_me API: ${msg.is_me}, computedIsMine: ${computedIsMine}, final isMine: ${isMine}`);
       
       const isStandardMedia = !!msg.media && 
         !msg.product && 
