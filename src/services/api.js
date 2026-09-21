@@ -499,6 +499,7 @@ export const editMessage = async (messageId, content) => {
 
 export const shareProductToChat = async (productId, recipientId) => {
   const response = await api.post(`/messages/share/${productId}/`, {
+    recipient_id: recipientId,
     recipient: recipientId,
   });
   return response.data;
