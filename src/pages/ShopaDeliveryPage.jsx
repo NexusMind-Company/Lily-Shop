@@ -1,40 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { ArrowLeft, Send, Package, ShoppingBag, Bike, MapPin, Phone, Loader2, CheckCircle, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
-import { 
+import api, { 
   fetchDeliveryAddresses, 
   shopaCalculateFee, 
   shopaCreateDelivery 
 } from '../services/api';
 
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+};
+
 const ShopaDeliveryPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('parcel');
+  const { user_data } = useSelector((state) => state.auth || {});
   
   // Parcel Form State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    surname: '',
-    phone: '',
-    pickupLocation: '',
-    dropoffLocation: '',
+    firstName: user_data?.first_name || '',
+    surname: user_data?.last_name || '',
+    phone: user_data?.phone_number || '',
+    pickupLocationText: '',
+    pickupLat: null,
+    pickupLon: null,
+    dropoffLocationText: '',
+    dropoffLat: null,
+    dropoffLon: null,
     packageDescription: '',
     specialInstructions: ''
   });
+  
+  const [pickupQuery, setPickupQuery] = useState("");
+  const [dropoffQuery, setDropoffQuery] = useState("");
+  const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
+  const [showDropoffSuggestions, setShowDropoffSuggestions] = useState(false);
+  
+  const debouncedPickupQuery = useDebounce(pickupQuery, 500);
+  const debouncedDropoffQuery = useDebounce(dropoffQuery, 500);
   
   const [feeData, setFeeData] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [paymentStep, setPaymentStep] = useState(false);
 
-  const { data: addressesResponse, isLoading: isAddressesLoading } = useQuery({
+  const { data: addressesResponse } = useQuery({
     queryKey: ["deliveryAddresses"],
     queryFn: fetchDeliveryAddresses,
   });
 
-  const addresses = Array.isArray(addressesResponse) ? addressesResponse : addressesResponse?.results || [];
+  // Nominatim Queries
+  const { data: pickupSuggestions = [], isFetching: isSearchingPickup } = useQuery({
+    queryKey: ["nominatimPickup", debouncedPickupQuery],
+    queryFn: async () => {
+      if (!debouncedPickupQuery || debouncedPickupQuery.length < 3) return [];
+      const res = await api.get('/locations/search/', { params: { query: debouncedPickupQuery, state: 'Lagos' } });
+      return res.data;
+    },
+    enabled: debouncedPickupQuery.length >= 3,
+    staleTime: 60000,
+  });
+
+  const { data: dropoffSuggestions = [], isFetching: isSearchingDropoff } = useQuery({
+    queryKey: ["nominatimDropoff", debouncedDropoffQuery],
+    queryFn: async () => {
+      if (!debouncedDropoffQuery || debouncedDropoffQuery.length < 3) return [];
+      const res = await api.get('/locations/search/', { params: { query: debouncedDropoffQuery, state: 'Lagos' } });
+      return res.data;
+    },
+    enabled: debouncedDropoffQuery.length >= 3,
+    staleTime: 60000,
+  });
 
   const handleChange = (e) => {
     setFormData({
@@ -44,32 +90,50 @@ const ShopaDeliveryPage = () => {
     setFeeData(null);
     setPaymentStep(false);
   };
+  
+  const handleSelectPickup = (item) => {
+    setFormData(prev => ({
+        ...prev, 
+        pickupLocationText: item.display_name,
+        pickupLat: item.lat,
+        pickupLon: item.lon
+    }));
+    setPickupQuery(item.display_name);
+    setShowPickupSuggestions(false);
+    setFeeData(null);
+    setPaymentStep(false);
+  };
+
+  const handleSelectDropoff = (item) => {
+    setFormData(prev => ({
+        ...prev, 
+        dropoffLocationText: item.display_name,
+        dropoffLat: item.lat,
+        dropoffLon: item.lon
+    }));
+    setDropoffQuery(item.display_name);
+    setShowDropoffSuggestions(false);
+    setFeeData(null);
+    setPaymentStep(false);
+  };
 
   const handleCalculateFee = async () => {
-    if (!formData.pickupLocation || !formData.dropoffLocation) {
-        toast.error("Please select pickup and dropoff locations");
+    if (!formData.pickupLat || !formData.dropoffLat) {
+        toast.error("Please select valid pickup and dropoff locations from the search suggestions");
         return;
     }
-    if (formData.pickupLocation === formData.dropoffLocation) {
+    if (formData.pickupLat === formData.dropoffLat && formData.pickupLon === formData.dropoffLon) {
         toast.error("Pickup and dropoff locations cannot be the same");
-        return;
-    }
-    
-    const pickupAddr = addresses?.find(a => a.id.toString() === formData.pickupLocation);
-    const dropoffAddr = addresses?.find(a => a.id.toString() === formData.dropoffLocation);
-    
-    if (!pickupAddr?.latitude || !dropoffAddr?.latitude) {
-        toast.error("Selected addresses must have GPS coordinates. Please add a new address.");
         return;
     }
     
     setIsCalculating(true);
     try {
         const payload = {
-            pickup_lat: pickupAddr.latitude,
-            pickup_lon: pickupAddr.longitude,
-            dropoff_lat: dropoffAddr.latitude,
-            dropoff_lon: dropoffAddr.longitude
+            pickup_lat: formData.pickupLat,
+            pickup_lon: formData.pickupLon,
+            dropoff_lat: formData.dropoffLat,
+            dropoff_lon: formData.dropoffLon
         };
         const result = await shopaCalculateFee(payload);
         setFeeData(result);
@@ -87,25 +151,26 @@ const ShopaDeliveryPage = () => {
         toast.error("Please fill in recipient details.");
         return;
     }
+    if (!formData.pickupLat || !formData.dropoffLat) {
+        toast.error("Missing location coordinates.");
+        return;
+    }
     setIsSubmitting(true);
     try {
-        const pickupAddr = addresses?.find(a => a.id.toString() === formData.pickupLocation);
-        const dropoffAddr = addresses?.find(a => a.id.toString() === formData.dropoffLocation);
-        
         const payload = {
-            pickup_lat: pickupAddr.latitude,
-            pickup_lon: pickupAddr.longitude,
-            dropoff_lat: dropoffAddr.latitude,
-            dropoff_lon: dropoffAddr.longitude,
-            pickup_address_text: `${pickupAddr.street_address}, ${pickupAddr.city}`,
-            dropoff_address_text: `${dropoffAddr.street_address}, ${dropoffAddr.city}`,
+            pickup_lat: formData.pickupLat,
+            pickup_lon: formData.pickupLon,
+            dropoff_lat: formData.dropoffLat,
+            dropoff_lon: formData.dropoffLon,
+            pickup_address_text: formData.pickupLocationText,
+            dropoff_address_text: formData.dropoffLocationText,
             recipient_name: `${formData.firstName} ${formData.surname}`,
             recipient_phone: formData.phone,
             package_description: formData.packageDescription,
             special_instructions: formData.specialInstructions
         };
         
-        const res = await shopaCreateDelivery(payload);
+        await shopaCreateDelivery(payload);
         toast.success("Delivery created successfully!");
         // Future Integration: Trigger Paystack Inline here with res.id and res.fee_kobo
         // For now, redirect to a success or wallet page.
@@ -188,56 +253,96 @@ const ShopaDeliveryPage = () => {
                               
                               <div className="relative z-10">
                                   <label className="block text-xs font-bold text-gray-500 mb-1 ml-9 uppercase tracking-wider">Pickup Location</label>
-                                  <div className="flex gap-3 items-center">
+                                  <div className="flex gap-3 items-center relative">
                                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                                           <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                                       </div>
-                                      <div className="flex-1">
-                                          <select 
-                                            name="pickupLocation"
-                                            value={formData.pickupLocation}
-                                            onChange={handleChange}
+                                      <div className="flex-1 relative">
+                                          <input 
+                                            type="text"
+                                            value={pickupQuery}
+                                            onChange={(e) => {
+                                                setPickupQuery(e.target.value);
+                                                setShowPickupSuggestions(true);
+                                                setFormData(prev => ({ ...prev, pickupLat: null, pickupLon: null }));
+                                                setFeeData(null);
+                                                setPaymentStep(false);
+                                            }}
+                                            onFocus={() => setShowPickupSuggestions(true)}
+                                            placeholder="Enter pickup address in Lagos..."
                                             className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none"
-                                          >
-                                              <option value="">Select pickup address...</option>
-                                              {addresses?.map(addr => (
-                                                  <option key={addr.id} value={addr.id}>{addr.street_address}, {addr.city}</option>
-                                              ))}
-                                          </select>
+                                          />
+                                          {showPickupSuggestions && pickupQuery.length >= 3 && (
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto z-50">
+                                                  {isSearchingPickup ? (
+                                                      <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+                                                          <Loader2 className="w-4 h-4 animate-spin" /> Searching...
+                                                      </div>
+                                                  ) : pickupSuggestions.length > 0 ? (
+                                                      pickupSuggestions.map((item, idx) => (
+                                                          <button
+                                                            key={idx}
+                                                            onClick={() => handleSelectPickup(item)}
+                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 border-b border-gray-50 last:border-0 transition-colors truncate"
+                                                          >
+                                                              {item.display_name}
+                                                          </button>
+                                                      ))
+                                                  ) : (
+                                                      <div className="p-4 text-center text-sm text-gray-500">No locations found</div>
+                                                  )}
+                                              </div>
+                                          )}
                                       </div>
                                   </div>
                               </div>
 
                               <div className="relative z-10">
                                   <label className="block text-xs font-bold text-gray-500 mb-1 ml-9 uppercase tracking-wider">Dropoff Location</label>
-                                  <div className="flex gap-3 items-center">
+                                  <div className="flex gap-3 items-center relative">
                                       <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                                           <MapPin className="w-4 h-4 text-red-500" />
                                       </div>
-                                      <div className="flex-1">
-                                          <select 
-                                            name="dropoffLocation"
-                                            value={formData.dropoffLocation}
-                                            onChange={handleChange}
+                                      <div className="flex-1 relative">
+                                          <input 
+                                            type="text"
+                                            value={dropoffQuery}
+                                            onChange={(e) => {
+                                                setDropoffQuery(e.target.value);
+                                                setShowDropoffSuggestions(true);
+                                                setFormData(prev => ({ ...prev, dropoffLat: null, dropoffLon: null }));
+                                                setFeeData(null);
+                                                setPaymentStep(false);
+                                            }}
+                                            onFocus={() => setShowDropoffSuggestions(true)}
+                                            placeholder="Enter dropoff address in Lagos..."
                                             className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none"
-                                          >
-                                              <option value="">Select dropoff address...</option>
-                                              {addresses?.map(addr => (
-                                                  <option key={addr.id} value={addr.id}>{addr.street_address}, {addr.city}</option>
-                                              ))}
-                                          </select>
+                                          />
+                                          {showDropoffSuggestions && dropoffQuery.length >= 3 && (
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto z-50">
+                                                  {isSearchingDropoff ? (
+                                                      <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+                                                          <Loader2 className="w-4 h-4 animate-spin" /> Searching...
+                                                      </div>
+                                                  ) : dropoffSuggestions.length > 0 ? (
+                                                      dropoffSuggestions.map((item, idx) => (
+                                                          <button
+                                                            key={idx}
+                                                            onClick={() => handleSelectDropoff(item)}
+                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 border-b border-gray-50 last:border-0 transition-colors truncate"
+                                                          >
+                                                              {item.display_name}
+                                                          </button>
+                                                      ))
+                                                  ) : (
+                                                      <div className="p-4 text-center text-sm text-gray-500">No locations found</div>
+                                                  )}
+                                              </div>
+                                          )}
                                       </div>
                                   </div>
                               </div>
                           </div>
-
-                          <button 
-                            onClick={() => navigate('/add-address')}
-                            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-lily font-bold flex items-center justify-center gap-2 hover:bg-lily/5 transition-colors"
-                          >
-                              <Plus className="w-5 h-5" />
-                              Add New Address
-                          </button>
 
                           {!paymentStep ? (
                               <button
