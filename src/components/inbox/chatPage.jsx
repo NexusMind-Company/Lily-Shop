@@ -542,7 +542,8 @@ export const SharedContentCard = ({ content, isMine }) => {
           </span>
         </div>
         <Link
-          to={`/product/${content.id}`}
+          to="/feed"
+          state={{ targetPostId: content.id }}
           className="block w-full bg-white text-lily text-center py-2 rounded-xl text-xs font-bold border border-pink-200 hover:bg-pink-50 transition-colors"
         >
           View Post

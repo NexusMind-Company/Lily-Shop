@@ -6,13 +6,14 @@ import toast from "react-hot-toast";
 import BottomNav from "./bottomNav";
 import { MessageListSkeleton } from "../common/skeletons";
 import { fetchConversations, searchGlobalMessages } from "../../redux/messageConversationSlice";
-import { shareProductToChat, sendMessage } from "../../services/api";
+import { shareProductToChat, sendMessage, incrementProductShare, incrementContentShare } from "../../services/api";
 
 function MessagesList() {
   const [activePage, setActivePage] = useState("inbox");
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isSending, setIsSending] = useState(false);
+  const [customMessage, setCustomMessage] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -91,6 +92,29 @@ function MessagesList() {
       });
 
       await Promise.all(sharePromises);
+      
+      // Send custom message if provided
+      if (customMessage.trim()) {
+        const customMessagePromises = selectedUsers.map(async (userId) => {
+          return sendMessage({
+            recipientId: userId,
+            content: customMessage.trim(),
+          });
+        });
+        await Promise.all(customMessagePromises);
+      }
+
+      // Increment share count
+      try {
+        if (isProductShare) {
+          await incrementProductShare(shareData.id);
+        } else {
+          await incrementContentShare(shareData.id);
+        }
+      } catch (e) {
+        console.error("Failed to increment share count", e);
+      }
+
       toast.success(`Shared with ${selectedUsers.length} people`);
       navigate(-1);
     } catch (err) {
@@ -403,7 +427,21 @@ function MessagesList() {
       </div>
 
       {isShareMode && selectedUsers.length > 0 && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full px-8 z-50">
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full px-8 z-50 flex flex-col gap-3">
+          <div className="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-3">
+            <img 
+              src={shareData.media_url || shareData.image_url || shareData.media?.[0]?.file || "/lily-logo.jpg"} 
+              alt="Preview" 
+              className="w-12 h-12 rounded-xl object-cover" 
+            />
+            <input 
+              type="text" 
+              placeholder="Add a message (optional)..." 
+              className="flex-1 bg-transparent outline-none text-sm"
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+            />
+          </div>
           <button
             onClick={handleShare}
             disabled={isSending}

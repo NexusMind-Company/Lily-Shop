@@ -254,7 +254,7 @@ const OrderDetailPage = () => {
           <div className="lg:col-span-2 space-y-6">
 
             {/* "My Item Has Been Delivered" Confirmation Card */}
-            {order.status === 'delivered' && (
+            {(order.status === 'delivered' || order.status === 'out_for_delivery') && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -268,7 +268,7 @@ const OrderDetailPage = () => {
                 </div>
                 <div className="p-6">
                   <p className="text-gray-600 mb-4">
-                    The seller has marked your order as delivered. If you have received and inspected your items, 
+                    {order.status === 'delivered' ? 'The seller has marked your order as delivered.' : 'Your order is out for delivery.'} If you have received and inspected your items, 
                     please confirm below to release payment to the seller.
                   </p>
                   
@@ -305,28 +305,6 @@ const OrderDetailPage = () => {
                     If there's an issue, <span className="text-red-600 font-medium cursor-pointer" onClick={() => setIsDisputeModalOpen(true)}>open a dispute</span> instead.
                   </p>
                 </div>
-              </motion.div>
-            )}
-
-            {/* Confirm Delivery Section */}
-            {order?.status !== 'delivered' && order?.status !== 'cancelled' && order?.status !== 'refunded' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-lily/20 p-6 mt-4 flex flex-col items-center justify-center gap-4 text-center"
-              >
-                <h3 className="text-lg font-bold text-gray-800">Have you received your order?</h3>
-                <p className="text-sm text-gray-600">
-                  Confirm receipt to release the funds to the seller. Only do this if you are satisfied with the delivery.
-                </p>
-                <button
-                  onClick={handleConfirmReceipt}
-                  disabled={isConfirming}
-                  className="w-full sm:w-auto px-8 py-3 bg-lily text-white font-bold rounded-xl hover:bg-lily/90 transition-colors shadow-lg shadow-lily/20 flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {isConfirming && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
-                  Confirm Delivery
-                </button>
               </motion.div>
             )}
 

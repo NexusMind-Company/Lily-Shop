@@ -101,13 +101,13 @@ const AddAddressPage = () => {
       const res = await api.get(`/locations/search/`, {
         params: {
           query: debouncedQuery,
-          lga: formData.lgaName,
+          lga: formData.lgaName || "",
           state: formData.stateName,
         },
       });
       return res.data;
     },
-    enabled: debouncedQuery.length >= 3 && !!formData.stateName && !!formData.lgaName,
+    enabled: debouncedQuery.length >= 3 && !!formData.stateName,
     staleTime: 60000,
   });
 
@@ -148,11 +148,28 @@ const AddAddressPage = () => {
   };
 
   const handleSuggestionClick = (suggestion) => {
+    let matchedLga = null;
+    if (suggestion.address) {
+      const address = suggestion.address;
+      const possibleLgas = [address.county, address.state_district, address.city_district, address.suburb, address.town, address.city];
+      for (const possible of possibleLgas) {
+        if (!possible) continue;
+        const cleanPossible = possible.toLowerCase().replace(/local government area|lga/g, '').trim();
+        matchedLga = lgas.find(l => {
+           const cleanLga = l.name.toLowerCase().replace(/local government area|lga/g, '').trim();
+           return cleanLga === cleanPossible || cleanLga.includes(cleanPossible) || cleanPossible.includes(cleanLga);
+        });
+        if (matchedLga) break;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       address: suggestion.display_name,
       lat: parseFloat(suggestion.lat),
       lon: parseFloat(suggestion.lon),
+      lgaId: matchedLga ? matchedLga.id.toString() : prev.lgaId,
+      lgaName: matchedLga ? matchedLga.name : prev.lgaName,
     }));
 
     setSearchQuery(suggestion.display_name);
@@ -389,28 +406,40 @@ const AddAddressPage = () => {
               </div>
             </div>
 
-            {/* CITY (Optional) */}
-            <div className="space-y-1.5">
+            {/* CITY SELECTION (HYBRID) */}
+            <div className="space-y-1.5 relative z-30">
               <label className="text-sm font-medium text-gray-700">City / Town (Optional)</label>
               <div className="relative">
                 {cities.length > 0 ? (
-                  <select
-                    value={formData.cityId}
-                    onChange={handleCityChange}
-                    disabled={!formData.lgaId}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select City</option>
-                    {cities.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex flex-col gap-2">
+                    <select
+                      value={formData.cityId}
+                      onChange={handleCityChange}
+                      disabled={!formData.lgaId}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select City</option>
+                      <option value="other">Other (Type manually)</option>
+                      {cities.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {formData.cityId === "other" && (
+                      <input
+                        type="text"
+                        placeholder="Enter your custom city/town"
+                        value={formData.cityName || ""}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value }))}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all animate-in fade-in slide-in-from-top-2"
+                      />
+                    )}
+                  </div>
                 ) : (
                   <input
                     type="text"
                     placeholder="Enter your city/town (Optional)"
                     value={formData.cityName || ""}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value, cityId: "" }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value, cityId: "other" }))}
                     disabled={!formData.lgaId}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
@@ -420,7 +449,7 @@ const AddAddressPage = () => {
             </div>
             
             {/* STREET SEARCH */}
-            <div className="space-y-1.5 relative" ref={searchRef}>
+            <div className="space-y-1.5 relative z-40" ref={searchRef}>
               <label htmlFor="searchQuery" className="text-sm font-medium text-gray-700">
                 Street Address Search*
               </label>
@@ -440,8 +469,8 @@ const AddAddressPage = () => {
                   onFocus={() => {
                     if (searchQuery.length >= 3) setShowSuggestions(true);
                   }}
-                  disabled={!formData.lgaId}
-                  placeholder={formData.lgaId ? "Search your street name..." : "Select State and LGA first"}
+                  disabled={!formData.stateId}
+                  placeholder={formData.stateId ? "Search your street name..." : "Select State first"}
                   className={`w-full bg-gray-50 border ${fieldErrors.address ? "border-red-300" : "border-gray-200"} rounded-xl pl-11 pr-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
                   autoComplete="off"
                 />
