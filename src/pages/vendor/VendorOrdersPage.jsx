@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,6 +20,7 @@ import {
   updateOrderStatus,
   confirmDelivery
 } from "../../services/vendorDashboardApi";
+import { stopInstantOrderAudio } from "../../hooks/usePushNotifications";
 
 const STATUS_COLORS = {
   paid: "bg-green-100 text-green-700 border-green-200",
@@ -149,6 +150,10 @@ const VendorOrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
 
+  useEffect(() => {
+    stopInstantOrderAudio();
+  }, []);
+
   const {
     data: ordersData,
     isLoading: ordersLoading,
@@ -163,7 +168,10 @@ const VendorOrdersPage = () => {
 
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ orderId, status }) => updateOrderStatus(orderId, status),
-    onMutate: ({ orderId }) => setUpdatingId(orderId),
+    onMutate: ({ orderId }) => {
+      setUpdatingId(orderId);
+      stopInstantOrderAudio();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
       toast.success("Order status updated!");

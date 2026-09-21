@@ -4,6 +4,16 @@ import { messaging } from '../firebase';
 import { registerDeviceToken } from '../services/api';
 import toast from 'react-hot-toast'; // Assuming react-hot-toast is used, otherwise replace with your toast
 
+let currentInstantAudio = null;
+
+export const stopInstantOrderAudio = () => {
+  if (currentInstantAudio) {
+    currentInstantAudio.pause();
+    currentInstantAudio.currentTime = 0;
+    currentInstantAudio = null;
+  }
+};
+
 export const usePushNotifications = (isAuthenticated) => {
   const [token, setToken] = useState(null);
 
@@ -57,13 +67,17 @@ export const usePushNotifications = (isAuthenticated) => {
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
       
+      const isCasual = payload.data?.type === 'casual';
       const isInstantOrder = payload.data?.type === 'instant_order';
 
       if (isInstantOrder) {
         // Play a continuous rigorous ringtone for instant orders
-        const audio = new Audio('/sounds/ringtone.wav'); // We'll assume this exists or use a default one
-        audio.loop = true;
-        audio.play().catch(e => console.error("Audio playback failed:", e));
+        if (currentInstantAudio) {
+          currentInstantAudio.pause();
+        }
+        currentInstantAudio = new Audio('/sounds/no-problem-notification-sound.mp3');
+        currentInstantAudio.loop = true;
+        currentInstantAudio.play().catch(e => console.error("Audio playback failed:", e));
 
         // Use a custom toast that allows the user to stop the ringing and view the order
         toast(
@@ -76,9 +90,9 @@ export const usePushNotifications = (isAuthenticated) => {
                 <button
                   className="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold"
                   onClick={() => {
-                    audio.pause();
+                    stopInstantOrderAudio();
                     toast.dismiss(t.id);
-                    window.location.href = "/live-kitchen";
+                    window.location.href = "/vendor/dashboard/orders";
                   }}
                 >
                   View Order
@@ -86,7 +100,7 @@ export const usePushNotifications = (isAuthenticated) => {
                 <button
                   className="bg-gray-200 text-black px-3 py-1 rounded text-sm"
                   onClick={() => {
-                    audio.pause();
+                    stopInstantOrderAudio();
                     toast.dismiss(t.id);
                   }}
                 >
@@ -102,6 +116,11 @@ export const usePushNotifications = (isAuthenticated) => {
           }
         );
       } else {
+        if (isCasual) {
+          const casualAudio = new Audio('/sounds/light-hearted-message-tone.mp3');
+          casualAudio.play().catch(e => console.error("Audio playback failed:", e));
+        }
+
         toast(
           <div>
             <strong>{title}</strong>
