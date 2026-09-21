@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { ArrowLeft, Send, Package, ShoppingBag, Bike, MapPin, Phone, Loader2, CheckCircle, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -39,6 +39,9 @@ export default function ShopaDeliveryPage() {
   const [formData, setFormData] = useState({
     senderName: user_data ? `${user_data.firstName || ''} ${user_data.surname || ''}`.trim() : '',
     senderPhone: user_data?.phone || '',
+    firstName: '',
+    surname: '',
+    phone: '',
     recipientName: '',
     recipientPhone: '',
     pickupLat: null,
