@@ -56,19 +56,65 @@ export const usePushNotifications = (isAuthenticated) => {
       // Extract title and body, safely handling different payload structures
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
+      
+      const isInstantOrder = payload.data?.type === 'instant_order';
 
-      toast(
-        <div>
-          <strong>{title}</strong>
-          <br />
-          {body}
-        </div>,
-        {
-          duration: 6000,
-          position: 'top-right',
-          icon: '🔔',
-        }
-      );
+      if (isInstantOrder) {
+        // Play a continuous rigorous ringtone for instant orders
+        const audio = new Audio('/sounds/ringtone.wav'); // We'll assume this exists or use a default one
+        audio.loop = true;
+        audio.play().catch(e => console.error("Audio playback failed:", e));
+
+        // Use a custom toast that allows the user to stop the ringing and view the order
+        toast(
+          (t) => (
+            <div>
+              <strong>{title}</strong>
+              <br />
+              {body}
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold"
+                  onClick={() => {
+                    audio.pause();
+                    toast.dismiss(t.id);
+                    window.location.href = "/live-kitchen";
+                  }}
+                >
+                  View Order
+                </button>
+                <button
+                  className="bg-gray-200 text-black px-3 py-1 rounded text-sm"
+                  onClick={() => {
+                    audio.pause();
+                    toast.dismiss(t.id);
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ),
+          {
+            duration: 30000, // Keep it open for 30 seconds
+            position: 'top-center',
+            icon: '🚨',
+          }
+        );
+      } else {
+        toast(
+          <div>
+            <strong>{title}</strong>
+            <br />
+            {body}
+          </div>,
+          {
+            duration: 6000,
+            position: 'top-right',
+            icon: '🔔',
+          }
+        );
+      }
     });
 
     return () => {

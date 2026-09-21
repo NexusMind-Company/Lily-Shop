@@ -21,9 +21,40 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || '',
     icon: '/logo.png', // Fallback icon, ensure you have a logo.png in public/
+    data: payload.data || {},
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  let targetUrl = '/';
+
+  if (data.type === 'instant_order' && data.order_id) {
+    // Determine vendor order view vs regular user view. Assuming it's for vendor:
+    targetUrl = `/live-kitchen`; 
+  } else if (data.url) {
+    targetUrl = data.url;
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Check if there is already a window/tab open with the target URL
+      for (let i = 0; i < windowClients.length; i++) {
+        let client = windowClients[i];
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no window is open or it's not the exact URL, open a new window or focus the first and navigate
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
 
 // Basic Service Worker for PWA

@@ -138,8 +138,14 @@ const MediaCarousel = forwardRef(function MediaCarousel(
     }
   }, [isActive, isFeedCarousel]);
 
+  // Check if any media is a video to determine aspect ratio
+  const hasVideo = media.some(item => item.type === "video");
+  // For images, we use a 4:5 aspect ratio max-height/width constraint
+  // For videos, we want it to be full height (9:16)
+  const defaultContainerClass = hasVideo ? "w-full h-full" : "w-full aspect-[4/5] max-h-full";
+  
   const finalContainerClass = `relative group ${
-    containerClassName || "w-full h-full"
+    containerClassName || defaultContainerClass
   }`;
 
   return (
@@ -167,7 +173,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
         className="w-full h-full"
       >
         {media.map((item, index) => (
-          <SwiperSlide key={index} className="bg-black">
+          <SwiperSlide key={index} className="bg-black flex items-center justify-center">
             {item.type === "video" ? (
               <CarouselVideoPlayer
                 src={item.src}
@@ -180,7 +186,7 @@ const MediaCarousel = forwardRef(function MediaCarousel(
               <img
                 src={item.src}
                 alt={`Slide ${index + 1}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
           </SwiperSlide>
@@ -188,14 +194,14 @@ const MediaCarousel = forwardRef(function MediaCarousel(
       </Swiper>
 
       {media.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full backdrop-blur-sm">
           {media.map((_, index) => (
             <div
               key={index}
               className={`transition-all duration-300 rounded-full ${
                 index === activeIndex
-                  ? "w-3 h-3 bg-white"
-                  : "w-2 h-2 bg-white/50"
+                  ? "w-2 h-2 bg-white"
+                  : "w-1.5 h-1.5 bg-white/50"
               }`}
             />
           ))}

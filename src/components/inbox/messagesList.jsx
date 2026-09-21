@@ -71,16 +71,15 @@ function MessagesList() {
           return shareProductToChat(shareData.id, userId);
         } else {
           // For content, we send a structured message that the chat page can parse
-          // We'll use a specific prefix to identify it as a shared content card
+          const extractedMedia = shareData.all_media_urls?.[0] || shareData.media_url || shareData.media?.[0]?.file || shareData.image_url;
+          const isVideoExt = typeof extractedMedia === "string" && !!extractedMedia.match(/\.(mp4|mov|webm)$/i);
+          
           const contentPayload = {
             type: "shared_content",
             id: shareData.id,
             caption: shareData.caption || "",
-            media:
-              shareData.media_url ||
-              shareData.media?.[0]?.file ||
-              shareData.image_url,
-            is_video: shareData.is_video || !!shareData.video_url,
+            media: extractedMedia,
+            is_video: shareData.is_video || !!shareData.video_url || isVideoExt,
             likes: shareData.like_count || 0,
             views: shareData.view_count || 0,
           };

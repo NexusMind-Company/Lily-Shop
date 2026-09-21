@@ -458,7 +458,6 @@ const FeedItem = ({ post, onVideoInit, isActive }) => {
             ref={mediaRef}
             media={mediaArray}
             isFeedCarousel={true}
-            containerClassName="media-box"
             onDoubleClick={handleDoubleTap}
             isActive={isActive}
           />
