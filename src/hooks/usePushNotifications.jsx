@@ -4,6 +4,16 @@ import { messaging } from '../firebase';
 import { registerDeviceToken } from '../services/api';
 import toast from 'react-hot-toast'; // Assuming react-hot-toast is used, otherwise replace with your toast
 
+let currentInstantAudio = null;
+
+export const stopInstantOrderAudio = () => {
+  if (currentInstantAudio) {
+    currentInstantAudio.pause();
+    currentInstantAudio.currentTime = 0;
+    currentInstantAudio = null;
+  }
+};
+
 export const usePushNotifications = (isAuthenticated) => {
   const [token, setToken] = useState(null);
 
@@ -56,19 +66,74 @@ export const usePushNotifications = (isAuthenticated) => {
       // Extract title and body, safely handling different payload structures
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
+      
+      const isCasual = payload.data?.type === 'casual';
+      const isInstantOrder = payload.data?.type === 'instant_order';
 
-      toast(
-        <div>
-          <strong>{title}</strong>
-          <br />
-          {body}
-        </div>,
-        {
-          duration: 6000,
-          position: 'top-right',
-          icon: '🔔',
+      if (isInstantOrder) {
+        // Play a continuous rigorous ringtone for instant orders
+        if (currentInstantAudio) {
+          currentInstantAudio.pause();
         }
-      );
+        currentInstantAudio = new Audio('/sounds/no-problem-notification-sound.mp3');
+        currentInstantAudio.loop = true;
+        currentInstantAudio.play().catch(e => console.error("Audio playback failed:", e));
+
+        // Use a custom toast that allows the user to stop the ringing and view the order
+        toast(
+          (t) => (
+            <div>
+              <strong>{title}</strong>
+              <br />
+              {body}
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold"
+                  onClick={() => {
+                    stopInstantOrderAudio();
+                    toast.dismiss(t.id);
+                    window.location.href = "/vendor/dashboard/orders";
+                  }}
+                >
+                  View Order
+                </button>
+                <button
+                  className="bg-gray-200 text-black px-3 py-1 rounded text-sm"
+                  onClick={() => {
+                    stopInstantOrderAudio();
+                    toast.dismiss(t.id);
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ),
+          {
+            duration: 30000, // Keep it open for 30 seconds
+            position: 'top-center',
+            icon: '🚨',
+          }
+        );
+      } else {
+        if (isCasual) {
+          const casualAudio = new Audio('/sounds/light-hearted-message-tone.mp3');
+          casualAudio.play().catch(e => console.error("Audio playback failed:", e));
+        }
+
+        toast(
+          <div>
+            <strong>{title}</strong>
+            <br />
+            {body}
+          </div>,
+          {
+            duration: 6000,
+            position: 'top-right',
+            icon: '🔔',
+          }
+        );
+      }
     });
 
     return () => {

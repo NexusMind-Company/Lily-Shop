@@ -511,14 +511,26 @@ export const SharedContentCard = ({ content, isMine }) => {
     <div
       className={`flex flex-col rounded-2xl overflow-hidden max-w-[280px] shadow-lg ${isMine ? "bg-pink-50" : "bg-pink-100"}`}
     >
-      <div className="relative aspect-square w-full group">
-        <img
-          src={content.media || "/lily-logo.jpg"}
-          alt="Shared content"
-          className="w-full h-full object-cover"
-        />
+      <div className="relative aspect-square w-full group bg-black">
+        {content.is_video ? (
+          <video
+            src={content.media}
+            className="w-full h-full object-cover"
+            preload="metadata"
+            muted
+            playsInline
+            autoPlay
+            loop
+          />
+        ) : (
+          <img
+            src={content.media || "/lily-logo.jpg"}
+            alt="Shared content"
+            className="w-full h-full object-cover"
+          />
+        )}
         {content.is_video && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors pointer-events-none">
             <div className="w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50">
               <Play className="w-6 h-6 text-white fill-white ml-1" />
             </div>
