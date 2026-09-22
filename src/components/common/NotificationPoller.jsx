@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNotifications } from "../../redux/notificationSlice";
 import { fetchConversations } from "../../redux/messageConversationSlice";
+import { queryClient } from "../../queryClient";
 import toast from "react-hot-toast";
 import { Bell, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +21,7 @@ export default function NotificationPoller() {
 
   useEffect(() => {
     if (!alarmAudio.current) {
-      alarmAudio.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+      alarmAudio.current = new Audio("/sounds/no-problem-notification-sound.mp3");
       alarmAudio.current.loop = true;
     }
   }, []);
@@ -38,6 +39,7 @@ export default function NotificationPoller() {
               seenNotificationIds.current.add(notif.id);
               
               if (notif.type === 'INSTANT_ORDER') {
+                queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
                 setInstantOrders((prev) => [...prev, notif]);
                 // Try to play alarm
                 if (alarmAudio.current) {
