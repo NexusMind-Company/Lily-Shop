@@ -199,6 +199,8 @@ export const updateProfile = async (profileData) => {
   const formData = new FormData();
 
   if (profileData.name) formData.append("name", profileData.name);
+  if (profileData.first_name) formData.append("first_name", profileData.first_name);
+  if (profileData.last_name) formData.append("last_name", profileData.last_name);
   if (profileData.bio) formData.append("bio", profileData.bio);
   if (profileData.phone_number)
     formData.append("phone_number", profileData.phone_number);
@@ -2088,27 +2090,27 @@ export const shopaCalculateFee = async (payload) => {
 };
 
 export const shopaCreateDelivery = async (payload) => {
-  const response = await api.post("/delivery/shopa/create/", payload);
+  const response = await api.post("/orders/shopa/create/", payload);
   return response.data;
 };
 
 export const shopaVerifyPayment = async (deliveryId, reference) => {
-  const response = await api.post(`/delivery/shopa/${deliveryId}/verify-payment/`, { reference });
+  const response = await api.post(`/orders/shopa/${deliveryId}/verify-payment/`, { reference });
   return response.data;
 };
 
 export const shopaMyDeliveries = async (params = {}) => {
-  const response = await api.get("/delivery/shopa/my-deliveries/", { params });
+  const response = await api.get("/orders/shopa/my-deliveries/", { params });
   return response.data;
 };
 
 export const shopaGetConfig = async () => {
-  const response = await api.get("/delivery/shopa/config/");
+  const response = await api.get("/orders/shopa/config/");
   return response.data;
 };
 
 export const shopaUpdateConfig = async (payload) => {
-  const response = await api.patch("/delivery/shopa/config/", payload);
+  const response = await api.patch("/orders/shopa/config/", payload);
   return response.data;
 };
 

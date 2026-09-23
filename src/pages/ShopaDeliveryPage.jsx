@@ -142,6 +142,7 @@ export default function ShopaDeliveryPage() {
     setIsCalculating(true);
     try {
         const payload = {
+            delivery_type: "parcel",
             pickup_lat: formData.pickupLat,
             pickup_lon: formData.pickupLon,
             dropoff_lat: formData.dropoffLat,
@@ -170,6 +171,7 @@ export default function ShopaDeliveryPage() {
     setIsSubmitting(true);
     try {
         const payload = {
+            delivery_type: "parcel",
             pickup_lat: formData.pickupLat,
             pickup_lon: formData.pickupLon,
             dropoff_lat: formData.dropoffLat,
