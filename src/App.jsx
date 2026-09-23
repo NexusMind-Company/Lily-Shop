@@ -79,6 +79,7 @@ const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const FoodOrderCheckoutPage = lazy(() => import("./pages/FoodOrderCheckoutPage"));
 const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
 const AdsOrderSuccessPage = lazy(() => import("./pages/AdsOrderSuccessPage"));
+const CouponRewardsPage = lazy(() => import("./pages/CouponRewardsPage"));
 
 /* SUBSCRIPTIONS */
 const VendorSubscriptionPage = lazy(
@@ -348,6 +349,7 @@ function App() {
                 <Route path="/following/:id" element={<FollowingPage />} />
                 <Route path="/verify" element={<VerificationPage />} />
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="/coupon-rewards" element={<CouponRewardsPage />} />
                 <Route path="/editProfile" element={<EditProfile />} />
 
                 {/* Inbox & Social */}
