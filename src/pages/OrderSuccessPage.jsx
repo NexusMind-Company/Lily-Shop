@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
@@ -85,6 +85,7 @@ const OrderSuccessPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { resetPaymentData } = usePayment();
+  const [showCouponModal, setShowCouponModal] = useState(false);
 
   const state = location.state || {};
   const order = state.order || null;
@@ -93,6 +94,10 @@ const OrderSuccessPage = () => {
   const total = state.total || order?.total_amount || order?.total || 0;
   const paymentMethod = state.paymentMethod || order?.payment_method || "Wallet";
   const isFood = state.isFood || false;
+
+  useEffect(() => {
+    if (isFood) setShowCouponModal(true);
+  }, [isFood]);
 
   // Clean up cart & payment state
   useEffect(() => {
@@ -199,6 +204,56 @@ const OrderSuccessPage = () => {
 
       <div className="flex flex-col min-h-screen w-full max-w-xl mx-auto bg-gray-50">
         <Confetti />
+
+        {showCouponModal && isFood && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/70 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="coupon-reward-title"
+          >
+            <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <button
+                type="button"
+                onClick={() => setShowCouponModal(false)}
+                aria-label="Close coupon reward popup"
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
+              >
+                <span className="text-2xl leading-none">&times;</span>
+              </button>
+
+              <div className="bg-gradient-to-br from-green-600 to-green-800 px-6 pb-8 pt-10 text-center text-white sm:px-8">
+                <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white/15 text-4xl shadow-inner">
+                  <Gift size={40} />
+                </div>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-green-100">You may have won</p>
+                <h2 id="coupon-reward-title" className="mt-2 text-3xl font-extrabold tracking-tight">
+                  Food Order Reward
+                </h2>
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-green-50">
+                  Your qualifying food order may have generated a unique coupon. Verify it now for your chance to win.
+                </p>
+              </div>
+
+              <div className="space-y-3 p-6 sm:p-8">
+                <button
+                  type="button"
+                  onClick={() => navigate("/coupon-rewards", { state: { couponCode: state.couponCode || state.coupon?.code } })}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-green-600 text-base font-extrabold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 active:scale-[0.98]"
+                >
+                  <Gift size={21} /> Verify My Coupon
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCouponModal(false)}
+                  className="h-12 w-full rounded-xl text-sm font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                >
+                  I&apos;ll do this later
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1 flex flex-col items-center p-4 sm:p-6 pt-10 relative z-20">
           <motion.div

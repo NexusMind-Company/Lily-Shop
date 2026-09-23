@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Gift, Loader2, ShieldAlert, Ticket } from "lucide-react";
 import { api } from "../services/api";
@@ -11,6 +11,24 @@ const CouponRewardsPage = () => {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [reward, setReward] = useState(null);
+  const [coupons, setCoupons] = useState([]);
+  const [couponsLoading, setCouponsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCoupons = async () => {
+      try {
+        const response = await api.get("/coupons/mine/");
+        const results = response.data?.results || response.data || [];
+        setCoupons(Array.isArray(results) ? results : []);
+      } catch {
+        setCoupons([]);
+      } finally {
+        setCouponsLoading(false);
+      }
+    };
+
+    loadCoupons();
+  }, []);
 
   const handleVerify = async (event) => {
     event.preventDefault();
@@ -134,6 +152,48 @@ const CouponRewardsPage = () => {
                 </p>
               )}
             </form>
+
+            <section className="border-t border-gray-100 px-6 py-6 sm:px-8">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <h2 className="font-bold text-gray-900">My coupons</h2>
+                <span className="text-xs text-gray-500">{coupons.length} total</span>
+              </div>
+
+              {couponsLoading ? (
+                <p className="text-sm text-gray-500">Loading your coupons...</p>
+              ) : coupons.length === 0 ? (
+                <p className="text-sm leading-6 text-gray-500">
+                  Qualifying food-order coupons will appear here.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {coupons.map((coupon) => (
+                    <button
+                      type="button"
+                      key={coupon.id}
+                      onClick={() => setCode(coupon.code)}
+                      className="flex w-full items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-green-300 hover:bg-green-50"
+                    >
+                      <span>
+                        <span className="block font-bold tracking-[0.12em] text-gray-900">{coupon.code}</span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          Order: {coupon.food_order}
+                        </span>
+                      </span>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                          coupon.is_redeemed
+                            ? "bg-gray-200 text-gray-600"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {coupon.is_redeemed ? "Redeemed" : "Available"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
         </div>
       </main>
