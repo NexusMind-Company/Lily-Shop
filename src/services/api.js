@@ -589,7 +589,7 @@ export const checkPaymentStatus = async (orderId) => {
 };
 
 export const verifyPaymentPassword = async (password) => {
-  const response = await api.post("/user/verify-password", { password });
+  const response = await api.post("/auth/verify-password/", { password });
   return response.data;
 };
 
@@ -2019,7 +2019,7 @@ export const confirmFoodOrderReceipt = async (orderId) => {
 };
 
 export const updateShopOrderStatus = async (orderId, newStatus) => {
-  const response = await api.patch(`/orders/orders/${orderId}/update-status/`, {
+  const response = await api.patch(`/orders/${orderId}/update-status/`, {
     status: newStatus,
   });
   return response.data;
