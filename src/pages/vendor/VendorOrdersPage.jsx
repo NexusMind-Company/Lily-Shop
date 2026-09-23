@@ -7,6 +7,7 @@ import {
   MapPin,
   Clock,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import VendorLayout from "../../components/vendor/VendorLayout";
@@ -20,7 +21,7 @@ import {
   updateOrderStatus,
   confirmDelivery
 } from "../../services/vendorDashboardApi";
-import { stopInstantOrderAudio } from "../../hooks/usePushNotifications";
+import usePushNotifications, { stopInstantOrderAudio } from "../../hooks/usePushNotifications";
 
 const STATUS_COLORS = {
   paid: "bg-green-100 text-green-700 border-green-200",
@@ -150,6 +151,8 @@ const VendorOrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
 
+  const { notificationPermission, requestPushPermission } = usePushNotifications(true);
+
   useEffect(() => {
     stopInstantOrderAudio();
   }, []);
@@ -163,7 +166,8 @@ const VendorOrdersPage = () => {
   } = useQuery({
     queryKey: ["vendorOrders"],
     queryFn: () => fetchVendorOrders(),
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 5,
+    refetchInterval: 10000, // Auto-poll every 10 seconds for real-time updates
   });
 
   const { mutate: updateStatus } = useMutation({
@@ -205,6 +209,21 @@ const VendorOrdersPage = () => {
 
   return (
     <VendorLayout title="Live Orders" showBack onBack={() => navigate(-1)}>
+      {notificationPermission !== 'granted' && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-amber-800 font-medium">
+            <Bell size={16} className="text-amber-600 shrink-0" />
+            <span>Enable sound & push notifications to get instant incoming order alarms.</span>
+          </div>
+          <button
+            onClick={requestPushPermission}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shrink-0 transition-colors"
+          >
+            Enable
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-2 mb-4">
         {["active", "completed"].map((tab) => (
           <button
