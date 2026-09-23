@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   Home,
   Shield,
+  Gift,
   MapPin,
   CreditCard,
   ChefHat,
@@ -299,6 +300,30 @@ const OrderSuccessPage = () => {
                 )}
               </div>
             </motion.div>
+
+            {/* Next Steps Banner */}
+            {isFood && (
+              <motion.div
+                variants={itemVariants}
+                className="mb-6 w-full rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Gift className="mt-0.5 shrink-0 text-amber-600" size={22} />
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">Your order may include a reward coupon</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-600">
+                      Verify your unique coupon after it is generated to enter the reward draw.
+                    </p>
+                    <button
+                      onClick={() => navigate("/coupon-rewards", { state: { couponCode: state.couponCode || state.coupon?.code } })}
+                      className="mt-3 inline-flex items-center rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-white hover:bg-amber-600"
+                    >
+                      Verify Coupon
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Next Steps Banner */}
             <motion.div

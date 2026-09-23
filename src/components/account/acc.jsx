@@ -1,11 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { Key, Trash2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Key, Trash2, Gift, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Acc = () => {
   const navigate = useNavigate();
 
   const items = [
+    {
+      icon: <Gift size={30} />,
+      text: "Coupon rewards",
+      sub: "Verify a food order coupon",
+      to: "/coupon-rewards",
+    },
     {
       icon: <Key size={30} />,
       text: "Change password",
