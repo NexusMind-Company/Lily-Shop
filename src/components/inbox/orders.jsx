@@ -33,7 +33,7 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
       setLoadingDeliveries(true);
       try {
         const data = await shopaMyDeliveries();
-        setDeliveries(data);
+        setDeliveries(data.results || data);
       } catch (err) {
         console.error("Failed to load deliveries:", err);
       } finally {
