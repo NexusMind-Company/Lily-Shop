@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { ChevronLeft, Loader2, Save, Camera } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft, Loader2, Save, Camera, MapPin, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   updateFoodVendor,
@@ -27,6 +28,10 @@ const EditVendorProfilePage = () => {
     shop_name: "",
     description: "",
     address: "",
+    houseNumber: "",
+    landmark: "",
+    lat: null,
+    lon: null,
     category: "",
     contact_email: "",
     contact_phone: "",
@@ -38,6 +43,72 @@ const EditVendorProfilePage = () => {
   const [bannerImageFile, setBannerImageFile] = useState(null);
   const [bannerImagePreview, setBannerImagePreview] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const searchRef = useRef(null);
+  const suggestionContainerRef = useRef(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionContainerRef.current &&
+        !suggestionContainerRef.current.contains(event.target) &&
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Find LGA and State names
+  const selectedStateName = states.find((s) => s.id == form.state)?.name || "";
+  const selectedLgaName = lgas.find((l) => l.id == form.lga)?.name || "";
+
+  // Proxy-backed Nominatim Autocomplete Query
+  const { data: suggestions = [], isFetching: isSearching } = useQuery({
+    queryKey: ["nominatim", debouncedQuery, selectedLgaName, selectedStateName],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 3) return [];
+      
+      const res = await api.get("/locations/search/address/", {
+        params: {
+          q: debouncedQuery,
+          lga: selectedLgaName,
+          state: selectedStateName,
+        }
+      });
+      return res.data;
+    },
+    enabled: debouncedQuery.length >= 3,
+    staleTime: 60000 * 5,
+  });
+
+  const handleSelectAddress = (suggestion) => {
+    setForm((prev) => ({
+      ...prev,
+      address: suggestion.display_name,
+      lat: suggestion.lat,
+      lon: suggestion.lon,
+    }));
+    setSearchQuery(suggestion.display_name);
+    setShowSuggestions(false);
+  };
+
+
   const loadVendorData = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,12 +118,17 @@ const EditVendorProfilePage = () => {
         shop_name: data.name || "",
         description: data.description || "",
         address: data.address || data.street_address || "",
+        houseNumber: "", // backend doesn't store this separated
+        landmark: "",
+        lat: data.latitude || null,
+        lon: data.longitude || null,
         category: data.cuisine || "",
         contact_email: data.contact_email || "",
         contact_phone: data.contact_phone || "",
         state: data.state || "",
         lga: data.lga || "",
       });
+      setSearchQuery(data.address || data.street_address || "");
       setProfileImagePreview(data.profile_image || data.profile_pic || "");
       setBannerImagePreview(data.banner_image || "");
     } catch (error) {
@@ -128,10 +204,18 @@ const EditVendorProfilePage = () => {
     }
     setSaving(true);
     try {
+      const finalAddressString = [
+        form.address,
+        form.houseNumber ? `House/Apt: ${form.houseNumber}` : null,
+        form.landmark ? `Near: ${form.landmark}` : null
+      ].filter(Boolean).join(", ");
+
       await updateFoodVendor({
         shop_name: form.shop_name,
         description: form.description,
-        address: form.address,
+        address: finalAddressString,
+        latitude: form.lat,
+        longitude: form.lon,
         state: form.state,
         lga: form.lga,
         category: form.category,
@@ -328,18 +412,96 @@ const EditVendorProfilePage = () => {
           />
         </div>
 
-        {/* Address */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700  mb-2">
-            Address
+        {/* Address Search */}
+        <div className="relative" ref={searchRef}>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Street Address Search*
           </label>
-          <input
-            type="text"
-            value={form.address}
-            onChange={(e) => handleChange("address", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200  bg-white  text-gray-900  outline-none focus:border-lily transition"
-            placeholder="Enter your address"
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+                // Also update form address so it matches the typing
+                setForm(prev => ({...prev, address: e.target.value}));
+              }}
+              onFocus={() => {
+                if (searchQuery.length >= 3) setShowSuggestions(true);
+              }}
+              className="w-full pl-11 pr-5 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              placeholder="Search for your street or area..."
+            />
+            {isSearching && (
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <Loader2 className="h-4 w-4 animate-spin text-lily" />
+              </div>
+            )}
+          </div>
+          
+          {/* Suggestions Dropdown */}
+          {showSuggestions && (debouncedQuery.length >= 3) && (
+            <div 
+              ref={suggestionContainerRef}
+              className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 max-h-60 overflow-y-auto"
+            >
+              {suggestions.length > 0 ? (
+                <ul className="py-2">
+                  {suggestions.map((suggestion, index) => (
+                    <li 
+                      key={index}
+                      onClick={() => handleSelectAddress(suggestion)}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 flex items-start gap-3 transition-colors"
+                    >
+                      <MapPin className="h-5 w-5 text-lily mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 line-clamp-1">{suggestion.display_name.split(',')[0]}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{suggestion.display_name}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : !isSearching ? (
+                <div className="p-4 text-center text-sm text-gray-500">
+                  No matching addresses found in {selectedLgaName || "selected LGA"}
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* House / Apt Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              House/Apt No.
+            </label>
+            <input
+              type="text"
+              value={form.houseNumber}
+              onChange={(e) => handleChange("houseNumber", e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              placeholder="e.g. 12"
+            />
+          </div>
+
+          {/* Landmark */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nearby Landmark
+            </label>
+            <input
+              type="text"
+              value={form.landmark}
+              onChange={(e) => handleChange("landmark", e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none focus:border-lily transition"
+              placeholder="e.g. Opposite AP Filling Station"
+            />
+          </div>
         </div>
 
         {/* Category */}

@@ -490,21 +490,6 @@ const VendorSubscriptionPage = ({ vendorId: propVendorId }) => {
               {selectedPlanIds.length > 0 ? (
                 <div className="space-y-6">
                   {/* Address Display for Selection Transparency */}
-                  {selectedPlans[0]?.address && (
-                    <div className="p-3 bg-lily/50 rounded-xl border border-lily/20 flex items-start gap-3">
-                      <div className="mt-1 shrink-0 text-lily">
-                        <BadgeCheck size={18} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                          Pickup/Restaurant Address
-                        </p>
-                        <p className="text-sm font-semibold text-gray-700">
-                          {selectedPlans[0].address}
-                        </p>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Quantity */}
                   <div>

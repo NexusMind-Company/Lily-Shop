@@ -62,11 +62,9 @@ const MealPlanForm = ({
         name: fetchedPlan.plan_name || "",
         description: fetchedPlan.description || "",
         price: fetchedPlan.price ? fetchedPlan.price.toString() : "",
-        deliveryFee: fetchedPlan.delivery_fee_naira ? fetchedPlan.delivery_fee_naira.toString() : "",
         type: fetchedPlan.frequency || initialType,
         mealsPerWeek: fetchedPlan.meals_per_cycle || 5,
         features: [],
-        address: fetchedPlan.address || "",
         service_days_preset:
           fetchedPlan.service_days?.length > 5 ? "mon_sun" : "mon_fri",
       });
@@ -196,9 +194,7 @@ const MealPlanForm = ({
     const submissionData = {
       plan_name: planData.name,
       description: planData.description,
-      address: planData.address,
       price: parseFloat(planData.price), // Send raw price value
-      delivery_fee_naira: planData.deliveryFee ? parseFloat(planData.deliveryFee) : 0,
       meals_per_cycle: parseInt(planData.mealsPerWeek),
       frequency: planData.type,
       service_days:
@@ -276,22 +272,6 @@ const MealPlanForm = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-main mb-1">
-                Delivery Fee (₦)
-              </label>
-              <input
-                type="number"
-                value={planData.deliveryFee}
-                onChange={(e) => handlePlanChange("deliveryFee", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
-                placeholder="e.g. 1500"
-                min="0"
-                step="0.01"
-              />
-              <p className="text-xs text-gray-500 mt-1">Leave blank or 0 for free delivery.</p>
-            </div>
-            
             <div className="flex items-end">
               <div className="w-full">
                 <label className="block text-sm font-medium text-text-main mb-1">
@@ -333,20 +313,6 @@ const MealPlanForm = ({
             <p className="text-xs text-gray-500">
               Set pricing based on the days you’ll deliver.
             </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-main mb-1">
-              Restaurant/Pickup Address *
-            </label>
-            <textarea
-              value={planData.address}
-              onChange={(e) => handlePlanChange("address", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-text-main"
-              rows="2"
-              placeholder="Full address where customers can pick up or search for you..."
-              required
-            />
           </div>
 
           <div>
