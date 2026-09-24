@@ -808,7 +808,6 @@ export const createMealPlan = async (mealPlanData) => {
     formData.append("plan_name", mealPlanData.plan_name);
   if (mealPlanData.description)
     formData.append("description", mealPlanData.description);
-  if (mealPlanData.address) formData.append("address", mealPlanData.address);
   if (mealPlanData.price !== undefined)
     formData.append("price", mealPlanData.price.toString());
   if (mealPlanData.meals_per_cycle !== undefined)
@@ -817,8 +816,6 @@ export const createMealPlan = async (mealPlanData) => {
     formData.append("frequency", mealPlanData.frequency);
   if (mealPlanData.trial_days !== undefined)
     formData.append("trial_days", mealPlanData.trial_days.toString());
-  if (mealPlanData.delivery_fee_naira !== undefined && mealPlanData.delivery_fee_naira !== null)
-    formData.append("delivery_fee_naira", mealPlanData.delivery_fee_naira.toString());
 
   // Array fields
   if (Array.isArray(mealPlanData.service_days)) {
@@ -930,8 +927,13 @@ export const updateFoodVendor = async (vendorData) => {
   if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
   if (vendorData.description)
     formData.append("description", vendorData.description);
-  // Bug fix: field name was "street_address" but serializer expects "address"
-  if (vendorData.address) formData.append("address", vendorData.address);
+  if (vendorData.address) formData.append("street_address", vendorData.address);
+  if (vendorData.latitude !== undefined && vendorData.latitude !== null) {
+    formData.append("latitude", vendorData.latitude);
+  }
+  if (vendorData.longitude !== undefined && vendorData.longitude !== null) {
+    formData.append("longitude", vendorData.longitude);
+  }
   if (vendorData.category) formData.append("cuisine", vendorData.category);
 
   if (vendorData.state !== undefined && vendorData.state !== null) {
@@ -1011,7 +1013,6 @@ export const updateSubscriptionPlan = async (planId, planData) => {
   if (planData.plan_name) formData.append("plan_name", planData.plan_name);
   if (planData.description)
     formData.append("description", planData.description);
-  if (planData.address) formData.append("address", planData.address);
   if (planData.price !== undefined && planData.price !== null)
     formData.append("price", planData.price.toString());
   if (
@@ -1022,8 +1023,6 @@ export const updateSubscriptionPlan = async (planId, planData) => {
   if (planData.frequency) formData.append("frequency", planData.frequency);
   if (planData.trial_days !== undefined && planData.trial_days !== null)
     formData.append("trial_days", planData.trial_days.toString());
-  if (planData.delivery_fee_naira !== undefined && planData.delivery_fee_naira !== null)
-    formData.append("delivery_fee_naira", planData.delivery_fee_naira.toString());
 
   // Array fields
   if (Array.isArray(planData.service_days)) {
@@ -1041,7 +1040,7 @@ export const updateSubscriptionPlan = async (planId, planData) => {
     formData.append("media", planData.media);
   }
 
-  const response = await api.put(
+  const response = await api.patch(
     `/foods/subscriptions/${planId}/update/`,
     formData,
   );

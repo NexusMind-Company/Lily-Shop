@@ -65,6 +65,18 @@ export default function ShopaDeliveryPage() {
   const [feeData, setFeeData] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [paymentStep, setPaymentStep] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("paystack");
+
+  const { data: walletData } = useQuery({
+    queryKey: ["walletData"],
+    queryFn: async () => {
+      const res = await api.get('/wallet/balance/');
+      return res.data;
+    },
+    enabled: !!user_data,
+  });
+
+  const walletBalance = walletData?.balance || 0;
 
   const { data: addressesResponse } = useQuery({
     queryKey: ["deliveryAddresses"],
@@ -99,8 +111,6 @@ export default function ShopaDeliveryPage() {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setFeeData(null);
-    setPaymentStep(false);
   };
   
   const handleSelectPickup = (item) => {
@@ -168,6 +178,12 @@ export default function ShopaDeliveryPage() {
         toast.error("Missing location coordinates.");
         return;
     }
+
+    if (paymentMethod === 'wallet' && walletBalance < (feeData?.total_fee_kobo || 0) / 100) {
+        toast.error(`Insufficient wallet balance. You need ₦${((feeData?.total_fee_kobo || 0) / 100).toLocaleString()}.`);
+        return;
+    }
+
     setIsSubmitting(true);
     try {
         const payload = {
@@ -181,17 +197,24 @@ export default function ShopaDeliveryPage() {
             recipient_name: `${formData.firstName} ${formData.surname}`,
             recipient_phone: formData.phone,
             package_description: formData.packageDescription,
-            special_instructions: formData.specialInstructions
+            special_instructions: formData.specialInstructions,
+            payment_method: paymentMethod
         };
         
-        await shopaCreateDelivery(payload);
-        toast.success("Delivery created successfully!");
-        // Future Integration: Trigger Paystack Inline here with res.id and res.fee_kobo
-        // For now, redirect to a success or wallet page.
-        navigate("/orders");
+        const res = await shopaCreateDelivery(payload);
+        
+        if (paymentMethod === "wallet") {
+            toast.success("Delivery paid from wallet and created successfully!");
+            navigate("/orders");
+        } else if (res.authorization_url) {
+            window.location.href = res.authorization_url;
+        } else {
+            toast.success("Delivery created successfully!");
+            navigate("/orders");
+        }
         
     } catch (err) {
-        toast.error("Failed to create delivery request.");
+        toast.error(err.response?.data?.detail || err.response?.data?.error || "Failed to create delivery request.");
         console.error(err);
     } finally {
         setIsSubmitting(false);
@@ -262,16 +285,18 @@ export default function ShopaDeliveryPage() {
                       
                       <div className="space-y-5">
                           {/* Location Selection */}
-                          <div className="space-y-4 relative">
-                              <div className="absolute left-[15px] top-[30px] bottom-[30px] w-0.5 bg-gray-200 z-0"></div>
+                          <div className="space-y-8 relative">
+                              {/* Vertical connecting line */}
+                              <div className="absolute left-[15px] top-[40px] bottom-[40px] w-0.5 bg-gray-200 z-0"></div>
                               
-                              <div className="relative z-10">
-                                  <label className="block text-xs font-bold text-gray-500 mb-1 ml-9 uppercase tracking-wider">Pickup Location</label>
-                                  <div className="flex gap-3 items-center relative">
-                                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                              {/* PICKUP */}
+                              <div className="relative z-50">
+                                  <label className="block text-xs font-bold text-gray-500 mb-2 ml-10 uppercase tracking-wider">Pickup Location</label>
+                                  <div className="flex gap-4 items-start relative">
+                                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-1 z-10">
                                           <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                                       </div>
-                                      <div className="flex-1 flex gap-2 relative">
+                                      <div className="flex-1 space-y-3 relative">
                                           <select
                                             value={pickupState}
                                             onChange={(e) => {
@@ -279,11 +304,12 @@ export default function ShopaDeliveryPage() {
                                                 setFeeData(null);
                                                 setPaymentStep(false);
                                             }}
-                                            className="bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none w-[120px] shrink-0"
+                                            className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                                           >
                                               {NIGERIAN_STATES.map(state => <option key={state} value={state}>{state}</option>)}
                                           </select>
-                                          <div className="flex-1 relative">
+                                          
+                                          <div className="relative w-full">
                                               <input 
                                                 type="text"
                                                 value={pickupQuery}
@@ -295,11 +321,11 @@ export default function ShopaDeliveryPage() {
                                                     setPaymentStep(false);
                                                 }}
                                                 onFocus={() => setShowPickupSuggestions(true)}
-                                                placeholder="Enter pickup address..."
-                                                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none"
+                                                placeholder="Search pickup address..."
+                                                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                                               />
                                               {showPickupSuggestions && pickupQuery.length >= 3 && (
-                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto z-50">
+                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50">
                                                       {isSearchingPickup ? (
                                                           <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
                                                               <Loader2 className="w-4 h-4 animate-spin" /> Searching...
@@ -324,13 +350,14 @@ export default function ShopaDeliveryPage() {
                                   </div>
                               </div>
 
-                              <div className="relative z-10">
-                                  <label className="block text-xs font-bold text-gray-500 mb-1 ml-9 uppercase tracking-wider">Dropoff Location</label>
-                                  <div className="flex gap-3 items-center relative">
-                                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                              {/* DROPOFF */}
+                              <div className="relative z-40">
+                                  <label className="block text-xs font-bold text-gray-500 mb-2 ml-10 uppercase tracking-wider">Dropoff Location</label>
+                                  <div className="flex gap-4 items-start relative">
+                                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-1 z-10">
                                           <MapPin className="w-4 h-4 text-red-500" />
                                       </div>
-                                      <div className="flex-1 flex gap-2 relative">
+                                      <div className="flex-1 space-y-3 relative">
                                           <select
                                             value={dropoffState}
                                             onChange={(e) => {
@@ -338,11 +365,12 @@ export default function ShopaDeliveryPage() {
                                                 setFeeData(null);
                                                 setPaymentStep(false);
                                             }}
-                                            className="bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none w-[120px] shrink-0"
+                                            className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                                           >
                                               {NIGERIAN_STATES.map(state => <option key={state} value={state}>{state}</option>)}
                                           </select>
-                                          <div className="flex-1 relative">
+                                          
+                                          <div className="relative w-full">
                                               <input 
                                                 type="text"
                                                 value={dropoffQuery}
@@ -354,11 +382,11 @@ export default function ShopaDeliveryPage() {
                                                     setPaymentStep(false);
                                                 }}
                                                 onFocus={() => setShowDropoffSuggestions(true)}
-                                                placeholder="Enter dropoff address..."
-                                                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3 font-medium outline-none"
+                                                placeholder="Search dropoff address..."
+                                                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-lily focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                                               />
                                               {showDropoffSuggestions && dropoffQuery.length >= 3 && (
-                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto z-50">
+                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50">
                                                       {isSearchingDropoff ? (
                                                           <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
                                                               <Loader2 className="w-4 h-4 animate-spin" /> Searching...
@@ -393,7 +421,7 @@ export default function ShopaDeliveryPage() {
                                 {isCalculating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Calculate Fee'}
                               </button>
                           ) : (
-                              <div className="mt-8 space-y-5 animate-fadeIn">
+                              <div className="mt-8 space-y-5">
                                   <div className="bg-lily/10 border border-lily/20 rounded-2xl p-5">
                                       <h4 className="text-lily font-bold mb-4 flex items-center gap-2">
                                           <CheckCircle className="w-5 h-5" /> Delivery Details Confirmed
@@ -419,10 +447,41 @@ export default function ShopaDeliveryPage() {
                                       <textarea name="specialInstructions" value={formData.specialInstructions} onChange={handleChange} placeholder="Special Instructions" rows="2" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:border-lily resize-none"></textarea>
                                   </div>
 
+                                  <div className="space-y-3 pt-4">
+                                      <h4 className="font-bold text-gray-900 border-b border-gray-100 pb-2">Payment Method</h4>
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <button
+                                              onClick={() => setPaymentMethod('paystack')}
+                                              className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                                                  paymentMethod === 'paystack'
+                                                  ? 'border-lily bg-lily/5 text-lily font-bold'
+                                                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                              }`}
+                                          >
+                                              Pay with Card
+                                          </button>
+                                          <button
+                                              onClick={() => setPaymentMethod('wallet')}
+                                              className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                                                  paymentMethod === 'wallet'
+                                                  ? 'border-lily bg-lily/5 text-lily font-bold'
+                                                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                              }`}
+                                          >
+                                              Pay from Wallet
+                                          </button>
+                                      </div>
+                                      {paymentMethod === 'wallet' && (
+                                          <p className={`text-sm text-center font-medium ${walletBalance < (feeData?.total_fee_kobo || 0) / 100 ? 'text-red-500' : 'text-green-600'}`}>
+                                              Wallet Balance: ₦{walletBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                          </p>
+                                      )}
+                                  </div>
+
                                   <button
                                     onClick={handleSubmitRequest}
-                                    disabled={isSubmitting}
-                                    className="w-full bg-lily text-white font-bold py-4 rounded-xl shadow-lg shadow-lily/30 hover:brightness-105 transition flex items-center justify-center gap-2 disabled:opacity-70"
+                                    disabled={isSubmitting || (paymentMethod === 'wallet' && walletBalance < (feeData?.total_fee_kobo || 0) / 100)}
+                                    className="w-full bg-lily text-white font-bold py-4 rounded-xl shadow-lg shadow-lily/30 hover:brightness-105 transition flex items-center justify-center gap-2 disabled:opacity-70 mt-4"
                                   >
                                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                         <><span>Proceed to Payment</span> <ArrowLeft className="w-5 h-5 rotate-180" /></>

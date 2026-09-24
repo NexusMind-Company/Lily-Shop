@@ -87,7 +87,7 @@ const OrderCard = ({ order, onStatusUpdate, onConfirmDelivery, isUpdating }) => 
           <p className="text-xs text-gray-400">{order.meal_plan ? order.meal_plan : "Immediate Order"}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-gray-900">₦{order.total_amount || order.price || 0}</p>
+          <p className="text-sm font-bold text-gray-900">₦{(order.total_amount || (order.total_price ? order.total_price / 100 : 0) || order.price || 0).toLocaleString()}</p>
         </div>
       </div>
 
@@ -202,7 +202,7 @@ const VendorOrdersPage = () => {
   const orders = ordersData?.results ?? [];
   const filtered = orders.filter((o) => {
     const matchesSearch = searchTerm ? o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-    const isCompleted = ['delivered', 'completed', 'refunded', 'cancelled', 'failed'].includes(o.status);
+    const isCompleted = ['delivered', 'completed', 'refunded', 'cancelled', 'failed', 'success'].includes(o.status?.toLowerCase());
     const matchesTab = activeTab === "active" ? !isCompleted : isCompleted;
     return matchesSearch && matchesTab;
   });

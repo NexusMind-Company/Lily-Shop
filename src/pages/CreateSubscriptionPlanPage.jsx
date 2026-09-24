@@ -28,7 +28,10 @@ const CreateSubscriptionPlanPage = () => {
     try {
       const formData = new FormData(); // ✅ FIX: send as multipart
       formData.append("plan_name", "Weekly Meal Plan");
+      formData.append("description", "A weekly subscription plan.");
       formData.append("price", "0.00"); // Required field, will be updated later
+      formData.append("frequency", "weekly");
+      formData.append("meals_per_cycle", "5");
 
       await api.post("/foods/subscriptions/create/", formData);
 
@@ -52,7 +55,10 @@ const CreateSubscriptionPlanPage = () => {
     try {
       const formData = new FormData(); // ✅ FIX: send as multipart
       formData.append("plan_name", "Monthly Meal Plan");
+      formData.append("description", "A monthly subscription plan.");
       formData.append("price", "0.00"); // Required field, will be updated later
+      formData.append("frequency", "monthly");
+      formData.append("meals_per_cycle", "20");
 
       await api.post("/foods/subscriptions/create/", formData);
 
