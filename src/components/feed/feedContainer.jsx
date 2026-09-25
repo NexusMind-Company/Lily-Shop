@@ -317,7 +317,7 @@ const FeedContainer = () => {
   };
 
   return (
-    <main className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
+    <main className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
       <div className="relative h-full w-full md:max-w-105 lg:max-w-120">
         <div className="h-full relative">
           <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
