@@ -17,6 +17,7 @@ export const stopInstantOrderAudio = () => {
 
 export const usePushNotifications = (isAuthenticated) => {
   const [token, setToken] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window
       ? Notification.permission
@@ -25,6 +26,7 @@ export const usePushNotifications = (isAuthenticated) => {
 
   const registerTokenWithBackend = useCallback(async (registration) => {
     if (!messaging) return null;
+    setIsRegistering(true);
     try {
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
       const currentToken = await getToken(messaging, {
@@ -36,7 +38,7 @@ export const usePushNotifications = (isAuthenticated) => {
         setToken(currentToken);
         try {
           await registerDeviceToken(currentToken, 'web');
-          console.log('Push notification token registered with backend.');
+          console.log('Push notification token registered with backend successfully.');
         } catch (backendError) {
           console.error('Failed to register token with backend:', backendError);
         }
@@ -48,6 +50,8 @@ export const usePushNotifications = (isAuthenticated) => {
       } else {
         console.error('An error occurred while retrieving push token:', error);
       }
+    } finally {
+      setIsRegistering(false);
     }
     return null;
   }, []);
@@ -63,9 +67,11 @@ export const usePushNotifications = (isAuthenticated) => {
       setNotificationPermission(permission);
       if (permission === 'granted') {
         const registration = await navigator.serviceWorker.ready;
-        await registerTokenWithBackend(registration);
-        toast.success('Push notifications enabled!');
-        return true;
+        const currentToken = await registerTokenWithBackend(registration);
+        if (currentToken) {
+          toast.success('Push notifications enabled!');
+          return true;
+        }
       } else if (permission === 'denied') {
         toast.error('Notification permission was blocked in browser settings.');
         return false;
@@ -175,7 +181,7 @@ export const usePushNotifications = (isAuthenticated) => {
     };
   }, [isAuthenticated, registerTokenWithBackend]);
 
-  return { token, notificationPermission, requestPushPermission };
+  return { token, notificationPermission, requestPushPermission, isRegistering };
 };
 
 export default usePushNotifications;

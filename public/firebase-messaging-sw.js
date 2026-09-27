@@ -17,14 +17,17 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'New Notification';
-  const notificationOptions = {
-    body: payload.notification?.body || payload.data?.body || '',
-    icon: '/logo.png', // Fallback icon, ensure you have a logo.png in public/
-    data: payload.data || {},
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // If the backend sent a top-level notification object, FCM automatically displays it.
+  // We only show a manual notification if it was a data-only payload.
+  if (!payload.notification) {
+    const notificationTitle = payload.data?.title || 'LilyShop Notification';
+    const notificationOptions = {
+      body: payload.data?.body || '',
+      icon: '/logo.png',
+      data: payload.data || {},
+    };
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 self.addEventListener('notificationclick', function (event) {
@@ -34,7 +37,6 @@ self.addEventListener('notificationclick', function (event) {
   let targetUrl = '/';
 
   if (data.type === 'instant_order' && data.order_id) {
-    // Determine vendor order view vs regular user view. Assuming it's for vendor:
     targetUrl = `/live-kitchen`; 
   } else if (data.url) {
     targetUrl = data.url;
@@ -42,14 +44,16 @@ self.addEventListener('notificationclick', function (event) {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Check if there is already a window/tab open with the target URL
       for (let i = 0; i < windowClients.length; i++) {
         let client = windowClients[i];
-        if (client.url === targetUrl && 'focus' in client) {
-          return client.focus();
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus();
+          if ('navigate' in client && targetUrl !== '/') {
+            client.navigate(targetUrl);
+          }
+          return;
         }
       }
-      // If no window is open or it's not the exact URL, open a new window or focus the first and navigate
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

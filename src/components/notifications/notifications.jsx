@@ -1,4 +1,4 @@
-import { ChevronLeft, CheckCheck } from "lucide-react";
+import { ChevronLeft, CheckCheck, BellRing, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "../../redux/notificationSlice";
+import usePushNotifications from "../../hooks/usePushNotifications";
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ const Notifications = () => {
   const { notifications, loading } = useSelector(
     (state) => state.notifications,
   );
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { notificationPermission, requestPushPermission, isRegistering } =
+    usePushNotifications(isAuthenticated);
   const [filter, setFilter] = useState("all"); // 'all' or 'unread'
 
   useEffect(() => {
@@ -34,6 +38,10 @@ const Notifications = () => {
     if (notification.url) {
       navigate(notification.url);
     }
+  };
+
+  const handleEnablePush = async () => {
+    await requestPushPermission();
   };
 
   const getTimeAgo = (dateString) => {
@@ -76,8 +84,52 @@ const Notifications = () => {
         </button>
       </div>
 
+      {/* Push Notification Permission Banner */}
+      {notificationPermission !== "granted" && (
+        <div className="mx-3 mt-3 p-3.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-lily/10 text-lily flex items-center justify-center shrink-0 mt-0.5">
+              {notificationPermission === "denied" ? (
+                <AlertCircle size={20} className="text-amber-500" />
+              ) : (
+                <BellRing size={20} className="text-lily" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-gray-900">
+                {notificationPermission === "denied"
+                  ? "Push Notifications Blocked"
+                  : "Enable Push Notifications"}
+              </h4>
+              <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                {notificationPermission === "denied"
+                  ? "Notifications are blocked in your browser settings. Enable them in site settings to receive instant order and message alerts."
+                  : "Get real-time alerts for instant orders, messages, and wallet updates even when the app is closed."}
+              </p>
+              {notificationPermission !== "denied" && (
+                <button
+                  onClick={handleEnablePush}
+                  disabled={isRegistering}
+                  className="mt-2.5 px-3.5 py-1.5 bg-lily text-white text-xs font-semibold rounded-lg shadow-sm hover:bg-lily/90 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isRegistering ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" /> Enabling...
+                    </>
+                  ) : (
+                    <>
+                      <BellRing size={14} /> Enable Notifications
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter Tabs */}
-      <div className="flex px-4 py-3 gap-2 bg-white border-t border-gray-100">
+      <div className="flex px-4 py-3 gap-2 bg-white border-t border-gray-100 mt-2">
         <button
           onClick={() => setFilter("all")}
           className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === "all" ? "bg-lily text-white" : "bg-gray-100 text-gray-600"}`}

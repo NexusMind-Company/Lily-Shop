@@ -46,7 +46,14 @@ const Settings = () => {
     {
       icon: <Bell size={30} />,
       text: "Notifications",
-      sub: "Manage notifications",
+      sub:
+        typeof window !== "undefined" && "Notification" in window
+          ? Notification.permission === "granted"
+            ? "Push notifications enabled"
+            : Notification.permission === "denied"
+              ? "Blocked in browser settings"
+              : "Enable instant push alerts"
+          : "Manage notifications",
       to: "/notifications",
     },
     {
