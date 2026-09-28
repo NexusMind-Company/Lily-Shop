@@ -62,6 +62,43 @@ const OrderDetailPage = () => {
     // PIN fetching removed
   }, [dispatch, order]);
 
+  const getItemUnitPrice = (item) => {
+    if (item?.price_kobo != null) return item.price_kobo / 100;
+    if (item?.price != null) return Number(item.price) || 0;
+    if (item?.product?.price != null) return Number(item.product.price) || 0;
+    return 0;
+  };
+
+  const getItemSubtotal = (item) => {
+    if (item?.subtotal_kobo != null) return item.subtotal_kobo / 100;
+    const unitPrice = getItemUnitPrice(item);
+    const quantity = Number(item?.quantity) || 1;
+    return unitPrice * quantity;
+  };
+
+  const getItemNavigationUrl = (item) => {
+    if (item?.product?.id) {
+      return `/product/${item.product.id}`;
+    }
+    if (order?.order_type === 'food' && order?.vendor?.id) {
+      return `/vendor/${order.vendor.id}`;
+    }
+    return null;
+  };
+
+  const getFormattedTotal = () => {
+    if (order?.total_amount_naira != null) {
+      const parsedNum = Number(order.total_amount_naira);
+      if (!isNaN(parsedNum)) return parsedNum.toLocaleString();
+    }
+    const totalKobo = order?.total_price || order?.total_amount_kobo;
+    if (totalKobo != null) {
+      const parsedNum = Number(totalKobo) / 100;
+      if (!isNaN(parsedNum)) return parsedNum.toLocaleString();
+    }
+    return '0';
+  };
+
   const getStatusConfig = (status) => {
     const configs = {
       paid: {
@@ -210,7 +247,7 @@ const OrderDetailPage = () => {
   const statusConfig = getStatusConfig(order.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-28 sm:pb-12">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -277,14 +314,14 @@ const OrderDetailPage = () => {
                     {order.items?.map((item) => (
                       <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                         <img 
-                          src={item.product?.image_url || item.product?.media_url || '/placeholder.png'} 
-                          alt={item.product?.name} 
+                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'} 
+                          alt={item.product?.name || item.name || 'Product'} 
                           className="w-16 h-16 rounded-lg object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 truncate">{item.product?.name}</p>
-                          <p className="text-sm text-gray-500">{item.product?.shop_name}</p>
-                          <p className="text-sm font-bold text-gray-700">₦{(item.subtotal_kobo / 100).toLocaleString()}</p>
+                          <p className="font-semibold text-gray-800 truncate">{item.product?.name || item.name || 'Product'}</p>
+                          <p className="text-sm text-gray-500">{item.product?.shop_name || order.vendor?.name}</p>
+                          <p className="text-sm font-bold text-gray-700">₦{getItemSubtotal(item).toLocaleString()}</p>
                         </div>
                       </div>
                     ))}
@@ -324,55 +361,73 @@ const OrderDetailPage = () => {
 
               <div className="p-6">
                 <div className="space-y-4">
-                  {order.items?.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2 + index * 0.05 }}
-                      className={`flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group ${item.product?.id ? 'cursor-pointer' : ''}`}
-                      onClick={() => {
-                        if (item.product?.id) {
-                          navigate(`/product/${item.product.id}`);
-                        }
-                      }}
-                    >
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'}
-                          alt={item.product?.name || item.name || 'Product'}
-                          className="w-24 h-24 object-cover rounded-xl group-hover:opacity-75 transition-opacity"
-                        />
-                        <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
-                          {item.quantity}
+                  {order.items?.map((item, index) => {
+                    const navigationUrl = getItemNavigationUrl(item);
+                    const isClickable = Boolean(navigationUrl);
+                    const itemName = item.product?.name || item.name || 'Product';
+                    const itemImage = item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png';
+                    const sellerName = item.product?.shop_name || order.vendor?.name;
+                    const unitPrice = getItemUnitPrice(item);
+                    const subtotal = getItemSubtotal(item);
+
+                    return (
+                      <motion.div
+                        key={item.id || index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 + index * 0.05 }}
+                        className={`flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group rounded-xl p-2 -mx-2 transition-colors ${
+                          isClickable ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'
+                        }`}
+                        onClick={() => {
+                          if (navigationUrl) {
+                            navigate(navigationUrl);
+                          }
+                        }}
+                      >
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={itemImage}
+                            alt={itemName}
+                            className={`w-24 h-24 object-cover rounded-xl transition-opacity ${
+                              isClickable ? 'group-hover:opacity-85' : ''
+                            }`}
+                          />
+                          <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
+                            {item.quantity}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 group-hover:text-lily transition-colors mb-1 truncate">
-                          {item.product?.name || item.name || 'Product'}
-                        </h4>
-                        {item.product?.shop_name && (
-                          <p className="text-sm text-gray-500 mb-2">
-                            Sold by {item.product.shop_name}
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-semibold text-gray-800 mb-1 truncate transition-colors ${
+                            isClickable ? 'group-hover:text-lily' : ''
+                          }`}>
+                            {itemName}
+                          </h4>
+                          {sellerName && (
+                            <p className="text-sm text-gray-500 mb-2">
+                              Sold by {sellerName}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-3 mt-2">
+                            <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                              Qty: {item.quantity}
+                            </span>
+                            <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                              ₦{unitPrice.toLocaleString()} each
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-lg font-bold text-gray-800">
+                            ₦{subtotal.toLocaleString()}
                           </p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-3 mt-2">
-                          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            Qty: {item.quantity}
-                          </span>
-                          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            ₦{item.price_kobo ? (item.price_kobo / 100).toLocaleString() : Number(item.price || 0).toLocaleString()} each
-                          </span>
+                          {isClickable && (
+                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-lily transition-colors mt-2 ml-auto" />
+                          )}
                         </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-lg font-bold text-gray-800">
-                          ₦{(item.subtotal_kobo / 100).toLocaleString()}
-                        </p>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-lily transition-colors mt-1 ml-auto" />
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
@@ -392,19 +447,14 @@ const OrderDetailPage = () => {
               </div>
 
               <div className="p-6">
-                <div className="relative space-y-6">
-                  {/* Timeline Line */}
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200" />
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-lily/50 to-lily" 
-                       style={{ 
-                         height: `${Math.max(0, ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status)) / (ORDER_STAGES.length - 1)) * 100}%` 
-                       }} 
-                  />
-
+                <div>
                   {ORDER_STAGES.map((stage, index) => {
-                    const currentStageIndex = ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status));
+                    const currentStageIndex = ORDER_STAGES.findIndex(
+                      (s) => s.key === order.status || s.altKeys?.includes(order.status)
+                    );
                     const isCompleted = index <= currentStageIndex;
                     const isActive = index === currentStageIndex;
+                    const isLastStage = index === ORDER_STAGES.length - 1;
                     const Icon = stage.icon;
 
                     return (
@@ -413,24 +463,38 @@ const OrderDetailPage = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 + index * 0.1 }}
-                        className="relative flex items-start space-x-4"
+                        className="relative flex items-start space-x-4 pb-6 last:pb-0"
                       >
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500
-                          ${isCompleted 
-                            ? 'bg-gradient-to-br from-lily to-darklily' 
-                            : 'bg-gradient-to-br from-gray-200 to-gray-300'
-                          }
-                          ${isActive ? 'ring-4 ring-lily/20' : ''}
-                        `}>
+                        {/* Segment connector line to next stage */}
+                        {!isLastStage && (
+                          <div
+                            className={`absolute left-4 top-8 bottom-0 w-0.5 -translate-x-1/2 transition-colors duration-500 z-0 ${
+                              index < currentStageIndex ? 'bg-lily' : 'bg-gray-200'
+                            }`}
+                          />
+                        )}
+
+                        <div
+                          className={`relative flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500 ${
+                            isCompleted
+                              ? 'bg-gradient-to-br from-lily to-darklily text-white'
+                              : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500'
+                          } ${isActive ? 'ring-4 ring-lily/20' : ''}`}
+                        >
                           <Icon className="w-4 h-4 text-white" />
                         </div>
-                        <div className="flex-1 pt-1">
+                        <div className="flex-1 pt-1 min-w-0">
                           <p className={`font-semibold ${isCompleted ? 'text-gray-800' : 'text-gray-400'}`}>
                             {stage.label}
                           </p>
-                          {isActive && (
-                            <p className="text-sm text-lily mt-1 animate-pulse">
+                          {isActive && stage.key !== 'completed' && (
+                            <p className="text-xs text-lily font-medium mt-0.5 animate-pulse">
                               Currently in progress
+                            </p>
+                          )}
+                          {isCompleted && stage.key === 'completed' && (
+                            <p className="text-xs text-emerald-600 font-medium mt-0.5">
+                              Completed successfully
                             </p>
                           )}
                         </div>
@@ -509,18 +573,24 @@ const OrderDetailPage = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-semibold">
-                      ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
+                      ₦{getFormattedTotal()}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
-                    <span className="text-sm">To be arranged</span>
+                    <span className="text-sm">
+                      {order.delivery_fee_naira != null && Number(order.delivery_fee_naira) > 0
+                        ? `₦${Number(order.delivery_fee_naira).toLocaleString()}`
+                        : (order.delivery_fee_kobo != null && Number(order.delivery_fee_kobo) > 0
+                            ? `₦${(Number(order.delivery_fee_kobo) / 100).toLocaleString()}`
+                            : 'To be arranged')}
+                    </span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Total</span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-lily to-darklily bg-clip-text text-transparent">
-                        ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
+                        ₦{getFormattedTotal()}
                       </span>
                     </div>
                   </div>
