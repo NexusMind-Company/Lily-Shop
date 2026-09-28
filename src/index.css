@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ================= PERFORMANCE OPTIMIZATIONS ================= */
 
 /* Prevent layout shift from font loading */
@@ -60,6 +62,14 @@ img[loading="lazy"] {
     --color-darklily: #3da64d;
     --color-pink: #b61664;
     --color-sun: #f6ad6d;
+    --color-background-light: #f6f8f6;
+    --color-background-dark: #102215;
+    --color-surface-light: #ffffff;
+    --color-surface-dark: #1c2e21;
+    --color-text-main-light: #111813;
+    --color-text-main-dark: #ffffff;
+    --color-text-secondary-light: #61896b;
+    --color-text-secondary-dark: #8fa895;
 }
 
 /* Hide scrollbars */
