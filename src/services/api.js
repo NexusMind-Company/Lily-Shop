@@ -2031,6 +2031,16 @@ export const updateShopOrderStatus = async (orderId, newStatus) => {
   return response.data;
 };
 
+export const cancelOrder = async (orderId) => {
+  const response = await api.post(`/orders/${orderId}/cancel/`);
+  return response.data;
+};
+
+export const retryOrderPayment = async (orderId) => {
+  const response = await api.post(`/orders/${orderId}/retry-payment/`);
+  return response.data;
+};
+
 // --- Shopa Delivery ---
 
 export const submitShopaDeliveryRequest = async (data) => {

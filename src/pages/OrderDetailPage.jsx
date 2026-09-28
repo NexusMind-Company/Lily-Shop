@@ -8,7 +8,7 @@ import {
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
 import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
-import { confirmOrderReceipt, confirmFoodOrderReceipt } from '../services/api';
+import { confirmOrderReceipt, confirmFoodOrderReceipt, cancelOrder, retryOrderPayment } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { Truck } from 'lucide-react';
 import UnboxingModal from '../components/orders/UnboxingModal';
@@ -32,6 +32,8 @@ const OrderDetailPage = () => {
 
   const order = useSelector(selectCurrentOrder);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const loading = useSelector(selectOrderLoading);
   const error = useSelector(selectOrderError);
 
@@ -55,6 +57,47 @@ const OrderDetailPage = () => {
       toast.error(err.response?.data?.detail || 'Failed to confirm order');
     } finally {
       setIsConfirming(false);
+    }
+  };
+
+  const handleRetryPayment = async () => {
+    setIsRetryingPayment(true);
+    try {
+      const response = await retryOrderPayment(order.id);
+      if (response?.authorization_url) {
+        localStorage.setItem("lily_pending_order", JSON.stringify(order));
+        window.location.href = response.authorization_url;
+      } else {
+        toast.error("Could not obtain payment authorization URL.");
+      }
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Failed to retry payment. Please try again."
+      );
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+    setIsCancellingOrder(true);
+    try {
+      await cancelOrder(order.id);
+      toast.success("Order cancelled successfully.");
+      dispatch(fetchOrderDetail(orderId));
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Failed to cancel order."
+      );
+    } finally {
+      setIsCancellingOrder(false);
     }
   };
 
@@ -319,6 +362,56 @@ const OrderDetailPage = () => {
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Payment Pending Interactive Card */}
+            {order.status === 'pending' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-sm border-2 border-amber-300 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 border-b border-amber-200/60 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-5 h-5 text-amber-600 animate-pulse" />
+                    <h3 className="text-lg font-bold text-amber-900">
+                      Payment Awaiting Completion
+                    </h3>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full">
+                    15 Min Expiry
+                  </span>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-6">
+                    This order is waiting for payment confirmation. If your previous checkout session on Paystack was interrupted or cancelled, you can retry payment now or cancel this order. Stale pending orders auto-cancel after 15 minutes.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleRetryPayment}
+                      disabled={isRetryingPayment || isCancellingOrder}
+                      className="flex-1 bg-gradient-to-r from-lily to-darklily text-white py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>{isRetryingPayment ? 'Connecting to Paystack...' : 'Complete Payment with Paystack'}</span>
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleCancelOrder}
+                      disabled={isRetryingPayment || isCancellingOrder}
+                      className="sm:w-44 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-60"
+                    >
+                      <XCircle className="w-5 h-5" />
+                      <span>{isCancellingOrder ? 'Cancelling...' : 'Cancel Order'}</span>
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* "My Item Has Been Delivered" Confirmation Card */}
             {(order.status === 'delivered' || order.status === 'out_for_delivery') && (
@@ -656,6 +749,44 @@ const OrderDetailPage = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
+                  {order.status === 'pending' && (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleRetryPayment}
+                        disabled={isRetryingPayment || isCancellingOrder}
+                        className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
+                      >
+                        <CreditCard className="w-5 h-5" />
+                        <span>{isRetryingPayment ? 'Connecting...' : 'Complete Payment'}</span>
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleCancelOrder}
+                        disabled={isRetryingPayment || isCancellingOrder}
+                        className="w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-60"
+                      >
+                        <XCircle className="w-5 h-5" />
+                        <span>{isCancellingOrder ? 'Cancelling...' : 'Cancel Order'}</span>
+                      </motion.button>
+                    </>
+                  )}
+
+                  {order.status === 'cancelled' && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate('/orders')}
+                      className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                      <span>Back to All Orders</span>
+                    </motion.button>
+                  )}
+
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}

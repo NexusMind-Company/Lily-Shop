@@ -44,15 +44,24 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
   }, [dispatch]);
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Delivered":
+    switch (status?.toLowerCase()) {
+      case "delivered":
         return "bg-green-100 text-green-700";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-700";
-      case "Refunded":
+      case "pending":
+        return "bg-amber-100 text-amber-800 border border-amber-200";
+      case "refunded":
         return "bg-blue-100 text-blue-700";
-      case "Canceled":
+      case "canceled":
+      case "cancelled":
+      case "failed":
         return "bg-red-100 text-red-700";
+      case "paid":
+        return "bg-emerald-100 text-emerald-700";
+      case "preparing":
+        return "bg-orange-100 text-orange-700";
+      case "out_for_delivery":
+      case "dispatched":
+        return "bg-purple-100 text-purple-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
