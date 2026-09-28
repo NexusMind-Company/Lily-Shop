@@ -41,7 +41,10 @@ const VerifyEmail = () => {
   useEffect(() => {
     if (success) {
       toast.success(message || "Email verified successfully!");
-      const timer = setTimeout(() => navigate("/login"), 2500);
+      const timer = setTimeout(
+        () => navigate("/login?new_user=true", { state: { isNewUser: true } }),
+        2500,
+      );
       return () => clearTimeout(timer);
     }
   }, [success, navigate, message]);
@@ -87,7 +90,9 @@ const VerifyEmail = () => {
 
           {/* Action Button */}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() =>
+              navigate("/login?new_user=true", { state: { isNewUser: true } })
+            }
             disabled={loading}
             className={`h-11.5 rounded-full font-bold text-white transition-all ${
               loading

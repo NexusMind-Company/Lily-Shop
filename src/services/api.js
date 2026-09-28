@@ -512,6 +512,13 @@ export const fetchDeliveryAddresses = async () => {
   return response.data;
 };
 
+export const searchAddressLocations = async (query, state = "") => {
+  const response = await api.get("/locations/search/", {
+    params: { query, state },
+  });
+  return response.data;
+};
+
 export const addNewAddress = async (addressData) => {
   const response = await api.post("/users/me/addresses/", addressData);
   return response.data;

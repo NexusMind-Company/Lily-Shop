@@ -14,6 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   Trash2,
+  MapPin,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AddressListSkeleton } from "../common/skeletons";
@@ -149,9 +150,17 @@ const ChooseAddress = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-gray-900 text-lg leading-relaxed max-w-[90%]">
-                    {item.street_address}, {item.city}, {item.state}
+                  <p className="text-gray-900 text-sm leading-relaxed max-w-[90%] font-medium">
+                    {item.street_address}
+                    {item.state_name || item.state
+                      ? `, ${item.state_name || item.state}`
+                      : ""}
                   </p>
+                  {item.latitude && item.longitude && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1 border border-emerald-200/50">
+                      <MapPin size={10} /> GPS Verified
+                    </span>
+                  )}
                 </div>
 
                 <button
