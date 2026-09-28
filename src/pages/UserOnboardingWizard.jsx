@@ -419,42 +419,6 @@ const UserOnboardingWizard = () => {
                   )}
                 </div>
 
-                {/* Selected Location Confirmation Badge */}
-                {selectedLocation && (
-                  <div className="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex items-start justify-between gap-3 animate-in fade-in duration-300">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-emerald-900">
-                          Verified Location Selected
-                        </p>
-                        <p className="text-xs text-emerald-700 font-medium break-words mt-0.5">
-                          {selectedLocation.displayName}
-                        </p>
-                        {selectedLocation.lat && selectedLocation.lon && (
-                          <div className="flex gap-2 mt-1">
-                            <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
-                              Lat: {Number(selectedLocation.lat).toFixed(4)}
-                            </span>
-                            <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
-                              Lon: {Number(selectedLocation.lon).toFixed(4)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClearSelectedLocation}
-                      className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline shrink-0 mt-0.5"
-                    >
-                      Change
-                    </button>
-                  </div>
-                )}
-
                 {/* Optional Apartment / Suite / Landmark Field */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5 flex items-center gap-1.5">

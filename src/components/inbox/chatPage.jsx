@@ -107,12 +107,13 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     }
   }, [orderIdKey]);
 
-  const rawStatus = liveOrderData?.status || orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending";
-  const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+  const rawStatus = (liveOrderData?.status || activePayload?.status || orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending").toLowerCase();
+  const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).replace(/_/g, " ");
   
-  const hasAccepted = ["accepted", "dispatched", "delivered"].includes(rawStatus.toLowerCase());
-  const hasDispatched = ["dispatched", "delivered"].includes(rawStatus.toLowerCase());
-  const hasDelivered = rawStatus.toLowerCase() === "delivered";
+  const hasAccepted = ["accepted", "dispatched", "out_for_delivery", "delivered"].includes(rawStatus);
+  const hasDispatched = ["dispatched", "out_for_delivery", "delivered"].includes(rawStatus);
+  const hasDelivered = rawStatus === "delivered";
+  const canBuyerConfirm = ["out_for_delivery", "dispatched", "delivered", "ready_for_pickup"].includes(rawStatus);
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -229,7 +230,18 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
         <p>Order no: {payload.reference}</p>
         <p className="font-bold text-base mt-1">{payload.meal_plan || product.name || firstItem.product_name || "Product"}</p>
         {product.caption && <p className="text-gray-500 text-xs line-clamp-2">{product.caption}</p>}
-        <p>₦{((firstItem.price_kobo || 0) / 100).toLocaleString()}</p>
+        <p>
+          ₦
+          {(
+            (firstItem.price_kobo ? Number(firstItem.price_kobo) / 100 : null) ||
+            (firstItem.subtotal_kobo ? Number(firstItem.subtotal_kobo) / 100 : null) ||
+            (firstItem.price ? Number(firstItem.price) : null) ||
+            (firstItem.unit_price ? Number(firstItem.unit_price) : null) ||
+            (product.price ? Number(product.price) : null) ||
+            (product.price_naira ? Number(product.price_naira) : null) ||
+            (activePayload.total ? Number(activePayload.total) : 0)
+          ).toLocaleString()}
+        </p>
         <p>Qty: {firstItem.quantity || 1}</p>
         {(firstItem.color || firstItem.variant) && <p>Color: {firstItem.color || firstItem.variant}</p>}
         <p>Delivery fee: ₦{Number(activePayload.delivery_fee || 0).toLocaleString()}</p>
@@ -278,17 +290,25 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
                <button className="w-full py-2.5 mb-2 rounded-full border-2 border-green-500 text-green-600 font-bold bg-transparent">
                  {buyerStatus}
                </button>
-               {activePayload.status !== 'completed' && activePayload.status !== 'cancelled' && activePayload.status !== 'refunded' && (
-                 <button
-                   onClick={handleBuyerConfirmReceipt}
-                   disabled={isConfirmingReceipt}
-                   className="w-full py-2.5 mb-2 rounded-full bg-lily text-white font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-md shadow-lily/20"
-                 >
-                   {isConfirmingReceipt && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>}
-                   Confirm Delivery
-                 </button>
-               )}
-               {buyerStatus === "Delivered" && (
+               {canBuyerConfirm &&
+                 rawStatus !== "completed" &&
+                 rawStatus !== "cancelled" &&
+                 rawStatus !== "refunded" &&
+                 activePayload.status !== "completed" &&
+                 activePayload.status !== "cancelled" &&
+                 activePayload.status !== "refunded" && (
+                   <button
+                     onClick={handleBuyerConfirmReceipt}
+                     disabled={isConfirmingReceipt}
+                     className="w-full py-2.5 mb-2 rounded-full bg-lily text-white font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-md shadow-lily/20"
+                   >
+                     {isConfirmingReceipt && (
+                       <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                     )}
+                     Confirm Delivery
+                   </button>
+                 )}
+               {hasDelivered && (
                  <div className="mt-2 space-y-2">
                    <input 
                      type="file" 
@@ -353,9 +373,22 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
                      </button>
                    )}
                    {!hasDispatched && !hasDelivered && (
-                     <button onClick={() => handleDispatchUpdate('Dispatched')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
+                     <button
+                       onClick={() =>
+                         handleDispatchUpdate(
+                           payload.delivery_type === "pickup"
+                             ? "Ready for pickup"
+                             : "Dispatched"
+                         )
+                       }
+                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50"
+                     >
                        <ShoppingCart className="w-5 h-5 text-gray-700" />
-                       <span className="font-medium text-gray-700">Available for pickup</span>
+                       <span className="font-medium text-gray-700">
+                         {payload.delivery_type === "pickup"
+                           ? "Available for pickup"
+                           : "Out for delivery"}
+                       </span>
                      </button>
                    )}
                    <button onClick={() => handleStatusUpdate('cancelled')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">

@@ -108,11 +108,27 @@ const PaystackCallbackPage = () => {
           localStorage.removeItem("checkout_ids");
           localStorage.removeItem("lily_pending_order");
           toast.success("Payment successful!");
+          const calculatedTotal =
+            pendingOrder?.total_amount_naira ||
+            (pendingOrder?.total_amount_kobo
+              ? Number(pendingOrder.total_amount_kobo) / 100
+              : null) ||
+            pendingOrder?.total_amount ||
+            pendingOrder?.total;
+
           navigate("/order-success", {
             state: {
               order: pendingOrder
                 ? { ...pendingOrder, reference, status: "paid" }
                 : { reference, status: "paid" },
+              total: calculatedTotal,
+              product:
+                pendingOrder?.items?.[0]?.product || pendingOrder?.items?.[0],
+              quantity:
+                pendingOrder?.items?.reduce(
+                  (acc, it) => acc + (it.quantity || 1),
+                  0
+                ) || 1,
               paymentMethod: "paystack",
             },
           });
