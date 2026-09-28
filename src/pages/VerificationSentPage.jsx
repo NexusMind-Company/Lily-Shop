@@ -205,18 +205,13 @@ const VerificationSentPage = () => {
 
           {/* Interactive Preview Card: What's Waiting For You */}
           <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/90 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-poppins font-bold text-sm text-slate-900">
-                  What&apos;s waiting for you
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  Up next once your email is confirmed
-                </p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 uppercase tracking-wider">
-                Preview
-              </span>
+            <div>
+              <h3 className="font-poppins font-bold text-sm text-slate-900">
+                What&apos;s waiting for you
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Up next once your email is confirmed
+              </p>
             </div>
 
             <div className="space-y-3">
