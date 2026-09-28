@@ -228,7 +228,7 @@ export default function ShopaDeliveryPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-display">
       {/* Header */}
-      <header className="bg-white sticky top-0 z-40 border-b border-gray-100 px-4 py-4 flex items-center shadow-sm">
+      <header className="bg-white sticky top-0 z-50 border-b border-gray-100 px-4 h-16 flex items-center shadow-xs">
         <button 
           onClick={() => navigate(-1)} 
           className="p-2 hover:bg-gray-100 rounded-full transition"
@@ -250,7 +250,7 @@ export default function ShopaDeliveryPage() {
       </section>
 
       {/* Tabs */}
-      <div className="sticky top-[68px] z-30 bg-white shadow-sm border-b border-gray-100">
+      <div className="sticky top-16 z-40 bg-white shadow-xs border-b border-gray-100">
         <div className="flex overflow-x-auto hide-scrollbar">
             <button 
                 onClick={() => setActiveTab('parcel')}
@@ -276,7 +276,7 @@ export default function ShopaDeliveryPage() {
         </div>
       </div>
 
-      <div className="p-4 md:p-6 max-w-2xl mx-auto">
+      <div className="isolate relative z-0 p-4 md:p-6 max-w-2xl mx-auto">
           {/* Tab 1: Parcel */}
           {activeTab === 'parcel' && (
               <div className="space-y-6 animate-fadeIn">
@@ -290,7 +290,7 @@ export default function ShopaDeliveryPage() {
                               <div className="absolute left-[15px] top-[40px] bottom-[40px] w-0.5 bg-gray-200 z-0"></div>
                               
                               {/* PICKUP */}
-                              <div className="relative z-50">
+                              <div className="relative z-20">
                                   <label className="block text-xs font-bold text-gray-500 mb-2 ml-10 uppercase tracking-wider">Pickup Location</label>
                                   <div className="flex gap-4 items-start relative">
                                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-1 z-10">
@@ -351,7 +351,7 @@ export default function ShopaDeliveryPage() {
                               </div>
 
                               {/* DROPOFF */}
-                              <div className="relative z-40">
+                              <div className="relative z-10">
                                   <label className="block text-xs font-bold text-gray-500 mb-2 ml-10 uppercase tracking-wider">Dropoff Location</label>
                                   <div className="flex gap-4 items-start relative">
                                       <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-1 z-10">
