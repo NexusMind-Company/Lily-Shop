@@ -99,6 +99,36 @@ const OrderDetailPage = () => {
     return '0';
   };
 
+  const getVendorChatTarget = () => {
+    if (order?.order_type === 'food') {
+      return order?.vendor?.user_id || order?.vendor?.user || order?.vendor?.id || null;
+    }
+    const firstItem = order?.items?.[0];
+    if (firstItem?.product?.user_id) {
+      return firstItem.product.user_id;
+    }
+    if (order?.seller?.id || order?.seller_id) {
+      return order.seller?.id || order.seller_id;
+    }
+    return null;
+  };
+
+  const getItemChatTarget = (item) => {
+    if (order?.order_type === 'food') {
+      return order?.vendor?.user_id || order?.vendor?.user || order?.vendor?.id || null;
+    }
+    return item?.product?.user_id || null;
+  };
+
+  const handleChatWithVendor = (targetId) => {
+    const recipientId = targetId || getVendorChatTarget();
+    if (recipientId) {
+      navigate(`/chat/${recipientId}`);
+    } else {
+      navigate('/inbox');
+    }
+  };
+
   const getStatusConfig = (status) => {
     const configs = {
       paid: {
@@ -352,11 +382,24 @@ const OrderDetailPage = () => {
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center">
                   <Package className="w-5 h-5 mr-2 text-lily" />
                   Order Items ({order.items?.length})
                 </h3>
+                {getVendorChatTarget() && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleChatWithVendor(getVendorChatTarget());
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-lily text-white hover:bg-darklily text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm active:scale-95"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                  </button>
+                )}
               </div>
 
               <div className="p-6">
@@ -369,6 +412,7 @@ const OrderDetailPage = () => {
                     const sellerName = item.product?.shop_name || order.vendor?.name;
                     const unitPrice = getItemUnitPrice(item);
                     const subtotal = getItemSubtotal(item);
+                    const itemChatTarget = getItemChatTarget(item);
 
                     return (
                       <motion.div
@@ -408,13 +452,27 @@ const OrderDetailPage = () => {
                               Sold by {sellerName}
                             </p>
                           )}
-                          <div className="flex flex-wrap items-center gap-3 mt-2">
+                          <div className="flex flex-wrap items-center gap-2.5 mt-2">
                             <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                               Qty: {item.quantity}
                             </span>
                             <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                               ₦{unitPrice.toLocaleString()} each
                             </span>
+                            {itemChatTarget && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleChatWithVendor(itemChatTarget);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-lily bg-lily/10 hover:bg-lily hover:text-white transition-colors border border-lily/20"
+                                title={`Chat with ${order.order_type === 'food' ? 'Vendor' : 'Seller'}`}
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -598,29 +656,25 @@ const OrderDetailPage = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
-                  {order.status === 'paid' && (
-                    <>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate('/inbox')}
-                        className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span>Contact Seller</span>
-                      </motion.button>
-                      
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => window.print()}
-                        className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <Printer className="w-5 h-5" />
-                        <span>Print Receipt</span>
-                      </motion.button>
-                    </>
-                  )}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleChatWithVendor()}
+                    className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => window.print()}
+                    className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Printer className="w-5 h-5" />
+                    <span>Print Receipt</span>
+                  </motion.button>
 
                   {/* Escrow / Dispute Buttons (Available once out_for_delivery or delivered) */}
                   {(order.status === 'out_for_delivery' || order.status === 'delivered') && (
