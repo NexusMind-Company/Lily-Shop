@@ -183,7 +183,21 @@ const OrderSuccessPage = () => {
 
   const productName = product?.name || order?.items?.[0]?.name || "Food Order";
   const productImage = product?.image_url || product?.media_url || order?.items?.[0]?.image_url;
-  const address = order?.delivery_address || order?.shipping_address || state.address;
+  const rawAddress = order?.delivery_address || order?.shipping_address || state.address;
+  const address =
+    typeof rawAddress === "object" && rawAddress !== null
+      ? rawAddress.street_address ||
+        rawAddress.address ||
+        [
+          rawAddress.house_number,
+          rawAddress.street_name,
+          rawAddress.city_name || rawAddress.city,
+          rawAddress.state_name || rawAddress.state,
+        ]
+          .filter(Boolean)
+          .join(", ") ||
+        ""
+      : String(rawAddress || "");
 
   const containerVariants = {
     hidden: { opacity: 0 },

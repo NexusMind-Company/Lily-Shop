@@ -252,7 +252,18 @@ export default function Receipt() {
             <section className="space-y-4">
               <h3 className="font-bold text-gray-900 text-lg">Delivery:</h3>
               <p className="font-medium text-gray-900 leading-relaxed">
-                {tx.delivery_address}
+                {typeof tx.delivery_address === "object"
+                  ? tx.delivery_address.street_address ||
+                    tx.delivery_address.address ||
+                    [
+                      tx.delivery_address.house_number,
+                      tx.delivery_address.street_name,
+                      tx.delivery_address.city_name || tx.delivery_address.city,
+                      tx.delivery_address.state_name || tx.delivery_address.state,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")
+                  : String(tx.delivery_address)}
               </p>
             </section>
           )}

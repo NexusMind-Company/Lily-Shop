@@ -268,10 +268,10 @@ export const deleteVendorReview = async (reviewId) => {
 export const fetchReviewsForVendor = async (vendorId) => {
   try {
     const data = await fetchVendorReviews(vendorId);
-    return data;
+    return data || [];
   } catch (error) {
-    console.error("Error fetching vendor reviews:", error);
-    throw error;
+    console.warn("Error fetching vendor reviews, falling back to empty list:", error?.message || error);
+    return [];
   }
 };
 
