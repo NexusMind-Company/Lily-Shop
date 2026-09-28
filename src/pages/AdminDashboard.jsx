@@ -25,7 +25,6 @@ import {
   RefreshCw,
   AlertCircle,
   DollarSign,
-  ShieldCheck,
   RotateCcw,
 } from "lucide-react";
 import { api } from "../services/api";
@@ -304,7 +303,7 @@ const AdminDashboard = () => {
         {/* Top Header & Navigation */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2">
               <Link
                 to="/lilyshop/workers"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs hover:border-slate-300 transition-colors"
@@ -312,10 +311,6 @@ const AdminDashboard = () => {
                 <ArrowLeft size={14} />
                 <span>Staff Operations</span>
               </Link>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 uppercase tracking-wider">
-                <ShieldCheck size={13} />
-                Admin Portal
-              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Lilyshops Admin Dashboard
