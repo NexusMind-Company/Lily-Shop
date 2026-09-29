@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
@@ -68,12 +69,17 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         return cache.addAll(urlsToCache).catch(() => {});
       })
   );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', event => {

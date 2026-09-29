@@ -31,9 +31,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 );
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(error => {
-      console.log('SW registration failed: ', error);
-    });
-  });
+  const registerServiceWorker = () => {
+    navigator.serviceWorker
+      .register('/firebase-messaging-sw.js', { scope: '/' })
+      .catch((error) => {
+        console.error('SW registration failed: ', error);
+      });
+  };
+
+  if (document.readyState === 'complete') {
+    registerServiceWorker();
+  } else {
+    window.addEventListener('load', registerServiceWorker);
+  }
 }

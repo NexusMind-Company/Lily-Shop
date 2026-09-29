@@ -9,6 +9,7 @@ const DEFAULT_VAPID_KEY =
   "BMdqnxp9Ay-U-XpdLPne6ak1FX4hYcT_CgT-0PaB6mXxbLntdLC1qnEDHwAdm7XHL5i4X5V3CCrJPzYzJoJmqxw";
 
 let currentInstantAudio = null;
+let hasActiveForegroundListener = false;
 
 export const stopInstantOrderAudio = () => {
   if (currentInstantAudio) {
@@ -19,7 +20,9 @@ export const stopInstantOrderAudio = () => {
 };
 
 export const usePushNotifications = (isAuthenticated) => {
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(
+    typeof window !== 'undefined' && window.__fcm_token ? window.__fcm_token : null
+  );
   const [isRegistering, setIsRegistering] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window
@@ -37,8 +40,18 @@ export const usePushNotifications = (isAuthenticated) => {
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || DEFAULT_VAPID_KEY;
 
       let swRegistration = registration;
-      if (!swRegistration && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-        swRegistration = await navigator.serviceWorker.ready;
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        if (!swRegistration) {
+          try {
+            swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+              scope: '/',
+            });
+          } catch (registerError) {
+            console.warn('Direct SW registration failed, falling back to ready:', registerError);
+            swRegistration = await navigator.serviceWorker.ready;
+          }
+        }
+        await navigator.serviceWorker.ready;
       }
 
       const currentToken = await getToken(messaging, {
@@ -48,12 +61,25 @@ export const usePushNotifications = (isAuthenticated) => {
 
       if (currentToken) {
         setToken(currentToken);
-        try {
-          await registerDeviceToken(currentToken, 'web');
-        } catch (backendError) {
-          console.error('Failed to register token with backend:', backendError);
+        if (typeof window !== 'undefined') {
+          window.__fcm_token = currentToken;
         }
+        console.log('✅ FCM Push Token generated:', currentToken);
+
+        if (isAuthenticated) {
+          try {
+            await registerDeviceToken(currentToken, 'web');
+            console.log('✅ Push notification token registered with backend successfully.');
+          } catch (backendError) {
+            console.error('Failed to register token with backend:', backendError);
+          }
+        } else {
+          console.info('FCM Token ready. Backend registration will occur once authenticated.');
+        }
+
         return currentToken;
+      } else {
+        console.warn('No registration token available. Request notification permissions first.');
       }
     } catch (error) {
       console.error('An error occurred while retrieving push token:', error);
@@ -66,49 +92,73 @@ export const usePushNotifications = (isAuthenticated) => {
       setIsRegistering(false);
     }
     return null;
-  }, []);
+  }, [isAuthenticated]);
 
   const requestPushPermission = useCallback(async () => {
     if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
       toast.error('Push notifications are not supported by your browser.');
-      return false;
+      return null;
     }
 
     try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       if (permission === 'granted') {
-        const registration = await navigator.serviceWorker.ready;
-        const currentToken = await registerTokenWithBackend(registration);
+        const currentToken = await registerTokenWithBackend();
         if (currentToken) {
           toast.success('Push notifications enabled!');
-          return true;
+          return currentToken;
         }
       } else if (permission === 'denied') {
         toast.error('Notification permission was blocked in browser settings.');
-        return false;
+        return null;
       }
     } catch (err) {
       console.error('Error requesting notification permission:', err);
     }
-    return false;
+    return null;
   }, [registerTokenWithBackend]);
 
+  // Expose convenient test helpers in browser console
   useEffect(() => {
-    if (!isAuthenticated || !messaging || typeof window === 'undefined' || !('Notification' in window)) {
+    if (typeof window !== 'undefined') {
+      window.requestPushPermission = requestPushPermission;
+      window.getFcmToken = async () => {
+        if (Notification.permission !== 'granted') {
+          return await requestPushPermission();
+        }
+        return await registerTokenWithBackend();
+      };
+    }
+  }, [registerTokenWithBackend, requestPushPermission]);
+
+  // If permission was already granted by user previously, retrieve token on mount
+  useEffect(() => {
+    if (!messaging || typeof window === 'undefined' || !('Notification' in window)) {
       return;
     }
 
-    // If permission was already granted by user previously, register token silently
     if (Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then((registration) => {
-        registerTokenWithBackend(registration);
-      }).catch((err) => {
-        console.warn('Service worker not ready for push notifications:', err);
+      registerTokenWithBackend();
+    }
+  }, [registerTokenWithBackend]);
+
+  // Sync token with backend if auth status becomes true and token is already held
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      registerDeviceToken(token, 'web').catch((backendError) => {
+        console.error('Failed to sync existing token to backend on auth change:', backendError);
       });
     }
+  }, [isAuthenticated, token]);
 
-    // Listen for foreground messages
+  // Listen for foreground messages (deduplicated across component instances)
+  useEffect(() => {
+    if (!messaging || hasActiveForegroundListener) {
+      return;
+    }
+
+    hasActiveForegroundListener = true;
     const unsubscribe = onMessage(messaging, (payload) => {
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
@@ -185,11 +235,12 @@ export const usePushNotifications = (isAuthenticated) => {
     });
 
     return () => {
+      hasActiveForegroundListener = false;
       if (unsubscribe) {
         unsubscribe();
       }
     };
-  }, [isAuthenticated, registerTokenWithBackend]);
+  }, []);
 
   return { token, notificationPermission, requestPushPermission, isRegistering };
 };
