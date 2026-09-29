@@ -48,19 +48,12 @@ export const usePushNotifications = (isAuthenticated) => {
 
       if (currentToken) {
         setToken(currentToken);
-        if (typeof window !== 'undefined') {
-          window.__fcm_token = currentToken;
-        }
-        console.log('✅ FCM Push Token generated:', currentToken);
         try {
           await registerDeviceToken(currentToken, 'web');
-          console.log('✅ Push notification token registered with backend successfully.');
         } catch (backendError) {
           console.error('Failed to register token with backend:', backendError);
         }
         return currentToken;
-      } else {
-        console.warn('No registration token available.');
       }
     } catch (error) {
       console.error('An error occurred while retrieving push token:', error);
@@ -117,8 +110,6 @@ export const usePushNotifications = (isAuthenticated) => {
 
     // Listen for foreground messages
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log('Message received in foreground:', payload);
-
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
 
