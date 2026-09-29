@@ -129,7 +129,39 @@ const OrderDetailPage = () => {
     return null;
   };
 
+  const getSubtotalAmount = () => {
+    if (order?.items && order.items.length > 0) {
+      return order.items.reduce((acc, item) => acc + getItemSubtotal(item), 0);
+    }
+    const totalKobo = order?.total_price || order?.total_amount_kobo;
+    return totalKobo ? Number(totalKobo) / 100 : 0;
+  };
+
   const getFormattedTotal = () => {
+    const itemsList = order?.items || [];
+    if (itemsList.length > 0) {
+      const itemsSum = itemsList.reduce((sum, item) => sum + getItemSubtotal(item), 0);
+      if (itemsSum > 0) {
+        const deliveryFee =
+          Number(order.delivery_fee_naira) ||
+          (order.delivery_fee_kobo ? Number(order.delivery_fee_kobo) / 100 : 0);
+        const rawTotal = parseFloat(
+          order.total_amount_naira ||
+            (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) ||
+            0
+        );
+        if (
+          Math.round(rawTotal) === Math.round(itemsSum * 1.1) ||
+          (!deliveryFee && rawTotal > itemsSum)
+        ) {
+          return (itemsSum + deliveryFee).toLocaleString();
+        }
+        if (rawTotal > 0) {
+          return rawTotal.toLocaleString();
+        }
+        return (itemsSum + deliveryFee).toLocaleString();
+      }
+    }
     if (order?.total_amount_naira != null) {
       const parsedNum = Number(order.total_amount_naira);
       if (!isNaN(parsedNum)) return parsedNum.toLocaleString();
@@ -724,7 +756,7 @@ const OrderDetailPage = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-semibold">
-                      ₦{getFormattedTotal()}
+                      ₦{getSubtotalAmount().toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
