@@ -12,6 +12,7 @@ import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { FeedProvider } from "./context/feedContext.jsx";
 import NotificationPoller from "./components/common/NotificationPoller";
+import PushNotificationPromptModal from "./components/notifications/PushNotificationPromptModal";
 import usePushNotifications from "./hooks/usePushNotifications";
 
 /* ---------------- AUTH ---------------- */
@@ -259,6 +260,7 @@ function App() {
 
       <ErrorBoundary>
         <NotificationPoller />
+        <PushNotificationPromptModal />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* ================= PUBLIC ROUTES ================= */}
