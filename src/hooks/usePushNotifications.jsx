@@ -64,22 +64,16 @@ export const usePushNotifications = (isAuthenticated) => {
         if (typeof window !== 'undefined') {
           window.__fcm_token = currentToken;
         }
-        console.log('✅ FCM Push Token generated:', currentToken);
 
         if (isAuthenticated) {
           try {
             await registerDeviceToken(currentToken, 'web');
-            console.log('✅ Push notification token registered with backend successfully.');
           } catch (backendError) {
             console.error('Failed to register token with backend:', backendError);
           }
-        } else {
-          console.info('FCM Token ready. Backend registration will occur once authenticated.');
         }
 
         return currentToken;
-      } else {
-        console.warn('No registration token available. Request notification permissions first.');
       }
     } catch (error) {
       console.error('An error occurred while retrieving push token:', error);
@@ -119,15 +113,21 @@ export const usePushNotifications = (isAuthenticated) => {
     return null;
   }, [registerTokenWithBackend]);
 
-  // Expose convenient test helpers in browser console
+  // Expose convenient test helpers in browser console on-demand
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.requestPushPermission = requestPushPermission;
       window.getFcmToken = async () => {
+        let currentToken;
         if (Notification.permission !== 'granted') {
-          return await requestPushPermission();
+          currentToken = await requestPushPermission();
+        } else {
+          currentToken = await registerTokenWithBackend();
         }
-        return await registerTokenWithBackend();
+        if (currentToken) {
+          console.log('FCM Token:', currentToken);
+        }
+        return currentToken;
       };
     }
   }, [registerTokenWithBackend, requestPushPermission]);
