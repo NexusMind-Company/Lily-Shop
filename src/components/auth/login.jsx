@@ -82,19 +82,34 @@ const Login = () => {
 
       setShowSuccess(true);
       setTimeout(() => {
-        const userId = resultAction.payload?.user?.id || formData.login;
-        const userInterests = resultAction.payload?.user?.interests;
-        
-        // Check backend flags for new user
-        const isFirstTimeServer = 
-          resultAction.payload?.user?.is_first_login || 
+        const user = resultAction.payload?.user;
+        const userId = user?.id || formData.login;
+        const userInterests = user?.interests;
+
+        const searchParams = new URLSearchParams(location.search);
+        const isNewUserFromQuery = searchParams.get("new_user") === "true";
+        const isNewUserFromState = Boolean(location.state?.isNewUser);
+        const isNewRegistration =
+          localStorage.getItem("is_new_registration") === "true";
+
+        const hasUserOnboarded = Boolean(
+          localStorage.getItem(`onboarded_interests_${userId}`),
+        );
+
+        const isProfileIncomplete = !user?.first_name || !user?.phone_number;
+        const isFirstTimeServer =
+          Boolean(user?.is_first_login) ||
           (Array.isArray(userInterests) && userInterests.length === 0);
 
-        const hasOnboarded =
-          localStorage.getItem(`onboarded_interests_${userId}`) ||
-          localStorage.getItem("onboarded_interests");
-          
-        if (isFirstTimeServer || !hasOnboarded) {
+        const shouldOnboard =
+          isNewRegistration ||
+          isNewUserFromQuery ||
+          isNewUserFromState ||
+          isFirstTimeServer ||
+          !hasUserOnboarded ||
+          isProfileIncomplete;
+
+        if (shouldOnboard) {
           navigate("/onboarding");
         } else {
           const from = location.state?.from?.pathname || "/";

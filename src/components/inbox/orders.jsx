@@ -44,18 +44,69 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
   }, [dispatch]);
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Delivered":
+    switch (status?.toLowerCase()) {
+      case "delivered":
         return "bg-green-100 text-green-700";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-700";
-      case "Refunded":
+      case "pending":
+        return "bg-amber-100 text-amber-800 border border-amber-200";
+      case "refunded":
         return "bg-blue-100 text-blue-700";
-      case "Canceled":
+      case "canceled":
+      case "cancelled":
+      case "failed":
         return "bg-red-100 text-red-700";
+      case "paid":
+        return "bg-emerald-100 text-emerald-700";
+      case "preparing":
+        return "bg-orange-100 text-orange-700";
+      case "out_for_delivery":
+      case "dispatched":
+        return "bg-purple-100 text-purple-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
+  };
+
+  const getOrderDisplayTotal = (order) => {
+    const itemsList = order.items || [];
+    if (itemsList.length > 0) {
+      const itemsSum = itemsList.reduce((sum, item) => {
+        const unit =
+          item.price_kobo != null
+            ? item.price_kobo / 100
+            : Number(item.price || item.product?.price || 0);
+        return sum + unit * (Number(item.quantity) || 1);
+      }, 0);
+
+      if (itemsSum > 0) {
+        const deliveryFee =
+          Number(order.delivery_fee_naira) ||
+          (order.delivery_fee_kobo ? Number(order.delivery_fee_kobo) / 100 : 0);
+        const rawTotal = parseFloat(
+          order.total_amount_naira ||
+            (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) ||
+            order.amount ||
+            0
+        );
+        if (
+          Math.round(rawTotal) === Math.round(itemsSum * 1.1) ||
+          (!deliveryFee && rawTotal > itemsSum)
+        ) {
+          return (itemsSum + deliveryFee).toLocaleString();
+        }
+        if (rawTotal > 0) {
+          return rawTotal.toLocaleString();
+        }
+        return (itemsSum + deliveryFee).toLocaleString();
+      }
+    }
+    const val = parseFloat(
+      order.total_amount_naira ||
+        (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) ||
+        order.amount ||
+        0
+    );
+    return val.toLocaleString();
   };
 
   const getOrderImage = (order) => {
@@ -160,7 +211,7 @@ const Orders = ({ hideHeader, hideBottomNav }) => {
                         </span>
                         <span className="text-[13px] text-gray-400 font-medium">•</span>
                         <span className="text-[14px] text-lily font-black">
-                          ₦{parseFloat(order.total_amount_naira || (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) || order.amount || 0).toLocaleString()}
+                          ₦{getOrderDisplayTotal(order)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-3 mt-2.5">

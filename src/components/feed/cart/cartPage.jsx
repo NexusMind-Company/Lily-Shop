@@ -664,9 +664,24 @@ const CartPage = () => {
         }
         localStorage.removeItem("checkout_ids");
         localStorage.removeItem("lily_pending_order");
+        const checkoutProduct = itemsToCheckout[0]?.product || itemsToCheckout[0];
+        const checkoutQuantity = itemsToCheckout.reduce(
+          (acc, it) => acc + (it.quantity || 1),
+          0
+        );
+        const resolvedTotal =
+          newOrder.total_amount_naira ||
+          (newOrder.total_amount_kobo
+            ? Number(newOrder.total_amount_kobo) / 100
+            : null) ||
+          estimatedTotal;
+
         navigate("/order-success", {
           state: {
             order: newOrder,
+            total: resolvedTotal,
+            product: checkoutProduct,
+            quantity: checkoutQuantity,
             paymentMethod: "wallet",
           },
         });

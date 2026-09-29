@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../redux/cartSlice";
 import { usePayment } from "../hooks/usePayment";
-import { api } from "../services/api";
+import { api, cancelOrder } from "../services/api";
 import { toast } from "react-hot-toast";
 import {
   clearSubscriptionFlowState,
@@ -25,7 +25,7 @@ const PaystackCallbackPage = () => {
   useEffect(() => {
     const reference =
       searchParams.get("reference") || searchParams.get("trxref");
-    const status = searchParams.get("status");
+    const statusParam = searchParams.get("status");
     const storedOrder = localStorage.getItem("lily_pending_order");
     const pendingOrder = storedOrder ? JSON.parse(storedOrder) : null;
     const pendingSubscription = getSubscriptionFlowState();
@@ -46,6 +46,25 @@ const PaystackCallbackPage = () => {
       );
     };
 
+    const handleOrderFailure = async (errorMessage) => {
+      if (pendingOrder?.id) {
+        try {
+          await cancelOrder(pendingOrder.id);
+        } catch (cancelErr) {
+          console.error("Failed to cancel pending order on failure:", cancelErr);
+        }
+      }
+      localStorage.removeItem("lily_pending_order");
+      localStorage.removeItem("checkout_ids");
+      resetPaymentData();
+      // Deliberately do NOT dispatch(clearCart()) so cart items remain preserved
+      toast.error(errorMessage || "Payment was cancelled. Your cart items are saved.");
+      navigate("/checkout", {
+        replace: true,
+        state: { error: errorMessage || "Payment was cancelled. Your cart items are saved." },
+      });
+    };
+
     const run = async () => {
       if (!reference) {
         if (subscriptionRedirectRequested) {
@@ -53,9 +72,17 @@ const PaystackCallbackPage = () => {
           return;
         }
 
-        navigate("/checkout", {
-          state: { error: "Payment failed. Please try again." },
-        });
+        await handleOrderFailure("No payment reference found. Payment was cancelled.");
+        return;
+      }
+
+      if (statusParam === "cancelled" || statusParam === "failed") {
+        if (subscriptionRedirectRequested) {
+          redirectSubscriptionFailure("Payment was cancelled.");
+          return;
+        }
+
+        await handleOrderFailure("Payment was cancelled. Your cart items are saved.");
         return;
       }
 
@@ -68,6 +95,28 @@ const PaystackCallbackPage = () => {
           },
         );
         const payload = verificationResponse.data || {};
+
+        const isPaymentSuccessful =
+          payload.status === "success" ||
+          payload.paystack_status === "success" ||
+          payload.data?.status === "success";
+
+        if (!isPaymentSuccessful) {
+          const failMsg =
+            payload.message ||
+            payload.detail ||
+            "Payment was cancelled or unsuccessful. Your cart items are saved.";
+
+          if (
+            payload.payment_context === "subscription" ||
+            subscriptionRedirectRequested
+          ) {
+            redirectSubscriptionFailure(failMsg);
+          } else {
+            await handleOrderFailure(failMsg);
+          }
+          return;
+        }
 
         if (
           payload.payment_context === "subscription" ||
@@ -108,29 +157,45 @@ const PaystackCallbackPage = () => {
           localStorage.removeItem("checkout_ids");
           localStorage.removeItem("lily_pending_order");
           toast.success("Payment successful!");
+          const calculatedTotal =
+            pendingOrder?.total_amount_naira ||
+            (pendingOrder?.total_amount_kobo
+              ? Number(pendingOrder.total_amount_kobo) / 100
+              : null) ||
+            pendingOrder?.total_amount ||
+            pendingOrder?.total;
+
           navigate("/order-success", {
             state: {
               order: pendingOrder
                 ? { ...pendingOrder, reference, status: "paid" }
                 : { reference, status: "paid" },
+              total: calculatedTotal,
+              product:
+                pendingOrder?.items?.[0]?.product || pendingOrder?.items?.[0],
+              quantity:
+                pendingOrder?.items?.reduce(
+                  (acc, it) => acc + (it.quantity || 1),
+                  0
+                ) || 1,
               paymentMethod: "paystack",
             },
           });
         }
       } catch (e) {
         console.error("Paystack verification error:", e);
-        toast.error("Payment verification failed.");
+        const errMsg =
+          e.response?.data?.detail ||
+          e.response?.data?.message ||
+          e.response?.data?.error ||
+          "Payment verification failed. Your cart items are saved.";
 
         if (subscriptionRedirectRequested) {
-          redirectSubscriptionFailure(
-            "Payment verification failed. Please try again.",
-          );
+          redirectSubscriptionFailure(errMsg);
           return;
         }
 
-        navigate("/checkout", {
-          state: { error: "Payment verification failed. Please try again." },
-        });
+        await handleOrderFailure(errMsg);
       }
     };
 

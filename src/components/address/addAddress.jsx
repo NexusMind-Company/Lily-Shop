@@ -1,50 +1,79 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
-import { api, addNewAddress } from "../../services/api";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { addNewAddress, searchAddressLocations } from "../../services/api";
+import {
+  MapPin,
+  Search,
+  Loader2,
+  Building,
+  ChevronLeft,
+  X,
+} from "lucide-react";
+
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+};
+
+const NIGERIAN_STATES = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
+  "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe", "Imo", "Jigawa", "Kaduna", "Kano",
+  "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
+  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
+];
 
 const AddAddressPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user_data } = useSelector((state) => state.auth || {});
 
   const [formData, setFormData] = useState({
     name: "",
-    countryCode: "+234",
     phone: "",
-    stateId: "",
-    stateName: "",
-    lgaId: "",
-    lgaName: "",
-    cityId: "",
-    cityName: "",
-    address: "",
     houseNumber: "",
     landmark: "",
     description: "",
-    lat: null,
-    lon: null,
   });
 
+  const [selectedState, setSelectedState] = useState("Lagos");
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const phoneRef = useRef(null);
-  const searchRef = useRef(null);
-  const suggestionContainerRef = useRef(null);
+  const debouncedQuery = useDebounce(searchQuery, 400);
+
+  const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Initialize with user profile if available
+  useEffect(() => {
+    if (user_data) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || `${user_data.first_name || ""} ${user_data.last_name || ""}`.trim() || user_data.username || "",
+        phone: prev.phone || user_data.phone_number || "",
+      }));
+    }
+  }, [user_data]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        suggestionContainerRef.current &&
-        !suggestionContainerRef.current.contains(event.target) &&
-        searchRef.current &&
-        !searchRef.current.contains(event.target)
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
       ) {
         setShowSuggestions(false);
       }
@@ -53,124 +82,35 @@ const AddAddressPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Queries for Cascading Flow
-  const { data: states = [] } = useQuery({
-    queryKey: ["states"],
-    queryFn: async () => {
-      const res = await api.get("/locations/states/");
-      return res.data;
-    },
-    staleTime: 60000 * 60,
-  });
-
-  const { data: lgas = [], isFetching: isLoadingLgas } = useQuery({
-    queryKey: ["lgas", formData.stateId],
-    queryFn: async () => {
-      if (!formData.stateId) return [];
-      const res = await api.get(`/locations/lgas/?state_id=${formData.stateId}`);
-      return res.data;
-    },
-    enabled: !!formData.stateId,
-    staleTime: 60000 * 60,
-  });
-
-  const { data: cities = [], isFetching: isLoadingCities } = useQuery({
-    queryKey: ["cities", formData.lgaId],
-    queryFn: async () => {
-      if (!formData.lgaId) return [];
-      const res = await api.get(`/locations/cities/?lga_id=${formData.lgaId}`);
-      return res.data;
-    },
-    enabled: !!formData.lgaId,
-    staleTime: 60000 * 60,
-  });
-
   // Proxy-backed Nominatim Autocomplete Query
   const { data: suggestions = [], isFetching: isSearching } = useQuery({
-    queryKey: ["nominatim", debouncedQuery, formData.lgaName, formData.stateName],
+    queryKey: ["nominatimAddressSearch", debouncedQuery, selectedState],
     queryFn: async () => {
-      if (!debouncedQuery || debouncedQuery.length < 3) return [];
-      const res = await api.get(`/locations/search/`, {
-        params: {
-          query: debouncedQuery,
-          lga: formData.lgaName || "",
-          state: formData.stateName,
-        },
-      });
-      return res.data;
+      if (!debouncedQuery || debouncedQuery.trim().length < 3) return [];
+      return await searchAddressLocations(debouncedQuery.trim(), selectedState);
     },
-    enabled: debouncedQuery.length >= 3 && !!formData.stateName,
+    enabled: debouncedQuery.trim().length >= 3 && !selectedLocation,
     staleTime: 60000,
   });
 
-  const handleStateChange = (e) => {
-    const stateId = e.target.value;
-    const stateName = states.find((s) => s.id.toString() === stateId)?.name || "";
-    setFormData((prev) => ({
-      ...prev,
-      stateId,
-      stateName,
-      lgaId: "",
-      lgaName: "",
-      cityId: "",
-      cityName: "",
-    }));
-  };
+  const handleSelectSuggestion = (suggestion) => {
+    const addressObj = suggestion.address || {};
+    const detectedCity =
+      addressObj.city ||
+      addressObj.town ||
+      addressObj.suburb ||
+      addressObj.county ||
+      addressObj.city_district ||
+      "";
+    const detectedState = addressObj.state || selectedState;
 
-  const handleLgaChange = (e) => {
-    const lgaId = e.target.value;
-    const lgaName = lgas.find((l) => l.id.toString() === lgaId)?.name || "";
-    setFormData((prev) => ({
-      ...prev,
-      lgaId,
-      lgaName,
-      cityId: "",
-      cityName: "",
-    }));
-  };
-
-  const handleCityChange = (e) => {
-    const cityId = e.target.value;
-    const cityName = cities.find((c) => c.id.toString() === cityId)?.name || "";
-    setFormData((prev) => ({
-      ...prev,
-      cityId,
-      cityName,
-    }));
-  };
-
-  const handleSuggestionClick = (suggestion) => {
-    let matchedLga = null;
-    if (suggestion.address) {
-      const address = suggestion.address;
-      const possibleLgas = [address.county, address.state_district, address.city_district, address.suburb, address.town, address.city];
-      for (const possible of possibleLgas) {
-        if (!possible) continue;
-        const cleanPossible = possible.toLowerCase().replace(/local government area|lga/g, '').trim();
-        matchedLga = lgas.find(l => {
-           const cleanLga = l.name.toLowerCase().replace(/local government area|lga/g, '').trim();
-           return cleanLga === cleanPossible || cleanLga.includes(cleanPossible) || cleanPossible.includes(cleanLga);
-        });
-        if (matchedLga) break;
-      }
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      address: suggestion.display_name,
-      lat: parseFloat(suggestion.lat),
-      lon: parseFloat(suggestion.lon),
-      lgaId: matchedLga ? matchedLga.id.toString() : prev.lgaId,
-      lgaName: matchedLga ? matchedLga.name : prev.lgaName,
-    }));
+    setSelectedLocation({
+      displayName: suggestion.display_name,
+      lat: suggestion.lat,
+      lon: suggestion.lon,
+      city: detectedCity,
+      state: detectedState,
+    });
 
     setSearchQuery(suggestion.display_name);
     setShowSuggestions(false);
@@ -180,10 +120,16 @@ const AddAddressPage = () => {
     }
   };
 
+  const handleClearSelectedLocation = () => {
+    setSelectedLocation(null);
+    setSearchQuery("");
+    setShowSuggestions(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
     if (fieldErrors[name]) {
@@ -194,341 +140,253 @@ const AddAddressPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Custom Validation
     const newErrors = {};
-    let firstErrorRef = null;
 
-    if (!formData.phone) {
+    if (!formData.phone.trim()) {
       newErrors.phone = true;
-      if (!firstErrorRef) firstErrorRef = phoneRef;
     }
-    if (!formData.stateId || !formData.lgaId) {
-      toast.error("Please select a State and LGA");
-      return;
-    }
-    const currentAddress = formData.address || searchQuery;
-    if (!currentAddress && !formData.landmark) {
+
+    const currentStreet = selectedLocation?.displayName || searchQuery.trim();
+    if (!currentStreet) {
       newErrors.address = true;
-      if (!firstErrorRef) firstErrorRef = searchRef;
     }
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
       if (newErrors.address) {
-        toast.error("Please provide a street address or landmark", { icon: "📍" });
+        toast.error("Please search and select a delivery address.");
       } else {
-        toast.error("Please fill in all required fields", { icon: "📍" });
+        toast.error("Please fill in your contact phone number.");
       }
-      firstErrorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setFieldErrors({});
 
     try {
-      let rawPhone = formData.phone.replace(/\D/g, "");
-      if (formData.countryCode === "+234" && rawPhone.startsWith("0")) {
-        rawPhone = rawPhone.substring(1);
-      }
-      const formattedPhoneNumber = `${formData.countryCode}${rawPhone}`;
+      // Build full formatted street address string
+      const addressParts = [];
+      if (formData.houseNumber.trim()) addressParts.push(formData.houseNumber.trim());
+      addressParts.push(currentStreet);
+      if (formData.landmark.trim()) addressParts.push(`(Near ${formData.landmark.trim()})`);
+      if (formData.description.trim()) addressParts.push(`[${formData.description.trim()}]`);
 
-      const currentAddress = formData.address || searchQuery;
-      const finalAddressString = [
-        currentAddress,
-        formData.description ? `(${formData.description})` : ""
-      ].filter(Boolean).join(" - ");
+      const finalAddressString = addressParts.join(", ");
 
       const payload = {
-        label: formData.landmark || "Home",
-        street_address: finalAddressString || formData.landmark || "Manual Address",
-        street_name: currentAddress,
-        house_number: formData.houseNumber,
-        landmark: formData.landmark,
-        city: formData.cityId || null,
-        custom_city_name: (!formData.cityId && formData.cityName) ? formData.cityName : null,
-        lga: formData.lgaId,
-        state: formData.stateId,
+        label: formData.landmark.trim() || formData.name.trim() || "Home",
+        street_address: finalAddressString,
+        street_name: currentStreet,
+        house_number: formData.houseNumber.trim() || undefined,
+        landmark: formData.landmark.trim() || undefined,
+        city: selectedLocation?.city || undefined,
+        state: selectedLocation?.state || selectedState,
         country: "Nigeria",
-        phone_number: formattedPhoneNumber,
-        latitude: formData.lat ? Number(Number(formData.lat).toFixed(6)) : null,
-        longitude: formData.lon ? Number(Number(formData.lon).toFixed(6)) : null,
+        phone_number: formData.phone.trim(),
+        latitude: selectedLocation?.lat ? Number(Number(selectedLocation.lat).toFixed(6)) : undefined,
+        longitude: selectedLocation?.lon ? Number(Number(selectedLocation.lon).toFixed(6)) : undefined,
         is_default: true,
       };
 
       await addNewAddress(payload);
-      toast.success("Address saved successfully");
+
+      // Invalidate cache so cart, choose-address, and profile update immediately
+      queryClient.invalidateQueries({ queryKey: ["deliveryAddresses"] });
+
+      toast.success("Address saved successfully!");
       navigate(-1);
     } catch (err) {
       console.error("Error adding address:", err);
-      if (err.response?.data?.phone_number) {
-        setError(`Phone Number Error: ${err.response.data.phone_number[0]}`);
-      } else {
-        setError(
-          err.response?.data?.message ||
-            "Failed to add address. Please check your inputs and try again."
-        );
-      }
+      const errMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        "Failed to add address. Please check your inputs.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24 md:py-12">
-      <div className="max-w-2xl mx-auto md:bg-white md:shadow-sm md:rounded-2xl md:border md:border-gray-100 overflow-hidden">
-        {/* HEADER */}
-        <div className="flex items-center justify-center relative px-4 py-5 bg-white border-b border-gray-100 md:bg-transparent md:px-8">
+    <div className="min-h-screen bg-gray-50 font-display text-gray-900 pb-24 md:py-12">
+      <div className="max-w-2xl mx-auto md:bg-white md:shadow-xl md:rounded-3xl md:border md:border-gray-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-5 bg-white border-b border-gray-100 md:px-8">
           <button
             onClick={() => navigate(-1)}
-            className="absolute left-4 md:left-8 p-2 focus:outline-none hover:bg-gray-50 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Go back"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 18L9 12L15 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ChevronLeft size={24} className="text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-800">Add new address</h1>
+          <h1 className="text-lg font-bold text-gray-900">Add Delivery Address</h1>
+          <div className="w-8"></div>
         </div>
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="px-5 md:px-8 py-6 space-y-8 bg-white md:bg-transparent">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-5 md:px-8 py-6 space-y-7 bg-white md:bg-transparent">
           {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-100">
+            <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm border border-red-100">
               {error}
             </div>
           )}
 
           {/* CONTACT INFO */}
-          <section className="space-y-5">
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Contact Info</h2>
+          <section className="space-y-4">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              Contact Information
+            </h2>
 
-            <div className="space-y-1.5">
-              <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                Phone no*
-              </label>
-              <div 
-                ref={phoneRef} 
-                className={`flex space-x-2 transition-all duration-300 rounded-xl ${fieldErrors.phone ? "ring-2 ring-red-500 bg-red-50/30" : ""}`}
-              >
-                <select
-                  name="countryCode"
-                  value={formData.countryCode}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                  Recipient Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
-                  className={`w-[120px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all ${fieldErrors.phone ? "border-red-300" : ""}`}
-                >
-                  <option value="+234">NG (+234)</option>
-                  <option value="+1">US (+1)</option>
-                  <option value="+44">UK (+44)</option>
-                  <option value="+233">GH (+233)</option>
-                </select>
+                  placeholder="Jane Doe"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                  Phone Number*
+                </label>
                 <input
                   type="tel"
                   id="phone"
                   name="phone"
+                  required
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="80X XXX XXXX"
-                  className={`flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all ${fieldErrors.phone ? "border-red-300" : ""}`}
+                  placeholder="08012345678 or +234..."
+                  className={`w-full bg-gray-50 border ${
+                    fieldErrors.phone ? "border-red-400 ring-2 ring-red-100" : "border-gray-200"
+                  } rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all`}
                 />
               </div>
-              {fieldErrors.phone && <span className="text-red-500 text-xs mt-1 block">Phone number is required</span>}
             </div>
           </section>
 
           <div className="h-px w-full bg-gray-100"></div>
 
-          {/* HIERARCHICAL LOCATION */}
-          <section className="space-y-5">
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Location Details</h2>
+          {/* LOCATION DETAILS */}
+          <section className="space-y-4">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              Delivery Location
+            </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* STATE */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">State*</label>
-                <select
-                  value={formData.stateId}
-                  onChange={handleStateChange}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all"
-                >
-                  <option value="">Select State</option>
-                  {states.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* LGA */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">LGA*</label>
-                <div className="relative">
-                  <select
-                    value={formData.lgaId}
-                    onChange={handleLgaChange}
-                    disabled={!formData.stateId}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select LGA</option>
-                    {lgas.map((l) => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
-                  {isLoadingLgas && <Loader2 className="w-4 h-4 text-gray-400 animate-spin absolute right-10 top-4 pointer-events-none" />}
-                </div>
-              </div>
+            {/* State Selection */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                State*
+              </label>
+              <select
+                value={selectedState}
+                onChange={(e) => {
+                  setSelectedState(e.target.value);
+                  setSelectedLocation(null);
+                }}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm font-medium rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all"
+              >
+                {NIGERIAN_STATES.map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* CITY SELECTION (HYBRID) */}
-            <div className="space-y-1.5 relative z-30">
-              <label className="text-sm font-medium text-gray-700">City / Town (Optional)</label>
-              <div className="relative">
-                {cities.length > 0 ? (
-                  <div className="flex flex-col gap-2">
-                    <select
-                      value={formData.cityId}
-                      onChange={handleCityChange}
-                      disabled={!formData.lgaId}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="">Select City</option>
-                      <option value="other">Other (Type manually)</option>
-                      {cities.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                    {formData.cityId === "other" && (
-                      <input
-                        type="text"
-                        placeholder="Enter your custom city/town"
-                        value={formData.cityName || ""}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value }))}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all animate-in fade-in slide-in-from-top-2"
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="Enter your city/town (Optional)"
-                    value={formData.cityName || ""}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, cityName: e.target.value, cityId: "other" }))}
-                    disabled={!formData.lgaId}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                )}
-                {isLoadingCities && <Loader2 className="w-4 h-4 text-gray-400 animate-spin absolute right-10 top-4 pointer-events-none" />}
-              </div>
-            </div>
-            
-            {/* STREET SEARCH */}
-            <div className="space-y-1.5 relative z-40" ref={searchRef}>
-              <label htmlFor="searchQuery" className="text-sm font-medium text-gray-700">
-                Street Address Search*
+            {/* Live Nominatim Street Search */}
+            <div className="space-y-1.5 relative" ref={searchContainerRef}>
+              <label htmlFor="searchQuery" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                Search Street Address*
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
+                  ref={searchInputRef}
                   type="text"
                   id="searchQuery"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
+                    setSelectedLocation(null);
                     setShowSuggestions(true);
-                    if (fieldErrors.address) setFieldErrors((prev) => ({ ...prev, address: false }));
+                    if (fieldErrors.address) {
+                      setFieldErrors((prev) => ({ ...prev, address: false }));
+                    }
                   }}
                   onFocus={() => {
-                    if (searchQuery.length >= 3) setShowSuggestions(true);
+                    if (!selectedLocation && searchQuery.trim().length >= 3) {
+                      setShowSuggestions(true);
+                    }
                   }}
-                  disabled={!formData.stateId}
-                  placeholder={formData.stateId ? "Search your street name..." : "Select State first"}
-                  className={`w-full bg-gray-50 border ${fieldErrors.address ? "border-red-300" : "border-gray-200"} rounded-xl pl-11 pr-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+                  placeholder="Type street, landmark, or area (e.g. Admiralty Way, Lekki)..."
+                  className={`w-full bg-gray-50 border ${
+                    fieldErrors.address ? "border-red-400 ring-2 ring-red-100" : "border-gray-200"
+                  } rounded-xl pl-11 pr-10 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all`}
                   autoComplete="off"
                 />
-                {isSearching && (
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <Loader2 className="h-5 w-5 text-[#4eb75e] animate-spin" />
-                  </div>
+                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={handleClearSelectedLocation}
+                    className="p-1 hover:bg-gray-200 rounded-full text-gray-400 hover:text-gray-600 transition absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 )}
               </div>
-              {fieldErrors.address && <span className="text-red-500 text-xs mt-1 block">Please select a valid street address from the dropdown</span>}
 
               {/* Suggestions Dropdown */}
-              {showSuggestions && searchQuery.length >= 3 && (
-                <div 
-                  ref={suggestionContainerRef}
-                  className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto"
-                >
-                  {!isSearching && suggestions.length === 0 ? (
-                    <div className="p-4 text-sm text-gray-500 text-center">
-                      No matching addresses found in {formData.lgaName || "selected LGA"}
+              {showSuggestions && debouncedQuery.trim().length >= 3 && !selectedLocation && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto z-50 divide-y divide-gray-50">
+                  {isSearching ? (
+                    <div className="p-4 text-sm text-gray-500 flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 text-lily animate-spin" /> Searching locations...
                     </div>
-                  ) : (
-                    <ul className="py-1">
-                      {suggestions.map((suggestion) => (
-                        <li 
-                          key={suggestion.place_id}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className="p-3.5 border-b border-gray-50 last:border-0 hover:bg-[#f6f8f6] cursor-pointer transition-colors flex items-start gap-3"
-                        >
-                          <MapPin className="w-4 h-4 text-[#4eb75e] shrink-0 mt-0.5" />
-                          <span className="text-sm text-gray-700 leading-tight">
-                            {suggestion.display_name}
+                  ) : suggestions.length > 0 ? (
+                    suggestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(item)}
+                        className="w-full text-left px-4 py-3.5 hover:bg-lily/5 text-sm text-gray-700 flex items-start gap-3 transition-colors group"
+                      >
+                        <MapPin className="w-4 h-4 text-gray-400 group-hover:text-lily shrink-0 mt-0.5" />
+                        <div className="flex-1 break-words">
+                          <span className="font-semibold text-gray-900 block group-hover:text-lily">
+                            {item.display_name.split(",")[0]}
                           </span>
-                        </li>
-                      ))}
-                    </ul>
+                          <span className="text-xs text-gray-500 line-clamp-1">
+                            {item.display_name}
+                          </span>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-gray-500 text-center">
+                      No matching addresses found in {selectedState}. Try searching an area name.
+                    </div>
                   )}
                 </div>
               )}
             </div>
 
-            {formData.address && formData.lat && (
-              <div className="bg-[#f6f8f6] p-4 rounded-xl border border-green-100 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4 text-[#4eb75e]" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Precise Location Set</p>
-                  <p className="text-sm text-gray-900 leading-snug line-clamp-2">{formData.address}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* HOUSE NUMBER */}
+            {/* House Number & Landmark */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label htmlFor="houseNumber" className="text-sm font-medium text-gray-700">
-                  House / Building No.
+                <label htmlFor="houseNumber" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                  House / Building / Flat No. <span className="text-gray-400 font-normal lowercase">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -536,15 +394,14 @@ const AddAddressPage = () => {
                   name="houseNumber"
                   value={formData.houseNumber}
                   onChange={handleChange}
-                  placeholder="e.g. 15A"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all"
+                  placeholder="e.g. Block 4, Flat 2B"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all"
                 />
               </div>
 
-              {/* LANDMARK */}
               <div className="space-y-1.5">
-                <label htmlFor="landmark" className="text-sm font-medium text-gray-700">
-                  Nearest Landmark
+                <label htmlFor="landmark" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                  Nearest Landmark <span className="text-gray-400 font-normal lowercase">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -552,16 +409,16 @@ const AddAddressPage = () => {
                   name="landmark"
                   value={formData.landmark}
                   onChange={handleChange}
-                  placeholder="e.g. Home, Next to bank"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all"
+                  placeholder="e.g. Opposite Zenith Bank"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all"
                 />
               </div>
             </div>
-            
-            {/* DESCRIPTION */}
+
+            {/* Description / Delivery Instructions */}
             <div className="space-y-1.5">
-              <label htmlFor="description" className="text-sm font-medium text-gray-700">
-                Description / Instructions (Optional)
+              <label htmlFor="description" className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                Delivery Instructions <span className="text-gray-400 font-normal lowercase">(optional)</span>
               </label>
               <input
                 type="text"
@@ -569,28 +426,28 @@ const AddAddressPage = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="e.g building type, gate color"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4eb75e]/20 focus:border-[#4eb75e] transition-all"
+                placeholder="e.g. Ring the bell at the black gate, call upon arrival"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all"
               />
             </div>
-
           </section>
 
-          {/* SUBMIT BUTTON */}
-          <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-100 z-40 md:static md:bg-transparent md:border-0 md:p-0 md:pt-4">
+          {/* Submit Button */}
+          <div className="pt-4">
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full md:w-auto md:min-w-[200px] md:float-right font-medium text-base rounded-xl py-4 transition-all focus:outline-none focus:ring-4 focus:ring-[#4eb75e]/30 ${
-                isLoading
-                  ? "bg-green-400 cursor-not-allowed text-white"
-                  : "bg-[#4eb75e] hover:bg-[#3da64d] text-white shadow-lg shadow-green-500/20"
-              }`}
+              disabled={isLoading || (!selectedLocation && !searchQuery.trim())}
+              className="w-full bg-lily text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-darklily transition-colors disabled:opacity-50 text-sm shadow-md shadow-lily/20"
             >
-              {isLoading ? "Saving Address..." : "Save Address"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin w-5 h-5" />
+                  Saving Address...
+                </>
+              ) : (
+                "Save Address"
+              )}
             </button>
-            {/* Clear floats on desktop */}
-            <div className="clear-both"></div>
           </div>
         </form>
       </div>

@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Phone, User, CheckCircle2, Loader2, AlertCircle, ChevronRight, Plus } from "lucide-react";
-import { createFoodOrder } from "../services/api";
+import {
+  createFoodOrder,
+  fetchFoodVendor,
+  shopaCalculateFee,
+  fetchDeliveryAddresses,
+} from "../services/api";
 import { fetchWallet } from "../redux/walletSlice";
 import { formatPrice } from "../utils/formatters";
 import { usePayment } from "../hooks/usePayment";
@@ -20,26 +26,78 @@ const FoodOrderCheckoutPage = () => {
   );
   
   const { user_data } = useSelector((state) => state.auth || {});
-  const { paymentData } = usePayment();
+  const { paymentData, setPaymentData } = usePayment();
   const selectedAddress = paymentData?.selectedAddress;
 
-  const [customerName, setCustomerName] = useState(
-    user_data?.first_name 
-      ? `${user_data.first_name} ${user_data.last_name || ""}`.trim() 
-      : ""
-  );
-  
-  // Use the phone number from the selected address if available, otherwise fallback to user data
-  const [phone, setPhone] = useState(
-    selectedAddress?.phone_number || user_data?.phone_number || ""
-  );
-  
-  // Auto-sync phone when selected address changes
+  const { data: addressesData } = useQuery({
+    queryKey: ["deliveryAddresses"],
+    queryFn: fetchDeliveryAddresses,
+  });
+
+  const addressList = useMemo(() => {
+    return addressesData?.results || addressesData || [];
+  }, [addressesData]);
+
+  // Auto-select default address if none is currently selected
   useEffect(() => {
-    if (selectedAddress?.phone_number) {
-      setPhone(selectedAddress.phone_number);
+    if (!selectedAddress && addressList.length > 0) {
+      const defaultAddr = addressList.find((a) => a.is_default) || addressList[0];
+      setPaymentData((prev) => ({
+        ...prev,
+        selectedAddress: defaultAddr,
+        selectedAddressId: defaultAddr.id,
+      }));
     }
-  }, [selectedAddress]);
+  }, [selectedAddress, addressList, setPaymentData]);
+
+  const resolveRecipientName = () => {
+    return (
+      selectedAddress?.name ||
+      selectedAddress?.recipient_name ||
+      selectedAddress?.label ||
+      (user_data?.first_name
+        ? `${user_data.first_name} ${user_data.last_name || ""}`.trim()
+        : "") ||
+      user_data?.username ||
+      ""
+    );
+  };
+
+  const resolvePhone = () => {
+    return (
+      selectedAddress?.phone_number ||
+      selectedAddress?.phone ||
+      user_data?.phone_number ||
+      ""
+    );
+  };
+
+  const [customerName, setCustomerName] = useState(resolveRecipientName());
+  const [phone, setPhone] = useState(resolvePhone());
+
+  // Auto-sync recipient name and phone when selected address changes
+  useEffect(() => {
+    if (selectedAddress) {
+      const addressName =
+        selectedAddress.name ||
+        selectedAddress.recipient_name ||
+        selectedAddress.label;
+      if (addressName) {
+        setCustomerName(addressName);
+      }
+      const addressPhone = selectedAddress.phone_number || selectedAddress.phone;
+      if (addressPhone) {
+        setPhone(addressPhone);
+      }
+    } else if (user_data) {
+      if (!customerName) {
+        setCustomerName(resolveRecipientName());
+      }
+      if (!phone) {
+        setPhone(resolvePhone());
+      }
+    }
+  }, [selectedAddress, user_data]);
 
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,17 +111,85 @@ const FoodOrderCheckoutPage = () => {
     }
   }, [dispatch, product, vendorId, navigate]);
 
+  // Fetch vendor details to obtain vendor coordinates for Shopa delivery calculation
+  const { data: vendorDetails } = useQuery({
+    queryKey: ["foodVendor", vendorId],
+    queryFn: () => fetchFoodVendor(vendorId),
+    enabled: !!vendorId,
+  });
+
+  const [shopaDeliveryFee, setShopaDeliveryFee] = useState(null);
+  const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false);
+
   const foodPrice = useMemo(() => {
     return Number(product?.price_in_naira) || Number(product?.price) || 0;
   }, [product]);
 
-  const deliveryFee = useMemo(() => {
+  const fallbackDeliveryFee = useMemo(() => {
     return Number(product?.delivery_fee_naira) || Number(product?.deliveryCharge) || 0;
   }, [product]);
 
+  // Real-time dynamic Shopa delivery fee calculation using vendor and buyer coordinates
+  useEffect(() => {
+    let isCancelled = false;
+
+    const calculateDeliveryFee = async () => {
+      const vendorLat =
+        vendorDetails?.latitude ||
+        product?.vendor_latitude ||
+        product?.vendor?.latitude;
+      const vendorLon =
+        vendorDetails?.longitude ||
+        product?.vendor_longitude ||
+        product?.vendor?.longitude;
+      const buyerLat = selectedAddress?.latitude || selectedAddress?.lat;
+      const buyerLon = selectedAddress?.longitude || selectedAddress?.lon;
+
+      if (!vendorLat || !vendorLon || !buyerLat || !buyerLon) {
+        if (!isCancelled) setShopaDeliveryFee(null);
+        return;
+      }
+
+      if (!isCancelled) setIsCalculatingDelivery(true);
+      try {
+        const quote = await shopaCalculateFee({
+          delivery_type: "food",
+          pickup_lat: Number(vendorLat),
+          pickup_lon: Number(vendorLon),
+          dropoff_lat: Number(buyerLat),
+          dropoff_lon: Number(buyerLon),
+        });
+
+        const calculatedFee =
+          Number(quote?.total_fee_naira) ||
+          (quote?.total_fee_kobo ? Number(quote.total_fee_kobo) / 100 : null);
+
+        if (!isCancelled) {
+          if (calculatedFee !== null && !isNaN(calculatedFee)) {
+            setShopaDeliveryFee(calculatedFee);
+          } else {
+            setShopaDeliveryFee(null);
+          }
+        }
+      } catch (err) {
+        console.warn("Shopa delivery fee calculation fallback to default:", err);
+        if (!isCancelled) setShopaDeliveryFee(null);
+      } finally {
+        if (!isCancelled) setIsCalculatingDelivery(false);
+      }
+    };
+
+    calculateDeliveryFee();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [vendorDetails, selectedAddress, product]);
+
+  const deliveryFee = shopaDeliveryFee !== null ? shopaDeliveryFee : fallbackDeliveryFee;
   const subtotal = foodPrice * (quantity || 1);
-  const platformFee = subtotal * 0.10; // 10% platform fee
-  const total = subtotal + deliveryFee + platformFee;
+  // Platform fee is an internal 10% commission deducted from vendor payout by backend; buyer pays subtotal + delivery
+  const total = subtotal + deliveryFee;
 
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
@@ -80,9 +206,14 @@ const FoodOrderCheckoutPage = () => {
 
     setIsSubmitting(true);
     try {
+      const buyerLat = selectedAddress?.latitude || selectedAddress?.lat;
+      const buyerLon = selectedAddress?.longitude || selectedAddress?.lon;
+
       const orderData = {
         vendor: vendorId,
         delivery_address: `${selectedAddress.street_address}, ${selectedAddress.city}, ${selectedAddress.state}`,
+        delivery_lat: buyerLat ? Number(buyerLat) : undefined,
+        delivery_lon: buyerLon ? Number(buyerLon) : undefined,
         items: [
           {
             menu_item_id: product.id,
@@ -92,10 +223,9 @@ const FoodOrderCheckoutPage = () => {
         payment_method: paymentMethod,
         delivery_type: "delivery",
         delivery_fee_naira: deliveryFee,
-        platform_fee_naira: platformFee, 
         buyer_note: note,
-        buyer_name: customerName,
-        buyer_phone: phone
+        buyer_name: customerName.trim(),
+        buyer_phone: phone.trim()
       };
 
       const response = await createFoodOrder(orderData);
@@ -202,7 +332,9 @@ const FoodOrderCheckoutPage = () => {
                 className="w-full rounded-xl border border-lily/30 bg-lily/5 p-4 cursor-pointer hover:bg-lily/10 transition-colors"
               >
                 <div className="flex justify-between items-start mb-1">
-                  <span className="font-bold text-gray-900">{selectedAddress.label || "Selected Address"}</span>
+                  <span className="font-bold text-gray-900">
+                    {selectedAddress.name || selectedAddress.recipient_name || selectedAddress.label || "Selected Address"}
+                  </span>
                   <span className="text-lily text-sm font-semibold">Change</span>
                 </div>
                 <p className="text-gray-700 text-sm">
@@ -240,19 +372,32 @@ const FoodOrderCheckoutPage = () => {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Food Price (x{quantity})</span>
-              <span>₦{formatPrice(subtotal)}</span>
+              <span className="font-semibold text-gray-900">₦{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>Delivery Fee</span>
-              <span>₦{formatPrice(deliveryFee)}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Platform Fee</span>
-              <span>₦{formatPrice(platformFee)}</span>
+              <span className="flex items-center gap-1.5">
+                Delivery Fee
+                {shopaDeliveryFee !== null && (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
+                    Shopa
+                  </span>
+                )}
+              </span>
+              <span className="font-semibold text-gray-900">
+                {isCalculatingDelivery ? (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin text-lily" /> Calculating...
+                  </span>
+                ) : deliveryFee > 0 ? (
+                  `₦${formatPrice(deliveryFee)}`
+                ) : (
+                  "₦0"
+                )}
+              </span>
             </div>
             <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-lg">
               <span>You Pay</span>
-              <span>₦{formatPrice(total)}</span>
+              <span className="text-lily">₦{formatPrice(total)}</span>
             </div>
           </div>
         </section>

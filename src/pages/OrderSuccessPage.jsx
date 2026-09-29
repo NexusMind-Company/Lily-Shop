@@ -89,9 +89,33 @@ const OrderSuccessPage = () => {
 
   const state = location.state || {};
   const order = state.order || null;
-  const product = state.product || order?.items?.[0]?.product || null;
-  const quantity = state.quantity || order?.items?.[0]?.quantity || 1;
-  const total = state.total || order?.total_amount || order?.total || 0;
+  const product =
+    state.product ||
+    order?.items?.[0]?.product ||
+    order?.items?.[0] ||
+    null;
+  const quantity =
+    state.quantity ||
+    order?.items?.[0]?.quantity ||
+    1;
+  const total =
+    state.total ||
+    order?.total_amount_naira ||
+    (order?.total_amount_kobo ? Number(order.total_amount_kobo) / 100 : null) ||
+    order?.total_price ||
+    order?.total_naira ||
+    order?.total_amount ||
+    order?.total ||
+    (order?.items && Array.isArray(order.items) && order.items.length > 0
+      ? order.items.reduce((sum, item) => {
+          const itemPrice =
+            (item.subtotal_kobo ? Number(item.subtotal_kobo) / 100 : null) ||
+            (item.price_kobo ? (Number(item.price_kobo) / 100) * (item.quantity || 1) : null) ||
+            (Number(item.price || item.unit_price || item.product?.price || 0) * (item.quantity || 1));
+          return sum + itemPrice;
+        }, 0)
+      : null) ||
+    (product?.price ? Number(product.price) * (quantity || 1) : 0);
   const paymentMethod = state.paymentMethod || order?.payment_method || "Wallet";
   const isFood = state.isFood || false;
 
@@ -136,7 +160,12 @@ const OrderSuccessPage = () => {
               reference: order.reference,
               buyer_name: order.buyer_name || order.customer_name || "Customer",
               items: items,
-              total: order.total_amount || order.total || total,
+              total:
+                order.total_amount_naira ||
+                (order.total_amount_kobo ? Number(order.total_amount_kobo) / 100 : null) ||
+                order.total_amount ||
+                order.total ||
+                total,
               delivery_fee: order.delivery_fee_naira || order.delivery_fee || 0,
               delivery_address: order.delivery_address || order.shipping_address || null,
               delivery_type: order.delivery_type || "delivery",
@@ -181,9 +210,34 @@ const OrderSuccessPage = () => {
     }
   };
 
-  const productName = product?.name || order?.items?.[0]?.name || "Food Order";
-  const productImage = product?.image_url || product?.media_url || order?.items?.[0]?.image_url;
-  const address = order?.delivery_address || order?.shipping_address || state.address;
+  const productName =
+    product?.name ||
+    product?.title ||
+    order?.items?.[0]?.product?.name ||
+    order?.items?.[0]?.name ||
+    (isFood ? "Food Order" : "Ordered Item");
+  const productImage =
+    product?.image_url ||
+    product?.media_url ||
+    product?.images?.[0]?.image ||
+    order?.items?.[0]?.product?.image_url ||
+    order?.items?.[0]?.product?.media_url ||
+    order?.items?.[0]?.image_url;
+  const rawAddress = order?.delivery_address || order?.shipping_address || state.address;
+  const address =
+    typeof rawAddress === "object" && rawAddress !== null
+      ? rawAddress.street_address ||
+        rawAddress.address ||
+        [
+          rawAddress.house_number,
+          rawAddress.street_name,
+          rawAddress.city_name || rawAddress.city,
+          rawAddress.state_name || rawAddress.state,
+        ]
+          .filter(Boolean)
+          .join(", ") ||
+        ""
+      : String(rawAddress || "");
 
   const containerVariants = {
     hidden: { opacity: 0 },

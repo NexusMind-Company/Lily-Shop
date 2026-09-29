@@ -8,7 +8,7 @@ import {
   Clock, CheckCircle2, XCircle, AlertCircle, Wallet, CreditCard, ChevronRight, Video, ShieldAlert
 } from 'lucide-react';
 import { fetchOrderDetail, selectCurrentOrder, selectOrderLoading, selectOrderError } from '../redux/orderSlice';
-import { confirmOrderReceipt, confirmFoodOrderReceipt } from '../services/api';
+import { confirmOrderReceipt, confirmFoodOrderReceipt, cancelOrder, retryOrderPayment } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { Truck } from 'lucide-react';
 import UnboxingModal from '../components/orders/UnboxingModal';
@@ -32,6 +32,8 @@ const OrderDetailPage = () => {
 
   const order = useSelector(selectCurrentOrder);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const loading = useSelector(selectOrderLoading);
   const error = useSelector(selectOrderError);
 
@@ -58,9 +60,149 @@ const OrderDetailPage = () => {
     }
   };
 
+  const handleRetryPayment = async () => {
+    setIsRetryingPayment(true);
+    try {
+      const response = await retryOrderPayment(order.id);
+      if (response?.authorization_url) {
+        localStorage.setItem("lily_pending_order", JSON.stringify(order));
+        window.location.href = response.authorization_url;
+      } else {
+        toast.error("Could not obtain payment authorization URL.");
+      }
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Failed to retry payment. Please try again."
+      );
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+    setIsCancellingOrder(true);
+    try {
+      await cancelOrder(order.id);
+      toast.success("Order cancelled successfully.");
+      dispatch(fetchOrderDetail(orderId));
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Failed to cancel order."
+      );
+    } finally {
+      setIsCancellingOrder(false);
+    }
+  };
+
   useEffect(() => {
     // PIN fetching removed
   }, [dispatch, order]);
+
+  const getItemUnitPrice = (item) => {
+    if (item?.price_kobo != null) return item.price_kobo / 100;
+    if (item?.price != null) return Number(item.price) || 0;
+    if (item?.product?.price != null) return Number(item.product.price) || 0;
+    return 0;
+  };
+
+  const getItemSubtotal = (item) => {
+    if (item?.subtotal_kobo != null) return item.subtotal_kobo / 100;
+    const unitPrice = getItemUnitPrice(item);
+    const quantity = Number(item?.quantity) || 1;
+    return unitPrice * quantity;
+  };
+
+  const getItemNavigationUrl = (item) => {
+    if (item?.product?.id) {
+      return `/product/${item.product.id}`;
+    }
+    if (order?.order_type === 'food' && order?.vendor?.id) {
+      return `/vendor/${order.vendor.id}`;
+    }
+    return null;
+  };
+
+  const getSubtotalAmount = () => {
+    if (order?.items && order.items.length > 0) {
+      return order.items.reduce((acc, item) => acc + getItemSubtotal(item), 0);
+    }
+    const totalKobo = order?.total_price || order?.total_amount_kobo;
+    return totalKobo ? Number(totalKobo) / 100 : 0;
+  };
+
+  const getFormattedTotal = () => {
+    const itemsList = order?.items || [];
+    if (itemsList.length > 0) {
+      const itemsSum = itemsList.reduce((sum, item) => sum + getItemSubtotal(item), 0);
+      if (itemsSum > 0) {
+        const deliveryFee =
+          Number(order.delivery_fee_naira) ||
+          (order.delivery_fee_kobo ? Number(order.delivery_fee_kobo) / 100 : 0);
+        const rawTotal = parseFloat(
+          order.total_amount_naira ||
+            (order.total_amount_kobo ? order.total_amount_kobo / 100 : 0) ||
+            0
+        );
+        if (
+          Math.round(rawTotal) === Math.round(itemsSum * 1.1) ||
+          (!deliveryFee && rawTotal > itemsSum)
+        ) {
+          return (itemsSum + deliveryFee).toLocaleString();
+        }
+        if (rawTotal > 0) {
+          return rawTotal.toLocaleString();
+        }
+        return (itemsSum + deliveryFee).toLocaleString();
+      }
+    }
+    if (order?.total_amount_naira != null) {
+      const parsedNum = Number(order.total_amount_naira);
+      if (!isNaN(parsedNum)) return parsedNum.toLocaleString();
+    }
+    const totalKobo = order?.total_price || order?.total_amount_kobo;
+    if (totalKobo != null) {
+      const parsedNum = Number(totalKobo) / 100;
+      if (!isNaN(parsedNum)) return parsedNum.toLocaleString();
+    }
+    return '0';
+  };
+
+  const getVendorChatTarget = () => {
+    if (order?.order_type === 'food') {
+      return order?.vendor?.user_id || order?.vendor?.user || order?.vendor?.id || null;
+    }
+    const firstItem = order?.items?.[0];
+    if (firstItem?.product?.user_id) {
+      return firstItem.product.user_id;
+    }
+    if (order?.seller?.id || order?.seller_id) {
+      return order.seller?.id || order.seller_id;
+    }
+    return null;
+  };
+
+  const getItemChatTarget = (item) => {
+    if (order?.order_type === 'food') {
+      return order?.vendor?.user_id || order?.vendor?.user || order?.vendor?.id || null;
+    }
+    return item?.product?.user_id || null;
+  };
+
+  const handleChatWithVendor = (targetId) => {
+    const recipientId = targetId || getVendorChatTarget();
+    if (recipientId) {
+      navigate(`/chat/${recipientId}`);
+    } else {
+      navigate('/inbox');
+    }
+  };
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -210,7 +352,7 @@ const OrderDetailPage = () => {
   const statusConfig = getStatusConfig(order.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-28 sm:pb-12">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -253,6 +395,56 @@ const OrderDetailPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
 
+            {/* Payment Pending Interactive Card */}
+            {order.status === 'pending' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-sm border-2 border-amber-300 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 border-b border-amber-200/60 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-5 h-5 text-amber-600 animate-pulse" />
+                    <h3 className="text-lg font-bold text-amber-900">
+                      Payment Awaiting Completion
+                    </h3>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full">
+                    15 Min Expiry
+                  </span>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-6">
+                    This order is waiting for payment confirmation. If your previous checkout session on Paystack was interrupted or cancelled, you can retry payment now or cancel this order. Stale pending orders auto-cancel after 15 minutes.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleRetryPayment}
+                      disabled={isRetryingPayment || isCancellingOrder}
+                      className="flex-1 bg-gradient-to-r from-lily to-darklily text-white py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>{isRetryingPayment ? 'Connecting to Paystack...' : 'Complete Payment with Paystack'}</span>
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleCancelOrder}
+                      disabled={isRetryingPayment || isCancellingOrder}
+                      className="sm:w-44 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-60"
+                    >
+                      <XCircle className="w-5 h-5" />
+                      <span>{isCancellingOrder ? 'Cancelling...' : 'Cancel Order'}</span>
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* "My Item Has Been Delivered" Confirmation Card */}
             {(order.status === 'delivered' || order.status === 'out_for_delivery') && (
               <motion.div
@@ -277,14 +469,14 @@ const OrderDetailPage = () => {
                     {order.items?.map((item) => (
                       <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                         <img 
-                          src={item.product?.image_url || item.product?.media_url || '/placeholder.png'} 
-                          alt={item.product?.name} 
+                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'} 
+                          alt={item.product?.name || item.name || 'Product'} 
                           className="w-16 h-16 rounded-lg object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 truncate">{item.product?.name}</p>
-                          <p className="text-sm text-gray-500">{item.product?.shop_name}</p>
-                          <p className="text-sm font-bold text-gray-700">₦{(item.subtotal_kobo / 100).toLocaleString()}</p>
+                          <p className="font-semibold text-gray-800 truncate">{item.product?.name || item.name || 'Product'}</p>
+                          <p className="text-sm text-gray-500">{item.product?.shop_name || order.vendor?.name}</p>
+                          <p className="text-sm font-bold text-gray-700">₦{getItemSubtotal(item).toLocaleString()}</p>
                         </div>
                       </div>
                     ))}
@@ -315,64 +507,110 @@ const OrderDetailPage = () => {
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center">
                   <Package className="w-5 h-5 mr-2 text-lily" />
                   Order Items ({order.items?.length})
                 </h3>
+                {getVendorChatTarget() && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleChatWithVendor(getVendorChatTarget());
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-lily text-white hover:bg-darklily text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm active:scale-95"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                  </button>
+                )}
               </div>
 
               <div className="p-6">
                 <div className="space-y-4">
-                  {order.items?.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2 + index * 0.05 }}
-                      className={`flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group ${item.product?.id ? 'cursor-pointer' : ''}`}
-                      onClick={() => {
-                        if (item.product?.id) {
-                          navigate(`/product/${item.product.id}`);
-                        }
-                      }}
-                    >
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'}
-                          alt={item.product?.name || item.name || 'Product'}
-                          className="w-24 h-24 object-cover rounded-xl group-hover:opacity-75 transition-opacity"
-                        />
-                        <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
-                          {item.quantity}
+                  {order.items?.map((item, index) => {
+                    const navigationUrl = getItemNavigationUrl(item);
+                    const isClickable = Boolean(navigationUrl);
+                    const itemName = item.product?.name || item.name || 'Product';
+                    const itemImage = item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png';
+                    const sellerName = item.product?.shop_name || order.vendor?.name;
+                    const unitPrice = getItemUnitPrice(item);
+                    const subtotal = getItemSubtotal(item);
+                    const itemChatTarget = getItemChatTarget(item);
+
+                    return (
+                      <motion.div
+                        key={item.id || index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 + index * 0.05 }}
+                        className={`flex items-start space-x-4 pb-4 border-b border-gray-100 last:border-b-0 group rounded-xl p-2 -mx-2 transition-colors ${
+                          isClickable ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'
+                        }`}
+                        onClick={() => {
+                          if (navigationUrl) {
+                            navigate(navigationUrl);
+                          }
+                        }}
+                      >
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={itemImage}
+                            alt={itemName}
+                            className={`w-24 h-24 object-cover rounded-xl transition-opacity ${
+                              isClickable ? 'group-hover:opacity-85' : ''
+                            }`}
+                          />
+                          <div className="absolute -top-2 -right-2 bg-lily text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
+                            {item.quantity}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 group-hover:text-lily transition-colors mb-1 truncate">
-                          {item.product?.name || item.name || 'Product'}
-                        </h4>
-                        {item.product?.shop_name && (
-                          <p className="text-sm text-gray-500 mb-2">
-                            Sold by {item.product.shop_name}
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-semibold text-gray-800 mb-1 truncate transition-colors ${
+                            isClickable ? 'group-hover:text-lily' : ''
+                          }`}>
+                            {itemName}
+                          </h4>
+                          {sellerName && (
+                            <p className="text-sm text-gray-500 mb-2">
+                              Sold by {sellerName}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2.5 mt-2">
+                            <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                              Qty: {item.quantity}
+                            </span>
+                            <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                              ₦{unitPrice.toLocaleString()} each
+                            </span>
+                            {itemChatTarget && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleChatWithVendor(itemChatTarget);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-lily bg-lily/10 hover:bg-lily hover:text-white transition-colors border border-lily/20"
+                                title={`Chat with ${order.order_type === 'food' ? 'Vendor' : 'Seller'}`}
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-lg font-bold text-gray-800">
+                            ₦{subtotal.toLocaleString()}
                           </p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-3 mt-2">
-                          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            Qty: {item.quantity}
-                          </span>
-                          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            ₦{item.price_kobo ? (item.price_kobo / 100).toLocaleString() : Number(item.price || 0).toLocaleString()} each
-                          </span>
+                          {isClickable && (
+                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-lily transition-colors mt-2 ml-auto" />
+                          )}
                         </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-lg font-bold text-gray-800">
-                          ₦{(item.subtotal_kobo / 100).toLocaleString()}
-                        </p>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-lily transition-colors mt-1 ml-auto" />
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
@@ -392,19 +630,14 @@ const OrderDetailPage = () => {
               </div>
 
               <div className="p-6">
-                <div className="relative space-y-6">
-                  {/* Timeline Line */}
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200" />
-                  <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gradient-to-b from-lily/50 to-lily" 
-                       style={{ 
-                         height: `${Math.max(0, ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status)) / (ORDER_STAGES.length - 1)) * 100}%` 
-                       }} 
-                  />
-
+                <div>
                   {ORDER_STAGES.map((stage, index) => {
-                    const currentStageIndex = ORDER_STAGES.findIndex(s => s.key === order.status || s.altKeys?.includes(order.status));
+                    const currentStageIndex = ORDER_STAGES.findIndex(
+                      (s) => s.key === order.status || s.altKeys?.includes(order.status)
+                    );
                     const isCompleted = index <= currentStageIndex;
                     const isActive = index === currentStageIndex;
+                    const isLastStage = index === ORDER_STAGES.length - 1;
                     const Icon = stage.icon;
 
                     return (
@@ -413,24 +646,38 @@ const OrderDetailPage = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 + index * 0.1 }}
-                        className="relative flex items-start space-x-4"
+                        className="relative flex items-start space-x-4 pb-6 last:pb-0"
                       >
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500
-                          ${isCompleted 
-                            ? 'bg-gradient-to-br from-lily to-darklily' 
-                            : 'bg-gradient-to-br from-gray-200 to-gray-300'
-                          }
-                          ${isActive ? 'ring-4 ring-lily/20' : ''}
-                        `}>
+                        {/* Segment connector line to next stage */}
+                        {!isLastStage && (
+                          <div
+                            className={`absolute left-4 top-8 bottom-0 w-0.5 -translate-x-1/2 transition-colors duration-500 z-0 ${
+                              index < currentStageIndex ? 'bg-lily' : 'bg-gray-200'
+                            }`}
+                          />
+                        )}
+
+                        <div
+                          className={`relative flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg z-10 transition-colors duration-500 ${
+                            isCompleted
+                              ? 'bg-gradient-to-br from-lily to-darklily text-white'
+                              : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500'
+                          } ${isActive ? 'ring-4 ring-lily/20' : ''}`}
+                        >
                           <Icon className="w-4 h-4 text-white" />
                         </div>
-                        <div className="flex-1 pt-1">
+                        <div className="flex-1 pt-1 min-w-0">
                           <p className={`font-semibold ${isCompleted ? 'text-gray-800' : 'text-gray-400'}`}>
                             {stage.label}
                           </p>
-                          {isActive && (
-                            <p className="text-sm text-lily mt-1 animate-pulse">
+                          {isActive && stage.key !== 'completed' && (
+                            <p className="text-xs text-lily font-medium mt-0.5 animate-pulse">
                               Currently in progress
+                            </p>
+                          )}
+                          {isCompleted && stage.key === 'completed' && (
+                            <p className="text-xs text-emerald-600 font-medium mt-0.5">
+                              Completed successfully
                             </p>
                           )}
                         </div>
@@ -509,18 +756,24 @@ const OrderDetailPage = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-semibold">
-                      ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
+                      ₦{getSubtotalAmount().toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
-                    <span className="text-sm">To be arranged</span>
+                    <span className="text-sm">
+                      {order.delivery_fee_naira != null && Number(order.delivery_fee_naira) > 0
+                        ? `₦${Number(order.delivery_fee_naira).toLocaleString()}`
+                        : (order.delivery_fee_kobo != null && Number(order.delivery_fee_kobo) > 0
+                            ? `₦${(Number(order.delivery_fee_kobo) / 100).toLocaleString()}`
+                            : 'To be arranged')}
+                    </span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Total</span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-lily to-darklily bg-clip-text text-transparent">
-                        ₦{order.total_amount_naira?.toLocaleString() || ((order.total_price || order.total_amount_kobo) / 100).toLocaleString()}
+                        ₦{getFormattedTotal()}
                       </span>
                     </div>
                   </div>
@@ -528,29 +781,63 @@ const OrderDetailPage = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
-                  {order.status === 'paid' && (
+                  {order.status === 'pending' && (
                     <>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate('/inbox')}
-                        className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+                        onClick={handleRetryPayment}
+                        disabled={isRetryingPayment || isCancellingOrder}
+                        className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
                       >
-                        <MessageCircle className="w-5 h-5" />
-                        <span>Contact Seller</span>
+                        <CreditCard className="w-5 h-5" />
+                        <span>{isRetryingPayment ? 'Connecting...' : 'Complete Payment'}</span>
                       </motion.button>
-                      
+
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => window.print()}
-                        className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                        onClick={handleCancelOrder}
+                        disabled={isRetryingPayment || isCancellingOrder}
+                        className="w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-60"
                       >
-                        <Printer className="w-5 h-5" />
-                        <span>Print Receipt</span>
+                        <XCircle className="w-5 h-5" />
+                        <span>{isCancellingOrder ? 'Cancelling...' : 'Cancel Order'}</span>
                       </motion.button>
                     </>
                   )}
+
+                  {order.status === 'cancelled' && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate('/orders')}
+                      className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                      <span>Back to All Orders</span>
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleChatWithVendor()}
+                    className="w-full bg-gradient-to-r from-lily to-darklily text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center space-x-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => window.print()}
+                    className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Printer className="w-5 h-5" />
+                    <span>Print Receipt</span>
+                  </motion.button>
 
                   {/* Escrow / Dispute Buttons (Available once out_for_delivery or delivered) */}
                   {(order.status === 'out_for_delivery' || order.status === 'delivered') && (

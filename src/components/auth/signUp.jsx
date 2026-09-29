@@ -34,6 +34,7 @@ const SignUp = () => {
   useEffect(() => {
     if (registrationSuccess && registeredEmailRef.current) {
       const email = registeredEmailRef.current;
+      localStorage.setItem("is_new_registration", "true");
       navigate(`/verify-email-sent?email=${encodeURIComponent(email)}`);
     }
   }, [registrationSuccess, navigate]);
