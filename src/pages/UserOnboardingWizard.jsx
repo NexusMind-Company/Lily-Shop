@@ -292,9 +292,7 @@ const UserOnboardingWizard = () => {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all text-sm font-medium"
                     placeholder="08012345678 or +234..."
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Used for order confirmations and reliable delivery dispatch.
-                  </p>
+
                 </div>
 
                 <button
@@ -323,9 +321,7 @@ const UserOnboardingWizard = () => {
                 <h2 className="text-2xl font-black text-gray-900 mb-1">
                   Where should we deliver? 📍
                 </h2>
-                <p className="text-gray-500 text-sm">
-                  Search your address with live geolocation so vendors and couriers can find you accurately.
-                </p>
+
               </div>
 
               <form onSubmit={handleAddressSubmit} className="space-y-5">
@@ -432,9 +428,7 @@ const UserOnboardingWizard = () => {
                     placeholder="e.g. Flat 3B, Blue Gate, Opposite Zenith Bank"
                     className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-lily/20 focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Helps the dispatch rider pinpoint your exact door or building.
-                  </p>
+
                 </div>
 
                 <div className="flex gap-3 pt-4">

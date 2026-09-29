@@ -224,7 +224,9 @@ const OrderSuccessPage = () => {
           try {
             const orderPayload = JSON.stringify({
               order_id: orderId,
-              reference: order.reference,
+              reference: order.reference || orderId,
+              status: order.status || "paid",
+              order_type: isFood ? "food" : "shop",
               buyer_name: order.buyer_name || order.customer_name || "Customer",
               items: items,
               total:

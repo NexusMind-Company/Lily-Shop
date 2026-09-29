@@ -20,7 +20,12 @@ import {
   CheckCheck,
   Check,
   Clock,
-  Search
+  Search,
+  ShieldCheck,
+  Truck,
+  ExternalLink,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useDispatch, useSelector } from "react-redux";
@@ -62,11 +67,20 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     : null;
   const buyerDisplayName = buyerFullName ? `${buyerFullName} (@${orderUser.username})` : (orderUser?.username ? `@${orderUser.username}` : null);
 
-  const [showPinModal, setShowPinModal] = useState(false);
   const [isConfirmingReceipt, setIsConfirmingReceipt] = useState(false);
-  
-  const orderIdKey = payload.order_id || payload.reference;
+  const [isUpdatingDispatch, setIsUpdatingDispatch] = useState(false);
 
+  const orderIdKey = payload.order_id || payload.reference;
+  const cleanOrderId =
+    typeof orderIdKey === "string" && orderIdKey.startsWith("order-")
+      ? orderIdKey.replace(/^order-/, "")
+      : orderIdKey;
+
+  const targetOrderId =
+    liveOrderData?.id || payload.order_id || payload.id || cleanOrderId || payload.reference;
+  const vendorOrderUrl = targetOrderId
+    ? `/vendor/orders/${targetOrderId}`
+    : `/vendor/dashboard/orders`;
 
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const fileInputRef = useRef(null);
@@ -94,26 +108,57 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
   };
 
   useEffect(() => {
-    // Only fetch if it looks like a UUID to avoid 404s on legacy string references
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderIdKey);
-    if (orderIdKey && isUUID) {
-      api.get(`/orders/${orderIdKey}/`)
-        .then(res => {
-          if (res.data) {
-            setLiveOrderData(res.data);
-          }
+    if (orderIdKey) {
+      api
+        .get(`/orders/${orderIdKey}/`)
+        .then((res) => {
+          if (res.data) setLiveOrderData(res.data);
         })
-        .catch(err => console.error("Failed to fetch live order details", err));
+        .catch(() => {
+          if (cleanOrderId && cleanOrderId !== orderIdKey) {
+            api
+              .get(`/orders/${cleanOrderId}/`)
+              .then((res) => {
+                if (res.data) setLiveOrderData(res.data);
+              })
+              .catch(() => {});
+          }
+        });
     }
-  }, [orderIdKey]);
+  }, [orderIdKey, cleanOrderId]);
 
-  const rawStatus = (liveOrderData?.status || activePayload?.status || orders?.find(o => o.id === orderIdKey || o.reference === orderIdKey)?.status || "pending").toLowerCase();
-  const buyerStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).replace(/_/g, " ");
-  
-  const hasAccepted = ["accepted", "dispatched", "out_for_delivery", "delivered"].includes(rawStatus);
-  const hasDispatched = ["dispatched", "out_for_delivery", "delivered"].includes(rawStatus);
-  const hasDelivered = rawStatus === "delivered";
-  const canBuyerConfirm = ["out_for_delivery", "dispatched", "delivered", "ready_for_pickup"].includes(rawStatus);
+  const rawStatus = (
+    liveOrderData?.status ||
+    activePayload?.status ||
+    orders?.find(
+      (o) =>
+        String(o.id) === String(orderIdKey) ||
+        String(o.reference) === String(orderIdKey)
+    )?.status ||
+    "paid"
+  ).toLowerCase();
+
+  const buyerStatus =
+    rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).replace(/_/g, " ");
+
+  const isCompletedOrDelivered = [
+    "delivered",
+    "completed",
+    "refunded",
+    "cancelled",
+    "failed",
+  ].includes(rawStatus);
+  const isDispatched = [
+    "dispatched",
+    "out_for_delivery",
+    "ready_for_pickup",
+  ].includes(rawStatus);
+  const canBuyerConfirm = [
+    "out_for_delivery",
+    "dispatched",
+    "delivered",
+    "ready_for_pickup",
+  ].includes(rawStatus);
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -144,61 +189,45 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     }
   };
 
-  const handleDeliveredClick = () => {
-    setShowStatusMenu(false);
-    setShowPinModal(true);
-  };
-
-  const handleConfirmDelivery = async () => {
-    const idToUpdate = payload.order_id || payload.reference;
-    try {
-      if (idToUpdate) {
-        if (activePayload?.order_type === 'food') {
-          await api.patch(`/foods/vendor/orders/${idToUpdate}/status/`, { status: "delivered" });
-        } else {
-          await api.patch(`/orders/${idToUpdate}/update-status/`, { status: "delivered" });
-        }
-      }
-      toast.success("Delivery confirmed successfully!");
-      setLiveOrderData(prev => ({ ...(prev || payload), status: "delivered" }));
-      setShowPinModal(false);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to confirm delivery");
-    }
-  };
-
-  const handleBuyerConfirmReceipt = async () => {
-    setIsConfirmingReceipt(true);
-    try {
-      if (activePayload.order_type === 'food') {
-        await confirmFoodOrderReceipt(orderIdKey);
-      } else {
-        await confirmOrderReceipt(orderIdKey);
-      }
-      toast.success("Delivery confirmed successfully! Funds released.");
-      setLiveOrderData(prev => ({ ...(prev || payload), status: "completed" }));
-    } catch (err) {
-      toast.error(err.response?.data?.detail || err.response?.data?.message || "Failed to confirm delivery");
-    } finally {
-      setIsConfirmingReceipt(false);
-    }
-  };
-
   const handleDispatchUpdate = async (statusLabel) => {
     setShowStatusMenu(false);
-    const idToUpdate = payload.order_id || payload.reference;
+    setIsUpdatingDispatch(true);
+    const idToUpdate =
+      liveOrderData?.id ||
+      payload.order_id ||
+      payload.id ||
+      cleanOrderId ||
+      payload.reference;
+
     try {
       if (idToUpdate) {
-        if (activePayload?.order_type === 'food') {
-          await api.patch(`/foods/vendor/orders/${idToUpdate}/status/`, { status: statusLabel.toLowerCase() });
+        if (activePayload?.order_type === "food") {
+          await api.patch(`/foods/vendor/orders/${idToUpdate}/status/`, {
+            status: "out_for_delivery",
+          });
         } else {
-          await api.post(`/orders/${idToUpdate}/dispatch/`);
+          try {
+            await api.post(`/orders/${idToUpdate}/dispatch/`);
+          } catch (postErr) {
+            await api.patch(`/orders/${idToUpdate}/update-status/`, {
+              status: "out_for_delivery",
+            });
+          }
         }
       }
-      toast.success(`Order marked as ${statusLabel}`);
-      setLiveOrderData(prev => ({ ...(prev || payload), status: "dispatched" }));
+      toast.success(`Order marked as ${statusLabel}! Buyer has been notified.`);
+      setLiveOrderData((prev) => ({
+        ...(prev || payload),
+        status: "out_for_delivery",
+      }));
     } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to mark as ${statusLabel}`);
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.detail ||
+          `Failed to mark as ${statusLabel}`
+      );
+    } finally {
+      setIsUpdatingDispatch(false);
     }
   };
 
@@ -340,68 +369,79 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
                )}
              </>
           ) : (
-             <>
-               {!hasAccepted && !hasDispatched && !hasDelivered && activePayload?.order_type !== "shop" && (
-                 <button 
-                   onClick={handleAcceptOrder}
-                   className="w-full py-3 mb-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold shadow-md shadow-emerald-500/20 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
-                 >
-                   <span>✅ Accept Order (Informal Flow)</span>
-                 </button>
-               )}
-               <button 
-                 className="w-full py-2.5 mb-2 rounded-full border-2 border-gray-400 text-gray-500 font-bold bg-transparent text-xs sm:text-sm"
-                 disabled
-               >
-                 Current Status: {hasDelivered ? "Delivered" : (hasDispatched ? (payload.delivery_type === "pickup" ? "Available for pickup" : "Dispatched") : (hasAccepted ? "Accepted & Preparing" : "Pending"))}
-               </button>
-               {!hasDelivered && (
-                 <button 
-                   onClick={() => setShowStatusMenu(!showStatusMenu)}
-                   className="w-full py-2.5 rounded-full border-2 border-pink-400 text-pink-500 font-bold bg-transparent text-xs sm:text-sm"
-                 >
-                   Change order status
-                 </button>
-               )}
+            <>
+              {/* Escrow Status Banner for Vendor */}
+              {!isDispatched && !isCompletedOrDelivered && (
+                <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/90 text-emerald-900 text-xs mb-3 shadow-xs">
+                  <div className="flex items-center justify-between font-bold mb-1">
+                    <span className="flex items-center gap-1.5 text-emerald-800">
+                      <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                      Paid & Confirmed
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wide bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                      Escrow Held
+                    </span>
+                  </div>
+                  <p className="text-[11.5px] text-emerald-800/90 font-normal leading-relaxed">
+                    Payment is held in escrow. Package the order and mark as out for delivery when dispatched.
+                  </p>
+                </div>
+              )}
 
-               {showStatusMenu && (
-                 <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
-                   {!hasDelivered && (
-                     <button onClick={handleDeliveredClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
-                       <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                       <span className="font-medium text-gray-700">Delivered</span>
-                     </button>
-                   )}
-                   {!hasDispatched && !hasDelivered && (
-                     <button
-                       onClick={() =>
-                         handleDispatchUpdate(
-                           payload.delivery_type === "pickup"
-                             ? "Ready for pickup"
-                             : "Dispatched"
-                         )
-                       }
-                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50"
-                     >
-                       <ShoppingCart className="w-5 h-5 text-gray-700" />
-                       <span className="font-medium text-gray-700">
-                         {payload.delivery_type === "pickup"
-                           ? "Available for pickup"
-                           : "Out for delivery"}
-                       </span>
-                     </button>
-                   )}
-                   <button onClick={() => handleStatusUpdate('cancelled')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left border-b border-gray-50">
-                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                     <span className="font-medium text-gray-700">Canceled</span>
-                   </button>
-                   <button onClick={() => handleStatusUpdate('refunded')} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl text-left">
-                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                     <span className="font-medium text-gray-700">Refunded</span>
-                   </button>
-                 </div>
-               )}
-             </>
+              {isDispatched && !isCompletedOrDelivered && (
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50/50 border border-purple-200/90 text-purple-900 text-xs mb-3 shadow-xs">
+                  <div className="flex items-center gap-1.5 font-bold mb-1 text-purple-900">
+                    <Truck size={16} className="text-purple-600 shrink-0" />
+                    <span>{payload.delivery_type === "pickup" ? "Ready for Pickup" : "Out for Delivery"}</span>
+                  </div>
+                  <p className="text-[11.5px] text-purple-800 font-normal leading-relaxed">
+                    Pending customer confirmation. Funds release automatically once confirmed or after 72 hours.
+                  </p>
+                </div>
+              )}
+
+              {isCompletedOrDelivered && (
+                <div className="p-3 rounded-2xl bg-green-50 border border-green-200 text-green-900 text-xs font-bold mb-3 flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+                  <span>Order Completed & Funds Released</span>
+                </div>
+              )}
+
+              {/* Primary Dispatch Action Button */}
+              {!isDispatched && !isCompletedOrDelivered && (
+                <button
+                  onClick={() =>
+                    handleDispatchUpdate(
+                      payload.delivery_type === "pickup"
+                        ? "Ready for pickup"
+                        : "Out for delivery"
+                    )
+                  }
+                  disabled={isUpdatingDispatch}
+                  className="w-full py-2.5 mb-2 rounded-xl bg-lily hover:bg-darklily text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-60"
+                >
+                  {isUpdatingDispatch ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Truck size={15} />
+                  )}
+                  <span>
+                    {payload.delivery_type === "pickup"
+                      ? "Mark Ready for Pickup"
+                      : "Mark as Out for Delivery"}
+                  </span>
+                </button>
+              )}
+
+              {/* Direct Link to Orders Dashboard */}
+              <Link
+                to={vendorOrderUrl}
+                className="w-full py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              >
+                <ExternalLink size={13} className="text-gray-500" />
+                <span>View in Orders Dashboard</span>
+              </Link>
+            </>
           )}
         </div>
 
@@ -446,36 +486,7 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
           </div>
         )}
 
-        {/* PIN Modal */}
-        {showPinModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Confirm Delivery</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                Are you sure you want to mark this order as delivered? This will notify the buyer to confirm receipt.
-              </p>
-              
-              <div className="flex justify-center mb-6">
-                <ShoppingCart className="w-12 h-12 text-lily/20" />
-              </div>
-              
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowPinModal(false)}
-                  className="flex-1 py-3 font-bold text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleConfirmDelivery}
-                  className="flex-1 py-3 font-bold text-white bg-lily rounded-xl hover:bg-lily/90"
-                >
-                  Confirm Delivery
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );
