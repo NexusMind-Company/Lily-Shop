@@ -159,6 +159,42 @@ export const OrderMessageCard = ({ payload, isMine, otherUserName }) => {
     "delivered",
     "ready_for_pickup",
   ].includes(rawStatus);
+  const hasDelivered = [
+    "delivered",
+    "completed",
+  ].includes(rawStatus);
+
+  const handleBuyerConfirmReceipt = async () => {
+    const idToUpdate =
+      liveOrderData?.id ||
+      payload.order_id ||
+      payload.id ||
+      cleanOrderId ||
+      payload.reference;
+
+    if (!idToUpdate) return;
+    setIsConfirmingReceipt(true);
+    try {
+      if (activePayload?.order_type === "food") {
+        await confirmFoodOrderReceipt(idToUpdate);
+      } else {
+        await confirmOrderReceipt(idToUpdate);
+      }
+      toast.success("Receipt confirmed! Funds have been released to the vendor 🎉");
+      setLiveOrderData((prev) => ({
+        ...(prev || payload),
+        status: "completed",
+      }));
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Failed to confirm delivery"
+      );
+    } finally {
+      setIsConfirmingReceipt(false);
+    }
+  };
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files?.[0];
