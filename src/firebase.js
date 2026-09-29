@@ -12,4 +12,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+
+let messagingInstance = null;
+if (typeof window !== "undefined") {
+  try {
+    messagingInstance = getMessaging(app);
+  } catch (error) {
+    console.warn("Firebase Messaging initialization skipped or unsupported:", error);
+  }
+}
+
+export const messaging = messagingInstance;
