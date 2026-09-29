@@ -512,10 +512,11 @@ export const fetchDeliveryAddresses = async () => {
   return response.data;
 };
 
-export const searchAddressLocations = async (query, state = "") => {
-  const response = await api.get("/locations/search/", {
-    params: { query, state },
-  });
+export const searchAddressLocations = async (query, state = "", lga = "") => {
+  const params = { query };
+  if (state) params.state = state;
+  if (lga) params.lga = lga;
+  const response = await api.get("/locations/search/", { params });
   return response.data;
 };
 
@@ -931,22 +932,25 @@ export const createFoodVendor = async (vendorData) => {
 export const updateFoodVendor = async (vendorData) => {
   const formData = new FormData();
 
-  if (vendorData.shop_name) formData.append("name", vendorData.shop_name);
+  const nameVal = vendorData.shop_name || vendorData.name;
+  if (nameVal) formData.append("name", nameVal);
   if (vendorData.description)
     formData.append("description", vendorData.description);
-  if (vendorData.address) formData.append("street_address", vendorData.address);
-  if (vendorData.latitude !== undefined && vendorData.latitude !== null) {
+  const addressVal = vendorData.address || vendorData.street_address;
+  if (addressVal) formData.append("street_address", addressVal);
+  if (vendorData.latitude !== undefined && vendorData.latitude !== null && vendorData.latitude !== "") {
     formData.append("latitude", vendorData.latitude);
   }
-  if (vendorData.longitude !== undefined && vendorData.longitude !== null) {
+  if (vendorData.longitude !== undefined && vendorData.longitude !== null && vendorData.longitude !== "") {
     formData.append("longitude", vendorData.longitude);
   }
-  if (vendorData.category) formData.append("cuisine", vendorData.category);
+  const cuisineVal = vendorData.category || vendorData.cuisine;
+  if (cuisineVal) formData.append("cuisine", cuisineVal);
 
-  if (vendorData.state !== undefined && vendorData.state !== null) {
+  if (vendorData.state !== undefined && vendorData.state !== null && vendorData.state !== "") {
     formData.append("state", vendorData.state);
   }
-  if (vendorData.lga !== undefined && vendorData.lga !== null) {
+  if (vendorData.lga !== undefined && vendorData.lga !== null && vendorData.lga !== "") {
     formData.append("lga", vendorData.lga);
   }
 
@@ -956,15 +960,8 @@ export const updateFoodVendor = async (vendorData) => {
     formData.append("contact_email", vendorData.contact_email.trim());
   }
 
-  if (vendorData.contact_phone) {
+  if (vendorData.contact_phone && vendorData.contact_phone.trim()) {
     formData.append("contact_phone", vendorData.contact_phone.trim());
-  }
-
-  if (vendorData.state) {
-    formData.append("state", vendorData.state);
-  }
-  if (vendorData.lga) {
-    formData.append("lga", vendorData.lga);
   }
 
   // Handle new fields from the new payload schema

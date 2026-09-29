@@ -1,14 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import {
   updateFoodVendor,
   fetchStates,
   fetchLgas,
   fetchVendorProfileFormData,
+  searchAddressLocations,
+  fetchDeliveryAddresses,
 } from "../../services/api";
 import useFormValidation from "../../hooks/useFormValidation";
-import { X } from "lucide-react";
+import { X, MapPin, Loader2 } from "lucide-react";
+
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+};
 
 const VALIDATION_RULES = {
   name: {
@@ -44,15 +58,30 @@ const VALIDATION_RULES = {
 
 const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const queryClient = useQueryClient();
+  const { user_data } = useSelector((state) => state.auth || {});
 
   const [states, setStates] = useState([]);
   const [lgas, setLgas] = useState([]);
   const [statesLoading, setStatesLoading] = useState(false);
   const [lgasLoading, setLgasLoading] = useState(false);
 
+  // Address and coordinates
+  const [addressSearchQuery, setAddressSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [coords, setCoords] = useState({ latitude: null, longitude: null });
+
+  const searchContainerRef = useRef(null);
+  const debouncedAddressQuery = useDebounce(addressSearchQuery, 400);
+
   const { data: vendor, isLoading: vendorLoading } = useQuery({
     queryKey: ["vendorProfileFormData"],
     queryFn: fetchVendorProfileFormData,
+    retry: false,
+  });
+
+  const { data: savedAddresses = [] } = useQuery({
+    queryKey: ["deliveryAddresses"],
+    queryFn: fetchDeliveryAddresses,
     retry: false,
   });
 
@@ -83,6 +112,27 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
 
+  // Find currently selected state name for Nominatim filtering
+  const selectedStateObj = states.find(
+    (s) => String(s.id) === String(values.state) || s.name.toLowerCase() === String(values.state).toLowerCase()
+  );
+  const selectedStateName = selectedStateObj?.name || "";
+
+  // Close suggestions dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch States on mount
   useEffect(() => {
     const loadStates = async () => {
       setStatesLoading(true);
@@ -98,6 +148,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     loadStates();
   }, []);
 
+  // Fetch LGAs when state changes
   useEffect(() => {
     const loadLgas = async () => {
       if (!values.state) {
@@ -105,7 +156,6 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         return;
       }
 
-      // Prevent fetching if values.state is a string name (e.g., "Lagos") instead of a numeric ID
       if (isNaN(Number(values.state))) {
         return;
       }
@@ -153,18 +203,32 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
     }
   }, [lgas, values.lga, setValues]);
 
+  // Pre-fill form from existing vendor profile and unify with user contact data
   useEffect(() => {
     if (vendor) {
+      const initialAddress = vendor.address || vendor.street_address || "";
       setValues({
         name: vendor.name || "",
         cuisine: vendor.cuisine || "",
         description: vendor.description || "",
-        contact_email: vendor.contact_email || "",
-        contact_phone: vendor.contact_phone || "",
-        address: vendor.address || vendor.street_address || "",
-        state: vendor.state || "",
-        lga: vendor.lga || "",
+        contact_email:
+          vendor.contact_email || user_data?.email || "",
+        contact_phone:
+          vendor.contact_phone || user_data?.phone_number || "",
+        address: initialAddress,
+        state: vendor.state_id || vendor.state || "",
+        lga: vendor.lga_id || vendor.lga || "",
       });
+
+      setAddressSearchQuery(initialAddress);
+
+      if (vendor.latitude && vendor.longitude) {
+        setCoords({
+          latitude: parseFloat(vendor.latitude),
+          longitude: parseFloat(vendor.longitude),
+        });
+      }
+
       if (vendor.profile_image || vendor.image_url || vendor.profile_pic) {
         setProfilePreview(
           vendor.profile_image || vendor.image_url || vendor.profile_pic,
@@ -173,16 +237,82 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
       if (vendor.banner_image) {
         setBannerPreview(vendor.banner_image);
       }
+    } else if (user_data) {
+      // If new or no vendor contact set, initialize from auth profile
+      setValues((prev) => ({
+        ...prev,
+        contact_email: prev.contact_email || user_data.email || "",
+        contact_phone: prev.contact_phone || user_data.phone_number || "",
+      }));
     }
-  }, [vendor, setValues]);
+  }, [vendor, user_data, setValues]);
+
+  // Live Proxy-backed Nominatim Autocomplete Query
+  const { data: addressSuggestions = [], isFetching: isSearchingAddress } = useQuery({
+    queryKey: ["nominatimVendorAddress", debouncedAddressQuery, selectedStateName],
+    queryFn: async () => {
+      if (!debouncedAddressQuery || debouncedAddressQuery.trim().length < 3) return [];
+      return await searchAddressLocations(debouncedAddressQuery.trim(), selectedStateName);
+    },
+    enabled: debouncedAddressQuery.trim().length >= 3 && showSuggestions,
+    staleTime: 60000,
+  });
+
+  const handleSelectSuggestion = (suggestion) => {
+    const addressObj = suggestion.address || {};
+    const lat = parseFloat(suggestion.lat);
+    const lon = parseFloat(suggestion.lon);
+
+    setCoords({ latitude: lat, longitude: lon });
+    setAddressSearchQuery(suggestion.display_name);
+    setValues((prev) => ({ ...prev, address: suggestion.display_name }));
+    setShowSuggestions(false);
+
+    // Auto-match state if suggestion contains one
+    const stateCandidate = (addressObj.state || "").toLowerCase().replace("state", "").trim();
+    if (stateCandidate && states.length > 0) {
+      const matchedState = states.find(
+        (s) => s.name.toLowerCase().replace("state", "").trim() === stateCandidate
+      );
+      if (matchedState) {
+        setValues((prev) => ({ ...prev, state: matchedState.id }));
+      }
+    }
+  };
+
+  const handleUseSavedAddress = (e) => {
+    const addressId = e.target.value;
+    if (!addressId) return;
+
+    const selected = savedAddresses.find((a) => String(a.id) === String(addressId));
+    if (!selected) return;
+
+    const street = selected.street_address || selected.street_name || "";
+    setAddressSearchQuery(street);
+    setValues((prev) => ({
+      ...prev,
+      address: street,
+      state: selected.state || selected.state_id || prev.state,
+      lga: selected.lga || selected.lga_id || prev.lga,
+    }));
+
+    if (selected.latitude && selected.longitude) {
+      setCoords({
+        latitude: parseFloat(selected.latitude),
+        longitude: parseFloat(selected.longitude),
+      });
+    }
+  };
 
   const { mutate: updateProfile, isPending } = useMutation({
-    mutationFn: (data) =>
-      updateFoodVendor({
+    mutationFn: (data) => {
+      return updateFoodVendor({
         shop_name: data.name,
         category: data.cuisine,
         description: data.description,
         address: data.address,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
         state: data.state,
         lga: data.lga,
         contact_email: data.contact_email || null,
@@ -190,7 +320,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         profile_image:
           profileFile || vendor?.profile_image || vendor?.image_url || null,
         banner_image: bannerFile || vendor?.banner_image || null,
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success("Profile updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["vendorProfileFormData"] });
@@ -229,8 +360,9 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
 
   if (vendorLoading)
     return (
-      <div className="py-10 text-center text-gray-500 font-medium">
-        Loading vendor profile...
+      <div className="py-10 text-center text-gray-500 font-medium flex items-center justify-center gap-2">
+        <Loader2 className="w-5 h-5 animate-spin text-lily" />
+        <span>Loading vendor profile...</span>
       </div>
     );
 
@@ -266,6 +398,52 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           {fieldErrors.name && (
             <p className="text-red-500 text-xs mt-1.5">{fieldErrors.name}</p>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Contact Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Contact Email
+            </label>
+            <input
+              type="email"
+              name="contact_email"
+              value={values.contact_email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="restaurant@email.com"
+              className={inputClass("contact_email")}
+              aria-invalid={fieldErrors.contact_email ? "true" : "false"}
+            />
+            {fieldErrors.contact_email && (
+              <p className="text-red-500 text-xs mt-1.5">
+                {fieldErrors.contact_email}
+              </p>
+            )}
+          </div>
+
+          {/* Contact Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Contact Phone <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              name="contact_phone"
+              value={values.contact_phone}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="e.g. 08012345678"
+              className={inputClass("contact_phone")}
+              aria-invalid={fieldErrors.contact_phone ? "true" : "false"}
+            />
+            {fieldErrors.contact_phone && (
+              <p className="text-red-500 text-xs mt-1.5">
+                {fieldErrors.contact_phone}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -324,20 +502,86 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
         </div>
 
         {/* Restaurant Address */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Restaurant Address
-          </label>
-          <input
-            type="text"
-            name="address"
-            value={values.address}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
-            className={inputClass("address")}
-            aria-invalid={fieldErrors.address ? "true" : "false"}
-          />
+        <div className="relative" ref={searchContainerRef}>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium text-gray-700">
+              Restaurant Address
+            </label>
+            {savedAddresses.length > 0 && (
+              <select
+                onChange={handleUseSavedAddress}
+                defaultValue=""
+                className="text-xs text-gray-400 bg-transparent border-0 hover:text-lily cursor-pointer focus:outline-none"
+              >
+                <option value="" disabled>
+                  Use saved address...
+                </option>
+                {savedAddresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {addr.label ? `${addr.label}: ` : ""}{addr.street_address ? addr.street_address.slice(0, 35) : "Saved Address"}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              name="address"
+              value={values.address}
+              onChange={(e) => {
+                handleChange(e);
+                setAddressSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => {
+                if (values.address && values.address.length >= 3) {
+                  setShowSuggestions(true);
+                }
+              }}
+              placeholder="e.g. 12 Adeola Odeku Street, Victoria Island, Lagos"
+              className={inputClass("address")}
+              aria-invalid={fieldErrors.address ? "true" : "false"}
+              autoComplete="off"
+            />
+            {isSearchingAddress && (
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                <Loader2 size={16} className="animate-spin text-lily" />
+              </div>
+            )}
+          </div>
+
+          {/* Nominatim Suggestions Dropdown */}
+          {showSuggestions && debouncedAddressQuery.trim().length >= 3 && (
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 max-h-60 overflow-y-auto">
+              {addressSuggestions.length > 0 ? (
+                <ul className="py-1 divide-y divide-gray-100">
+                  {addressSuggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                      className="px-4 py-2.5 hover:bg-emerald-50/70 cursor-pointer flex items-start gap-2.5 transition-colors"
+                    >
+                      <MapPin size={17} className="text-lily shrink-0 mt-0.5" />
+                      <div className="text-left overflow-hidden">
+                        <p className="text-xs font-bold text-gray-800 truncate">
+                          {suggestion.display_name.split(",")[0]}
+                        </p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          {suggestion.display_name}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : !isSearchingAddress ? (
+                <div className="p-3 text-center text-xs text-gray-500">
+                  No matching address found.
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {fieldErrors.address && (
             <p className="text-red-500 text-xs mt-1.5">{fieldErrors.address}</p>
           )}
@@ -384,53 +628,8 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Contact Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Contact Email
-            </label>
-            <input
-              type="email"
-              name="contact_email"
-              value={values.contact_email}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="restaurant@email.com"
-              className={inputClass("contact_email")}
-              aria-invalid={fieldErrors.contact_email ? "true" : "false"}
-            />
-            {fieldErrors.contact_email && (
-              <p className="text-red-500 text-xs mt-1.5">
-                {fieldErrors.contact_email}
-              </p>
-            )}
-          </div>
 
-          {/* Contact Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Contact Phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              name="contact_phone"
-              value={values.contact_phone}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="e.g. 08012345678"
-              className={inputClass("contact_phone")}
-              aria-invalid={fieldErrors.contact_phone ? "true" : "false"}
-            />
-            {fieldErrors.contact_phone && (
-              <p className="text-red-500 text-xs mt-1.5">
-                {fieldErrors.contact_phone}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Media */}
+        {/* Media (Logo & Banner) */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Profile Image */}
@@ -515,6 +714,7 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex gap-4 pt-6 pb-12">
           <button
             type="button"
@@ -526,9 +726,16 @@ const VendorEditProfileForm = ({ onCancel, onSuccess }) => {
           <button
             type="submit"
             disabled={isSubmitting || isPending}
-            className="flex-1 h-12 bg-sun hover:bg-lily hover:text-white border border-black border-solid rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+            className="flex-1 h-12 bg-sun hover:bg-lily hover:text-white border border-black border-solid rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {isPending ? "Updating..." : "Update Profile"}
+            {isPending ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Updating...</span>
+              </>
+            ) : (
+              "Update Profile"
+            )}
           </button>
         </div>
       </form>
