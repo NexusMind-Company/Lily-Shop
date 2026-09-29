@@ -93,7 +93,15 @@ const UserOnboardingWizard = () => {
 
     setIsUpdatingProfile(true);
     try {
-      const rawPhone = profileData.phone.replace(/[^\d+]/g, "");
+      let rawPhone = profileData.phone.trim().replace(/[\s\-]/g, "");
+      // Normalize common Nigerian number variations (+2340..., 080..., 234...)
+      if (rawPhone.startsWith("+2340") && rawPhone.length === 15) {
+        rawPhone = "+234" + rawPhone.slice(5);
+      } else if (rawPhone.startsWith("0") && rawPhone.length === 11) {
+        rawPhone = "+234" + rawPhone.slice(1);
+      } else if (rawPhone.startsWith("234") && rawPhone.length === 13) {
+        rawPhone = "+" + rawPhone;
+      }
 
       await updateProfile({
         first_name: profileData.firstName.trim(),
@@ -103,7 +111,13 @@ const UserOnboardingWizard = () => {
 
       setCurrentStep(2);
     } catch (err) {
-      toast.error(err?.message || "Failed to save profile details.");
+      const errorMsg =
+        err.response?.data?.phone_number?.[0] ||
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err?.message ||
+        "Failed to save profile details.";
+      toast.error(errorMsg);
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -290,10 +304,10 @@ const UserOnboardingWizard = () => {
                       setProfileData({ ...profileData, phone: e.target.value })
                     }
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-lily/20 focus:border-lily transition-all text-sm font-medium"
-                    placeholder="08012345678 or +234..."
+                    placeholder="e.g. 08012345678 or +2348012345678"
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Used for order confirmations and reliable delivery dispatch.
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Accepts Nigerian numbers (080..., 090...) or international (+234...)
                   </p>
                 </div>
 
@@ -323,9 +337,7 @@ const UserOnboardingWizard = () => {
                 <h2 className="text-2xl font-black text-gray-900 mb-1">
                   Where should we deliver? 📍
                 </h2>
-                <p className="text-gray-500 text-sm">
-                  Search your address with live geolocation so vendors and couriers can find you accurately.
-                </p>
+
               </div>
 
               <form onSubmit={handleAddressSubmit} className="space-y-5">
@@ -432,9 +444,7 @@ const UserOnboardingWizard = () => {
                     placeholder="e.g. Flat 3B, Blue Gate, Opposite Zenith Bank"
                     className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-lily/20 focus:border-lily block p-3.5 font-medium outline-none transition-colors"
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Helps the dispatch rider pinpoint your exact door or building.
-                  </p>
+
                 </div>
 
                 <div className="flex gap-3 pt-4">

@@ -12,6 +12,7 @@ import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { FeedProvider } from "./context/feedContext.jsx";
 import NotificationPoller from "./components/common/NotificationPoller";
+import PushNotificationPromptModal from "./components/notifications/PushNotificationPromptModal";
 import usePushNotifications from "./hooks/usePushNotifications";
 
 /* ---------------- AUTH ---------------- */
@@ -259,6 +260,7 @@ function App() {
 
       <ErrorBoundary>
         <NotificationPoller />
+        <PushNotificationPromptModal />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* ================= PUBLIC ROUTES ================= */}
@@ -389,6 +391,7 @@ function App() {
                 <Route path="/order-summary" element={<OrderSummaryPage />} />
                 <Route path="/orders" element={<OrderHistoryPage />} />
                 <Route path="/order/:orderId" element={<OrderDetailPage />} />
+                <Route path="/orders/:orderId" element={<OrderDetailPage />} />
 
                 {/* Customer Subscriptions */}
                 <Route
@@ -500,6 +503,14 @@ function App() {
                 />
                 <Route
                   path="/vendor/dashboard/orders"
+                  element={<VendorOrdersPage />}
+                />
+                <Route
+                  path="/vendor/orders"
+                  element={<VendorOrdersPage />}
+                />
+                <Route
+                  path="/vendor/orders/:orderId"
                   element={<VendorOrdersPage />}
                 />
                 <Route

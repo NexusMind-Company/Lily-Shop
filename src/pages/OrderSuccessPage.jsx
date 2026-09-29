@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -13,14 +14,15 @@ import {
   CreditCard,
   ChefHat,
   Truck,
+  ShieldCheck,
 } from "lucide-react";
 import { fetchCart } from "../redux/cartSlice";
 import { usePayment } from "../hooks/usePayment";
-import { api } from "../services/api";
+import { api, fetchFoodVendor } from "../services/api";
 import { formatPrice } from "../utils/formatters";
 import SEO from "../components/common/SEO";
 
-// Confetti canvas animation component
+// Confetti canvas animation component with longer duration and graceful drift
 const Confetti = () => {
   const canvasRef = useRef(null);
 
@@ -28,54 +30,94 @@ const Confetti = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 
-    const colors = ["#13ec49", "#111813", "#ffd700", "#ff6b6b", "#4ecdc4", "#4eb75e"];
-    const pieces = Array.from({ length: 80 }, () => ({
+    const updateSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+
+    const colors = [
+      "#13ec49",
+      "#111813",
+      "#ffd700",
+      "#ff6b6b",
+      "#4ecdc4",
+      "#4eb75e",
+      "#ff8a00",
+      "#7928ca",
+    ];
+
+    const pieces = Array.from({ length: 110 }, () => ({
       x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height - canvas.height,
-      w: Math.random() * 10 + 5,
-      h: Math.random() * 6 + 3,
+      y: Math.random() * -canvas.height * 0.8,
+      w: Math.random() * 10 + 6,
+      h: Math.random() * 6 + 4,
       color: colors[Math.floor(Math.random() * colors.length)],
-      speed: Math.random() * 3 + 2,
+      speed: Math.random() * 2.8 + 2.2,
       angle: Math.random() * 360,
-      spin: Math.random() * 4 - 2,
+      spin: Math.random() * 5 - 2.5,
+      drift: Math.random() * 2.2 - 1.1,
+      opacity: 1,
     }));
 
+    const startTime = Date.now();
+    const spawnDuration = 6500; // Keep re-spawning pieces for 6.5 seconds
+    const totalDuration = 9000; // Let falling pieces drift down and fade out until 9.0 seconds
     let animId;
+
     const draw = () => {
+      const elapsed = Date.now() - startTime;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let hasVisiblePieces = false;
       pieces.forEach((p) => {
+        if (p.opacity <= 0) return;
+        hasVisiblePieces = true;
+
         ctx.save();
         ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
         ctx.rotate((p.angle * Math.PI) / 180);
         ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
         ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
         ctx.restore();
+
         p.y += p.speed;
+        p.x += p.drift;
         p.angle += p.spin;
+
         if (p.y > canvas.height) {
-          p.y = -20;
-          p.x = Math.random() * canvas.width;
+          if (elapsed < spawnDuration) {
+            p.y = -20;
+            p.x = Math.random() * canvas.width;
+          } else {
+            p.opacity = 0;
+          }
+        } else if (elapsed > spawnDuration) {
+          const fadeProgress = (elapsed - spawnDuration) / (totalDuration - spawnDuration);
+          p.opacity = Math.max(0, 1 - fadeProgress);
         }
       });
-      animId = requestAnimationFrame(draw);
-    };
-    draw();
 
-    const stop = setTimeout(() => cancelAnimationFrame(animId), 3500);
+      if (elapsed < totalDuration && hasVisiblePieces) {
+        animId = requestAnimationFrame(draw);
+      }
+    };
+
+    animId = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(animId);
-      clearTimeout(stop);
+      window.removeEventListener("resize", updateSize);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-10 opacity-75"
+      className="fixed inset-0 pointer-events-none z-30 opacity-90"
     />
   );
 };
@@ -101,23 +143,48 @@ const OrderSuccessPage = () => {
   const total =
     state.total ||
     order?.total_amount_naira ||
-    (order?.total_amount_kobo ? Number(order.total_amount_kobo) / 100 : null) ||
-    order?.total_price ||
-    order?.total_naira ||
-    order?.total_amount ||
+    (order?.total_price ? order.total_price / 100 : 0) ||
     order?.total ||
-    (order?.items && Array.isArray(order.items) && order.items.length > 0
-      ? order.items.reduce((sum, item) => {
-          const itemPrice =
-            (item.subtotal_kobo ? Number(item.subtotal_kobo) / 100 : null) ||
-            (item.price_kobo ? (Number(item.price_kobo) / 100) * (item.quantity || 1) : null) ||
-            (Number(item.price || item.unit_price || item.product?.price || 0) * (item.quantity || 1));
-          return sum + itemPrice;
-        }, 0)
-      : null) ||
-    (product?.price ? Number(product.price) * (quantity || 1) : 0);
-  const paymentMethod = state.paymentMethod || order?.payment_method || "Wallet";
-  const isFood = state.isFood || false;
+    0;
+  const paymentMethod = state.paymentMethod || order?.payment_method || "wallet";
+  const isFood =
+    Boolean(state.isFood) ||
+    order?.order_type === "food" ||
+    order?.type === "food_order" ||
+    Boolean(order?.vendor);
+
+  // Fallback lookup if vendor user ID is not directly in state
+  const rawVendorId =
+    state?.vendorId ||
+    order?.vendor_id ||
+    order?.vendor ||
+    product?.vendor_id ||
+    product?.vendor;
+
+  const { data: foodVendorData } = useQuery({
+    queryKey: ["order-success-food-vendor", rawVendorId],
+    queryFn: () => fetchFoodVendor(rawVendorId),
+    enabled: Boolean(isFood && rawVendorId && !state?.vendorUserId && !order?.vendor_user_id),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Target vendor user ID for chat
+  const targetVendorUserId =
+    state?.vendorUserId ||
+    order?.vendor_user_id ||
+    product?.user_id ||
+    order?.items?.[0]?.product?.user_id ||
+    foodVendorData?.user ||
+    foodVendorData?.user_id ||
+    (typeof order?.vendor === "object" ? order?.vendor?.user_id || order?.vendor?.user : null);
+
+  const handleChatWithVendor = () => {
+    if (targetVendorUserId) {
+      navigate(`/chat/${targetVendorUserId}`);
+    } else {
+      navigate("/inbox");
+    }
+  };
 
   useEffect(() => {
     if (isFood) setShowCouponModal(true);
@@ -157,7 +224,9 @@ const OrderSuccessPage = () => {
           try {
             const orderPayload = JSON.stringify({
               order_id: orderId,
-              reference: order.reference,
+              reference: order.reference || orderId,
+              status: order.status || "paid",
+              order_type: isFood ? "food" : "shop",
               buyer_name: order.buyer_name || order.customer_name || "Customer",
               items: items,
               total:
@@ -190,25 +259,6 @@ const OrderSuccessPage = () => {
 
     notifySellers();
   }, [order, total]);
-
-  // Extract target vendor for Chat button
-  const targetVendorId =
-    order?.vendor ||
-    order?.vendor_id ||
-    product?.user_id ||
-    product?.vendor_id ||
-    product?.shop_id ||
-    order?.items?.[0]?.product?.user_id ||
-    order?.items?.[0]?.product?.vendor_id ||
-    order?.items?.[0]?.product?.shop_id;
-
-  const handleChatWithVendor = () => {
-    if (targetVendorId) {
-      navigate(`/chat/${targetVendorId}`);
-    } else {
-      navigate("/inbox");
-    }
-  };
 
   const productName =
     product?.name ||
@@ -464,7 +514,7 @@ const OrderSuccessPage = () => {
         <div className="bg-white border-t border-gray-100 p-4 space-y-3 relative z-20 mt-auto">
           <button
             onClick={handleChatWithVendor}
-            className="w-full bg-green-500 text-gray-900 font-bold py-3.5 rounded-2xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm hover:brightness-105 active:scale-[0.98] transition-all"
+            className="w-full bg-lily hover:bg-darklily text-white font-bold py-3.5 rounded-2xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
           >
             <MessageCircle size={18} />
             Chat with Vendor
@@ -473,10 +523,10 @@ const OrderSuccessPage = () => {
           <div className="grid grid-cols-2 gap-3">
             {isFood ? (
               <button
-                onClick={() => navigate(`/order/${order?.id}`)}
-                className="w-full bg-orange-50 text-orange-600 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-orange-200 flex items-center justify-center gap-1.5 hover:bg-orange-100 transition-all"
+                onClick={() => navigate(`/orders/${order?.id}`)}
+                className="w-full bg-emerald-50 text-emerald-800 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-emerald-200 flex items-center justify-center gap-1.5 hover:bg-emerald-100 transition-all"
               >
-                <ShoppingBag size={16} />
+                <ShoppingBag size={16} className="text-lily" />
                 Track Food Order
               </button>
             ) : (
@@ -491,7 +541,7 @@ const OrderSuccessPage = () => {
 
             <button
               onClick={() => navigate("/feed")}
-              className="w-full bg-gray-50 text-gray-600 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
+              className="w-full bg-gray-50 text-gray-700 font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-all"
             >
               <Home size={16} />
               Back to Feed

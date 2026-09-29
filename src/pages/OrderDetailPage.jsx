@@ -445,57 +445,71 @@ const OrderDetailPage = () => {
               </motion.div>
             )}
 
-            {/* "My Item Has Been Delivered" Confirmation Card */}
+            {/* "Confirm Order Receipt" Card */}
             {(order.status === 'delivered' || order.status === 'out_for_delivery') && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-sm border-2 border-lily/40 overflow-hidden"
+                className="bg-gradient-to-br from-emerald-50/60 via-white to-teal-50/30 rounded-2xl shadow-sm border border-emerald-200/80 overflow-hidden"
               >
-                <div className="bg-gradient-to-r from-lily/10 to-lily/10 px-6 py-4 border-b border-lily/20">
-                  <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <CheckCircle2 className="w-5 h-5 mr-2 text-lily" />
-                    Confirm Your Order
-                  </h3>
-                </div>
-                <div className="p-6">
-                  <p className="text-gray-600 mb-4">
-                    {order.status === 'delivered' ? 'The seller has marked your order as delivered.' : 'Your order is out for delivery.'} If you have received and inspected your items, 
-                    please confirm below to release payment to the seller.
-                  </p>
-                  
-                  {/* Item cards — one per order item */}
-                  <div className="space-y-3 mb-6">
-                    {order.items?.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <img 
-                          src={item.product?.image_url || item.product?.media_url || item.image || '/placeholder.png'} 
-                          alt={item.product?.name || item.name || 'Product'} 
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 truncate">{item.product?.name || item.name || 'Product'}</p>
-                          <p className="text-sm text-gray-500">{item.product?.shop_name || order.vendor?.name}</p>
-                          <p className="text-sm font-bold text-gray-700">₦{getItemSubtotal(item).toLocaleString()}</p>
-                        </div>
-                      </div>
-                    ))}
+                <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-lily/15 text-lily flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Confirm Order Receipt
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {order.status === 'delivered'
+                          ? 'Vendor has marked your order as delivered.'
+                          : 'Your order is currently out for delivery.'}
+                      </p>
+                    </div>
                   </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                    Escrow Protected
+                  </span>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-sm text-gray-600 mb-5 leading-relaxed">
+                    Once you have received and inspected your order, confirm delivery below to release payment from escrow to the seller.
+                  </p>
 
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleConfirmReceipt}
                     disabled={isConfirming}
-                    className="w-full bg-gradient-to-r from-lily to-darklily text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
+                    className="w-full bg-lily hover:bg-darklily text-white py-3.5 px-6 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
                   >
-                    {isConfirming ? 'Confirming...' : '✅ My Item Has Been Delivered'}
+                    {isConfirming ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Releasing Funds...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span>I Have Received My Order</span>
+                      </>
+                    )}
                   </motion.button>
 
-                  <p className="text-xs text-gray-500 text-center mt-3">
-                    By confirming, payment will be released to the seller. 
-                    If there's an issue, <span className="text-red-600 font-medium cursor-pointer" onClick={() => setIsDisputeModalOpen(true)}>open a dispute</span> instead.
-                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100 flex-wrap gap-2">
+                    <span className="text-gray-500">
+                      Funds will be released to the vendor. Auto-releases after 72 hours.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsDisputeModalOpen(true)}
+                      className="text-red-600 hover:text-red-700 font-semibold hover:underline"
+                    >
+                      Report Issue / Dispute
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -538,6 +552,7 @@ const OrderDetailPage = () => {
                     const unitPrice = getItemUnitPrice(item);
                     const subtotal = getItemSubtotal(item);
                     const itemChatTarget = getItemChatTarget(item);
+                    const showItemChatButton = itemChatTarget && order.order_type !== 'food' && itemChatTarget !== getVendorChatTarget();
 
                     return (
                       <motion.div
@@ -584,7 +599,7 @@ const OrderDetailPage = () => {
                             <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                               ₦{unitPrice.toLocaleString()} each
                             </span>
-                            {itemChatTarget && (
+                            {showItemChatButton && (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -595,7 +610,7 @@ const OrderDetailPage = () => {
                                 title={`Chat with ${order.order_type === 'food' ? 'Vendor' : 'Seller'}`}
                               >
                                 <MessageCircle className="w-3.5 h-3.5" />
-                                <span>Chat with {order.order_type === 'food' ? 'Vendor' : 'Seller'}</span>
+                                <span>Chat with Seller</span>
                               </button>
                             )}
                           </div>

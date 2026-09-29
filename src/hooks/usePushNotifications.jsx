@@ -36,9 +36,13 @@ export const usePushNotifications = (isAuthenticated) => {
 
       if (currentToken) {
         setToken(currentToken);
+        if (typeof window !== 'undefined') {
+          window.__fcm_token = currentToken;
+        }
+        console.log('✅ FCM Push Token generated:', currentToken);
         try {
           await registerDeviceToken(currentToken, 'web');
-          console.log('Push notification token registered with backend successfully.');
+          console.log('✅ Push notification token registered with backend successfully.');
         } catch (backendError) {
           console.error('Failed to register token with backend:', backendError);
         }
