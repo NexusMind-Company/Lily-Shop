@@ -16,7 +16,6 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
   // If the backend sent a top-level notification object, FCM automatically displays it.
   // We only show a manual notification if it was a data-only payload.
   if (!payload.notification) {
