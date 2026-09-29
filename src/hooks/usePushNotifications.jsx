@@ -5,6 +5,9 @@ import { registerDeviceToken } from '../services/api';
 import { queryClient } from '../queryClient';
 import toast from 'react-hot-toast';
 
+const DEFAULT_VAPID_KEY =
+  "BMdqnxp9Ay-U-XpdLPne6ak1FX4hYcT_CgT-0PaB6mXxbLntdLC1qnEDHwAdm7XHL5i4X5V3CCrJPzYzJoJmqxw";
+
 let currentInstantAudio = null;
 
 export const stopInstantOrderAudio = () => {
@@ -25,13 +28,22 @@ export const usePushNotifications = (isAuthenticated) => {
   );
 
   const registerTokenWithBackend = useCallback(async (registration) => {
-    if (!messaging) return null;
+    if (!messaging) {
+      console.warn('Firebase messaging is not initialized.');
+      return null;
+    }
     setIsRegistering(true);
     try {
-      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || DEFAULT_VAPID_KEY;
+
+      let swRegistration = registration;
+      if (!swRegistration && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        swRegistration = await navigator.serviceWorker.ready;
+      }
+
       const currentToken = await getToken(messaging, {
         vapidKey,
-        serviceWorkerRegistration: registration,
+        serviceWorkerRegistration: swRegistration,
       });
 
       if (currentToken) {
@@ -47,12 +59,15 @@ export const usePushNotifications = (isAuthenticated) => {
           console.error('Failed to register token with backend:', backendError);
         }
         return currentToken;
+      } else {
+        console.warn('No registration token available.');
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.warn('Push notification registration aborted. This is common if notifications are unsupported or blocked.');
-      } else {
-        console.error('An error occurred while retrieving push token:', error);
+      console.error('An error occurred while retrieving push token:', error);
+      if (error?.name === 'AbortError') {
+        console.warn(
+          'Push notification registration was aborted. If you are using Brave or a hardened browser, enable "Use Google services for push messaging" in brave://settings/privacy.'
+        );
       }
     } finally {
       setIsRegistering(false);
