@@ -389,6 +389,7 @@ function App() {
                 <Route path="/order-summary" element={<OrderSummaryPage />} />
                 <Route path="/orders" element={<OrderHistoryPage />} />
                 <Route path="/order/:orderId" element={<OrderDetailPage />} />
+                <Route path="/orders/:orderId" element={<OrderDetailPage />} />
 
                 {/* Customer Subscriptions */}
                 <Route
@@ -500,6 +501,14 @@ function App() {
                 />
                 <Route
                   path="/vendor/dashboard/orders"
+                  element={<VendorOrdersPage />}
+                />
+                <Route
+                  path="/vendor/orders"
+                  element={<VendorOrdersPage />}
+                />
+                <Route
+                  path="/vendor/orders/:orderId"
                   element={<VendorOrdersPage />}
                 />
                 <Route

@@ -172,13 +172,18 @@ const PaystackCallbackPage = () => {
                 : { reference, status: "paid" },
               total: calculatedTotal,
               product:
-                pendingOrder?.items?.[0]?.product || pendingOrder?.items?.[0],
+                pendingOrder?.product ||
+                pendingOrder?.items?.[0]?.product ||
+                pendingOrder?.items?.[0],
               quantity:
+                pendingOrder?.quantity ||
                 pendingOrder?.items?.reduce(
                   (acc, it) => acc + (it.quantity || 1),
                   0
                 ) || 1,
               paymentMethod: "paystack",
+              isFood: pendingOrder?.type === "food_order",
+              vendorUserId: pendingOrder?.vendorUserId,
             },
           });
         }

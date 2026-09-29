@@ -2,7 +2,18 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Phone, User, CheckCircle2, Loader2, AlertCircle, ChevronRight, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  MapPin,
+  Phone,
+  User,
+  CheckCircle2,
+  Circle,
+  Loader2,
+  AlertCircle,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
 import {
   createFoodOrder,
   fetchFoodVendor,
@@ -235,7 +246,9 @@ const FoodOrderCheckoutPage = () => {
           product,
           quantity,
           total,
-          type: "food_order"
+          type: "food_order",
+          vendorUserId: vendorDetails?.user || vendorDetails?.user_id || response?.vendor_user_id,
+          vendorName: vendorDetails?.name || response?.vendor_name,
         }));
         toast.success("Redirecting to Paystack...");
         window.location.href = response.authorization_url;
@@ -248,7 +261,9 @@ const FoodOrderCheckoutPage = () => {
             quantity, 
             total,
             paymentMethod,
-            isFood: true
+            isFood: true,
+            vendorUserId: vendorDetails?.user || vendorDetails?.user_id || response?.vendor_user_id,
+            vendorName: vendorDetails?.name || response?.vendor_name,
           } 
         });
       }
@@ -263,197 +278,224 @@ const FoodOrderCheckoutPage = () => {
   if (!product) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white px-4 py-4 sticky top-0 z-20 flex items-center border-b border-gray-100 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100">
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
+    <div className="flex flex-col min-h-screen max-w-xl mx-auto bg-gray-50 border-x border-gray-100">
+      {/* Top Header */}
+      <div className="relative p-4 border-b border-gray-100 bg-white flex items-center justify-center shrink-0 z-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800 focus:outline-none"
+        >
+          <ChevronLeft size={28} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 ml-2">Checkout</h1>
+        <h2 className="font-semibold text-lg text-gray-900">Confirm Order</h2>
       </div>
 
-      <div className="max-w-3xl mx-auto p-4 space-y-6 mt-4">
-        {/* Order Summary */}
-        <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-900 mb-4">Order Summary</h2>
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden shrink-0">
-              <img 
-                src={product.image_url || product.media_url} 
-                alt={product.name} 
-                className="w-full h-full object-cover"
+      <div className="flex-1 overflow-y-auto pb-28">
+        {/* Item Card */}
+        <div className="bg-white p-4 mb-2 border-b border-gray-100">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-gray-600 mb-3">
+              {vendorDetails?.name || product?.vendor_name || "Food Kitchen"}
+            </p>
+            <div className="flex space-x-4">
+              <img
+                src={product.image_url || product.media_url || "/placeholder.png"}
+                alt={product.name}
+                className="w-24 h-24 object-cover rounded-xl bg-gray-100 shrink-0"
+              />
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-gray-900">{product.name}</p>
+                <p className="text-sm font-semibold text-pink">NGN {formatPrice(foodPrice)}</p>
+                <p className="text-sm text-black">Qty: {quantity}</p>
+                <div className="mt-1 space-y-0.5">
+                  <p className="text-sm text-black">
+                    Delivery Price: {isCalculatingDelivery ? "Calculating..." : `NGN ${formatPrice(deliveryFee)}`}
+                  </p>
+                  {shopaDeliveryFee !== null && (
+                    <span className="inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full mt-1">
+                      Shopa Instant Delivery
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Details Card */}
+        <div className="bg-white p-4 mb-2 border-y border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-md text-gray-900">Delivery details</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="mt-0.5 shrink-0">
+                <CheckCircle2 className="text-white fill-lily w-6 h-6" />
+              </div>
+              <div className="ml-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-900">Home delivery</p>
+                  <button
+                    onClick={() => navigate("/choose-address")}
+                    className="text-xs font-semibold text-pink hover:underline focus:outline-none"
+                  >
+                    Change
+                  </button>
+                </div>
+                {selectedAddress ? (
+                  <div className="mt-1 text-sm text-gray-600">
+                    <p className="font-medium text-gray-800">{customerName}</p>
+                    <p>{phone}</p>
+                    <p className="line-clamp-2 mt-0.5">
+                      {selectedAddress.street_address}, {selectedAddress.city}, {selectedAddress.state}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate("/choose-address")}
+                    className="mt-2 text-xs text-pink font-semibold flex items-center gap-1"
+                  >
+                    <Plus size={14} /> Add Delivery Address
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Optional Note for Kitchen */}
+            <div className="pt-3 border-t border-gray-100">
+              <label className="text-xs font-medium text-gray-600 block mb-1">
+                Order Note for Kitchen (Optional)
+              </label>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. Less spicy, extra sauce, call on arrival..."
+                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:border-lily focus:bg-white transition-colors"
               />
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">{product.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">Quantity: {quantity}</p>
-              <p className="font-bold text-lily mt-1">₦{formatPrice(foodPrice)}</p>
-            </div>
           </div>
-        </section>
+        </div>
 
-        {/* Delivery Details */}
-        <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
-          <h2 className="text-base font-bold text-gray-900 mb-2">Delivery Details</h2>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-              <User className="w-4 h-4" /> Full Name
-            </label>
-            <input 
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="e.g. John Doe"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-lily focus:ring-1 focus:ring-lily transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-              <Phone className="w-4 h-4" /> Phone Number
-            </label>
-            <input 
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g. 08012345678"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-lily focus:ring-1 focus:ring-lily transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Delivery Address
-            </label>
-            
-            {selectedAddress ? (
-              <div 
-                onClick={() => navigate("/choose-address")}
-                className="w-full rounded-xl border border-lily/30 bg-lily/5 p-4 cursor-pointer hover:bg-lily/10 transition-colors"
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-bold text-gray-900">
-                    {selectedAddress.name || selectedAddress.recipient_name || selectedAddress.label || "Selected Address"}
-                  </span>
-                  <span className="text-lily text-sm font-semibold">Change</span>
-                </div>
-                <p className="text-gray-700 text-sm">
-                  {selectedAddress.street_address}, {selectedAddress.city}, {selectedAddress.state}
-                </p>
-              </div>
-            ) : (
-              <button
-                onClick={() => navigate("/choose-address")}
-                className="w-full rounded-xl border border-dashed border-gray-300 p-4 text-gray-500 hover:text-lily hover:border-lily hover:bg-lily/5 transition-all flex items-center justify-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="font-medium">Select Delivery Address</span>
+        {/* Payment Method Card */}
+        <div className="bg-white p-4 mb-2 border-y border-gray-100">
+          <h3 className="font-semibold text-md text-gray-900 mb-4">Payment method</h3>
+          <div className="space-y-4">
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => setPaymentMethod("paystack")}
+            >
+              <button className="shrink-0 focus:outline-none">
+                {paymentMethod === "paystack" ? (
+                  <CheckCircle2 className="text-white fill-lily w-6 h-6" />
+                ) : (
+                  <Circle className="text-gray-400 w-6 h-6" />
+                )}
               </button>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Note for Vendor (Optional)
-            </label>
-            <input 
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. Less spicy, extra sauce..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-lily focus:ring-1 focus:ring-lily transition-colors"
-            />
-          </div>
-        </section>
-
-        {/* Payment Summary */}
-        <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-900 mb-4">Payment Summary</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-gray-600">
-              <span>Food Price (x{quantity})</span>
-              <span className="font-semibold text-gray-900">₦{formatPrice(subtotal)}</span>
+              <span className="ml-3 text-sm font-medium text-gray-900">
+                Card, Bank Transfer & USSD (Paystack)
+              </span>
             </div>
-            <div className="flex justify-between text-gray-600">
+
+            <div
+              className="flex items-start cursor-pointer"
+              onClick={() => setPaymentMethod("wallet")}
+            >
+              <button className="mt-0.5 shrink-0 focus:outline-none">
+                {paymentMethod === "wallet" ? (
+                  <CheckCircle2 className="text-white fill-lily w-6 h-6" />
+                ) : (
+                  <Circle className="text-gray-400 w-6 h-6" />
+                )}
+              </button>
+              <div className="ml-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Lily wallet</p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate("/wallet");
+                      }}
+                      className="text-xs font-semibold text-pink mt-0.5 hover:underline text-left block"
+                    >
+                      NGN {formatPrice(walletBalance)}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/wallet");
+                    }}
+                    className="flex items-center text-pink font-medium text-sm hover:opacity-80 transition-opacity focus:outline-none"
+                  >
+                    <Plus size={14} className="mr-0.5" strokeWidth={3} /> Top up
+                  </button>
+                </div>
+                {paymentMethod === "wallet" && walletBalance < total && (
+                  <p className="text-[10px] text-pink font-medium mt-1 flex items-center">
+                    <AlertCircle size={10} className="mr-1" /> Insufficient balance for this order
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Summary Card */}
+        <div className="bg-white p-4 border-y border-gray-100">
+          <h3 className="font-semibold text-md text-gray-900 mb-4">Order summary</h3>
+          <div className="space-y-3 text-sm mb-6">
+            <div className="flex justify-between text-gray-800">
+              <span>Item's total ({quantity})</span>
+              <span>NGN {formatPrice(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-gray-800">
               <span className="flex items-center gap-1.5">
-                Delivery Fee
+                Delivery charge
                 {shopaDeliveryFee !== null && (
                   <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
                     Shopa
                   </span>
                 )}
               </span>
-              <span className="font-semibold text-gray-900">
+              <span>
                 {isCalculatingDelivery ? (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin text-lily" /> Calculating...
-                  </span>
-                ) : deliveryFee > 0 ? (
-                  `₦${formatPrice(deliveryFee)}`
+                  <span className="text-xs text-gray-400">Calculating...</span>
                 ) : (
-                  "₦0"
+                  `NGN ${formatPrice(deliveryFee)}`
                 )}
               </span>
             </div>
-            <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-lg">
-              <span>You Pay</span>
-              <span className="text-lily">₦{formatPrice(total)}</span>
+            <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-base">
+              <span>Total</span>
+              <span className="text-pink">NGN {formatPrice(total)}</span>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Payment Action */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
-          <div className="space-y-3">
-            <button
-              onClick={() => setPaymentMethod("wallet")}
-              className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                paymentMethod === "wallet"
-                  ? "border-lily bg-lily/5"
-                  : "border-gray-200 bg-gray-50 hover:bg-gray-100"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-lily/10 flex items-center justify-center">
-                  <span className="font-bold text-lily">W</span>
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-gray-900">Lily Wallet</p>
-                  <p className="text-xs text-gray-500">Balance: ₦{formatPrice(walletBalance)}</p>
-                </div>
-              </div>
-              {paymentMethod === "wallet" && <CheckCircle2 className="w-5 h-5 text-lily" />}
-            </button>
-            <button
-              onClick={() => setPaymentMethod("paystack")}
-              className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                paymentMethod === "paystack"
-                  ? "border-lily bg-lily/5"
-                  : "border-gray-200 bg-gray-50 hover:bg-gray-100"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-blue-600">P</span>
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-gray-900">Paystack</p>
-                  <p className="text-xs text-gray-500">Card, Bank Transfer, USSD</p>
-                </div>
-              </div>
-              {paymentMethod === "paystack" && <CheckCircle2 className="w-5 h-5 text-lily" />}
-            </button>
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-3 px-4 z-40">
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
+          <div>
+            <span className="text-xs text-gray-500 block">Total</span>
+            <span className="text-lg font-bold text-pink">NGN {formatPrice(total)}</span>
           </div>
-
           <button
             onClick={handlePay}
             disabled={isSubmitting || isLoadingWallet}
-            className="w-full py-4 rounded-xl font-bold text-sm bg-lily text-white shadow-lg shadow-lily/20 hover:bg-darklily active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 bg-lily text-white py-3.5 px-6 rounded-xl font-bold text-sm hover:bg-darklily active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
           >
             {isSubmitting ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing...</span>
+              </>
             ) : (
-              `Pay ₦${formatPrice(total)}`
+              <span>Proceed to Payment</span>
             )}
           </button>
         </div>
