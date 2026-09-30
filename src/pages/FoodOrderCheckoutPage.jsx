@@ -131,6 +131,8 @@ const FoodOrderCheckoutPage = () => {
 
   const [shopaDeliveryFee, setShopaDeliveryFee] = useState(null);
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false);
+  const [deliveryDistance, setDeliveryDistance] = useState(null);
+  const [isExtendedDelivery, setIsExtendedDelivery] = useState(false);
 
   const foodPrice = useMemo(() => {
     return Number(product?.price_in_naira) || Number(product?.price) || 0;
@@ -157,7 +159,11 @@ const FoodOrderCheckoutPage = () => {
       const buyerLon = selectedAddress?.longitude || selectedAddress?.lon;
 
       if (!vendorLat || !vendorLon || !buyerLat || !buyerLon) {
-        if (!isCancelled) setShopaDeliveryFee(null);
+        if (!isCancelled) {
+          setShopaDeliveryFee(null);
+          setDeliveryDistance(null);
+          setIsExtendedDelivery(false);
+        }
         return;
       }
 
@@ -178,13 +184,21 @@ const FoodOrderCheckoutPage = () => {
         if (!isCancelled) {
           if (calculatedFee !== null && !isNaN(calculatedFee)) {
             setShopaDeliveryFee(calculatedFee);
+            setDeliveryDistance(quote?.distance_km);
+            setIsExtendedDelivery(quote?.is_extended_distance || false);
           } else {
             setShopaDeliveryFee(null);
+            setDeliveryDistance(null);
+            setIsExtendedDelivery(false);
           }
         }
       } catch (err) {
         console.warn("Shopa delivery fee calculation fallback to default:", err);
-        if (!isCancelled) setShopaDeliveryFee(null);
+        if (!isCancelled) {
+          setShopaDeliveryFee(null);
+          setDeliveryDistance(null);
+          setIsExtendedDelivery(false);
+        }
       } finally {
         if (!isCancelled) setIsCalculatingDelivery(false);
       }
@@ -312,9 +326,21 @@ const FoodOrderCheckoutPage = () => {
                     Delivery Price: {isCalculatingDelivery ? "Calculating..." : `NGN ${formatPrice(deliveryFee)}`}
                   </p>
                   {shopaDeliveryFee !== null && (
-                    <span className="inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full mt-1">
-                      Shopa Instant Delivery
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full mt-1">
+                        Shopa Instant Delivery
+                      </span>
+                      {deliveryDistance !== null && (
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          {deliveryDistance.toFixed(1)} km away
+                        </span>
+                      )}
+                      {isExtendedDelivery && (
+                        <span className="inline-block text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded-full mt-0.5">
+                          +20% Extended Distance Surcharge
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { api } from "../services/api";
 import CustomerSubscriptionsPage from "./CustomerSubscriptionsPage";
 import Orders from "../components/inbox/orders";
 import { getVendorImageUrl, getVendorInitials } from "../utils/vendorUtils";
+import { useCustomerLocation } from "../hooks/useCustomerLocation";
 
 /* =========================
    Skeleton Card Component
@@ -74,8 +75,18 @@ const VendorCard = ({ vendor, onClick }) => {
         {vendor.address && vendor.address !== "Lagos" && (
           <div className="flex items-center gap-1 text-gray-500 mt-1">
             <MapPin className="w-3 h-3 shrink-0" />
-            <p className="text-xs truncate font-medium">{vendor.address}</p>
+            <p className="text-xs truncate font-medium">
+              {vendor.address}
+              {vendor.distance_km !== undefined && vendor.distance_km !== null && (
+                <span className="text-gray-400 ml-1">
+                  • {vendor.distance_km.toFixed(1)}km away
+                </span>
+              )}
+            </p>
           </div>
+        )}
+        {vendor.is_extended && (
+          <p className="text-[10px] font-semibold text-rose-500 mt-1">Extended delivery distance</p>
         )}
       </div>
     </div>
@@ -100,12 +111,18 @@ const VendorsList = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const { userLat, userLon } = useCustomerLocation();
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ["vendors", debouncedSearch, activeCategory],
+    queryKey: ["vendors", debouncedSearch, activeCategory, userLat, userLon],
     queryFn: async () => {
       const params = { page_size: 100 };
       if (debouncedSearch) params.search = debouncedSearch;
       if (activeCategory !== "All") params.cuisine = activeCategory;
+      if (userLat && userLon) {
+        params.user_lat = userLat;
+        params.user_lon = userLon;
+      }
       const response = await api.get("/foods/vendors/", { params });
       return response.data;
     },
