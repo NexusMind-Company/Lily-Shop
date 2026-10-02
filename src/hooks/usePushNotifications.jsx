@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { registerDeviceToken } from '../services/api';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { getVapidPublicKey, registerDeviceToken } from '../services/api';
 import toast from 'react-hot-toast';
 
 let currentInstantAudio = null;
@@ -36,6 +36,14 @@ export const usePushNotifications = (isAuthenticated) => {
       ? Notification.permission
       : 'default'
   );
+  const hasAttemptedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasAttemptedRef.current = false;
+      setToken(null);
+    }
+  }, [isAuthenticated]);
 
   const registerTokenWithBackend = useCallback(async () => {
     setIsRegistering(true);
@@ -48,15 +56,23 @@ export const usePushNotifications = (isAuthenticated) => {
       const registration = await navigator.serviceWorker.register('/service-worker.js');
       await navigator.serviceWorker.ready;
 
-      // Fetch VAPID public key from backend
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/notifications/vapid-public-key/`);
-      const data = await res.json();
-      const applicationServerKey = urlB64ToUint8Array(data.public_key);
+      let subscription = await registration.pushManager.getSubscription();
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey
-      });
+      if (!subscription) {
+        // Fetch VAPID public key from backend
+        const data = await getVapidPublicKey();
+        if (!data?.public_key) {
+          console.warn('VAPID public key is not configured on the backend.');
+          return null;
+        }
+
+        const applicationServerKey = urlB64ToUint8Array(data.public_key);
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      }
 
       if (subscription) {
         setToken(subscription.endpoint);
@@ -88,6 +104,7 @@ export const usePushNotifications = (isAuthenticated) => {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       if (permission === 'granted') {
+        hasAttemptedRef.current = true;
         return await registerTokenWithBackend();
       } else {
         toast.error('Notification permission denied.');
@@ -104,8 +121,10 @@ export const usePushNotifications = (isAuthenticated) => {
       isAuthenticated &&
       notificationPermission === 'granted' &&
       !token &&
-      !isRegistering
+      !isRegistering &&
+      !hasAttemptedRef.current
     ) {
+      hasAttemptedRef.current = true;
       registerTokenWithBackend();
     }
   }, [isAuthenticated, notificationPermission, token, isRegistering, registerTokenWithBackend]);
