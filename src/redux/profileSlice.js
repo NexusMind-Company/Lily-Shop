@@ -60,6 +60,7 @@ export const fetchProfile = () => async (dispatch) => {
         username: data.username,
         email: data.email,
         phone_number: data.phone_number,
+        has_completed_onboarding: data.has_completed_onboarding,
         profile_pic: data.profile_pic ? `${data.profile_pic.split('?')[0]}?t=${Date.now()}` : null,
         full_name: data.username || data.email?.split("@")[0] || "Unnamed User",
         followers_count: data.follower_count || 0,

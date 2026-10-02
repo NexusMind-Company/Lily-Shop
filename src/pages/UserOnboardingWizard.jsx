@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { addNewAddress, searchAddressLocations, updateProfile } from "../services/api";
+import { addNewAddress, searchAddressLocations, updateProfile, completeOnboarding } from "../services/api";
+import { updateProfileData } from "../redux/profileSlice";
 import InterestsSelector from "../components/profile/InterestsSelector";
 import PageSEO from "../components/common/PageSEO";
 import {
@@ -192,13 +193,12 @@ const UserOnboardingWizard = () => {
     }
   };
 
-  const handleFinish = () => {
-    localStorage.removeItem("is_new_registration");
-    localStorage.setItem("onboarded_interests", "true");
-    if (user_data) {
-      if (user_data.id) localStorage.setItem(`onboarded_interests_${user_data.id}`, "true");
-      if (user_data.email) localStorage.setItem(`onboarded_interests_${user_data.email}`, "true");
-      if (user_data.username) localStorage.setItem(`onboarded_interests_${user_data.username}`, "true");
+  const handleFinish = async () => {
+    try {
+      await completeOnboarding();
+      dispatch(updateProfileData({ has_completed_onboarding: true }));
+    } catch (err) {
+      console.error("Failed to mark onboarding complete", err);
     }
     navigate("/");
   };

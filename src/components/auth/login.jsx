@@ -83,31 +83,7 @@ const Login = () => {
       setShowSuccess(true);
       setTimeout(() => {
         const user = resultAction.payload?.user;
-        const userId = user?.id || formData.login;
-        const userInterests = user?.interests;
-
-        const searchParams = new URLSearchParams(location.search);
-        const isNewUserFromQuery = searchParams.get("new_user") === "true";
-        const isNewUserFromState = Boolean(location.state?.isNewUser);
-        const isNewRegistration =
-          localStorage.getItem("is_new_registration") === "true";
-
-        const hasUserOnboarded = Boolean(
-          localStorage.getItem(`onboarded_interests_${userId}`),
-        );
-
-        const isProfileIncomplete = !user?.first_name || !user?.phone_number;
-        const isFirstTimeServer =
-          Boolean(user?.is_first_login) ||
-          (Array.isArray(userInterests) && userInterests.length === 0);
-
-        const shouldOnboard =
-          isNewRegistration ||
-          isNewUserFromQuery ||
-          isNewUserFromState ||
-          isFirstTimeServer ||
-          !hasUserOnboarded ||
-          isProfileIncomplete;
+        const shouldOnboard = user?.has_completed_onboarding === false;
 
         if (shouldOnboard) {
           navigate("/onboarding");

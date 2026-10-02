@@ -235,6 +235,14 @@ const ScrollToTopAuto = () => {
   return null;
 };
 
+const OnboardingGuard = ({ children }) => {
+  const profile = useSelector((state) => state.profile?.data?.user);
+  if (profile?.has_completed_onboarding) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 function App() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
@@ -271,7 +279,7 @@ function App() {
             <Route path="/verify-email/*" element={<VerifyEmail />} />
             <Route path="/verify-email-sent" element={<VerificationSentPage />} />
             <Route path="/verify-code" element={<VerifyCode />} />
-            <Route path="/onboarding" element={<UserOnboardingWizard />} />
+            <Route path="/onboarding" element={<OnboardingGuard><UserOnboardingWizard /></OnboardingGuard>} />
             <Route path="/welcome/interests" element={<Navigate to="/onboarding" replace />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
