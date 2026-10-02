@@ -163,8 +163,8 @@ const StaffOperationsPage = () => {
 
   const [shopaForm, setShopaForm] = useState({
     base_fee_kobo: "",
-    per_km_fee_kobo: "",
-    min_fee_kobo: "",
+    per_km_rate_kobo: "",
+    minimum_fee_kobo: "",
     max_fee_kobo: "",
   });
 
@@ -172,8 +172,8 @@ const StaffOperationsPage = () => {
     if (shopaConfig) {
       setShopaForm({
         base_fee_kobo: shopaConfig.base_fee_kobo,
-        per_km_fee_kobo: shopaConfig.per_km_fee_kobo,
-        min_fee_kobo: shopaConfig.min_fee_kobo,
+        per_km_rate_kobo: shopaConfig.per_km_rate_kobo,
+        minimum_fee_kobo: shopaConfig.minimum_fee_kobo,
         max_fee_kobo: shopaConfig.max_fee_kobo,
       });
     }
@@ -638,22 +638,22 @@ const StaffOperationsPage = () => {
                       <input
                         type="number"
                         required
-                        value={shopaForm.per_km_fee_kobo}
-                        onChange={(e) => setShopaForm({...shopaForm, per_km_fee_kobo: e.target.value})}
+                        value={shopaForm.per_km_rate_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, per_km_rate_kobo: e.target.value})}
                         className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
                       />
-                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.per_km_fee_kobo / 100)}/km</p>
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.per_km_rate_kobo / 100)}/km</p>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-2">Minimum Fee (Kobo)</label>
                       <input
                         type="number"
                         required
-                        value={shopaForm.min_fee_kobo}
-                        onChange={(e) => setShopaForm({...shopaForm, min_fee_kobo: e.target.value})}
+                        value={shopaForm.minimum_fee_kobo}
+                        onChange={(e) => setShopaForm({...shopaForm, minimum_fee_kobo: e.target.value})}
                         className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none"
                       />
-                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.min_fee_kobo / 100)}</p>
+                      <p className="mt-1 text-xs text-gray-400">Current: {formatCurrency(shopaForm.minimum_fee_kobo / 100)}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-2">Maximum Fee (Kobo)</label>

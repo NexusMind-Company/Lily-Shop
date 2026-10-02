@@ -41,7 +41,39 @@ const CreateSubscriptionVendor = () => {
   const [states, setStates] = useState([]);
   const [lgas, setLgas] = useState([]);
   const [, setStatesLoading] = useState(false);
+
   const [lgasLoading, setLgasLoading] = useState(false);
+
+  const [addressQuery, setAddressQuery] = useState("");
+  const [debouncedAddressQuery] = useDebounce(addressQuery, 500);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const { data: addressSuggestions = [], isFetching: isSearchingLocation } = useQuery({
+    queryKey: ["nominatimAddressVendor", debouncedAddressQuery, formData.state],
+    queryFn: async () => {
+      if (!debouncedAddressQuery || debouncedAddressQuery.trim().length < 3) return [];
+      return await searchAddressLocations(debouncedAddressQuery.trim(), formData.state);
+    },
+    enabled: debouncedAddressQuery.trim().length >= 3 && !selectedLocation,
+    staleTime: 60000,
+  });
+
+  const handleSelectLocation = (loc) => {
+    setSelectedLocation(loc);
+    setAddressQuery(loc.display_name.split(",")[0]);
+    setFormData({ ...formData, address: loc.display_name, lat: loc.lat, lon: loc.lon });
+    setShowSuggestions(false);
+    setErrors({ ...errors, address: "" });
+  };
+
+  const handleClearSelectedLocation = () => {
+    setSelectedLocation(null);
+    setAddressQuery("");
+    setFormData({ ...formData, address: "", lat: null, lon: null });
+    setShowSuggestions(true);
+  };
+
 
   // If already a vendor, redirect immediately
   const isAlreadyVendor = Boolean(
@@ -128,10 +160,12 @@ const CreateSubscriptionVendor = () => {
       if (!formData.description.trim()) stepErrors.description = "Description is required";
       const imageErr = validateImage(profileFile);
       if (imageErr) stepErrors.image = imageErr;
+
     } else if (currentStep === 2) {
       if (!formData.state.trim()) stepErrors.state = "State is required";
       if (!formData.lga.trim()) stepErrors.lga = "City/LGA is required";
-      if (!formData.address.trim()) stepErrors.address = "Street address is required";
+      if (!formData.address.trim()) stepErrors.address = "Street address is required from search";
+
     }
 
     if (Object.keys(stepErrors).length > 0) {
@@ -172,8 +206,12 @@ const CreateSubscriptionVendor = () => {
     const submitData = new FormData();
     submitData.append("name", formData.name.trim());
     submitData.append("address", formData.address.trim());
+
     if (formData.state.trim()) submitData.append("state", formData.state.trim());
     if (formData.lga.trim()) submitData.append("lga", formData.lga.trim());
+    if (formData.lat) submitData.append("latitude", formData.lat);
+    if (formData.lon) submitData.append("longitude", formData.lon);
+
     if (formData.cuisine.trim()) submitData.append("cuisine", formData.cuisine.trim());
     if (formData.description.trim()) submitData.append("description", formData.description.trim());
     if (formData.contact_email.trim()) submitData.append("contact_email", formData.contact_email.trim());

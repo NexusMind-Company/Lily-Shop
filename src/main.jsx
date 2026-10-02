@@ -33,7 +33,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 if ('serviceWorker' in navigator) {
   const registerServiceWorker = () => {
     navigator.serviceWorker
-      .register('/firebase-messaging-sw.js', { scope: '/' })
+      .register('/service-worker.js', { scope: '/' })
       .catch((error) => {
         console.error('SW registration failed: ', error);
       });

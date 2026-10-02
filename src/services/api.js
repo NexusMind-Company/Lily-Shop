@@ -195,6 +195,11 @@ export const updateUsername = async (username) => {
   return response.data;
 };
 
+export const completeOnboarding = async () => {
+  const response = await api.post("/auth/onboarding/complete/");
+  return response.data;
+};
+
 export const updateProfile = async (profileData) => {
   const formData = new FormData();
 
@@ -895,37 +900,48 @@ const appendVendorMedia = (formData, vendorData = {}) => {
 };
 
 export const createFoodVendor = async (vendorData) => {
-  const formData = new FormData();
-  formData.append("name", vendorData.name || vendorData.shop_name);
-  formData.append("description", vendorData.description);
-  formData.append("address", vendorData.address);
-  formData.append("cuisine", vendorData.cuisine || vendorData.category);
+  let formData;
+  if (vendorData instanceof FormData) {
+    formData = vendorData;
+  } else {
+    formData = new FormData();
+    formData.append("name", vendorData.name || vendorData.shop_name);
+    formData.append("description", vendorData.description);
+    formData.append("address", vendorData.address);
+    formData.append("cuisine", vendorData.cuisine || vendorData.category);
 
-  if (vendorData.state !== undefined && vendorData.state !== null) {
-    formData.append("state", vendorData.state);
-  }
-  if (vendorData.lga !== undefined && vendorData.lga !== null) {
-    formData.append("lga", vendorData.lga);
-  }
+    if (vendorData.state !== undefined && vendorData.state !== null) {
+      formData.append("state", vendorData.state);
+    }
+    if (vendorData.lga !== undefined && vendorData.lga !== null) {
+      formData.append("lga", vendorData.lga);
+    }
+    
+    if (vendorData.latitude !== undefined && vendorData.latitude !== null) {
+      formData.append("latitude", vendorData.latitude);
+    }
+    if (vendorData.longitude !== undefined && vendorData.longitude !== null) {
+      formData.append("longitude", vendorData.longitude);
+    }
 
-  if (vendorData.contact_email) {
-    const email = vendorData.contact_email.trim();
-    if (email) {
-      const USE_OMIT_STRATEGY = true; // Set to true to omit from payload, false to send ""
+    if (vendorData.contact_email) {
+      const email = vendorData.contact_email.trim();
+      if (email) {
+        const USE_OMIT_STRATEGY = true;
+        if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
+      }
+    } else if (vendorData.contact_email === null) {
+      const USE_OMIT_STRATEGY = true;
       if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
     }
-  } else if (vendorData.contact_email === null) {
-    const USE_OMIT_STRATEGY = true;
-    if (!USE_OMIT_STRATEGY) formData.append("contact_email", "");
-  }
-  if (vendorData.contact_phone) {
-    formData.append("contact_phone", vendorData.contact_phone.trim());
-  }
+    if (vendorData.contact_phone) {
+      formData.append("contact_phone", vendorData.contact_phone.trim());
+    }
 
-  appendVendorMedia(formData, vendorData);
+    appendVendorMedia(formData, vendorData);
+  }
 
   const response = await api.post("/foods/food-vendors/", formData);
-
   return response.data;
 };
 
@@ -2086,8 +2102,8 @@ export const fetchTargetedUserMessages = async (userId, params = {}) => {
 };
 
 // --- Push Notifications ---
-export const registerDeviceToken = async (token, platform = "web") => {
-  const response = await api.post(`/notifications/devices/register/`, { token, platform });
+export const registerDeviceToken = async (subscription, platform = "web") => {
+  const response = await api.post(`/notifications/devices/register/`, { subscription, platform });
   return response.data;
 };
 

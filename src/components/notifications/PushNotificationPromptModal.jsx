@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { BellRing, X, Check, Loader2, Volume2, ShieldCheck } from "lucide-react";
-import usePushNotifications from "../../hooks/usePushNotifications";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
 
 const PROMPT_DISMISS_KEY = "lily_notification_prompt_dismissed_at";
 const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
