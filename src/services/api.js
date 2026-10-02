@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://api.lilyshops.com";
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://api.lilyshops.com";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -2102,6 +2104,11 @@ export const fetchTargetedUserMessages = async (userId, params = {}) => {
 };
 
 // --- Push Notifications ---
+export const getVapidPublicKey = async () => {
+  const response = await api.get("/notifications/vapid-public-key/");
+  return response.data;
+};
+
 export const registerDeviceToken = async (subscription, platform = "web") => {
   const response = await api.post(`/notifications/devices/register/`, { subscription, platform });
   return response.data;
