@@ -1,6 +1,7 @@
 import { UtensilsCrossed, Receipt } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useFeed } from "../../hooks/useFeed";
+import { preloadRoute } from "../../utils/routePreloader";
 
 const BottomNav = ({ activePage }) => {
   const location = useLocation();
@@ -39,6 +40,8 @@ const BottomNav = ({ activePage }) => {
       {/* Create */}
       <Link
         to="/createContent"
+        onMouseEnter={() => preloadRoute("/createContent")}
+        onTouchStart={() => preloadRoute("/createContent")}
         className={`flex flex-col items-center relative ${activePage === "create" ? "text-lily" : "text-ash"}`}
       >
         <div className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">
@@ -54,6 +57,8 @@ const BottomNav = ({ activePage }) => {
       {/* Food */}
       <Link
         to="/food"
+        onMouseEnter={() => preloadRoute("/food")}
+        onTouchStart={() => preloadRoute("/food")}
         className={`flex flex-col items-center relative ${activePage === "food" ? "text-lily" : "text-ash"}`}
       >
         <div className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">
@@ -69,6 +74,8 @@ const BottomNav = ({ activePage }) => {
       {/* Chatroom */}
       <Link
         to="/inbox"
+        onMouseEnter={() => preloadRoute("/inbox")}
+        onTouchStart={() => preloadRoute("/inbox")}
         className={`flex flex-col items-center relative ${activePage === "inbox" ? "text-lily" : "text-ash"}`}
       >
         <div className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">
@@ -94,6 +101,8 @@ const BottomNav = ({ activePage }) => {
       {/* Profile */}
       <Link
         to="/profile"
+        onMouseEnter={() => preloadRoute("/profile")}
+        onTouchStart={() => preloadRoute("/profile")}
         className={`flex flex-col items-center relative ${activePage === "profile" ? "text-lily" : "text-ash"}`}
       >
         <div className="grid place-items-center size-10 absolute -top-3 transform -translate-x-1/2 left-1/2">

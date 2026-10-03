@@ -6,10 +6,10 @@ import { fetchProfile } from "./redux/profileSlice";
 import { fetchCart } from "./redux/cartSlice";
 
 import FeedLayout from "./layouts/feedLayouts";
-import ScrollToTop from "./components/common/scrollToTop";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleProtectedRoute from "./components/common/RoleProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import { initIdlePreloader } from "./utils/routePreloader";
 import { FeedProvider } from "./context/feedContext.jsx";
 import NotificationPoller from "./components/common/NotificationPoller";
 import PushNotificationPromptModal from "./components/notifications/PushNotificationPromptModal";
@@ -252,12 +252,15 @@ function App() {
   useEffect(() => {
     dispatch(fetchProfile());
     dispatch(fetchCart());
+    const cleanupPreload = initIdlePreloader();
+    return () => {
+      if (typeof cleanupPreload === "function") cleanupPreload();
+    };
   }, [dispatch]);
 
   return (
     <FeedProvider>
       <ScrollToTopAuto />
-      <ScrollToTop />
       <Toaster
         position="top-center"
         toastOptions={{

@@ -8,8 +8,8 @@ import { fetchShopById } from "../../redux/shopSlice";
 import { ShopSkeleton } from "../loaders/TailoredSkeletons";
 import ErrorDisplay from "../common/ErrorDisplay";
 import ContactVendorButton from "../subscription/ContactVendorButton";
-const ShopReviewModal = lazy(() => import("./ShopReviewModal"));
-const EditReviewModal = lazy(() => import("./EditReviewModal"));
+import ShopReviewModal from "./ShopReviewModal";
+import EditReviewModal from "./EditReviewModal";
 import MealDetailModal from "./MealDetailModal";
 import ReviewList from "../common/ReviewList";
 import {
