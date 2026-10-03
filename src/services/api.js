@@ -1955,25 +1955,19 @@ export const getStaffWithdrawals = async (params = {}) => {
 };
 
 export const getUnprocessedWithdrawalRequests = async (params = {}) => {
-  const response = await api.get("/staff/uprocessed-withdrawal-requests/", {
+  const response = await api.get("/staff/unprocessed-withdrawal-requests/", {
     params,
   });
   return response.data;
 };
 
 export const markWithdrawalSuccessful = async (withdrawalId) => {
-  // The API spec is ambiguous about the ID placement for these endpoints,
-  // assuming it might be in the body as withdrawal_id based on common patterns.
-  const response = await api.patch("/staff/succesful-withdrawals/", {
-    withdrawal_id: withdrawalId,
-  });
+  const response = await api.patch(`/staff/successful-withdrawals/${withdrawalId}/`);
   return response.data;
 };
 
 export const markWithdrawalUnsuccessful = async (withdrawalId) => {
-  const response = await api.patch("/staff/unsucessful-withdrawals/", {
-    withdrawal_id: withdrawalId,
-  });
+  const response = await api.patch(`/staff/unsuccessful-withdrawals/${withdrawalId}/`);
   return response.data;
 };
 

@@ -329,6 +329,9 @@ function App() {
                     path="/lilyshop/workers"
                     element={<StaffOperationsPage />}
                   />
+                </Route>
+
+                <Route element={<RoleProtectedRoute requiredRole="admin" />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 </Route>
 
