@@ -11,8 +11,8 @@ import { lazy } from "react";
 import MediaCarousel from "../common/mediaCarousel";
 import VideoPlayer from "./videoPlayer";
 
-const CommentsModal = lazy(() => import("./comments/commentsModal"));
-const ShareModal = lazy(() => import("./share/shareModal"));
+import CommentsModal from "./comments/commentsModal";
+import ShareModal from "./share/shareModal";
 import MentionText from "../common/MentionText";
 import {
   likeProduct,

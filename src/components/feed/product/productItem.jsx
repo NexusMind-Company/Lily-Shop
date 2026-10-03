@@ -38,7 +38,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ProductReview from "./productReview";
 import { Star, Info, Truck } from "lucide-react";
 import MentionText from "../../common/MentionText";
-const ReviewModal = lazy(() => import("../../common/ReviewModal"));
+import ReviewModal from "../../common/ReviewModal";
 import toast from "react-hot-toast";
 
 const DESCRIPTION_CHAR_LIMIT = 100;

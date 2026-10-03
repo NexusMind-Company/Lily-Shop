@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { AnimatePresence } from "framer-motion";
 import CartModal from "./cart/cartModal";
 import SearchModal from "./searchModal";
+import { preloadRoute } from "../../utils/routePreloader";
 
 const SideNav = ({ activePage }) => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -47,6 +48,8 @@ const SideNav = ({ activePage }) => {
         {/* Create */}
         <Link
           to="/createContent"
+          onMouseEnter={() => preloadRoute("/createContent")}
+          onTouchStart={() => preloadRoute("/createContent")}
           className={`flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors ${activePage === "create" ? "text-lily font-bold bg-gray-50" : "text-ash font-medium"}`}
         >
           <img
@@ -59,6 +62,8 @@ const SideNav = ({ activePage }) => {
         {/* Food */}
         <Link
           to="/food"
+          onMouseEnter={() => preloadRoute("/food")}
+          onTouchStart={() => preloadRoute("/food")}
           className={`flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors ${activePage === "food" ? "text-lily font-bold bg-gray-50" : "text-ash font-medium"}`}
         >
           <UtensilsCrossed
@@ -70,6 +75,8 @@ const SideNav = ({ activePage }) => {
         {/* Inbox */}
         <Link
           to="/inbox"
+          onMouseEnter={() => preloadRoute("/inbox")}
+          onTouchStart={() => preloadRoute("/inbox")}
           className={`flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors ${activePage === "inbox" ? "text-lily font-bold bg-gray-50" : "text-ash font-medium"}`}
         >
           <div className="relative">
@@ -89,6 +96,8 @@ const SideNav = ({ activePage }) => {
         {/* Profile */}
         <Link
           to="/profile"
+          onMouseEnter={() => preloadRoute("/profile")}
+          onTouchStart={() => preloadRoute("/profile")}
           className={`flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors ${activePage === "profile" ? "text-lily font-bold bg-gray-50" : "text-ash font-medium"}`}
         >
           <img

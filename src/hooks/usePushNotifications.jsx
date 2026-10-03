@@ -14,18 +14,30 @@ export const stopInstantOrderAudio = () => {
 };
 
 function urlB64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
+  if (!base64String || typeof base64String !== 'string') return null;
+
+  const cleanStr = base64String.trim().replace(/^["']|["']$/g, '');
+  if (!/^[A-Za-z0-9\-_=]+$/.test(cleanStr)) {
+    return null;
+  }
+
+  const padding = '='.repeat((4 - (cleanStr.length % 4)) % 4);
+  const base64 = (cleanStr + padding)
     .replace(/\-/g, '+')
     .replace(/_/g, '/');
 
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+  try {
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  } catch (error) {
+    console.warn('Failed to parse base64 VAPID key in urlB64ToUint8Array:', error);
+    return null;
   }
-  return outputArray;
 }
 
 export const usePushNotifications = (isAuthenticated) => {
@@ -60,13 +72,38 @@ export const usePushNotifications = (isAuthenticated) => {
 
       if (!subscription) {
         // Fetch VAPID public key from backend
-        const data = await getVapidPublicKey();
-        if (!data?.public_key) {
-          console.warn('VAPID public key is not configured on the backend.');
-          return null;
+        let rawPublicKey = null;
+        try {
+          const data = await getVapidPublicKey();
+          rawPublicKey = data?.public_key;
+        } catch (fetchError) {
+          console.warn('Failed to fetch VAPID key from backend:', fetchError);
         }
 
-        const applicationServerKey = urlB64ToUint8Array(data.public_key);
+        // If backend returned invalid key or filename like "public_key.pem", use env fallback
+        const isInvalidKey =
+          !rawPublicKey ||
+          typeof rawPublicKey !== 'string' ||
+          rawPublicKey.includes('.pem') ||
+          rawPublicKey.includes('BEGIN') ||
+          !/^[A-Za-z0-9\-_=]+$/.test(rawPublicKey.trim());
+
+        if (isInvalidKey) {
+          rawPublicKey =
+            import.meta.env.VITE_VAPID_PUBLIC_KEY ||
+            import.meta.env.VITE_FIREBASE_VAPID_KEY ||
+            null;
+        }
+
+        const applicationServerKey = urlB64ToUint8Array(rawPublicKey);
+        if (!applicationServerKey) {
+          console.warn(
+            'Push notification setup skipped: Valid VAPID public key not available (received:',
+            rawPublicKey,
+            ')'
+          );
+          return null;
+        }
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
