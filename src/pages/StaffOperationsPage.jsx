@@ -29,6 +29,8 @@ import {
   deleteVendorAsStaff,
   shopaGetConfig,
   shopaUpdateConfig,
+  getGlobalSettings,
+  updateGlobalSetting,
 } from "../services/api";
 
 import { getVendorImageUrl } from "../utils/vendorUtils";
@@ -161,6 +163,27 @@ const StaffOperationsPage = () => {
     },
   });
 
+  const {
+    data: globalSettingsData,
+    isLoading: isGlobalSettingsLoading,
+    refetch: refetchGlobalSettings,
+  } = useQuery({
+    queryKey: ["globalSettings"],
+    queryFn: getGlobalSettings,
+    enabled: mainTab === "globalSettings",
+  });
+
+  const updateGlobalSettingMutation = useMutation({
+    mutationFn: ({ key, payload }) => updateGlobalSetting(key, payload),
+    onSuccess: () => {
+      toast.success("Setting updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["globalSettings"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.detail || "Failed to update setting");
+    },
+  });
+
   const [shopaForm, setShopaForm] = useState({
     base_fee_kobo: "",
     per_km_rate_kobo: "",
@@ -261,6 +284,18 @@ const StaffOperationsPage = () => {
             className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "shopa" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
           >
             Shopa Config
+          </button>
+          <button
+            onClick={() => setMainTab("globalSettings")}
+            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "globalSettings" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+          >
+            Global Config
+          </button>
+          <button
+            onClick={() => navigate("/admin/settings/notifications")}
+            className="px-6 py-2 rounded-full font-bold text-sm bg-white text-gray-500 border border-gray-100 hover:bg-gray-50 transition-all"
+          >
+            Notification Sounds
           </button>
         </div>
 
@@ -678,6 +713,71 @@ const StaffOperationsPage = () => {
                     </button>
                   </div>
                 </form>
+              )}
+            </div>
+          </>
+        )}
+        {mainTab === "globalSettings" && (
+          <>
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Global Settings
+              </h2>
+              <p className="text-gray-500">
+                Manage dynamic platform configuration (e.g. fees, rates).
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {isGlobalSettingsLoading ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <Loader2 className="w-8 h-8 text-lily animate-spin" />
+                  <p className="mt-2 text-gray-400">Loading settings...</p>
+                </div>
+              ) : globalSettingsData && globalSettingsData.length > 0 ? (
+                globalSettingsData.map((setting) => (
+                  <div key={setting.id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center gap-6 justify-between">
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 mb-1">{setting.key}</p>
+                      <p className="text-sm text-gray-500 mb-2">{setting.description}</p>
+                      <div className="text-xs text-gray-400">Last updated: {new Date(setting.updated_at).toLocaleString()}</div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <input 
+                        type="text" 
+                        defaultValue={typeof setting.value === 'object' ? JSON.stringify(setting.value) : String(setting.value)}
+                        className="px-4 py-2 bg-gray-50 rounded-xl border border-gray-200 focus:border-lily outline-none min-w-[200px]"
+                        id={`input-${setting.key}`}
+                      />
+                      <button 
+                        disabled={updateGlobalSettingMutation.isPending}
+                        onClick={() => {
+                           const val = document.getElementById(`input-${setting.key}`).value;
+                           let parsedVal = val;
+                           try {
+                             parsedVal = JSON.parse(val);
+                           } catch (e) {}
+                           updateGlobalSettingMutation.mutate({ key: setting.key, payload: { value: parsedVal } });
+                        }}
+                        className="px-6 py-2 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-all flex items-center justify-center"
+                      >
+                        {updateGlobalSettingMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 text-center bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+                  <div className="w-20 h-20 bg-[#f6f8f6] rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-50">
+                    <AlertCircle className="w-10 h-10 text-gray-300" />
+                  </div>
+                  <p className="text-gray-500 font-bold text-xl">
+                    No Settings Found
+                  </p>
+                  <p className="text-gray-400 text-sm font-medium">
+                    Run the database seed command to populate global settings.
+                  </p>
+                </div>
               )}
             </div>
           </>
