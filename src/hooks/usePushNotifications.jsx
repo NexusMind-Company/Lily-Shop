@@ -193,9 +193,18 @@ export const usePushNotifications = (isAuthenticated) => {
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const handleMessage = (event) => {
-        const payload = event.data;
-        if (payload?.data?.type === "INSTANT_ORDER") {
-          // Play ringtone if possible, otherwise rely on vibrate in SW
+        const msg = event.data;
+        // SW sends INSTANT_ORDER_PUSH when a food order push arrives.
+        // This fires the alarm audio on desktop (where vibrate has no effect).
+        if (msg?.type === 'INSTANT_ORDER_PUSH') {
+          if (!currentInstantAudio) {
+            currentInstantAudio = new Audio('/kitchen-alarm.mp3');
+            currentInstantAudio.loop = true;
+          }
+          currentInstantAudio.currentTime = 0;
+          currentInstantAudio.play().catch((e) =>
+            console.warn('Alarm audio blocked by browser policy:', e)
+          );
         }
       };
 

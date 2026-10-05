@@ -37,6 +37,11 @@ export default function NotificationPoller() {
           notifResult.results.forEach((notif) => {
             if (!notif.read && !seenNotificationIds.current.has(notif.id)) {
               seenNotificationIds.current.add(notif.id);
+              // Prune oldest entries so the set never grows beyond 200.
+              if (seenNotificationIds.current.size > 200) {
+                const oldest = seenNotificationIds.current.values().next().value;
+                seenNotificationIds.current.delete(oldest);
+              }
               
               if (notif.type === 'INSTANT_ORDER') {
                 queryClient.invalidateQueries({ queryKey: ["vendorOrders"] });
@@ -76,6 +81,11 @@ export default function NotificationPoller() {
             if (lastMsg && !lastMsg.read && lastMsg.sender_id !== user_data?.id && lastMsg.sender_id !== user_data?.user?.id) {
               if (!seenMessageIds.current.has(lastMsg.id)) {
                 seenMessageIds.current.add(lastMsg.id);
+                // Prune oldest entries so the set never grows beyond 200.
+                if (seenMessageIds.current.size > 200) {
+                  const oldest = seenMessageIds.current.values().next().value;
+                  seenMessageIds.current.delete(oldest);
+                }
                 toast.custom((t) => (
                   <div 
                     onClick={() => {

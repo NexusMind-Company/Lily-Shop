@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* global clients */
 self.addEventListener('push', function(event) {
   let data = {};
   if (event.data) {
@@ -8,42 +10,62 @@ self.addEventListener('push', function(event) {
     }
   }
 
+  const isInstantOrder = data.data && data.data.type === 'instant_order';
+
   const title = data.title || 'LilyShop Notification';
   const options = {
-    body: data.body || 'You have a new message.',
+    body: data.body || 'You have a new notification.',
+    // icon: small logo shown in the notification tile (collapsed view)
     icon: data.icon || '/lily-logo-192.png',
+    // badge: tiny monochrome icon in Android status bar (72px ideal)
     badge: data.badge || '/lily-logo-192.png',
+    // image: large banner shown when notification is expanded
+    image: data.image || '/lily-logo-512.png',
     data: data.data || {},
-    vibrate: [200, 100, 200, 100, 200, 100, 200],
-    requireInteraction: true
+    requireInteraction: true,
+    // Vibrate only works on Android; desktop has no vibration API.
+    // For desktop audio we postMessage to the active page (see below).
+    vibrate: isInstantOrder
+      ? [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500]
+      : [200, 100, 200, 100, 200, 100, 200],
   };
 
-  if (options.data && options.data.type === "INSTANT_ORDER") {
-    // Attempt to play sound or set custom sound if supported by browser
-    // But vibrate is our best cross-platform "loud ringtone" proxy in Web Push
-    options.vibrate = [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500];
-  }
+  // For INSTANT_ORDER push: also notify any open page so it can play
+  // the food order alarm audio on desktop (where vibrate has no effect).
+  const notifyClients = isInstantOrder
+    ? clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(allClients) {
+        allClients.forEach(function(client) {
+          client.postMessage({ type: 'INSTANT_ORDER_PUSH', payload: data.data || {} });
+        });
+      })
+    : Promise.resolve();
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    Promise.all([
+      self.registration.showNotification(title, options),
+      notifyClients,
+    ])
   );
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const urlToOpen = event.notification.data?.url || '/';
-  
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Check if there is already a window/tab open with the target URL
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients) {
+      // Focus an already-open tab whose URL *contains* the target path
+      // rather than requiring an exact match (which almost never fires
+      // when the user is on a nearby route like /vendor/dashboard/orders).
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
-        // If so, just focus it.
-        if (client.url === urlToOpen && 'focus' in client) {
+        const clientPath = new URL(client.url).pathname;
+        const targetPath = urlToOpen.startsWith('http') ? new URL(urlToOpen).pathname : urlToOpen;
+        if (clientPath.includes(targetPath) && 'focus' in client) {
           return client.focus();
         }
       }
-      // If not, then open the target URL in a new window/tab.
+      // No matching tab found — open a new one.
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
