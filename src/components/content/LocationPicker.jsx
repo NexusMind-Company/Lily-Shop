@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { MapPin, Crosshair, Loader2 } from "lucide-react";
+import { searchReverseLocations } from "../../services/api";
 
 const LocationPicker = ({ formData, setFormData }) => {
   const [loading, setLoading] = useState(false);
@@ -21,10 +22,7 @@ const LocationPicker = ({ formData, setFormData }) => {
         const { latitude, longitude } = position.coords;
 
         try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await response.json();
+          const data = await searchReverseLocations(latitude, longitude);
           const locationName = data.display_name || "Unknown location";
 
           setFormData({

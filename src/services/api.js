@@ -527,6 +527,11 @@ export const searchAddressLocations = async (query, state = "", lga = "") => {
   return response.data;
 };
 
+export const searchReverseLocations = async (lat, lon) => {
+  const response = await api.get("/locations/reverse/", { params: { lat, lon } });
+  return response.data;
+};
+
 export const addNewAddress = async (addressData) => {
   const response = await api.post("/users/me/addresses/", addressData);
   return response.data;
