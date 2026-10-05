@@ -15,13 +15,26 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
     profileData?.user?.vendor_id,
   );
 
+  const staffRole =
+    user_data?.staff_role ||
+    user_data?.user?.staff_role ||
+    profileData?.user?.staff_role ||
+    profileData?.staff_role;
+
+  const isAdmin = Boolean(
+    staffRole === "admin" ||
+    user_data?.is_superuser ||
+    user_data?.user?.is_superuser ||
+    profileData?.user?.is_superuser ||
+    profileData?.is_superuser
+  );
+
   const isStaff = Boolean(
     user_data?.is_staff ||
     user_data?.user?.is_staff ||
     profileData?.user?.is_staff ||
-    user_data?.is_superuser ||
-    user_data?.user?.is_superuser ||
-    profileData?.user?.is_superuser,
+    profileData?.is_staff ||
+    isAdmin
   );
 
   const [timedOut, setTimedOut] = useState(false);
@@ -29,9 +42,10 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
   useEffect(() => {
     let timer;
     if (
-      (requiredRole === "vendor" || requiredRole === "staff") &&
+      (requiredRole === "vendor" || requiredRole === "staff" || requiredRole === "admin") &&
       !profileData &&
       !isStaff &&
+      !isAdmin &&
       !isVendor
     ) {
       timer = setTimeout(() => {
@@ -48,9 +62,10 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
 
   // If we are authenticated but don't have the profile data yet, and don't have flags from user_data, WAIT.
   if (
-    (requiredRole === "vendor" || requiredRole === "staff") &&
+    (requiredRole === "vendor" || requiredRole === "staff" || requiredRole === "admin") &&
     !profileData &&
     !isStaff &&
+    !isAdmin &&
     !isVendor
   ) {
     if (timedOut) {
@@ -83,6 +98,11 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
   // Staff-only route
   if (requiredRole === "staff" && !isStaff) {
     return <Navigate to="/" replace />;
+  }
+
+  // Admin-only route
+  if (requiredRole === "admin" && !isAdmin) {
+    return <Navigate to="/lilyshop/workers" replace />;
   }
 
   return children ? children : <Outlet />;

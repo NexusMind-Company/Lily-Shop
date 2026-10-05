@@ -62,7 +62,6 @@ const getNextStatuses = (currentStatus, deliveryType) => {
     preparing: deliveryType === 'pickup'
       ? ['ready_for_pickup']
       : ['out_for_delivery'],
-    pending: ['paid'], // fallback just in case testing needs it
   };
   return transitions[currentStatus] || [];
 };
@@ -113,9 +112,16 @@ const OrderCard = ({ order, onStatusUpdate, isUpdating, isHighlighted }) => {
             <span>Delivery: {order.delivery_time}</span>
           </div>
         )}
-        
-        {/* Out-for-delivery Escrow Protection banner replaces obsolete 4-digit PIN */}
-        {isAwaitingConfirmation ? (
+
+        {/* Pending payment notice */}
+        {order.status === "pending" ? (
+          <div className="mt-3 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-center gap-2.5 text-amber-800 text-xs shadow-sm">
+            <Clock size={16} className="text-amber-600 shrink-0" />
+            <span className="font-medium leading-relaxed">
+              Awaiting customer payment. You can start preparing this order once payment is confirmed.
+            </span>
+          </div>
+        ) : isAwaitingConfirmation ? (
           <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-purple-50 via-indigo-50/30 to-purple-50/60 border border-purple-100/90 flex flex-col gap-1.5 shadow-sm">
             <div className="flex items-center gap-2 text-purple-900 font-bold text-xs">
               <ShieldCheck size={16} className="text-purple-600 shrink-0" />
