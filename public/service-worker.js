@@ -11,8 +11,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'LilyShop Notification';
   const options = {
     body: data.body || 'You have a new message.',
-    icon: '/logo.png',
-    badge: '/logo.png',
+    icon: data.icon || '/lily-logo-192.png',
+    badge: data.badge || '/lily-logo-192.png',
     data: data.data || {},
     vibrate: [200, 100, 200, 100, 200, 100, 200],
     requireInteraction: true
