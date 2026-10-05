@@ -3,7 +3,6 @@ import { getVapidPublicKey, registerDeviceToken } from '../services/api';
 import toast from 'react-hot-toast';
 
 let currentInstantAudio = null;
-let hasActiveForegroundListener = false;
 
 export const stopInstantOrderAudio = () => {
   if (currentInstantAudio) {
@@ -23,7 +22,7 @@ function urlB64ToUint8Array(base64String) {
 
   const padding = '='.repeat((4 - (cleanStr.length % 4)) % 4);
   const base64 = (cleanStr + padding)
-    .replace(/\-/g, '+')
+    .replace(/-/g, '+')
     .replace(/_/g, '/');
 
   try {
@@ -39,6 +38,17 @@ function urlB64ToUint8Array(base64String) {
     return null;
   }
 }
+
+const areKeysEqual = (key1, key2) => {
+  if (!key1 || !key2) return false;
+  const a = key1 instanceof Uint8Array ? key1 : new Uint8Array(key1);
+  const b = key2 instanceof Uint8Array ? key2 : new Uint8Array(key2);
+  if (a.byteLength !== b.byteLength) return false;
+  for (let i = 0; i < a.byteLength; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
 
 export const usePushNotifications = (isAuthenticated) => {
   const [token, setToken] = useState(null);
@@ -68,43 +78,56 @@ export const usePushNotifications = (isAuthenticated) => {
       const registration = await navigator.serviceWorker.register('/service-worker.js');
       await navigator.serviceWorker.ready;
 
+      // 1. Fetch expected VAPID public key from backend
+      let rawPublicKey = null;
+      try {
+        const data = await getVapidPublicKey();
+        rawPublicKey = data?.public_key;
+      } catch (fetchError) {
+        console.warn('Failed to fetch VAPID key from backend:', fetchError);
+      }
+
+      // If backend returned invalid key or filename like "public_key.pem", use env fallback
+      const isInvalidKey =
+        !rawPublicKey ||
+        typeof rawPublicKey !== 'string' ||
+        rawPublicKey.includes('.pem') ||
+        rawPublicKey.includes('BEGIN') ||
+        !/^[A-Za-z0-9\-_=]+$/.test(rawPublicKey.trim());
+
+      if (isInvalidKey) {
+        rawPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || null;
+      }
+
+      const applicationServerKey = urlB64ToUint8Array(rawPublicKey);
+      if (!applicationServerKey) {
+        console.warn(
+          'Push notification setup skipped: Valid VAPID public key not available (received:',
+          rawPublicKey,
+          ')'
+        );
+        return null;
+      }
+
       let subscription = await registration.pushManager.getSubscription();
 
+      // 2. If subscription exists, verify whether its applicationServerKey matches current backend VAPID key
+      if (subscription) {
+        const existingKey = subscription.options?.applicationServerKey;
+        const hasKeyMismatch = !existingKey || !areKeysEqual(existingKey, applicationServerKey);
+        if (hasKeyMismatch) {
+          console.info('VAPID public key changed or mismatched. Unsubscribing old push subscription...');
+          try {
+            await subscription.unsubscribe();
+          } catch (unsubError) {
+            console.warn('Failed to unsubscribe old push subscription:', unsubError);
+          }
+          subscription = null;
+        }
+      }
+
+      // 3. Subscribe if no active or matching subscription exists
       if (!subscription) {
-        // Fetch VAPID public key from backend
-        let rawPublicKey = null;
-        try {
-          const data = await getVapidPublicKey();
-          rawPublicKey = data?.public_key;
-        } catch (fetchError) {
-          console.warn('Failed to fetch VAPID key from backend:', fetchError);
-        }
-
-        // If backend returned invalid key or filename like "public_key.pem", use env fallback
-        const isInvalidKey =
-          !rawPublicKey ||
-          typeof rawPublicKey !== 'string' ||
-          rawPublicKey.includes('.pem') ||
-          rawPublicKey.includes('BEGIN') ||
-          !/^[A-Za-z0-9\-_=]+$/.test(rawPublicKey.trim());
-
-        if (isInvalidKey) {
-          rawPublicKey =
-            import.meta.env.VITE_VAPID_PUBLIC_KEY ||
-            import.meta.env.VITE_FIREBASE_VAPID_KEY ||
-            null;
-        }
-
-        const applicationServerKey = urlB64ToUint8Array(rawPublicKey);
-        if (!applicationServerKey) {
-          console.warn(
-            'Push notification setup skipped: Valid VAPID public key not available (received:',
-            rawPublicKey,
-            ')'
-          );
-          return null;
-        }
-
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey,
