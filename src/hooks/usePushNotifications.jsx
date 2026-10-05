@@ -116,7 +116,8 @@ export const usePushNotifications = (isAuthenticated) => {
 
         if (isAuthenticated) {
           try {
-            await registerDeviceToken(subscription, 'web');
+            const subPayload = subscription.toJSON ? subscription.toJSON() : subscription;
+            await registerDeviceToken(subPayload, 'web');
           } catch (backendError) {
             console.error('Failed to register subscription with backend:', backendError);
           }

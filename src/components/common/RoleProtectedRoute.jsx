@@ -15,17 +15,27 @@ const RoleProtectedRoute = ({ children, requiredRole = "customer" }) => {
     profileData?.user?.vendor_id,
   );
 
+  const staffRole =
+    user_data?.staff_role ||
+    user_data?.user?.staff_role ||
+    profileData?.user?.staff_role ||
+    profileData?.staff_role;
+
+  const isAdmin = Boolean(
+    staffRole === "admin" ||
+    user_data?.is_superuser ||
+    user_data?.user?.is_superuser ||
+    profileData?.user?.is_superuser ||
+    profileData?.is_superuser
+  );
+
   const isStaff = Boolean(
     user_data?.is_staff ||
     user_data?.user?.is_staff ||
     profileData?.user?.is_staff ||
-    user_data?.is_superuser ||
-    user_data?.user?.is_superuser ||
-    profileData?.user?.is_superuser,
+    profileData?.is_staff ||
+    isAdmin
   );
-
-  const staffRole = user_data?.staff_role || user_data?.user?.staff_role || profileData?.user?.staff_role;
-  const isAdmin = Boolean(staffRole === "admin" || user_data?.is_superuser || user_data?.user?.is_superuser || profileData?.user?.is_superuser);
 
   const [timedOut, setTimedOut] = useState(false);
 
