@@ -16,9 +16,9 @@ self.addEventListener('push', function(event) {
   const options = {
     body: data.body || 'You have a new notification.',
     // icon: small logo shown in the notification tile (collapsed view)
-    icon: data.icon || '/lily-logo-192.png',
+    icon: data.icon || '/logo.png',
     // badge: tiny monochrome icon in Android status bar (72px ideal)
-    badge: data.badge || '/lily-logo-192.png',
+    badge: data.badge || '/favicon.png',
     // image: large banner shown when notification is expanded
     image: data.image || '/lily-logo-512.png',
     data: data.data || {},
@@ -30,15 +30,15 @@ self.addEventListener('push', function(event) {
       : [200, 100, 200, 100, 200, 100, 200],
   };
 
-  // For INSTANT_ORDER push: also notify any open page so it can play
-  // the food order alarm audio on desktop (where vibrate has no effect).
-  const notifyClients = isInstantOrder
-    ? clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(allClients) {
-        allClients.forEach(function(client) {
-          client.postMessage({ type: 'INSTANT_ORDER_PUSH', payload: data.data || {} });
-        });
-      })
-    : Promise.resolve();
+  const notifyClients = clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(allClients) {
+    allClients.forEach(function(client) {
+      if (isInstantOrder) {
+        client.postMessage({ type: 'INSTANT_ORDER_PUSH', payload: data.data || {} });
+      } else {
+        client.postMessage({ type: 'NORMAL_PUSH', payload: data.data || {} });
+      }
+    });
+  });
 
   event.waitUntil(
     Promise.all([

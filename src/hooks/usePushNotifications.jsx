@@ -194,17 +194,32 @@ export const usePushNotifications = (isAuthenticated) => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const handleMessage = (event) => {
         const msg = event.data;
-        // SW sends INSTANT_ORDER_PUSH when a food order push arrives.
-        // This fires the alarm audio on desktop (where vibrate has no effect).
         if (msg?.type === 'INSTANT_ORDER_PUSH') {
+          const tone = localStorage.getItem('foodOrderTone') || '/sounds/no-problem-notification-sound.mp3';
           if (!currentInstantAudio) {
-            currentInstantAudio = new Audio('/kitchen-alarm.mp3');
+            currentInstantAudio = new Audio(tone);
+            currentInstantAudio.loop = true;
+          } else if (!currentInstantAudio.src.endsWith(tone)) {
+            currentInstantAudio.pause();
+            currentInstantAudio = new Audio(tone);
             currentInstantAudio.loop = true;
           }
           currentInstantAudio.currentTime = 0;
           currentInstantAudio.play().catch((e) =>
             console.warn('Alarm audio blocked by browser policy:', e)
           );
+          
+          // Stop after 30 seconds to prevent endless looping if not manually dismissed
+          setTimeout(() => {
+            if (currentInstantAudio) {
+              currentInstantAudio.pause();
+              currentInstantAudio.currentTime = 0;
+            }
+          }, 30000);
+        } else if (msg?.type === 'NORMAL_PUSH') {
+          const tone = localStorage.getItem('normalNotificationTone') || '/sounds/light-hearted-message-tone.mp3';
+          const audio = new Audio(tone);
+          audio.play().catch(e => console.warn('Normal audio blocked:', e));
         }
       };
 

@@ -158,7 +158,7 @@ const AdminDashboard = () => {
 
   const {
     data: adminData,
-    isLoading,
+    isLoading: isAdminDataLoading,
     isFetching,
     error,
     refetch: refetchAdminData,
@@ -172,6 +172,20 @@ const AdminDashboard = () => {
       return response.data;
     },
   });
+
+  const { data: globalSettings } = useQuery({
+    queryKey: ["globalSettings"],
+    queryFn: async () => {
+      const response = await api.get("/staff/settings/");
+      return response.data;
+    }
+  });
+
+  const dynamicPlatformFee = useMemo(() => {
+    if (!globalSettings) return 10;
+    const feeSetting = globalSettings.find(s => s.key === "PLATFORM_FEE_PERCENTAGE");
+    return feeSetting ? Number(feeSetting.value) : 10;
+  }, [globalSettings]);
 
   const handlePresetSelect = (presetId) => {
     setActivePreset(presetId);
@@ -216,13 +230,15 @@ const AdminDashboard = () => {
     return {
       totalRevenue: Number(adminData?.total_revenue) || 0,
       lilyshopsShare: Number(adminData?.lilyshops_share) || 0,
-      lilyshopsPercentage: Number(adminData?.lilyshops_percentage) || DEFAULT_LILYSHOPS_PERCENTAGE,
+      lilyshopsPercentage: dynamicPlatformFee,
       totalVendors: Number(adminData?.total_vendors) || 0,
       totalCustomers: Number(adminData?.total_customers) || 0,
       totalSubscriptions: Number(adminData?.total_subscriptions) || 0,
       monthlyGrowth: Number(adminData?.monthly_growth) || 0,
     };
-  }, [adminData]);
+  }, [adminData, dynamicPlatformFee]);
+
+  const isLoading = isAdminDataLoading;
 
   const formattedRevenueData = useMemo(() => {
     return (adminData?.monthly_data || []).map((item) => {

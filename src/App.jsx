@@ -138,6 +138,7 @@ const DeleteVendorProfilePage = lazy(
   () => import("./pages/DeleteVendorProfilePage"),
 );
 const PasswordModalPage = lazy(() => import("./pages/PasswordModalPage"));
+const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
 
 /* ADS & PAYMENTS */
 const PurchaseAds = lazy(() => import("./pages/purchaseAds"));
@@ -457,6 +458,7 @@ function App() {
 
                 {/* Extras */}
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
                 <Route path="/settings/interests" element={<ManageInterestsPage />} />
                 <Route path="/delivery/shopa" element={<ShopaDeliveryPage />} />
                 <Route

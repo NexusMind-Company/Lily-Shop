@@ -63,6 +63,12 @@ const Settings = () => {
       to: "/delivery/shopa",
     },
     {
+      icon: <Bell size={30} className="text-lily" />,
+      text: "Notification Sounds",
+      sub: "Change food order and alert tones",
+      to: "/settings/notifications",
+    },
+    {
       icon: <Utensils size={30} />,
       text: "Food vendor",
       sub: "Become a food vendor and start selling your meals",

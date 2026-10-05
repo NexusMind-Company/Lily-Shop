@@ -43,6 +43,19 @@ export const clearAuthTokens = () => {
   }
 };
 
+/* ---------------- GLOBAL CONFIG ---------------- */
+export const getGlobalSettings = async () => {
+  const response = await api.get("/staff/settings/");
+  return response.data;
+};
+
+export const updateGlobalSetting = async (key, payload) => {
+  const response = await api.put(`/staff/settings/${key}/`, payload);
+  return response.data;
+};
+
+
+
 // Global variables for token refresh queuing
 let isRefreshing = false;
 let failedQueue = [];
