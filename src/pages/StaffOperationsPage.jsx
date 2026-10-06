@@ -229,71 +229,62 @@ const StaffOperationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f8f6] font-display pb-20">
+    <div className="min-h-screen bg-transparent font-display pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-1 hover:bg-gray-50 rounded-full transition-colors"
-            >
-              <ChevronLeft className="w-7 h-7 text-gray-800" />
-            </button>
-            <h1 className="flex-1 text-center text-xl font-bold text-gray-900 pr-8">
-              Staff Operations
-            </h1>
-            <button
-              onClick={() => {
-                if (mainTab === "withdrawals") refetchWithdrawals();
-                if (mainTab === "vendors") refetchVendors();
-                if (mainTab === "shopa") refetchShopaConfig();
-              }}
-              disabled={isWithdrawalsRefetching || isVendorsRefetching || isShopaConfigLoading}
-              className="absolute right-4 p-2 hover:bg-gray-50 rounded-full transition-colors"
-            >
-              <RefreshCw
-                className={`w-5 h-5 text-gray-400 ${
-                  isWithdrawalsRefetching || isVendorsRefetching
-                    ? "animate-spin"
-                    : ""
-                }`}
-              />
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center justify-between mb-6 px-5 lg:px-8 mt-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Staff Operations
+        </h1>
+        <button
+          onClick={() => {
+            if (mainTab === "withdrawals") refetchWithdrawals();
+            if (mainTab === "vendors") refetchVendors();
+            if (mainTab === "shopa") refetchShopaConfig();
+          }}
+          disabled={isWithdrawalsRefetching || isVendorsRefetching || isShopaConfigLoading}
+          className="p-2 bg-white border border-gray-100 shadow-sm hover:bg-gray-50 rounded-xl transition-all flex items-center gap-2"
+        >
+          <RefreshCw
+            className={`w-4 h-4 text-gray-600 ${
+              isWithdrawalsRefetching || isVendorsRefetching || isShopaConfigLoading
+                ? "animate-spin"
+                : ""
+            }`}
+          />
+          <span className="text-sm font-bold text-gray-600 hidden sm:inline">Refresh Data</span>
+        </button>
       </div>
 
       <div className="max-w-5xl mx-auto px-5 py-8">
         {/* Main Tabs */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-3 mb-8 overflow-x-auto pb-2 w-full no-scrollbar" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           <button
             onClick={() => setMainTab("withdrawals")}
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "withdrawals" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+            className={`flex-shrink-0 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${mainTab === "withdrawals" ? "bg-gray-900 text-white shadow-md shadow-gray-900/20" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700"}`}
           >
             Withdrawals
           </button>
           <button
             onClick={() => setMainTab("vendors")}
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "vendors" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+            className={`flex-shrink-0 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${mainTab === "vendors" ? "bg-gray-900 text-white shadow-md shadow-gray-900/20" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700"}`}
           >
             Vendors
           </button>
           <button
             onClick={() => setMainTab("shopa")}
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "shopa" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+            className={`flex-shrink-0 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${mainTab === "shopa" ? "bg-gray-900 text-white shadow-md shadow-gray-900/20" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700"}`}
           >
             Shopa Config
           </button>
           <button
             onClick={() => setMainTab("globalSettings")}
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${mainTab === "globalSettings" ? "bg-gray-900 text-white shadow-lg" : "bg-white text-gray-500 border border-gray-100"}`}
+            className={`flex-shrink-0 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${mainTab === "globalSettings" ? "bg-gray-900 text-white shadow-md shadow-gray-900/20" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700"}`}
           >
             Global Config
           </button>
           <button
             onClick={() => navigate("/admin/settings/notifications")}
-            className="px-6 py-2 rounded-full font-bold text-sm bg-white text-gray-500 border border-gray-100 hover:bg-gray-50 transition-all"
+            className="flex-shrink-0 px-6 py-2.5 rounded-full font-bold text-sm bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700 transition-all"
           >
             Notification Sounds
           </button>
