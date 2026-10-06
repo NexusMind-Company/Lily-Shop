@@ -133,6 +133,8 @@ const FoodOrderCheckoutPage = () => {
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false);
   const [deliveryDistance, setDeliveryDistance] = useState(null);
   const [isExtendedDelivery, setIsExtendedDelivery] = useState(false);
+  const [shopaBaseFee, setShopaBaseFee] = useState(null);
+  const [shopaPerKmRate, setShopaPerKmRate] = useState(null);
 
   const foodPrice = useMemo(() => {
     return Number(product?.price_in_naira) || Number(product?.price) || 0;
@@ -186,10 +188,14 @@ const FoodOrderCheckoutPage = () => {
             setShopaDeliveryFee(calculatedFee);
             setDeliveryDistance(quote?.distance_km);
             setIsExtendedDelivery(quote?.is_extended_distance || false);
+            setShopaBaseFee(quote?.base_fee_naira || 0);
+            setShopaPerKmRate(quote?.per_km_rate_naira || 0);
           } else {
             setShopaDeliveryFee(null);
             setDeliveryDistance(null);
             setIsExtendedDelivery(false);
+            setShopaBaseFee(null);
+            setShopaPerKmRate(null);
           }
         }
       } catch (err) {
@@ -198,6 +204,8 @@ const FoodOrderCheckoutPage = () => {
           setShopaDeliveryFee(null);
           setDeliveryDistance(null);
           setIsExtendedDelivery(false);
+          setShopaBaseFee(null);
+          setShopaPerKmRate(null);
         }
       } finally {
         if (!isCancelled) setIsCalculatingDelivery(false);
@@ -330,9 +338,9 @@ const FoodOrderCheckoutPage = () => {
                       <span className="inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full mt-1">
                         Shopa Instant Delivery
                       </span>
-                      {deliveryDistance !== null && (
+                      {deliveryDistance !== null && shopaPerKmRate !== null && (
                         <span className="text-[10px] text-gray-500 font-medium">
-                          {deliveryDistance.toFixed(1)} km away
+                          {deliveryDistance.toFixed(1)} km away (NGN {formatPrice(shopaBaseFee)} base + NGN {formatPrice(shopaPerKmRate)}/km)
                         </span>
                       )}
                       {isExtendedDelivery && (
@@ -478,22 +486,30 @@ const FoodOrderCheckoutPage = () => {
               <span>Item's total ({quantity})</span>
               <span>NGN {formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-gray-800">
-              <span className="flex items-center gap-1.5">
-                Delivery charge
-                {shopaDeliveryFee !== null && (
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
-                    Shopa
-                  </span>
-                )}
-              </span>
-              <span>
-                {isCalculatingDelivery ? (
-                  <span className="text-xs text-gray-400">Calculating...</span>
-                ) : (
-                  `NGN ${formatPrice(deliveryFee)}`
-                )}
-              </span>
+            <div className="flex flex-col">
+              <div className="flex justify-between text-gray-800">
+                <span className="flex items-center gap-1.5">
+                  Delivery charge
+                  {shopaDeliveryFee !== null && (
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
+                      Shopa
+                    </span>
+                  )}
+                </span>
+                <span>
+                  {isCalculatingDelivery ? (
+                    <span className="text-xs text-gray-400">Calculating...</span>
+                  ) : (
+                    `NGN ${formatPrice(deliveryFee)}`
+                  )}
+                </span>
+              </div>
+              {shopaDeliveryFee !== null && deliveryDistance !== null && shopaPerKmRate !== null && !isCalculatingDelivery && (
+                <div className="flex justify-between text-gray-500 text-xs mt-1 border-t border-gray-100 pt-1">
+                  <span>Base fee + ({deliveryDistance.toFixed(1)} km @ NGN {formatPrice(shopaPerKmRate)}/km)</span>
+                  <span>NGN {formatPrice(shopaBaseFee)} + NGN {formatPrice(shopaPerKmRate * deliveryDistance)}</span>
+                </div>
+              )}
             </div>
             <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-base">
               <span>Total</span>
