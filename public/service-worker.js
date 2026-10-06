@@ -16,11 +16,11 @@ self.addEventListener('push', function(event) {
   const options = {
     body: data.body || 'You have a new notification.',
     // icon: small logo shown in the notification tile (collapsed view)
-    icon: data.icon || '/logo.png',
+    icon: data.icon || `${self.location.origin}/logo.png`,
     // badge: tiny monochrome icon in Android status bar (72px ideal)
-    badge: data.badge || '/favicon.png',
+    badge: data.badge || `${self.location.origin}/icons/shop-active.svg`,
     // image: large banner shown when notification is expanded
-    image: data.image || '/lily-logo-512.png',
+    image: data.image || `${self.location.origin}/lily-logo-512.png`,
     data: data.data || {},
     requireInteraction: true,
     // Vibrate only works on Android; desktop has no vibration API.

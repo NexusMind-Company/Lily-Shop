@@ -201,6 +201,10 @@ const VendorShippingPage = lazy(
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const StaffOperationsPage = lazy(() => import("./pages/StaffOperationsPage"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const SystemHealthPage = lazy(() => import("./pages/SystemHealthPage"));
+const UserDirectoryPage = lazy(() => import("./pages/UserDirectoryPage"));
+const ResolutionCenterPage = lazy(() => import("./pages/ResolutionCenterPage"));
 
 /* OTHER */
 const About = lazy(() => import("./components/about/About"));
@@ -324,16 +328,35 @@ function App() {
                 <Route path="/food" element={<VendorsList />} />
                 <Route path="/support" element={<SupportPage />} />
 
-                {/* Staff Routes */}
+                {/* Staff / Admin Routes */}
                 <Route element={<RoleProtectedRoute requiredRole="staff" />}>
-                  <Route
-                    path="/lilyshop/workers"
-                    element={<StaffOperationsPage />}
-                  />
-                </Route>
-
-                <Route element={<RoleProtectedRoute requiredRole="admin" />}>
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route element={<AdminLayout />}>
+                    <Route
+                      path="/admin"
+                      element={<Navigate to="/admin/dashboard" replace />}
+                    />
+                    <Route
+                      path="/admin/dashboard"
+                      element={<AdminDashboard />}
+                    />
+                    <Route
+                      path="/admin/operations"
+                      element={<StaffOperationsPage />}
+                    />
+                    <Route
+                      path="/admin/directory"
+                      element={<UserDirectoryPage />}
+                    />
+                    <Route
+                      path="/admin/resolution"
+                      element={<ResolutionCenterPage />}
+                    />
+                    <Route
+                      path="/admin/health"
+                      element={<SystemHealthPage />}
+                    />
+                    {/* Additional nested routes will go here as we build them out */}
+                  </Route>
                 </Route>
 
                 <Route
