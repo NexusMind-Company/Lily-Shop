@@ -52,19 +52,32 @@ export default function NotificationPoller() {
                 }
               } else {
                 toast.custom((t) => (
-                  <div 
-                    onClick={() => {
-                      toast.dismiss(t.id);
-                      navigate(notif.url || "/activity");
-                    }}
-                    className="bg-white border-l-4 border-lily rounded-xl shadow-xl p-4 flex items-start gap-3 cursor-pointer max-w-sm w-full animate-in slide-in-from-right"
-                  >
-                    <div className="bg-lily/10 p-2 rounded-full">
-                      <Bell className="w-5 h-5 text-lily" />
+                  <div className="bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 flex flex-col gap-3 max-w-sm w-full animate-in slide-in-from-right pointer-events-auto">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-lily/10 p-2.5 rounded-full shrink-0">
+                        <Bell className="w-5 h-5 text-lily" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm">New Activity</p>
+                        <p className="text-gray-600 text-sm mt-0.5 line-clamp-2">{notif.message || notif.title || "You have a new notification"}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-800 text-sm">New Activity</p>
-                      <p className="text-gray-600 text-sm mt-1">{notif.message || notif.title || "You have a new notification"}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <button
+                        onClick={() => {
+                          toast.dismiss(t.id);
+                          navigate(notif.url || "/activity");
+                        }}
+                        className="flex-1 bg-lily text-white py-2 rounded-xl text-sm font-semibold hover:bg-lily-dark transition-colors"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   </div>
                 ), { duration: 5000, id: notif.id });
@@ -87,21 +100,34 @@ export default function NotificationPoller() {
                   seenMessageIds.current.delete(oldest);
                 }
                 toast.custom((t) => (
-                  <div 
-                    onClick={() => {
-                      toast.dismiss(t.id);
-                      navigate(`/chat/${conv.id}`);
-                    }}
-                    className="bg-white border-l-4 border-green-500 rounded-xl shadow-xl p-4 flex items-start gap-3 cursor-pointer max-w-sm w-full animate-in slide-in-from-right"
-                  >
-                    <div className="bg-green-50 p-2 rounded-full">
-                      <MessageCircle className="w-5 h-5 text-green-500" />
+                  <div className="bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 flex flex-col gap-3 max-w-sm w-full animate-in slide-in-from-right pointer-events-auto">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-green-50 p-2.5 rounded-full shrink-0">
+                        <MessageCircle className="w-5 h-5 text-green-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm">New Message</p>
+                        <p className="text-gray-600 text-sm mt-0.5 line-clamp-2">
+                          {lastMsg.content?.startsWith("[ORDER_PAYLOAD]") ? "Sent an order payload" : lastMsg.content}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-800 text-sm">New Message</p>
-                      <p className="text-gray-600 text-sm mt-1 truncate max-w-[200px]">
-                        {lastMsg.content?.startsWith("[ORDER_PAYLOAD]") ? "Sent an order payload" : lastMsg.content}
-                      </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <button
+                        onClick={() => {
+                          toast.dismiss(t.id);
+                          navigate(`/chat/${conv.id}`);
+                        }}
+                        className="flex-1 bg-green-500 text-white py-2 rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors"
+                      >
+                        Open Chat
+                      </button>
+                      <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   </div>
                 ), { duration: 5000, id: lastMsg.id });

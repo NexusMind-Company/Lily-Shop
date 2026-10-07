@@ -133,6 +133,9 @@ const FoodOrderCheckoutPage = () => {
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false);
   const [deliveryDistance, setDeliveryDistance] = useState(null);
   const [isExtendedDelivery, setIsExtendedDelivery] = useState(false);
+  const [shopaBaseFee, setShopaBaseFee] = useState(null);
+  const [shopaPerKmRate, setShopaPerKmRate] = useState(null);
+  const [isMinimumFeeApplied, setIsMinimumFeeApplied] = useState(false);
 
   const foodPrice = useMemo(() => {
     return Number(product?.price_in_naira) || Number(product?.price) || 0;
@@ -186,10 +189,28 @@ const FoodOrderCheckoutPage = () => {
             setShopaDeliveryFee(calculatedFee);
             setDeliveryDistance(quote?.distance_km);
             setIsExtendedDelivery(quote?.is_extended_distance || false);
+            setShopaBaseFee(quote?.base_fee_naira || 0);
+            
+            // Calculate the per km rate from the total per km charge divided by distance
+            // because the live API might not return per_km_rate_naira directly yet.
+            const rate = quote?.per_km_rate_naira !== undefined 
+                ? quote.per_km_rate_naira 
+                : (quote?.per_km_charge_naira && quote?.distance_km ? quote.per_km_charge_naira / quote.distance_km : 0);
+            setShopaPerKmRate(rate);
+            
+            // If the live API hasn't been updated with minimum_fee_applied, calculate it:
+            const isMinApplied = quote?.minimum_fee_applied !== undefined 
+                ? quote.minimum_fee_applied 
+                : (calculatedFee > (quote?.base_fee_naira || 0) + (quote?.per_km_charge_naira || 0) + (quote?.surcharge_naira || 0));
+            
+            setIsMinimumFeeApplied(isMinApplied);
           } else {
             setShopaDeliveryFee(null);
             setDeliveryDistance(null);
             setIsExtendedDelivery(false);
+            setShopaBaseFee(null);
+            setShopaPerKmRate(null);
+            setIsMinimumFeeApplied(false);
           }
         }
       } catch (err) {
@@ -198,6 +219,9 @@ const FoodOrderCheckoutPage = () => {
           setShopaDeliveryFee(null);
           setDeliveryDistance(null);
           setIsExtendedDelivery(false);
+          setShopaBaseFee(null);
+          setShopaPerKmRate(null);
+          setIsMinimumFeeApplied(false);
         }
       } finally {
         if (!isCancelled) setIsCalculatingDelivery(false);
@@ -330,14 +354,21 @@ const FoodOrderCheckoutPage = () => {
                       <span className="inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full mt-1">
                         Shopa Instant Delivery
                       </span>
-                      {deliveryDistance !== null && (
+                      {deliveryDistance !== null && shopaPerKmRate !== null && (
                         <span className="text-[10px] text-gray-500 font-medium">
-                          {deliveryDistance.toFixed(1)} km away
+                          {shopaBaseFee > 0 
+                            ? `NGN ${formatPrice(shopaBaseFee)} base fee + ${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`
+                            : `${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`}
                         </span>
                       )}
                       {isExtendedDelivery && (
                         <span className="inline-block text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded-full mt-0.5">
                           +20% Extended Distance Surcharge
+                        </span>
+                      )}
+                      {isMinimumFeeApplied && (
+                        <span className="inline-block text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-full mt-0.5">
+                          Minimum Fee Applied
                         </span>
                       )}
                     </div>
@@ -478,22 +509,50 @@ const FoodOrderCheckoutPage = () => {
               <span>Item's total ({quantity})</span>
               <span>NGN {formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-gray-800">
-              <span className="flex items-center gap-1.5">
-                Delivery charge
-                {shopaDeliveryFee !== null && (
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
-                    Shopa
-                  </span>
-                )}
-              </span>
-              <span>
-                {isCalculatingDelivery ? (
-                  <span className="text-xs text-gray-400">Calculating...</span>
-                ) : (
-                  `NGN ${formatPrice(deliveryFee)}`
-                )}
-              </span>
+            <div className="flex flex-col">
+              <div className="flex justify-between text-gray-800">
+                <span className="flex items-center gap-1.5">
+                  Delivery charge
+                  {shopaDeliveryFee !== null && (
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-full">
+                      Shopa
+                    </span>
+                  )}
+                </span>
+                <span>
+                  {isCalculatingDelivery ? (
+                    <span className="text-xs text-gray-400">Calculating...</span>
+                  ) : (
+                    `NGN ${formatPrice(deliveryFee)}`
+                  )}
+                </span>
+              </div>
+              {shopaDeliveryFee !== null && deliveryDistance !== null && shopaPerKmRate !== null && !isCalculatingDelivery && (
+                <div className="flex flex-col gap-1 text-gray-500 text-xs mt-1 border-t border-gray-100 pt-1">
+                  <div className="flex justify-between">
+                    <span>
+                      {shopaBaseFee > 0 
+                        ? `NGN ${formatPrice(shopaBaseFee)} base fee + ${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`
+                        : `${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`}
+                    </span>
+                    <span className={isMinimumFeeApplied || isExtendedDelivery ? "line-through opacity-70" : ""}>
+                      NGN {formatPrice(shopaBaseFee + (shopaPerKmRate * deliveryDistance))}
+                    </span>
+                  </div>
+                  {isMinimumFeeApplied && (
+                    <div className="flex justify-between text-amber-600 font-medium">
+                      <span>Minimum delivery fee applied</span>
+                      <span>NGN {formatPrice(shopaDeliveryFee)}</span>
+                    </div>
+                  )}
+                  {isExtendedDelivery && !isMinimumFeeApplied && (
+                    <div className="flex justify-between text-rose-600 font-medium">
+                      <span>+20% Extended distance surcharge</span>
+                      <span>NGN {formatPrice(shopaDeliveryFee)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="pt-3 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-base">
               <span>Total</span>
