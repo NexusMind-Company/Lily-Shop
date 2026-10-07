@@ -356,7 +356,9 @@ const FoodOrderCheckoutPage = () => {
                       </span>
                       {deliveryDistance !== null && shopaPerKmRate !== null && (
                         <span className="text-[10px] text-gray-500 font-medium">
-                          {deliveryDistance.toFixed(1)} km away (NGN {formatPrice(shopaBaseFee)} base + NGN {formatPrice(shopaPerKmRate)}/km)
+                          {shopaBaseFee > 0 
+                            ? `base fee= NGN ${formatPrice(shopaBaseFee)} + ${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`
+                            : `${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`}
                         </span>
                       )}
                       {isExtendedDelivery && (
@@ -528,7 +530,11 @@ const FoodOrderCheckoutPage = () => {
               {shopaDeliveryFee !== null && deliveryDistance !== null && shopaPerKmRate !== null && !isCalculatingDelivery && (
                 <div className="flex flex-col gap-1 text-gray-500 text-xs mt-1 border-t border-gray-100 pt-1">
                   <div className="flex justify-between">
-                    <span>Base fee + ({deliveryDistance.toFixed(1)} km @ NGN {formatPrice(shopaPerKmRate)}/km)</span>
+                    <span>
+                      {shopaBaseFee > 0 
+                        ? `base fee= NGN ${formatPrice(shopaBaseFee)} + ${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`
+                        : `${deliveryDistance.toFixed(1)} in km @ NGN ${formatPrice(shopaPerKmRate)}/km`}
+                    </span>
                     <span className={isMinimumFeeApplied || isExtendedDelivery ? "line-through opacity-70" : ""}>
                       NGN {formatPrice(shopaBaseFee + (shopaPerKmRate * deliveryDistance))}
                     </span>
